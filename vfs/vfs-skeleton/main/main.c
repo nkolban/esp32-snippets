@@ -23,7 +23,7 @@
 #include "fcntl.h"
 
 char tag[] = "vfs-skeleton";
-esp_err_t event_handler(void *ctx, system_event_t *event)
+esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
 {
     return ESP_OK;
 }
@@ -33,7 +33,7 @@ int app_main(void)
     nvs_flash_init();
     system_init();
     tcpip_adapter_init();
-    ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );
+    ESP_ERROR_CHECK( esp_event_loop_init(wifi_event_handler, NULL) );
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
