@@ -1,3 +1,15 @@
+/**
+ * Test the Virtual File System
+ *
+ * Perform a test against the Virtual File System.
+ *
+ * For additional details and documentation see:
+ * * Free book on ESP32 - https://leanpub.com/kolban-ESP32
+ *
+ *
+ * Neil Kolban <kolban1@kolban.com>
+ *
+ */
 #include "vfsTest.h"
 #include "esp_vfs.h"
 #include "esp_log.h"
@@ -99,7 +111,7 @@ static int vfs_rename(const char *oldPath, const char *newPath) {
 
 
 /**
- * Resgister the VFS at the specified mount point.
+ * Register the VFS at the specified mount point.
  * The callback functions are registered to handle the
  * different functions that may be requested against the
  * VFS.
@@ -108,6 +120,8 @@ void registerTestVFS(char *mountPoint) {
 	esp_vfs_t vfs;
 	esp_err_t err;
 
+	vfs.fd_offset = 0;
+	vfs.flags = ESP_VFS_FLAG_DEFAULT;
 	vfs.write  = vfs_write;
 	vfs.lseek  = vfs_lseek;
 	vfs.read   = vfs_read;
@@ -117,7 +131,6 @@ void registerTestVFS(char *mountPoint) {
 	vfs.stat   = vfs_stat;
 	vfs.link   = vfs_link;
 	vfs.rename = vfs_rename;
-
 
 	err = esp_vfs_register(mountPoint, &vfs, NULL);
 	if (err != ESP_OK) {
