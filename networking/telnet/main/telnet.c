@@ -1,3 +1,19 @@
+/**
+ * Test the telnet functions.
+ *
+ * Perform a test using the telnet functions.
+ * This code exports two new global functions:
+ *
+ * void telnet_listenForClients(void (*callback)(uint8_t *buffer, size_t size))
+ * void telnet_sendData(uint8_t *buffer, size_t size)
+ *
+ * For additional details and documentation see:
+ * * Free book on ESP32 - https://leanpub.com/kolban-ESP32
+ *
+ *
+ * Neil Kolban <kolban1@kolban.com>
+ *
+ */
 #include "stdlib.h" // Required for libtelnet.h
 #include "esp_log.h"
 #include "libtelnet.h"
@@ -7,7 +23,12 @@
 #include "errno.h"
 
 static char tag[] = "telnet";
+
+// The global tnHandle ... since we are only processing ONE telnet
+// client at a time, this can be a global static.
 static telnet_t *tnHandle;
+
+void (*callback)(uint8_t *buffer, size_t size);
 
 static char *eventToString(telnet_event_type_t type) {
 	switch(type) {
@@ -49,6 +70,13 @@ struct telnetUserData {
 	int sockfd;
 };
 
+void telnet_sendData(uint8_t *buffer, size_t size) {
+	if (tnHandle != NULL) {
+		telnet_send(tnHandle, (char *)buffer, size);
+	}
+}
+
+
 static void myTelnetHandler(
 		telnet_t *thisTelnet,
 		telnet_event_t *event,
@@ -66,6 +94,14 @@ static void myTelnetHandler(
 
 	case TELNET_EV_DATA:
 		ESP_LOGD(tag, "received data, len=%d", event->data.size);
+		/**
+		 * Here is where we would want to handle newly received data.
+		 * The data receive is in event->data.buffer of size
+		 * event->data.size.
+		 */
+		if (callback != NULL) {
+			callback((uint8_t *)event->data.buffer, (size_t)event->data.size);
+		}
 		break;
 
 	default:
@@ -74,7 +110,7 @@ static void myTelnetHandler(
 } // myTelnetHandler
 
 
-void doTelnet(int partnerSocket) {
+static void doTelnet(int partnerSocket) {
 	ESP_LOGD(tag, ">> doTelnet");
   static const telnet_telopt_t my_telopts[] = {
     { TELNET_TELOPT_ECHO,      TELNET_WILL, TELNET_DONT },
@@ -103,12 +139,14 @@ void doTelnet(int partnerSocket) {
   }
   ESP_LOGD(tag, "Telnet partner finished");
   telnet_free(tnHandle);
+  tnHandle = NULL;
   free(pTelnetUserData);
 } // doTelnet
 
 
-void listenForNewClient() {
-	ESP_LOGD(tag, ">> listenForNewClient");
+void telnet_listenForClients(void (*callbackParam)(uint8_t *buffer, size_t size)) {
+	ESP_LOGD(tag, ">> telnet_listenForClients");
+	callback = callbackParam;
 	int serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	struct sockaddr_in serverAddr;
