@@ -9,6 +9,7 @@ TCP port 23 (Telnet) for an incoming client request.
 
 ##Addition of libtelnet
 To install the libtelnet component:
+
 1. Create a sub-directory called `components`.
 2. Change into `components`.
 3. Clone the libtelnet repository:

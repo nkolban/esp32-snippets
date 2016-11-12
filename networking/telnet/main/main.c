@@ -23,6 +23,7 @@
 #include "nvs_flash.h"
 #include "esp_log.h"
 #include "string.h"
+#include "telnet.h"
 #include "sdkconfig.h"
 
 // YOUR network SSID
@@ -31,22 +32,18 @@
 // YOUR network password
 #define PASSWORD "password"
 
-
-extern void telnet_listenForClients(void (*callbackParam)(uint8_t *buffer, size_t size));
-extern void telnet_sendData(uint8_t *buffer, size_t size);
-
 static char tag[] = "telnet";
 
 static void recvData(uint8_t *buffer, size_t size) {
 	char responseMessage[100];
 	ESP_LOGD(tag, "We received: %.*s", size, buffer);
 	sprintf(responseMessage, "Thanks for %d bytes of data\n", size);
-	telnet_sendData((uint8_t *)responseMessage, strlen(responseMessage));
+	telnet_esp32_sendData((uint8_t *)responseMessage, strlen(responseMessage));
 }
 
 static void telnetTask(void *data) {
 	ESP_LOGD(tag, ">> telnetTask");
-	telnet_listenForClients(recvData);
+	telnet_esp32_listenForClients(recvData);
 	ESP_LOGD(tag, "<< telnetTask");
 	vTaskDelete(NULL);
 }

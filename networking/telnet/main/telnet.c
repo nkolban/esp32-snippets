@@ -70,12 +70,19 @@ struct telnetUserData {
 	int sockfd;
 };
 
-void telnet_sendData(uint8_t *buffer, size_t size) {
+void telnet_esp32_sendData(uint8_t *buffer, size_t size) {
 	if (tnHandle != NULL) {
 		telnet_send(tnHandle, (char *)buffer, size);
 	}
 }
 
+
+int telnet_esp32_vprintf(const char *fmt, va_list va) {
+	if (tnHandle == NULL) {
+		return 0;
+	}
+	return telnet_vprintf(tnHandle, fmt, va);
+}
 
 static void myTelnetHandler(
 		telnet_t *thisTelnet,
@@ -144,7 +151,7 @@ static void doTelnet(int partnerSocket) {
 } // doTelnet
 
 
-void telnet_listenForClients(void (*callbackParam)(uint8_t *buffer, size_t size)) {
+void telnet_esp32_listenForClients(void (*callbackParam)(uint8_t *buffer, size_t size)) {
 	ESP_LOGD(tag, ">> telnet_listenForClients");
 	callback = callbackParam;
 	int serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
