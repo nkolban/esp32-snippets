@@ -31,7 +31,7 @@ static char tag []="mongooseTests";
 /**
  * Convert a Mongoose event type to a string.
  */
-char *eventToString(int ev) {
+char *mongoose_eventToString(int ev) {
 	static char temp[100];
 	switch (ev) {
 	case MG_EV_CONNECT:
@@ -76,6 +76,12 @@ char *eventToString(int ev) {
 		return "MG_EV_MQTT_UNSUBACK";
 	case MG_EV_MQTT_UNSUBSCRIBE:
 		return "MG_EV_MQTT_UNSUBSCRIBE";
+	case MG_EV_WEBSOCKET_HANDSHAKE_REQUEST:
+		return "MG_EV_WEBSOCKET_HANDSHAKE_REQUEST";
+	case MG_EV_WEBSOCKET_HANDSHAKE_DONE:
+		return "MG_EV_WEBSOCKET_HANDSHAKE_DONE";
+	case MG_EV_WEBSOCKET_FRAME:
+		return "MG_EV_WEBSOCKET_FRAME";
 	}
 	sprintf(temp, "Unknown event: %d", ev);
 	return temp;

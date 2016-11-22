@@ -10,10 +10,12 @@
  * Neil Kolban <kolban1@kolban.com>
  *
  */
-#include "vfsTest.h"
-#include "esp_vfs.h"
-#include "esp_log.h"
+
+#include <esp_vfs.h>
+#include <esp_log.h>
 #include <fcntl.h>
+#include "vfsTest.h"
+#include "sdkconfig.h"
 
 static char tag[] = "vfsTest";
 
