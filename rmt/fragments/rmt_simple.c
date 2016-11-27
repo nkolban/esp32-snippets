@@ -2,6 +2,7 @@
 #include <freertos/task.h>
 #include <esp_log.h>
 #include <driver/rmt.h>
+#include <stdbool.h>
 #include "sdkconfig.h"
 
 static char tag[] = "rmt_tests";
