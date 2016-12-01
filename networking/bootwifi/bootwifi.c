@@ -1,3 +1,13 @@
+/**
+ * Bootwifi - Boot the WiFi environment.
+ *
+ * Compile with -DBOOTWIFI_OVERRIDE_GPIO=<num> where <num> is a GPIO pin number
+ * to use a GPIO override.
+ * See the README.md for full information.
+ *
+ */
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <esp_log.h>
 #include <esp_err.h>
 #include <esp_system.h>
@@ -6,42 +16,49 @@
 #include <esp_wifi.h>
 #include <nvs.h>
 #include <nvs_flash.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
 #include <driver/gpio.h>
+#include <tcpip_adapter.h>
+#include <lwip/sockets.h>
 #include <mongoose.h>
 #include "bootwifi.h"
 #include "sdkconfig.h"
 #include "selectAP.h"
-// Key used in NVS for connection info
-#define KEY_CONNECTION_INFO "connectionInfo"
 
-// Namespace in NVS for bootwifi
-#define BOOTWIFI_NAMESPACE "bootwifi"
+// If the structure of a record saved for a subsequent reboot changes
+// then consider using semver to change the version number or else
+// we may try and boot with the wrong data.
+#define KEY_VERSION "version"
+uint32_t g_version=0x0100;
 
-#define SSID_SIZE (32)
-#define PASSWORD_SIZE (64)
-
-#define OVERRIDE_GPIO GPIO_NUM_25
+#define KEY_CONNECTION_INFO "connectionInfo" // Key used in NVS for connection info
+#define BOOTWIFI_NAMESPACE "bootwifi" // Namespace in NVS for bootwifi
+#define SSID_SIZE (32) // Maximum SSID size
+#define PASSWORD_SIZE (64) // Maximum password size
 
 typedef struct {
 	char ssid[SSID_SIZE];
 	char password[PASSWORD_SIZE];
+	tcpip_adapter_ip_info_t ipInfo; // Optional static IP information
 } connection_info_t;
 
-static char tag[] = "bootwifi";
-
-static bootwifi_callback_t g_callback = NULL;
+static bootwifi_callback_t g_callback = NULL; // Callback function to be invoked when we have finished.
 
 static int g_mongooseStarted = 0; // Has the mongoose server started?
 static int g_mongooseStopRequest = 0; // Request to stop the mongoose server.
 
+// Forward declarations
 static void saveConnectionInfo(connection_info_t *pConnectionInfo);
 static void becomeAccessPoint();
 static void bootWiFi2();
 
+static char tag[] = "bootwifi";
+
+
+
+
+
 /**
- * Convert a Mongoose event type to a string.
+ * Convert a Mongoose event type to a string.  Used for debugging.
  */
 static char *mongoose_eventToString(int ev) {
 	static char temp[100];
@@ -134,21 +151,52 @@ static void mongoose_event_handler(struct mg_connection *nc, int ev, void *evDat
 			} if (strcmp(uri, "/") == 0) {
 				mg_send_head(nc, 200, sizeof(selectAP_html), "Content-Type: text/html");
 				mg_send(nc, selectAP_html, sizeof(selectAP_html));
-			} if(strcmp(uri, "/ssidSelected") == 0) {
+			}
+			// Handle /ssidSelected
+			// This is an incoming form with properties:
+			// * ssid - The ssid of the network to connect against.
+			// * password - the password to use to connect.
+			// * ip - Static IP address ... may be empty
+			// * gw - Static GW address ... may be empty
+			// * netmask - Static netmask ... may be empty
+			if(strcmp(uri, "/ssidSelected") == 0) {
 				// We have received a form page containing the details.  The form body will
 				// contain:
 				// ssid=<value>&password=<value>
 				ESP_LOGD(tag, "- body: %.*s", message->body.len, message->body.p);
 				connection_info_t connectionInfo;
-				mg_get_http_var(&message->body, "ssid",
-					connectionInfo.ssid, SSID_SIZE);
-				mg_get_http_var(&message->body, "password",
-					connectionInfo.password, PASSWORD_SIZE);
+				mg_get_http_var(&message->body, "ssid",	connectionInfo.ssid, SSID_SIZE);
+				mg_get_http_var(&message->body, "password", connectionInfo.password, PASSWORD_SIZE);
+
+				char ipBuf[20];
+				if (mg_get_http_var(&message->body, "ip", ipBuf, sizeof(ipBuf)) > 0) {
+					inet_pton(AF_INET, ipBuf, &connectionInfo.ipInfo.ip);
+				} else {
+					connectionInfo.ipInfo.ip.addr = 0;
+				}
+
+				if (mg_get_http_var(&message->body, "gw", ipBuf, sizeof(ipBuf)) > 0) {
+					inet_pton(AF_INET, ipBuf, &connectionInfo.ipInfo.gw);
+				}
+				else {
+					connectionInfo.ipInfo.gw.addr = 0;
+				}
+
+				if (mg_get_http_var(&message->body, "netmask", ipBuf, sizeof(ipBuf)) > 0) {
+					inet_pton(AF_INET, ipBuf, &connectionInfo.ipInfo.netmask);
+				}
+				else {
+					connectionInfo.ipInfo.netmask.addr = 0;
+				}
+
 				ESP_LOGD(tag, "ssid: %s, password: %s", connectionInfo.ssid, connectionInfo.password);
+
 				mg_send_head(nc, 200, 0, "Content-Type: text/plain");
 				saveConnectionInfo(&connectionInfo);
 				bootWiFi2();
-			}	else {
+			} // url is "/ssidSelected"
+			// Else ... unknown URL
+			else {
 				mg_send_head(nc, 404, 0, "Content-Type: text/plain");
 			}
 			nc->flags |= MG_F_SEND_AND_CLOSE;
@@ -189,6 +237,11 @@ static void mongooseTask(void *data) {
 	mg_mgr_free(&mgr);
 	g_mongooseStarted = 0;
 
+	// Since we HAVE ended mongoose, time to invoke the callback.
+	if (g_callback) {
+		g_callback(1);
+	}
+
 	ESP_LOGD(tag, "<< mongooseTask");
 	vTaskDelete(NULL);
 	return;
@@ -218,18 +271,24 @@ static esp_err_t esp32_wifi_eventHandler(void *ctx, system_event_t *event) {
 	switch(event->event_id) {
 		// When we have started being an access point, then start being a web server.
 		case SYSTEM_EVENT_AP_START: { // Handle the AP start event
-			ESP_LOGD(tag, "AP started");
+			tcpip_adapter_ip_info_t ip_info;
+			tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &ip_info);
+			ESP_LOGD(tag, "**********************************************");
+			ESP_LOGD(tag, "* We are now an access point and you can point")
+			ESP_LOGD(tag, "* your browser to http://" IPSTR, IP2STR(&ip_info.ip));
+			ESP_LOGD(tag, "**********************************************");
 			// Start Mongoose ...
 			if (!g_mongooseStarted)
 			{
 				g_mongooseStarted = 1;
-				xTaskCreatePinnedToCore(&mongooseTask, "mongoose_task", 2048, NULL, 5, NULL, 0);
+				xTaskCreatePinnedToCore(&mongooseTask, "bootwifi_mongoose_task", 8000, NULL, 5, NULL, 0);
 			}
 			break;
 		} // SYSTEM_EVENT_AP_START
 
 		// If we fail to connect to an access point as a station, become an access point.
 		case SYSTEM_EVENT_STA_DISCONNECTED: {
+			ESP_LOGD(tag, "Station disconnected started");
 			// We think we tried to connect as a station and failed! ... become
 			// an access point.
 			becomeAccessPoint();
@@ -239,14 +298,18 @@ static esp_err_t esp32_wifi_eventHandler(void *ctx, system_event_t *event) {
 		// If we connected as a station then we are done and we can stop being a
 		// web server.
 		case SYSTEM_EVENT_STA_GOT_IP: {
-			ESP_LOGD(tag, " *******************************************");
+			ESP_LOGD(tag, "********************************************");
 			ESP_LOGD(tag, "* We are now connected and ready to do work!")
 			ESP_LOGD(tag, "* - Our IP address is: " IPSTR, IP2STR(&event->event_info.got_ip.ip_info.ip));
-			ESP_LOGD(tag, " *******************************************");
+			ESP_LOGD(tag, "********************************************");
 			g_mongooseStopRequest = 1; // Stop mongoose (if it is running).
-			if (g_callback) {
-				g_callback(1);
-			}
+			// Invoke the callback if Mongoose has NOT been started ... otherwise
+			// we will invoke the callback when mongoose has ended.
+			if (!g_mongooseStarted) {
+				if (g_callback) {
+					g_callback(1);
+				}
+			} // Mongoose was NOT started
 			break;
 		} // SYSTEM_EVENT_STA_GOTIP
 
@@ -265,24 +328,49 @@ static int getConnectionInfo(connection_info_t *pConnectionInfo) {
 	nvs_handle handle;
 	size_t size;
 	esp_err_t err;
+	uint32_t version;
 	err = nvs_open(BOOTWIFI_NAMESPACE, NVS_READWRITE, &handle);
 	if (err != 0) {
 		ESP_LOGE(tag, "nvs_open: %x", err);
 		return -1;
 	}
 
-	size = sizeof(connection_info_t);
-	err = nvs_get_blob(handle, KEY_CONNECTION_INFO, pConnectionInfo, &size);
-	if (err == ESP_ERR_NVS_NOT_FOUND) {
+	// Get the version that the data was saved against.
+	err = nvs_get_u32(handle, KEY_VERSION, &version);
+	if (err != ESP_OK) {
+		ESP_LOGD(tag, "No version record found (%d).", err);
 		nvs_close(handle);
 		return -1;
 	}
-	if (err != 0) {
+
+	// Check the versions match
+	if ((version & 0xff00) != (g_version & 0xff00)) {
+		ESP_LOGD(tag, "Incompatible versions ... current is %x, found is %x", version, g_version);
+		nvs_close(handle);
+		return -1;
+	}
+
+	size = sizeof(connection_info_t);
+	err = nvs_get_blob(handle, KEY_CONNECTION_INFO, pConnectionInfo, &size);
+	if (err != ESP_OK) {
+		ESP_LOGD(tag, "No connection record found (%d).", err);
+		nvs_close(handle);
+		return -1;
+	}
+	if (err != ESP_OK) {
 		ESP_LOGE(tag, "nvs_open: %x", err);
 		nvs_close(handle);
 		return -1;
 	}
+
+	// Cleanup
 	nvs_close(handle);
+
+	// Do a sanity check on the SSID
+	if (strlen(pConnectionInfo->ssid) == 0) {
+		ESP_LOGD(tag, "NULL ssid detected");
+		return -1;
+	}
 	return 0;
 } // getConnectionInfo
 
@@ -295,6 +383,7 @@ static void saveConnectionInfo(connection_info_t *pConnectionInfo) {
 	ESP_ERROR_CHECK(nvs_open(BOOTWIFI_NAMESPACE, NVS_READWRITE, &handle));
 	ESP_ERROR_CHECK(nvs_set_blob(handle, KEY_CONNECTION_INFO, pConnectionInfo,
 			sizeof(connection_info_t)));
+	ESP_ERROR_CHECK(nvs_set_u32(handle, KEY_VERSION, g_version));
 	ESP_ERROR_CHECK(nvs_commit(handle));
 	nvs_close(handle);
 } // setConnectionInfo
@@ -304,7 +393,17 @@ static void saveConnectionInfo(connection_info_t *pConnectionInfo) {
  * Become a station connecting to an existing access point.
  */
 static void becomeStation(connection_info_t *pConnectionInfo) {
-	ESP_LOGD(tag, "- Connecting to access point %s ...", pConnectionInfo->ssid);
+	ESP_LOGD(tag, "- Connecting to access point \"%s\" ...", pConnectionInfo->ssid);
+	assert(strlen(pConnectionInfo->ssid) > 0);
+
+	// If we have a static IP address information, use that.
+	if (pConnectionInfo->ipInfo.ip.addr != 0) {
+		ESP_LOGD(tag, " - using a static IP address of " IPSTR, IP2STR(&pConnectionInfo->ipInfo.ip));
+		tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA);
+		tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &pConnectionInfo->ipInfo);
+	} else {
+		tcpip_adapter_dhcpc_start(TCPIP_ADAPTER_IF_STA);
+	}
 
   ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA));
   wifi_config_t sta_config;
@@ -346,12 +445,18 @@ static void becomeAccessPoint() {
  * indicate that we should not attempt to connect to any previously saved
  * access point we may know about.
  */
+
 static int checkOverrideGpio() {
-	gpio_pad_select_gpio(OVERRIDE_GPIO);
-	gpio_set_direction(OVERRIDE_GPIO, GPIO_MODE_INPUT);
-	gpio_set_pull_mode(OVERRIDE_GPIO, GPIO_PULLDOWN_ONLY);
-	return gpio_get_level(OVERRIDE_GPIO);
+#ifdef BOOTWIFI_OVERRIDE_GPIO
+	gpio_pad_select_gpio(BOOTWIFI_OVERRIDE_GPIO);
+	gpio_set_direction(BOOTWIFI_OVERRIDE_GPIO, GPIO_MODE_INPUT);
+	gpio_set_pull_mode(BOOTWIFI_OVERRIDE_GPIO, GPIO_PULLDOWN_ONLY);
+	return gpio_get_level(BOOTWIFI_OVERRIDE_GPIO);
+#else
+	return 0; // If no boot override, return false
+#endif
 } // checkOverrideGpio
+
 
 
 static void bootWiFi2() {

@@ -10,6 +10,7 @@
 #include <driver/gpio.h>
 #include <stdint.h>
 #include <driver/rmt.h>
+#include <stdlib.h>
 #include "sdkconfig.h"
 
 static char tag[] = "WS2812";
@@ -24,6 +25,9 @@ static char tag[] = "WS2812";
  *
  */
 
+/**
+ * Set two levels of RMT output to the Neopixel value for a "1".
+ */
 static void setItem1(rmt_item32_t *pItem) {
 	pItem->level0 = 1;
 	pItem->duration0 = 7;
@@ -32,6 +36,9 @@ static void setItem1(rmt_item32_t *pItem) {
 } // setItem1
 
 
+/**
+ * Set two levels of RMT output to the Neopixel value for a "0".
+ */
 static void setItem0(rmt_item32_t *pItem) {
 	pItem->level0 = 1;
 	pItem->duration0 = 4;
@@ -43,8 +50,8 @@ static void setItem0(rmt_item32_t *pItem) {
 WS2812::WS2812(rmt_channel_t channel, gpio_num_t gpioNum, uint16_t pixelCount) {
 	this->pixelCount = pixelCount;
 	this->channel = channel;
-	this->items = (rmt_item32_t *)malloc(sizeof(rmt_item32_t) * (pixelCount * 24));
-	this->pixels = (pixel_t *)malloc(sizeof(pixel_t) * pixelCount);
+	this->items = (rmt_item32_t *)calloc(sizeof(rmt_item32_t), pixelCount * 24);
+	this->pixels = (pixel_t *)calloc(sizeof(pixel_t),pixelCount);
 
 	rmt_config_t config;
 	config.rmt_mode = RMT_MODE_TX;
@@ -65,6 +72,14 @@ WS2812::WS2812(rmt_channel_t channel, gpio_num_t gpioNum, uint16_t pixelCount) {
 } // WS2812
 
 
+/**
+ * We loop through our array of pixels.  For each pixel we have to add 24
+ * bits of output.  8 bits for red, 8 bits for green and 8 bits for blue.
+ * Each bit of neopixel data is two levels of RMT which is one RMT item.
+ * We determine the bit value of the neopixel and then call either
+ * setItem1() or setItem0() which sets the corresponding 2 levels of output
+ * on the next RMT item.
+ */
 void WS2812::show() {
 	uint32_t i,j;
 	rmt_item32_t *pCurrentItem = this->items;

@@ -2,21 +2,34 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Select AP</title>
+<title>Select WiFi</title>
 </head>
 <body>
 <!-- Start -->
-<h1>Select AP</h1>
+<div style="zoom: 350%;">
+<h1>Select WiFi</h1>
 <form action="ssidSelected" method="post">
 <table>
 <tbody>
 <tr>
 <td>SSID:</td>
-<td><input type="text" name="ssid" /></td>
+<td><input type="text" autocorrect="off" autocapitalize="none" name="ssid" /></td>
 </tr>
 <tr>
 <td>Password:</td>
-<td><input type="text" name="password" /></td>
+<td><input type="text" autocorrect="off" autocapitalize="none" name="password" /></td>
+</tr>
+<tr>
+<td>IP address:</td>
+<td><input type="text" autocorrect="off" autocapitalize="none" name="ip" /></td>
+</tr>
+<tr>
+<td>Gateway address:</td>
+<td><input type="text" autocorrect="off" autocapitalize="none" name="gw" /></td>
+</tr>
+<tr>
+<td>Netmask:</td>
+<td><input type="text" autocorrect="off" autocapitalize="none" name="netmask" /></td>
 </tr>
 </tbody>
 </table>
@@ -24,6 +37,11 @@
 <input type="submit" value="Submit">
 </p>
 </form>
+<div style="margin: 6px;">
+The IP address, gateway address and netmask are optional.  If not supplied
+these values will be issued by the WiFi access point.
+</div>
+</div>
 <!-- End -->
 </body>
 </html>

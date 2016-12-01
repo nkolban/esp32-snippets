@@ -31,15 +31,19 @@ however, [Cesanta](https://www.cesanta.com/), the makers of Mongoose are still w
 port to the ESP32 which is anticipated to be available before 2017 so we should really wait for that
 to become available.
 
+##GPIO boot override
+To enable the ability to specify a GPIO pin to override known station information, compile
+the code with `-DBOOTWIFI_OVERRIDE_GPIO=<num>` when `<num>` is a GPIO pin number.  If the
+pin is high at startup, then it will override.  The pin is configured as pull-down low so
+it need not be artificially held low.  The default is no override pin.
+
 ##Future enhancements
 There is always room for enhancements:
 
 * Improve the web page shown to the user - Right now it is pretty basic and ideally could be
 dramatically improved.  Features to be added include
   - listing of available access points for selection
-  - Responsive visuals for better reading/styling on mobile devices
 * Integrate SSL security.
-* Configuration of GPIO pin to use (if any) for GPIO over-ride
 * NeoPixel support for visualization of connection status:
   - Green - connected
   - Blue - being an access point
