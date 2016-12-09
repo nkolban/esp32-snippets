@@ -46,6 +46,8 @@ char *mongoose_eventToString(int ev) {
 		return "MG_EV_RECV";
 	case MG_EV_HTTP_REQUEST:
 		return "MG_EV_HTTP_REQUEST";
+	case MG_EV_HTTP_REPLY:
+		return "MG_EV_HTTP_REPLY";
 	case MG_EV_MQTT_CONNACK:
 		return "MG_EV_MQTT_CONNACK";
 	case MG_EV_MQTT_CONNACK_ACCEPTED:

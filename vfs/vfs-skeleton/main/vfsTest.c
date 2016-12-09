@@ -72,6 +72,7 @@ static ssize_t vfs_read(int fd, void *dst, size_t size) {
  * O_RDONLY - Open the file for reading only.
  * O_WRONLY - Open the file for writing only.
  * O_RDWR   - Open the file for reading and writing.
+ * O_APPEND - Open the file in append mode.
  *
  * The mode are access mode flags.
  */
