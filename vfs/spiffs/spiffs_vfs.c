@@ -8,6 +8,36 @@
 
 static char tag[] = "spiffs_vfs";
 
+static char *spiffsErrorToString(int code) {
+	static char msg[10];
+	switch(code) {
+	case SPIFFS_OK:
+		return "SPIFFS_OK";
+	case SPIFFS_ERR_NOT_MOUNTED:
+		return "SPIFFS_ERR_NOT_MOUNTED";
+	case SPIFFS_ERR_FULL:
+		return "SPIFFS_ERR_FULL";
+	case SPIFFS_ERR_NOT_FOUND:
+		return "SPIFFS_ERR_NOT_FOUND";
+	case SPIFFS_ERR_END_OF_OBJECT:
+		return "SPIFFS_ERR_END_OF_OBJECT";
+	case SPIFFS_ERR_DELETED:
+		return "SPIFFS_ERR_DELETED";
+	case SPIFFS_ERR_FILE_CLOSED:
+		return "SPIFFS_ERR_FILE_CLOSED";
+	case SPIFFS_ERR_FILE_DELETED:
+		return "SPIFFS_ERR_FILE_DELETED";
+	case SPIFFS_ERR_BAD_DESCRIPTOR:
+		return "SPIFFS_ERR_BAD_DESCRIPTOR";
+	case SPIFFS_ERR_NOT_A_FS:
+		return "SPIFFS_ERR_NOT_A_FS";
+	case SPIFFS_ERR_FILE_EXISTS:
+		return "SPIFFS_ERR_FILE_EXISTS";
+	}
+	sprintf(msg, "%d", code);
+	return msg;
+}
+
 /*
 static int spiffsErrMap(spiffs *fs) {
 	int errorCode = SPIFFS_errno(fs);
@@ -145,6 +175,13 @@ static int vfs_link(void *ctx, const char *oldPath, const char *newPath) {
 	return 0;
 } // vfs_link
 
+static int vfs_unlink(void *ctx, const char *path, ) {
+	ESP_LOGI(tag, ">> unlink path=%s", path);
+	spiffs *fs = (spiffs *)ctx;
+	SPIFFS_remove(fs, path);
+	return 0;
+} // vfs_unlink
+
 
 static int vfs_rename(void *ctx, const char *oldPath, const char *newPath) {
 	ESP_LOGI(tag, ">> rename oldPath=%s, newPath=%s", oldPath, newPath);
@@ -174,6 +211,7 @@ void spiffs_registerVFS(char *mountPoint, spiffs *fs) {
 	vfs.fstat_p  = vfs_fstat;
 	vfs.stat_p   = vfs_stat;
 	vfs.link_p   = vfs_link;
+	vfs.ulink_p  = vfs_ulink;
 	vfs.rename_p = vfs_rename;
 
 	err = esp_vfs_register(mountPoint, &vfs, (void *)fs);

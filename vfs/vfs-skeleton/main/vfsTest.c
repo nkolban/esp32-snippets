@@ -106,6 +106,11 @@ static int vfs_link(const char *oldPath, const char *newPath) {
 	return 0;
 }
 
+static int vfs_unlink(const char *path) {
+	ESP_LOGI(tag, ">> unlink path=%s", path);
+	return 0;
+}
+
 
 static int vfs_rename(const char *oldPath, const char *newPath) {
 	ESP_LOGI(tag, ">> rename oldPath=%s, newPath=%s", oldPath, newPath);
@@ -133,6 +138,7 @@ void registerTestVFS(char *mountPoint) {
 	vfs.fstat  = vfs_fstat;
 	vfs.stat   = vfs_stat;
 	vfs.link   = vfs_link;
+	vfs.unlink = vfs_unlink;
 	vfs.rename = vfs_rename;
 
 	err = esp_vfs_register(mountPoint, &vfs, NULL);

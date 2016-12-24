@@ -54,3 +54,20 @@ dramatically improved.  Features to be added include
 * Component configuration options including:
   - Network SSID to use when being an access point.
   - Network password to use when being an access point (if any). 
+  
+##Design and implementation notes
+The parameters for Bootwifi are stored in Non-Volatile Storage (NVS).  The name space in NVS
+is "bootwifi".  The keys are:
+
+* version - The version of the protocol.
+* connectionInfo - The details for connection.
+
+The form shown to the end user sends back a response as an HTTP POST to "/ssidSelected".
+which contains the following form fields:
+
+* ssid
+* password
+* ip
+* gw
+* netmask
+ 
