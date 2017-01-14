@@ -49,7 +49,11 @@ static void *espFlashPtr = NULL;
 EspFsInitResult espFsInit(void *flashAddress, size_t size) {
 
 	spi_flash_init();
-	esp_err_t rc = spi_flash_mmap((uint32_t) flashAddress, 64*1024*2, SPI_FLASH_MMAP_DATA, (const void **)&espFlashPtr, &handle);
+	if (size % (64*1024) != 0) {
+		ESP_LOGE(tag, "Size is not divisible by 64K.  Supplied was %d", size);
+		return ESPFS_INIT_RESULT_NO_IMAGE;
+	}
+	esp_err_t rc = spi_flash_mmap((uint32_t) flashAddress, size, SPI_FLASH_MMAP_DATA, (const void **)&espFlashPtr, &handle);
 	if (rc != ESP_OK) {
 		ESP_LOGD(tag, "rc from spi_flash_mmap: %d", rc);
 	}

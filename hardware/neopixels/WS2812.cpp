@@ -68,7 +68,7 @@ WS2812::WS2812(rmt_channel_t channel, gpio_num_t gpioNum, uint16_t pixelCount) {
 	config.clk_div = 8;
 
 	ESP_ERROR_CHECK(rmt_config(&config));
-	ESP_ERROR_CHECK(rmt_driver_install(this->channel, 0, 19));
+	ESP_ERROR_CHECK(rmt_driver_install(this->channel, 0, 0));
 } // WS2812
 
 

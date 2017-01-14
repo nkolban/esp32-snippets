@@ -54,7 +54,7 @@ void runRmtTest() {
 	config.clk_div = 80;
 
 	ESP_ERROR_CHECK(rmt_config(&config));
-	ESP_ERROR_CHECK(rmt_driver_install(config.channel, 0, 19));
+	ESP_ERROR_CHECK(rmt_driver_install(config.channel, 0, 0));
 	dumpStatus(config.channel);
 
 	rmt_item32_t items[3];

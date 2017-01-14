@@ -45,8 +45,26 @@ static void logFlags(int flags) {
 } // End of logFlags
 
 
-static size_t vfs_write(int fd, const void *data, size_t size) {
-	ESP_LOGI(tag, ">> write fd=%d, data=0x%lx, size=%d", fd, (unsigned long)data, size);
+static int vfs_close(int fd) {
+	ESP_LOGI(tag, ">> close fd=%d", fd);
+	return 0;
+}
+
+
+static int vfs_closedir(DIR *pdir) {
+	ESP_LOGI(tag, ">> closedir");
+	return 0;
+}
+
+
+static int vfs_fstat(int fd, struct stat *st) {
+	ESP_LOGI(tag, ">> fstat fd=%d", fd);
+	return 0;
+}
+
+
+static int vfs_link(const char *oldPath, const char *newPath) {
+	ESP_LOGI(tag, ">> link oldPath=%s, newPath=%s", oldPath, newPath);
 	return 0;
 }
 
@@ -57,8 +75,8 @@ static off_t vfs_lseek(int fd, off_t offset, int whence) {
 }
 
 
-static ssize_t vfs_read(int fd, void *dst, size_t size) {
-	ESP_LOGI(tag, ">> read fd=%d, dst=0x%lx, size=%d", fd, (unsigned long)dst, size);
+static int vfs_mkdir(const char *name, mode_t mode) {
+	ESP_LOGI(tag, ">> mkdir name=%s, mode=%d", name, mode);
 	return 0;
 }
 
@@ -83,15 +101,35 @@ static int vfs_open(const char *path, int flags, int accessMode) {
 }
 
 
-static int vfs_close(int fd) {
-	ESP_LOGI(tag, ">> close fd=%d", fd);
+static DIR *vfs_opendir(const char *name) {
+	ESP_LOGI(tag, ">> opendir name=%s", name);
+	return NULL;
+}
+
+static ssize_t vfs_read(int fd, void *dst, size_t size) {
+	ESP_LOGI(tag, ">> read fd=%d, dst=0x%lx, size=%d", fd, (unsigned long)dst, size);
+	return 0;
+}
+
+static struct dirent vfs_readdir(DIR *pdir) {
+	ESP_LOGI(tag, ">> readdir name=%s", name);
+	struct dirent d;
+	return d;
+}
+
+
+static int vfs_rename(const char *oldPath, const char *newPath) {
+	ESP_LOGI(tag, ">> rename oldPath=%s, newPath=%s", oldPath, newPath);
 	return 0;
 }
 
 
-static int vfs_fstat(int fd, struct stat *st) {
-	ESP_LOGI(tag, ">> fstat fd=%d", fd);
-	return 0;
+static void vfs_rmdir(const char *name) {
+	ESP_LOGI(tag, ">> rmdir name=%s", name);
+}
+
+static void vfs_seekdir(DIR *pdir, long offset) {
+	ESP_LOGI(tag, ">> seekdir offset=%d", offset);
 }
 
 
@@ -101,10 +139,11 @@ static int vfs_stat(const char *path, struct stat *st) {
 }
 
 
-static int vfs_link(const char *oldPath, const char *newPath) {
-	ESP_LOGI(tag, ">> link oldPath=%s, newPath=%s", oldPath, newPath);
+static long vfs_telldir(DIR *pdir) {
+	ESP_LOGI(tag, ">> telldir");
 	return 0;
 }
+
 
 static int vfs_unlink(const char *path) {
 	ESP_LOGI(tag, ">> unlink path=%s", path);
@@ -112,8 +151,8 @@ static int vfs_unlink(const char *path) {
 }
 
 
-static int vfs_rename(const char *oldPath, const char *newPath) {
-	ESP_LOGI(tag, ">> rename oldPath=%s, newPath=%s", oldPath, newPath);
+static size_t vfs_write(int fd, const void *data, size_t size) {
+	ESP_LOGI(tag, ">> write fd=%d, data=0x%lx, size=%d", fd, (unsigned long)data, size);
 	return 0;
 }
 
@@ -129,17 +168,24 @@ void registerTestVFS(char *mountPoint) {
 	esp_err_t err;
 
 	vfs.fd_offset = 0;
-	vfs.flags = ESP_VFS_FLAG_DEFAULT;
-	vfs.write  = vfs_write;
-	vfs.lseek  = vfs_lseek;
-	vfs.read   = vfs_read;
-	vfs.open   = vfs_open;
-	vfs.close  = vfs_close;
-	vfs.fstat  = vfs_fstat;
-	vfs.stat   = vfs_stat;
-	vfs.link   = vfs_link;
-	vfs.unlink = vfs_unlink;
-	vfs.rename = vfs_rename;
+	vfs.flags    = ESP_VFS_FLAG_DEFAULT;
+	vfs.close    = vfs_close;
+	vfs.closedir = vfs_closedir;
+	vfs.fstat    = vfs_fstat;
+	vfs.link     = vfs_link;
+	vfs.lseek    = vfs_lseek;
+	vfs.mkdir    = vfs_mkdir;
+	vfs.open     = vfs_open;
+	vfs.opendir  = vfs_opendir;
+	vfs.read     = vfs_read;
+	vfs.readdir  = vfs_readdir;
+	vfs.rename   = vfs_rename;
+	vfs.rmdir    = vfs_rmdir;
+	vfs.seekdir  = vfs_seekdir;
+	vfs.stat     = vfs_stat;
+	vfs.telldir  = vfs_telldir;
+	vfs.unlink   = vfs_unlink;
+	vfs.write    = vfs_write;
 
 	err = esp_vfs_register(mountPoint, &vfs, NULL);
 	if (err != ESP_OK) {

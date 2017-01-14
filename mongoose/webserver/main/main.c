@@ -12,19 +12,22 @@
  * Neil Kolban <kolban1@kolban.com>
  *
  */
-#include "freertos/FreeRTOS.h"
-#include "esp_wifi.h"
-#include "esp_system.h"
-#include "esp_event.h"
-#include "esp_event_loop.h"
-#include "nvs_flash.h"
-#include "esp_log.h"
+
+#include <esp_event.h>
+#include <esp_event_loop.h>
+#include <esp_log.h>
+#include <esp_system.h>
+#include <esp_wifi.h>
+#include <freertos/FreeRTOS.h>
+#include <nvs_flash.h>
+
 #include "mongoose.h"
+#include "sdkconfig.h"
 #include "test1_html.h"
 
 // Defines for WiFi
-#define SSID     "RASPI3"
-#define PASSWORD "password"
+#define SSID     "<Your SSID>"
+#define PASSWORD "<Your Password>"
 
 static char tag []="mongooseTests";
 
@@ -108,7 +111,9 @@ void mongoose_event_handler(struct mg_connection *nc, int ev, void *evData) {
 
 			if (strcmp(uri, "/time") == 0) {
 				char payload[256];
-				sprintf(payload, "Time since start: %d ms", system_get_time() / 1000);
+				struct timeval tv;
+				gettimeofday(&tv, NULL);
+				sprintf(payload, "Time since start: %d.%d secs", (int)tv.tv_sec, (int)tv.tv_usec);
 				int length = strlen(payload);
 				mg_send_head(nc, 200, length, "Content-Type: text/plain");
 				mg_printf(nc, "%s", payload);
@@ -164,7 +169,6 @@ esp_err_t wifi_event_handler(void *ctx, system_event_t *event) {
 
 int app_main(void) {
   nvs_flash_init();
-  system_init();
   tcpip_adapter_init();
   ESP_ERROR_CHECK( esp_event_loop_init(wifi_event_handler, NULL));
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
