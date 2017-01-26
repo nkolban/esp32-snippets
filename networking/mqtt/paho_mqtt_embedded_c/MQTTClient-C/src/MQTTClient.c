@@ -243,19 +243,24 @@ int cycle(MQTTClient* c, Timer* timer)
                (unsigned char**)&msg.payload, (int*)&msg.payloadlen, c->readbuf, c->readbuf_size) != 1)
                 goto exit;
             msg.qos = (enum QoS)intQoS;
+            printf("X1\n");
             deliverMessage(c, &topicName, &msg);
+          	printf("Publish ... qos = %d\n", msg.qos);
             if (msg.qos != QOS0)
             {
-                if (msg.qos == QOS1)
+
+                if (msg.qos == QOS1) {
                     len = MQTTSerialize_ack(c->buf, c->buf_size, PUBACK, 0, msg.id);
-                else if (msg.qos == QOS2)
+                } else if (msg.qos == QOS2) {
                     len = MQTTSerialize_ack(c->buf, c->buf_size, PUBREC, 0, msg.id);
-                if (len <= 0)
+                } if (len <= 0) {
                     rc = FAILURE;
-                else
+                } else {
                     rc = sendPacket(c, len, timer);
-                if (rc == FAILURE)
+                }
+                if (rc == FAILURE) {
                     goto exit; // there was a problem
+                }
             }
             break;
         }
