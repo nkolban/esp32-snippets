@@ -10,7 +10,7 @@ Primarily, we use flash memory mapping to access the data as opposed to individu
 and the primary intent, a new method was added with the signature:
 
 ```
-int espFsAccess(EspFsFile *fh, char *buf, size_t *len)
+int espFsAccess(EspFsFile *fh, void **buf, size_t *len)
 ```
 
 This function returns a pointer to the whole content of the file which is stored in buf.  The
