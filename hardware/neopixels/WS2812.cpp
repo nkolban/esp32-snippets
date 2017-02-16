@@ -36,6 +36,26 @@ static void setItem1(rmt_item32_t *pItem) {
 } // setItem1
 
 
+/*
+ * Internal function not exposed.  Get the pixel channel color from the channel
+ * type which should be one of 'R', 'G' or 'B'.
+ */
+static uint8_t getChannelValueByType(char type, pixel_t pixel) {
+	switch(type) {
+		case 'r':
+		case 'R':
+			return pixel.red;
+		case 'b':
+		case 'B':
+			return pixel.blue;
+		case 'g':
+		case 'G':
+			return pixel.green;
+	}
+	return 0;
+} // getChannelValueByType
+
+
 /**
  * Set two levels of RMT output to the Neopixel value for a "0".
  */
@@ -52,6 +72,7 @@ WS2812::WS2812(rmt_channel_t channel, gpio_num_t gpioNum, uint16_t pixelCount) {
 	this->channel = channel;
 	this->items = (rmt_item32_t *)calloc(sizeof(rmt_item32_t), pixelCount * 24);
 	this->pixels = (pixel_t *)calloc(sizeof(pixel_t),pixelCount);
+	this->colorOrder = "RGB";
 
 	rmt_config_t config;
 	config.rmt_mode = RMT_MODE_TX;
@@ -84,7 +105,9 @@ void WS2812::show() {
 	uint32_t i,j;
 	rmt_item32_t *pCurrentItem = this->items;
 	for (i=0; i<this->pixelCount; i++) {
-		uint32_t currentPixel = this->pixels[i].red | (this->pixels[i].green << 8) | (this->pixels[i].blue << 16);
+		uint32_t currentPixel = getChannelValueByType(this->colorOrder[0], this->pixels[i]) |
+				(getChannelValueByType(this->colorOrder[1], this->pixels[i]) << 8) |
+				(getChannelValueByType(this->colorOrder[2], this->pixels[i]) << 16);
 		for (j=0; j<24; j++) {
 			if (currentPixel & 1<<j) {
 				setItem1(pCurrentItem);
@@ -98,6 +121,18 @@ void WS2812::show() {
 	rmt_write_items(this->channel, this->items, this->pixelCount*24,
 				1 /* wait till done */);
 } // show
+
+
+/*
+ * Set the color order of data sent to the LEDs.  The default is "RGB" but we can specify
+ * an alternate order by supply an alternate three character string made up of 'R', 'G' and 'B'
+ * for example "GRB".
+ */
+void WS2812::setColorOrder(char *colorOrder) {
+	if (colorOrder != NULL && strlen(colorOrder) == 3) {
+		this->colorOrder = colorOrder;
+	}
+} // setColorOrder
 
 
 void WS2812::setPixel(uint16_t index, uint8_t red, uint8_t green,

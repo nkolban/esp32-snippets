@@ -59,15 +59,18 @@ int TimerLeftMS(Timer*);
 
 typedef struct Network
 {
+	unsigned char isSSL;
+	void *sslData;
 	int my_socket;
 	int (*mqttread) (struct Network*, unsigned char*, int, int);
 	int (*mqttwrite) (struct Network*, unsigned char*, int, int);
 } Network;
 
-int linux_read(Network*, unsigned char*, int, int);
-int linux_write(Network*, unsigned char*, int, int);
+//int linux_read(Network*, unsigned char*, int, int);
+//int linux_write(Network*, unsigned char*, int, int);
 
 DLLExport void NetworkInit(Network*);
+void NetworkInitSSL(Network *n);
 DLLExport int NetworkConnect(Network*, char*, int);
 DLLExport void NetworkDisconnect(Network*);
 
