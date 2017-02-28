@@ -1,9 +1,4 @@
-/*
- * WS2812.cpp
- *
- *  Created on: Nov 27, 2016
- *      Author: kolban
- */
+
 
 #include "WS2812.h"
 #include <esp_log.h>
@@ -11,6 +6,7 @@
 #include <stdint.h>
 #include <driver/rmt.h>
 #include <stdlib.h>
+#include <string.h>
 #include "sdkconfig.h"
 
 static char tag[] = "WS2812";
@@ -25,9 +21,26 @@ static char tag[] = "WS2812";
  *
  */
 
+/**
+ * Set two levels of RMT output to the Neopixel value for a "1".
+ * This is:
+ * a logic 1 for 0.7us
+ * a logic 0 for 0.6us
+ */
+static void setItem1(rmt_item32_t *pItem) {
+	pItem->level0 = 1;
+	pItem->duration0 = 10;
+	pItem->level1 = 0;
+	pItem->duration1 = 6;
+} // setItem1
+
+
 
 /**
  * Set two levels of RMT output to the Neopixel value for a "0".
+ * This is:
+ * a logic 1 for 0.35us
+ * a logic 0 for 0.8us
  */
 static void setItem0(rmt_item32_t *pItem) {
 	pItem->level0 = 1;
@@ -35,17 +48,6 @@ static void setItem0(rmt_item32_t *pItem) {
 	pItem->level1 = 0;
 	pItem->duration1 = 8;
 } // setItem0
-
-/**
- * Set two levels of RMT output to the Neopixel value for a "1".
- */
-static void setItem1(rmt_item32_t *pItem) {
-	pItem->level0 = 1;
-	pItem->duration0 = 7;
-	pItem->level1 = 0;
-	pItem->duration1 = 6;
-} // setItem1
-
 
 /*
  * Internal function not exposed.  Get the pixel channel color from the channel
@@ -63,21 +65,30 @@ static uint8_t getChannelValueByType(char type, pixel_t pixel) {
 		case 'G':
 			return pixel.green;
 	}
+	ESP_LOGW(tag, "Unknown color channel 0x%2x", type);
 	return 0;
 } // getChannelValueByType
 
 
-WS2812::WS2812(rmt_channel_t channel, gpio_num_t gpioNum, uint16_t pixelCount) {
+
+/**
+ * Construct a wrapper for the pixels.
+ * @param [in] channel The RMT channel to use.  Typically 0.
+ * @param [in] gpioNum The GPIO pin used to drive the data.
+ * @param [in] pixelCount The number of pixels in the strand.
+ */
+WS2812::WS2812(int channel, int gpioNum, uint16_t pixelCount) {
 	this->pixelCount = pixelCount;
-	this->channel = channel;
+	this->channel = (rmt_channel_t)channel;
 	this->items = (rmt_item32_t *)calloc(sizeof(rmt_item32_t), pixelCount * 24);
 	this->pixels = (pixel_t *)calloc(sizeof(pixel_t),pixelCount);
-	this->colorOrder = "RGB";
+	this->colorOrder = (char *)"RGB";
+	clear();
 
 	rmt_config_t config;
 	config.rmt_mode = RMT_MODE_TX;
-	config.channel = channel;
-	config.gpio_num = gpioNum;
+	config.channel = this->channel;
+	config.gpio_num = (gpio_num_t)gpioNum;
 	config.mem_block_num = 1;
 	config.tx_config.loop_en = 0;
 	config.tx_config.carrier_en = 0;
@@ -94,6 +105,8 @@ WS2812::WS2812(rmt_channel_t channel, gpio_num_t gpioNum, uint16_t pixelCount) {
 
 
 /**
+ * Show the current Neopixel data.
+ *
  * We loop through our array of pixels.  For each pixel we have to add 24
  * bits of output.  8 bits for red, 8 bits for green and 8 bits for blue.
  * Each bit of neopixel data is two levels of RMT which is one RMT item.
@@ -108,8 +121,9 @@ void WS2812::show() {
 		uint32_t currentPixel = getChannelValueByType(this->colorOrder[0], this->pixels[i]) |
 				(getChannelValueByType(this->colorOrder[1], this->pixels[i]) << 8) |
 				(getChannelValueByType(this->colorOrder[2], this->pixels[i]) << 16);
+		ESP_LOGD(tag, "Pixel value: %x", currentPixel);
 		for (j=0; j<24; j++) {
-			if (currentPixel & 1<<j) {
+			if (currentPixel & (1<<(23-j))) {
 				setItem1(pCurrentItem);
 			} else {
 				setItem0(pCurrentItem);
@@ -118,13 +132,13 @@ void WS2812::show() {
 		}
 	}
 	// Show the pixels.
-	rmt_write_items(this->channel, this->items, this->pixelCount*24,
-				1 /* wait till done */);
+	ESP_ERROR_CHECK(rmt_write_items(this->channel, this->items, this->pixelCount*24, 1 /* wait till done */));
 } // show
 
 
 /*
- * Set the color order of data sent to the LEDs.  The default is "RGB" but we can specify
+ * Set the color order of data sent to the LEDs.
+ * The default is "RGB" but we can specify
  * an alternate order by supply an alternate three character string made up of 'R', 'G' and 'B'
  * for example "GRB".
  */
@@ -135,8 +149,14 @@ void WS2812::setColorOrder(char *colorOrder) {
 } // setColorOrder
 
 
-void WS2812::setPixel(uint16_t index, uint8_t red, uint8_t green,
-		uint8_t blue) {
+/**
+ * Set the given pixel to the specified color.
+ * @param [in] index The pixel that is to have its color set.
+ * @param [in] red The amount of red in the pixel.
+ * @param [in] green The amount of green in the pixel.
+ * @param [in] blue The amount of blue in the pixel.
+ */
+void WS2812::setPixel(uint16_t index, uint8_t red, uint8_t green,	uint8_t blue) {
 	if (index >= this->pixelCount) {
 		ESP_LOGE(tag, "setPixel: index out of range: %d", index);
 		return;
@@ -146,7 +166,11 @@ void WS2812::setPixel(uint16_t index, uint8_t red, uint8_t green,
 	this->pixels[index].blue = blue;
 } // setPixel
 
-
+/**
+ * Set the given pixel to the specified color.
+ * @param [in] index The pixel that is to have its color set.
+ * @param [in] pixel The color value of the pixel.
+ */
 void WS2812::setPixel(uint16_t index, pixel_t pixel) {
 	if (index >= this->pixelCount) {
 		ESP_LOGE(tag, "setPixel: index out of range: %d", index);
@@ -155,6 +179,12 @@ void WS2812::setPixel(uint16_t index, pixel_t pixel) {
 	this->pixels[index] = pixel;
 } // setPixel
 
+
+/**
+ * Set the given pixel to the specified color.
+ * @param [in] index The pixel that is to have its color set.
+ * @param [in] pixel The color value of the pixel.
+ */
 void WS2812::setPixel(uint16_t index, uint32_t pixel) {
 	if (index >= this->pixelCount) {
 		ESP_LOGE(tag, "setPixel: index out of range: %d", index);
@@ -165,6 +195,11 @@ void WS2812::setPixel(uint16_t index, uint32_t pixel) {
 	this->pixels[index].blue = (pixel & 0xff0000) >> 16;
 } // setPixel
 
+
+/**
+ * Clear all the pixel colors.
+ * This sets all the pixels to off.
+ */
 void WS2812::clear() {
 	uint16_t i;
 	for (i=0; i<this->pixelCount; i++) {
