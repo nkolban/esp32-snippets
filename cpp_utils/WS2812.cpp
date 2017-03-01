@@ -1,13 +1,14 @@
-
-
-#include "WS2812.h"
 #include <esp_log.h>
+#include <driver/rmt.h>
 #include <driver/gpio.h>
 #include <stdint.h>
-#include <driver/rmt.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdexcept>
+
+#include "GPIO.h"
 #include "sdkconfig.h"
+#include "WS2812.h"
 
 static char tag[] = "WS2812";
 
@@ -28,9 +29,10 @@ static char tag[] = "WS2812";
  * a logic 0 for 0.6us
  */
 static void setItem1(rmt_item32_t *pItem) {
-	pItem->level0 = 1;
+	assert(pItem != nullptr);
+	pItem->level0    = 1;
 	pItem->duration0 = 10;
-	pItem->level1 = 0;
+	pItem->level1    = 0;
 	pItem->duration1 = 6;
 } // setItem1
 
@@ -43,11 +45,24 @@ static void setItem1(rmt_item32_t *pItem) {
  * a logic 0 for 0.8us
  */
 static void setItem0(rmt_item32_t *pItem) {
-	pItem->level0 = 1;
+	assert(pItem != nullptr);
+	pItem->level0    = 1;
 	pItem->duration0 = 4;
-	pItem->level1 = 0;
+	pItem->level1    = 0;
 	pItem->duration1 = 8;
 } // setItem0
+
+
+/**
+ * Add an RMT terminator into the RMT data.
+ */
+static void setTerminator(rmt_item32_t *pItem) {
+	assert(pItem != nullptr);
+	pItem->level0    = 0;
+	pItem->duration0 = 0;
+	pItem->level1    = 0;
+	pItem->duration1 = 0;
+} // setTerminator
 
 /*
  * Internal function not exposed.  Get the pixel channel color from the channel
@@ -73,31 +88,47 @@ static uint8_t getChannelValueByType(char type, pixel_t pixel) {
 
 /**
  * Construct a wrapper for the pixels.
- * @param [in] channel The RMT channel to use.  Typically 0.
+ * In order to drive the NeoPixels we need to supply some basic information.  This
+ * includes the GPIO pin that is connected to the data-in (DIN) of the devices.
+ * Since we also want to be able to drive a string of pixels, we need to tell the class
+ * how many pixels are present in the string.
+ *
+
  * @param [in] gpioNum The GPIO pin used to drive the data.
  * @param [in] pixelCount The number of pixels in the strand.
+ * @param [in] channel The RMT channel to use.  Defaults to 0.
  */
-WS2812::WS2812(int channel, int gpioNum, uint16_t pixelCount) {
+WS2812::WS2812(int dinPin, uint16_t pixelCount, int channel) {
+	if (pixelCount == 0) {
+		throw std::range_error("Pixel count was 0");
+	}
+	assert(GPIO::inRange(dinPin));
+
 	this->pixelCount = pixelCount;
-	this->channel = (rmt_channel_t)channel;
-	this->items = (rmt_item32_t *)calloc(sizeof(rmt_item32_t), pixelCount * 24);
-	this->pixels = (pixel_t *)calloc(sizeof(pixel_t),pixelCount);
-	this->colorOrder = (char *)"RGB";
+	this->channel    = (rmt_channel_t)channel;
+
+	// The number of items is number of pixels * 24 bits per pixel + the terminator.
+	// Remember that an item is TWO RMT output bits ... for NeoPixels this is correct because
+	// on Neopixel bit is TWO bits of output ... the high value and the low value
+	this->items      = (rmt_item32_t *)calloc(sizeof(rmt_item32_t), pixelCount * 24 + 1);
+	this->pixels     = (pixel_t *)calloc(sizeof(pixel_t),pixelCount);
+	this->colorOrder = (char *)"GRB";
 	clear();
 
 	rmt_config_t config;
-	config.rmt_mode = RMT_MODE_TX;
-	config.channel = this->channel;
-	config.gpio_num = (gpio_num_t)gpioNum;
-	config.mem_block_num = 1;
-	config.tx_config.loop_en = 0;
-	config.tx_config.carrier_en = 0;
-	config.tx_config.idle_output_en = 1;
-	config.tx_config.idle_level = (rmt_idle_level_t)0;
-	config.tx_config.carrier_duty_percent = 50;
+	config.rmt_mode                  = RMT_MODE_TX;
+	config.channel                   = this->channel;
+	config.gpio_num                  = (gpio_num_t)dinPin;
+	config.mem_block_num             = 8-this->channel;
+	config.clk_div                   = 8;
+	config.tx_config.loop_en         = 0;
+	config.tx_config.carrier_en      = 0;
+	config.tx_config.idle_output_en  = 1;
+	config.tx_config.idle_level      = (rmt_idle_level_t)0;
 	config.tx_config.carrier_freq_hz = 10000;
-	config.tx_config.carrier_level = (rmt_carrier_level_t)1;
-	config.clk_div = 8;
+	config.tx_config.carrier_level   = (rmt_carrier_level_t)1;
+	config.tx_config.carrier_duty_percent = 50;
+
 
 	ESP_ERROR_CHECK(rmt_config(&config));
 	ESP_ERROR_CHECK(rmt_driver_install(this->channel, 0, 0));
@@ -107,43 +138,49 @@ WS2812::WS2812(int channel, int gpioNum, uint16_t pixelCount) {
 /**
  * Show the current Neopixel data.
  *
- * We loop through our array of pixels.  For each pixel we have to add 24
- * bits of output.  8 bits for red, 8 bits for green and 8 bits for blue.
- * Each bit of neopixel data is two levels of RMT which is one RMT item.
- * We determine the bit value of the neopixel and then call either
- * setItem1() or setItem0() which sets the corresponding 2 levels of output
- * on the next RMT item.
+ * Drive the LEDs with the values that were previously set.
  */
 void WS2812::show() {
-	uint32_t i,j;
-	rmt_item32_t *pCurrentItem = this->items;
-	for (i=0; i<this->pixelCount; i++) {
-		uint32_t currentPixel = getChannelValueByType(this->colorOrder[0], this->pixels[i]) |
+	auto pCurrentItem = this->items;
+	auto bitsWritten = 0;
+	for (auto i=0; i<this->pixelCount; i++) {
+		uint32_t currentPixel =
+				 getChannelValueByType(this->colorOrder[0], this->pixels[i]) << 16 |
 				(getChannelValueByType(this->colorOrder[1], this->pixels[i]) << 8) |
-				(getChannelValueByType(this->colorOrder[2], this->pixels[i]) << 16);
+				(getChannelValueByType(this->colorOrder[2], this->pixels[i]));
+
 		ESP_LOGD(tag, "Pixel value: %x", currentPixel);
-		for (j=0; j<24; j++) {
+		for (auto j=0; j<24; j++) {
 			if (currentPixel & (1<<(23-j))) {
 				setItem1(pCurrentItem);
 			} else {
 				setItem0(pCurrentItem);
 			}
+			bitsWritten++;
 			pCurrentItem++;
 		}
 	}
+	setTerminator(pCurrentItem); // Write the RMT terminator.
+	ESP_LOGD(tag, "We have written %d bits", bitsWritten);
 	// Show the pixels.
 	ESP_ERROR_CHECK(rmt_write_items(this->channel, this->items, this->pixelCount*24, 1 /* wait till done */));
 } // show
 
 
-/*
+/**
  * Set the color order of data sent to the LEDs.
- * The default is "RGB" but we can specify
+ *
+ * Data is sent to the WS2812s in a serial fashion.  There are 8 bits of data for each of the three
+ * channel colors (red, green and blue).  The WS2812 LEDs typically expect the data to arrive in the
+ * order of "green" then "red" then "blue".  However, this has been found to vary between some
+ * models and manufacturers.  What this means is that some want "red", "green", "blue" and still others
+ * have their own orders.  This function can be called to override the default ordering of "GRB".
+ * We can specify
  * an alternate order by supply an alternate three character string made up of 'R', 'G' and 'B'
- * for example "GRB".
+ * for example "RGB".
  */
 void WS2812::setColorOrder(char *colorOrder) {
-	if (colorOrder != NULL && strlen(colorOrder) == 3) {
+	if (colorOrder != nullptr && strlen(colorOrder) == 3) {
 		this->colorOrder = colorOrder;
 	}
 } // setColorOrder
@@ -157,13 +194,11 @@ void WS2812::setColorOrder(char *colorOrder) {
  * @param [in] blue The amount of blue in the pixel.
  */
 void WS2812::setPixel(uint16_t index, uint8_t red, uint8_t green,	uint8_t blue) {
-	if (index >= this->pixelCount) {
-		ESP_LOGE(tag, "setPixel: index out of range: %d", index);
-		return;
-	}
-	this->pixels[index].red = red;
+	assert(index < pixelCount);
+
+	this->pixels[index].red   = red;
 	this->pixels[index].green = green;
-	this->pixels[index].blue = blue;
+	this->pixels[index].blue  = blue;
 } // setPixel
 
 /**
@@ -172,10 +207,7 @@ void WS2812::setPixel(uint16_t index, uint8_t red, uint8_t green,	uint8_t blue) 
  * @param [in] pixel The color value of the pixel.
  */
 void WS2812::setPixel(uint16_t index, pixel_t pixel) {
-	if (index >= this->pixelCount) {
-		ESP_LOGE(tag, "setPixel: index out of range: %d", index);
-		return;
-	}
+	assert(index < pixelCount);
 	this->pixels[index] = pixel;
 } // setPixel
 
@@ -186,26 +218,23 @@ void WS2812::setPixel(uint16_t index, pixel_t pixel) {
  * @param [in] pixel The color value of the pixel.
  */
 void WS2812::setPixel(uint16_t index, uint32_t pixel) {
-	if (index >= this->pixelCount) {
-		ESP_LOGE(tag, "setPixel: index out of range: %d", index);
-		return;
-	}
-	this->pixels[index].red = pixel & 0xff;
+	assert(index < pixelCount);
+
+	this->pixels[index].red   = pixel & 0xff;
 	this->pixels[index].green = (pixel & 0xff00) >> 8;
-	this->pixels[index].blue = (pixel & 0xff0000) >> 16;
+	this->pixels[index].blue  = (pixel & 0xff0000) >> 16;
 } // setPixel
 
 
 /**
  * Clear all the pixel colors.
- * This sets all the pixels to off.
+ * This sets all the pixels to off which is no brightness for all of the color channels.
  */
 void WS2812::clear() {
-	uint16_t i;
-	for (i=0; i<this->pixelCount; i++) {
-		this->pixels[i].red = 0;
+	for (auto i=0; i<this->pixelCount; i++) {
+		this->pixels[i].red   = 0;
 		this->pixels[i].green = 0;
-		this->pixels[i].blue = 0;
+		this->pixels[i].blue  = 0;
 	}
 } // clear
 

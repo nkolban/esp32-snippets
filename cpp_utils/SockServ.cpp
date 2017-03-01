@@ -5,20 +5,34 @@
  *      Author: kolban
  */
 
+#include <errno.h>
 #include <esp_log.h>
 #include <lwip/sockets.h>
 #include <stdint.h>
+#include <string.h>
 #include <string>
-//#include "/opt/xtensa-esp32-elf/xtensa-esp32-elf/include/c++/5.2.0/string"
 
 #include "FreeRTOS.h"
-#include "SockServ.h"
 #include "sdkconfig.h"
+#include "SockServ.h"
 
 static char tag[] = "SockServ";
 
+
 /**
- *
+ * Create an instance of the class.
+ * We won't actually start listening for clients until after the start() method has been called.
+ * @param [in] port The TCP/IP port number on which we will listen for incoming connection requests.
+ */
+SockServ::SockServ(uint16_t port) {
+	this->port = port;
+	clientSock = -1;
+} // SockServ
+
+
+/**
+ * Accept an incoming connection.
+ * Block waiting for an incoming connection and accept it when it arrives.
  */
 void SockServ::acceptTask(void *data) {
 
@@ -28,19 +42,19 @@ void SockServ::acceptTask(void *data) {
 	while(1) {
 		socklen_t clientAddressLength = sizeof(clientAddress);
 		int tempSock = ::accept(pSockServ->sock, (struct sockaddr *)&clientAddress, &clientAddressLength);
+		if (tempSock == -1) {
+			ESP_LOGE(tag, "close(): %s", strerror(errno));
+		}
 		ESP_LOGD(tag, "accept() - New socket");
 		if (pSockServ->clientSock != -1) {
-			::close(pSockServ->clientSock);
+			int rc = ::close(pSockServ->clientSock);
+			if (rc == -1) {
+				ESP_LOGE(tag, "close(): %s", strerror(errno));
+			}
 		}
 		pSockServ->clientSock = tempSock;
 	}
-}
-
-
-SockServ::SockServ(uint16_t port) {
-	this->port = port;
-	clientSock = -1;
-}
+} // acceptTask
 
 
 /**
@@ -48,22 +62,36 @@ SockServ::SockServ(uint16_t port) {
  */
 void SockServ::start() {
 	sock = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (sock == -1) {
+		ESP_LOGE(tag, "socket(): %s", strerror(errno));
+	}
 	struct sockaddr_in serverAddress;
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
 	serverAddress.sin_port = htons(port);
-	::bind(sock, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
-	::listen(sock, 5);
+	int rc = ::bind(sock, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+	if (rc == -1) {
+		ESP_LOGE(tag, "bind(): %s", strerror(errno));
+	}
+	rc = ::listen(sock, 5);
+	if (rc == -1) {
+		ESP_LOGE(tag, "listen(): %s", strerror(errno));
+	}
 	ESP_LOGD(tag, "Now listening on port %d", port);
 	FreeRTOS::startTask(acceptTask, "acceptTask", this);
-}
+} // start
+
 
 /**
  * Stop listening for new partner connections.
  */
 void SockServ::stop() {
-	::close(sock);
-}
+	int rc = ::close(sock);
+	if (rc == -1) {
+		ESP_LOGE(tag, "close(): %s", strerror(errno));
+	}
+} // stop
+
 
 /**
  * Send data to any connected partners.
@@ -71,11 +99,14 @@ void SockServ::stop() {
  * @param[in] length The length of the sequence of bytes to send to the partner.
  */
 void SockServ::sendData(uint8_t *data, size_t length) {
-	if (clientSock == -1) {
+	if (connectedCount() == 0) {
 		return;
 	}
-	::send(clientSock, data, length, 0);
-}
+	int rc = ::send(clientSock, data, length, 0);
+	if (rc == -1) {
+		ESP_LOGE(tag, "send(): %s", strerror(errno));
+	}
+} // sendData
 
 
 /**
@@ -84,4 +115,16 @@ void SockServ::sendData(uint8_t *data, size_t length) {
  */
 void SockServ::sendData(std::string str) {
 	sendData((uint8_t *)str.data(), str.size());
+} // sendData
+
+
+/**
+ * Determine the number of connected partners.
+ * @return The number of connected partners.
+ */
+int SockServ::connectedCount() {
+	if (clientSock == -1) {
+		return 0;
+	}
+	return 1;
 }

@@ -24,6 +24,7 @@ public:
 	void stop();
 	void sendData(uint8_t *data, size_t length);
 	void sendData(std::string str);
+	int connectedCount();
 };
 
 #endif /* MAIN_SOCKSERV_H_ */
