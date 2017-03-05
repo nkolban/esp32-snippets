@@ -39,9 +39,48 @@
 #include <esp_event.h>
 #include <esp_event_loop.h>
 
+/**
+ * @brief WiFi state event handler.
+ *
+ * Here is an example class that implements all the virtual functions that can be called
+ * for events:
+ *
+ * @code{.cpp}
+ * MyHandler::MyHandler() {
+ * }
+ *
+ * MyHandler::~MyHandler() {
+ * }
+ *
+ * esp_err_t MyHandler::apStart() {
+ *   return ESP_OK;
+ * }
+ *
+ * esp_err_t MyHandler::staConnected() {
+ *   return ESP_OK;
+ * }
+ *
+ * esp_err_t MyHandler::staDisconnected() {
+ *   return ESP_OK;
+ * }
+ *
+ * esp_err_t MyHandler::staStart() {
+ *   return ESP_OK;
+ * }
+ *
+ * esp_err_t MyHandler::staGotIp(system_event_sta_got_ip_t event_sta_got_ip) {
+ *   return ESP_OK;
+ * }
+ *
+ * esp_err_t MyHandler::wifiReady() {
+ *   return ESP_OK;
+ * }
+ * @endcode
+ */
 class WiFiEventHandler {
 public:
 	WiFiEventHandler();
+	virtual ~WiFiEventHandler();
 	system_event_cb_t getEventHandler();
 	virtual esp_err_t apStaConnected();
 	virtual esp_err_t apStaDisconnected();
@@ -53,6 +92,26 @@ public:
 	virtual esp_err_t staStart();
 	virtual esp_err_t staStop();
 	virtual esp_err_t wifiReady();
+
+	/**
+	 * Get the next WiFi event handler in the chain, if there is one.
+	 * @return The next WiFi event handler in the chain or nullptr if there is none.
+	 */
+	WiFiEventHandler *getNextHandler() {
+		return nextHandler;
+	}
+
+	/**
+	 * Set the next WiFi event handler in the chain.
+	 * @param [in] nextHandler The next WiFi event handler in the chain.
+	 */
+	void setNextHandler(WiFiEventHandler* nextHandler) {
+		this->nextHandler = nextHandler;
+	}
+
+private:
+	WiFiEventHandler *nextHandler = nullptr;
+	static esp_err_t eventHandler(void *ctx, system_event_t *event);
 };
 
 #endif /* MAIN_WIFIEVENTHANDLER_H_ */

@@ -1,15 +1,15 @@
-/**
- * Encapsulate the MPU6050.
- *
- * This class encapsulates the MPU6050 accelerometer and gyroscope.
- * The MPU6050 uses I2C as the communication between the master and the slave.
- */
-
-
 #ifndef MAIN_MPU6050_H_
 #define MAIN_MPU6050_H_
 #include "I2C.h"
 
+/**
+ * @brief Driver for the MPU6050 accelerometer and gyroscope.
+ *
+ * The MPU6050 uses I2C as the communication between the master and the slave.  The class stores
+ * the last read values as class instance local data.  The data can be retrieved from the class
+ * using the appropriate getters.  The readAccel() and readGyro() methods cause communication
+ * with the device to retrieve and locally hold the values from the device.
+ */
 class MPU6050 {
 private:
 	I2C *i2c;
@@ -19,18 +19,12 @@ public:
 	MPU6050();
 	virtual ~MPU6050();
 
-	/**
-	 * Read the acceleration values from the MPU-6050.
-	 */
 	void readAccel();
 
-	/**
-	 * Read the gyor values from the MPU-6050.
-	 */
 	void readGyro();
 
 	/**
-	 * Retrieve the X acceleration value.
+	 * @brief Get the X acceleration value.
 	 */
 	short getAccelX() const
 	{
@@ -38,7 +32,7 @@ public:
 	}
 
 	/**
-	 * Retrieve the Y acceleration value.
+	 * @brief Get the Y acceleration value.
 	 */
 	short getAccelY() const
 	{
@@ -46,7 +40,7 @@ public:
 	}
 
 	/**
-	 * Retrieve the Z acceleration value.
+	 * @brief Get the Z acceleration value.
 	 */
 	short getAccelZ() const
 	{
@@ -54,25 +48,23 @@ public:
 	}
 
 	/**
-	 * Retrieve X gyro value.
+	 * @brief Get the X gyroscopic value.
 	 */
 	short getGyroX() const
 	{
 		return gyro_x;
 	}
 
-
 	/**
-	 * Retrieve Y gyro value.
+	 * @brief Get the Y gyroscopic value.
 	 */
 	short getGyroY() const
 	{
 		return gyro_y;
 	}
 
-
 	/**
-	 * Retrieve Z gyro value.
+	 * @brief Get the Z gyroscopic value.
 	 */
 	short getGyroZ() const
 	{

@@ -12,7 +12,7 @@
 #define MPU6050_PWR_MGMT_1   0x6B
 
 /**
- * Construct an MPU6050 handler.
+ * @brief Construct an MPU6050 handler.
  */
 MPU6050::MPU6050() {
 	i2c = new I2C(PIN_SDA, PIN_CLK);
@@ -31,13 +31,19 @@ MPU6050::MPU6050() {
 }
 
 
+/**
+ * @brief Destory the class instance.
+ */
 MPU6050::~MPU6050() {
 	delete i2c;
 }
 
 
 /**
- * Read the acceleration value from the device.
+ * @brief Read the acceleration value from the device.
+ *
+ * Calling this method results in communication with the device to retrieve the
+ * acceleration data that is then stored in the class instance ready for retrieval.
  */
 void MPU6050::readAccel() {
 	i2c->beginTransaction();
@@ -56,7 +62,10 @@ void MPU6050::readAccel() {
 } // readAccel
 
 /**
- * Read the gyroscopic values from the device.
+ * @brief Read the gyroscopic values from the device.
+ *
+ * Calling this method results in communication with the device to retrieve the
+ * gyroscopic data that is then stored in the class instance ready for retrieval.
  */
 void MPU6050::readGyro() {
 	i2c->beginTransaction();

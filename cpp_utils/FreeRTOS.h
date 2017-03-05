@@ -13,6 +13,9 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+/**
+ * @brief Interface to %FreeRTOS functions.
+ */
 class FreeRTOS {
 public:
 	FreeRTOS();

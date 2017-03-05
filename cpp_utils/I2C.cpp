@@ -14,7 +14,8 @@
 
 
 /**
- * Create an instance of an I2C object.
+ * @brief Create an instance of an %I2C object.
+ *
  * @param[in] sdaPin The pin number used for the SDA line.
  * @param[in] sclPin The pin number used for the SCL line.
  */
@@ -35,7 +36,9 @@ I2C::I2C(int sdaPin, int sclPin) {
 
 
 /**
- * Begin a new I2C transaction.
+ * @brief Begin a new %I2C transaction.
+ *
+ * Begin a transaction by sending a start.
  */
 void I2C::beginTransaction() {
 	cmd = i2c_cmd_link_create();
@@ -44,9 +47,10 @@ void I2C::beginTransaction() {
 }
 
 /**
- * End an I2C transaction.
- * This call will execute the I2C requests that have been queued up since the preceding call to the
- * `beginTransaction()` function.
+ * @brief End an I2C transaction.
+ *
+ * This call will execute the %I2C requests that have been queued up since the preceding call to the
+ * beginTransaction() function.  An %I2C stop() is also called.
  */
 void I2C::endTransaction() {
 	ESP_ERROR_CHECK(i2c_master_stop(cmd));
@@ -56,9 +60,10 @@ void I2C::endTransaction() {
 
 
 /**
- * Write a single byte to the I2C slave.
+ * @brief Write a single byte to the %I2C slave.
+ *
  * @param[in] byte The byte to write to the slave.
- * @param[in] ack Whether or not an acknowledgement is expected from the slave.
+ * @param[in] ack Whether or not an acknowledgment is expected from the slave.
  */
 void I2C::write(uint8_t byte, bool ack) {
 	if (directionKnown == false) {
@@ -69,10 +74,11 @@ void I2C::write(uint8_t byte, bool ack) {
 }
 
 /**
- * Write a sequence of byte to the I2C slave.
- * @param[in] bytes The sequence of bytes to write to the I2C slave.
+ * @brief Write a sequence of byte to the %I2C slave.
+ *
+ * @param[in] bytes The sequence of bytes to write to the %I2C slave.
  * @param[in] length The number of bytes to write.
- * @param[in] ack Whether or not an acknowledgement is expected from the slave.
+ * @param[in] ack Whether or not an acknowledgment is expected from the slave.
  */
 void I2C::write(uint8_t *bytes, size_t length, bool ack) {
 	if (directionKnown == false) {
@@ -84,14 +90,15 @@ void I2C::write(uint8_t *bytes, size_t length, bool ack) {
 
 
 /**
- * Add an I2C start request to the command stream.
+ * @brief Add an I2C start request to the command stream.
  */
 void I2C::start() {
 	ESP_ERROR_CHECK(i2c_master_start(cmd));
 }
 
 /**
- * Read a single byte from the slave.
+ * @brief Read a single byte from the slave.
+ *
  * @param[out] byte The address into which the read byte will be stored.
  * @param[in] ack Whether or not we should send an ACK to the slave after reading a byte.
  */
@@ -104,7 +111,8 @@ void I2C::readByte(uint8_t* byte, bool ack) {
 }
 
 /**
- * Read a sequence of bytes from the slave.
+ * @brief Read a sequence of bytes from the slave.
+ *
  * @param[out] byte The address into which the read bytes will be stored.
  * @param[in] length The number of expected bytes to read.
  * @param[in] ack Whether or not we should send an ACK to the slave after reading a byte.
@@ -119,7 +127,7 @@ void I2C::read(uint8_t* bytes, size_t length, bool ack) {
 
 
 /**
- * Add an I2C stop request to the command stream.
+ * @brief Add an %I2C stop request to the command stream.
  */
 void I2C::stop() {
 	ESP_ERROR_CHECK(i2c_master_stop(cmd));

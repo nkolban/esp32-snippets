@@ -15,32 +15,50 @@
 
 static char tag[] = "WiFiEventHandler";
 
-static esp_err_t eventHandler(void *ctx, system_event_t *event) {
+esp_err_t WiFiEventHandler::eventHandler(void *ctx, system_event_t *event) {
 	ESP_LOGD(tag, "eventHandler called");
 	WiFiEventHandler *pWiFiEventHandler = (WiFiEventHandler *)ctx;
 	if (ctx == nullptr) {
 		ESP_LOGD(tag, "No context");
 		return ESP_OK;
 	}
+	esp_err_t rc = ESP_OK;
 	switch(event->event_id) {
-		case SYSTEM_EVENT_STA_GOT_IP:
-			return pWiFiEventHandler->staGotIp(event->event_info.got_ip);
+
 		case SYSTEM_EVENT_AP_START:
-			return pWiFiEventHandler->apStart();
+			rc =  pWiFiEventHandler->apStart();
+			break;
 		case SYSTEM_EVENT_AP_STOP:
-			return pWiFiEventHandler->apStop();
+			rc =  pWiFiEventHandler->apStop();
+			break;
 		case SYSTEM_EVENT_STA_CONNECTED:
-			return pWiFiEventHandler->staConnected();
+			rc =  pWiFiEventHandler->staConnected();
+			break;
 		case SYSTEM_EVENT_STA_DISCONNECTED:
-			return pWiFiEventHandler->staDisconnected();
+			rc =  pWiFiEventHandler->staDisconnected();
+			break;
+		case SYSTEM_EVENT_STA_GOT_IP:
+			rc = pWiFiEventHandler->staGotIp(event->event_info.got_ip);
+			break;
 		case SYSTEM_EVENT_STA_START:
-			return pWiFiEventHandler->staStart();
+			rc =  pWiFiEventHandler->staStart();
+			break;
 		case SYSTEM_EVENT_STA_STOP:
-			return pWiFiEventHandler->staStop();
+			rc =  pWiFiEventHandler->staStop();
+			break;
+		case SYSTEM_EVENT_WIFI_READY:
+			rc =  pWiFiEventHandler->wifiReady();
+			break;
 		default:
 			break;
 	}
-	return ESP_OK;
+	if (pWiFiEventHandler->nextHandler != nullptr) {
+		printf("Found a next handler\n");
+		rc = eventHandler(pWiFiEventHandler->nextHandler, event);
+	} else {
+		printf("NOT Found a next handler\n");
+	}
+	return rc;
 }
 
 WiFiEventHandler::WiFiEventHandler() {
@@ -110,3 +128,9 @@ esp_err_t WiFiEventHandler::apStaDisconnected() {
 	ESP_LOGD(tag, "default apStaDisconnected");
 	return ESP_OK;
 }
+
+WiFiEventHandler::~WiFiEventHandler() {
+	if (nextHandler != nullptr) {
+		delete nextHandler;
+	}
+} // ~~WiFiEventHandler

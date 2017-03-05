@@ -9,6 +9,11 @@
 #define MAIN_WIFI_H_
 #include <string>
 #include "WiFiEventHandler.h"
+/**
+ * @brief WiFi driver.
+ * Encapsulate control of WiFi functions.
+ *
+ */
 class WiFi {
 private:
 	std::string ip;

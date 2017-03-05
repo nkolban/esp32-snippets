@@ -20,7 +20,8 @@ static char tag[] = "SockServ";
 
 
 /**
- * Create an instance of the class.
+ * @brief Create an instance of the class.
+ *
  * We won't actually start listening for clients until after the start() method has been called.
  * @param [in] port The TCP/IP port number on which we will listen for incoming connection requests.
  */
@@ -31,7 +32,8 @@ SockServ::SockServ(uint16_t port) {
 
 
 /**
- * Accept an incoming connection.
+ * @brief Accept an incoming connection.
+ *
  * Block waiting for an incoming connection and accept it when it arrives.
  */
 void SockServ::acceptTask(void *data) {
@@ -58,7 +60,9 @@ void SockServ::acceptTask(void *data) {
 
 
 /**
- * Start listening for new partner connections.
+ * @brief Start listening for new partner connections.
+ *
+ * The port number on which we will listen is the one defined when the class was created.
  */
 void SockServ::start() {
 	sock = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -83,7 +87,7 @@ void SockServ::start() {
 
 
 /**
- * Stop listening for new partner connections.
+ * @brief Stop listening for new partner connections.
  */
 void SockServ::stop() {
 	int rc = ::close(sock);
@@ -94,7 +98,8 @@ void SockServ::stop() {
 
 
 /**
- * Send data to any connected partners.
+ * @brief Send data to any connected partners.
+ *
  * @param[in] data A sequence of bytes to send to the partner.
  * @param[in] length The length of the sequence of bytes to send to the partner.
  */
@@ -110,7 +115,8 @@ void SockServ::sendData(uint8_t *data, size_t length) {
 
 
 /**
- * Send data from a string to any connected partners.
+ * @brief Send data from a string to any connected partners.
+ *
  * @param[in] str A string from which sequence of bytes will be used to send to the partner.
  */
 void SockServ::sendData(std::string str) {
@@ -119,7 +125,8 @@ void SockServ::sendData(std::string str) {
 
 
 /**
- * Determine the number of connected partners.
+ * @brief Determine the number of connected partners.
+ *
  * @return The number of connected partners.
  */
 int SockServ::connectedCount() {
@@ -127,4 +134,18 @@ int SockServ::connectedCount() {
 		return 0;
 	}
 	return 1;
-}
+} // connectedCount
+
+
+/**
+ * @brief Disconnect any connected partners.
+ */
+void SockServ::disconnect() {
+	if (clientSock == -1) {
+		int rc = ::close(clientSock);
+		if (rc == -1) {
+			ESP_LOGE(tag, "close(): %s", strerror(errno));
+		}
+		clientSock = -1;
+	}
+} // disconnect

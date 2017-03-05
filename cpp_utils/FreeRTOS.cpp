@@ -47,8 +47,8 @@ void FreeRTOS::deleteTask(TaskHandle_t pTask) {
 }
 
 /**
- * Get the time in milliseconds since the FreeRTOS scheduler started.
- * @return The time in milliseconds since the FreeRTOS scheduler started.
+ * Get the time in milliseconds since the %FreeRTOS scheduler started.
+ * @return The time in milliseconds since the %FreeRTOS scheduler started.
  */
 uint32_t FreeRTOS::getTimeSinceStart() {
 	return (uint32_t)(xTaskGetTickCount()*portTICK_PERIOD_MS);
