@@ -11,7 +11,11 @@
 #include <sys/types.h>
 #include "I2C.h"
 #include "sdkconfig.h"
+#include <esp_log.h>
 
+static char tag[] = "I2C.cpp";
+
+static bool driverInstalled = false;
 
 /**
  * @brief Create an instance of an %I2C object.
@@ -19,16 +23,7 @@
  * @param[in] sdaPin The pin number used for the SDA line.
  * @param[in] sclPin The pin number used for the SCL line.
  */
-I2C::I2C(int sdaPin, int sclPin) {
-	i2c_config_t conf;
-	conf.mode = I2C_MODE_MASTER;
-	conf.sda_io_num = (gpio_num_t)sdaPin;
-	conf.scl_io_num = (gpio_num_t)sclPin;
-	conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
-	conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
-	conf.master.clk_speed = 100000;
-	ESP_ERROR_CHECK(i2c_param_config(I2C_NUM_0, &conf));
-	ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0));
+I2C::I2C() {
 	directionKnown = false;
 	address = 0;
 	cmd = 0;
@@ -131,4 +126,20 @@ void I2C::read(uint8_t* bytes, size_t length, bool ack) {
  */
 void I2C::stop() {
 	ESP_ERROR_CHECK(i2c_master_stop(cmd));
+}
+
+void I2C::init(gpio_num_t sdaPin, gpio_num_t sclPin) {
+	ESP_LOGD(tag, ">> I2c::init");
+	i2c_config_t conf;
+	conf.mode = I2C_MODE_MASTER;
+	conf.sda_io_num = sdaPin;
+	conf.scl_io_num = sclPin;
+	conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
+	conf.scl_pullup_en = GPIO_PULLUP_ENABLE;
+	conf.master.clk_speed = 100000;
+	ESP_ERROR_CHECK(i2c_param_config(I2C_NUM_0, &conf));
+	if (!driverInstalled) {
+		ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM_0, I2C_MODE_MASTER, 0, 0, 0));
+		driverInstalled = true;
+	}
 }

@@ -3,8 +3,6 @@
  */
 
 #include "MPU6050.h"
-#define PIN_SDA 25
-#define PIN_CLK 26
 #define I2C_ADDRESS 0x68 // I2C address of MPU6050
 
 #define MPU6050_ACCEL_XOUT_H 0x3B
@@ -12,20 +10,10 @@
 #define MPU6050_PWR_MGMT_1   0x6B
 
 /**
- * @brief Construct an MPU6050 handler.
+ * @brief Construct an %MPU6050 handler.
  */
 MPU6050::MPU6050() {
-	i2c = new I2C(PIN_SDA, PIN_CLK);
-	// Dummy call
-	i2c->setAddress(I2C_ADDRESS);
-	i2c->beginTransaction();
-	i2c->write(MPU6050_ACCEL_XOUT_H);
-	i2c->endTransaction();
 
-	i2c->beginTransaction();
-	i2c->write(MPU6050_PWR_MGMT_1);
-	i2c->write(0);
-	i2c->endTransaction();
 	accel_x = accel_y = accel_z = 0;
 	gyro_x  = gyro_y  = gyro_z  = 0;
 }
@@ -82,3 +70,25 @@ void MPU6050::readGyro() {
 	gyro_y = (data[2] << 8) | data[3];
 	gyro_z = (data[4] << 8) | data[5];
 } // readGyro
+
+/**
+ * @brief Initialize the %MPU6050.
+ * @param [in] sdaPin The %GPIO pin to use for %I2C SDA.
+ * @param [in] clkPin The %GPIO pin to use for %I2C CLK.
+ *
+ * This method must be called before any other methods.
+ */
+void MPU6050::init(gpio_num_t sdaPin, gpio_num_t clkPin) {
+	i2c = new I2C();
+	i2c->init(sdaPin, clkPin);
+	// Dummy call
+	i2c->setAddress(I2C_ADDRESS);
+	i2c->beginTransaction();
+	i2c->write(MPU6050_ACCEL_XOUT_H);
+	i2c->endTransaction();
+
+	i2c->beginTransaction();
+	i2c->write(MPU6050_PWR_MGMT_1);
+	i2c->write(0);
+	i2c->endTransaction();
+}

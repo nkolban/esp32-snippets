@@ -14,13 +14,28 @@ static char tag[] = "SPI";
 /**
  * @brief Construct an instance of the class.
  *
- * @param [in] mosiPin Pin to use for MOSI SPI function.
- * @param [in] misoPin Pin to use for MISO SPI function.
- * @param [in] clkPin Pin to use for CLK SPI function.
- * @param [in] csPin Pin to use for CS SPI function.
+ * @param [in] mosiPin Pin to use for MOSI %SPI function.
+ * @param [in] misoPin Pin to use for MISO %SPI function.
+ * @param [in] clkPin Pin to use for CLK %SPI function.
+ * @param [in] csPin Pin to use for CS %SPI function.
  *
  */
-SPI::SPI(int mosiPin, int misoPin, int clkPin, int csPin) {
+SPI::SPI() {
+
+}
+
+/**
+ * @brief Class instance destructor.
+ */
+SPI::~SPI() {
+  ESP_LOGI(tag, "... Removing device.");
+  ESP_ERROR_CHECK(spi_bus_remove_device(handle));
+
+  ESP_LOGI(tag, "... Freeing bus.");
+  ESP_ERROR_CHECK(spi_bus_free(HSPI_HOST));
+}
+
+void SPI::init(gpio_num_t mosiPin, gpio_num_t misoPin, gpio_num_t clkPin, gpio_num_t csPin) {
 	spi_bus_config_t bus_config;
 	bus_config.sclk_io_num   = clkPin; // CLK
 	bus_config.mosi_io_num   = mosiPin; // MOSI
@@ -48,25 +63,16 @@ SPI::SPI(int mosiPin, int misoPin, int clkPin, int csPin) {
 	ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &dev_config, &handle));
 }
 
-/**
- * @brief Class instance destructor.
- */
-SPI::~SPI() {
-  ESP_LOGI(tag, "... Removing device.");
-  ESP_ERROR_CHECK(spi_bus_remove_device(handle));
-
-  ESP_LOGI(tag, "... Freeing bus.");
-  ESP_ERROR_CHECK(spi_bus_free(HSPI_HOST));
-}
-
 
 /**
- * @brief send and receive data through SPI.
+ * @brief send and receive data through %SPI.
  *
  * @param [in] data A data buffer used to send and receive.
  * @param [in] dataLen The number of bytes to transmit and receive.
  */
 void SPI::transfer(uint8_t *data, size_t dataLen) {
+	assert(data != nullptr);
+	assert(dataLen > 0);
 	spi_transaction_t trans_desc;
 	trans_desc.address   = 0;
 	trans_desc.command   = 0;
@@ -76,6 +82,9 @@ void SPI::transfer(uint8_t *data, size_t dataLen) {
 	trans_desc.tx_buffer = data;
 	trans_desc.rx_buffer = data;
 
-	ESP_LOGI(tag, "... Transmitting.");
-	ESP_ERROR_CHECK(spi_device_transmit(handle, &trans_desc));
+	//ESP_LOGI(tag, "... Transferring");
+	esp_err_t rc = spi_device_transmit(handle, &trans_desc);
+	if (rc != ESP_OK) {
+		ESP_LOGE(tag, "transfer:spi_device_transmit: %d", rc);
+	}
 } // transmit

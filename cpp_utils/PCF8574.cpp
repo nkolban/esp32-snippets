@@ -97,6 +97,25 @@ void PCF8574::writeBit(uint8_t bit, bool value) {
 	write(lastWrite);
 } // writeBit
 
+
+/**
+ * @brief Invert the bit values.
+ * Normally setting a pin's value to 1 means that a high signal is generated and a 0 means a low
+ * signal is generated.  Setting the inversion to true, inverts that meaning.
+ *
+ * @param [in] value True if we wish to invert the signals and false otherwise.
+ */
 void PCF8574::setInvert(bool value) {
 	this->invert = value;
-}
+} // setInvert
+
+
+/**
+ * @brief Initialize the PCF8574 device.
+ *
+ * @param [in] sdaPin The pin to use for the %I2C SDA functions.
+ * @param [in] clkPin The pin to use for the %I2C CLK functions.
+ */
+void PCF8574::init(gpio_num_t sdaPin, gpio_num_t clkPin) {
+	i2c.init(sdaPin, clkPin);
+} // init

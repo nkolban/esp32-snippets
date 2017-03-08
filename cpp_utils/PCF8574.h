@@ -21,6 +21,7 @@ class PCF8574 {
 public:
 	PCF8574(int address);
 	virtual ~PCF8574();
+	void init(gpio_num_t sdaPin=I2C::DEFAULT_SDA_PIN, gpio_num_t clkPin=I2C::DEFAULT_CLK_PIN);
 	uint8_t read();
 	bool readBit(uint8_t bit);
 	void setInvert(bool value);
@@ -28,7 +29,7 @@ public:
 	void writeBit(uint8_t bit, bool value);
 
 private:
-	I2C i2c = I2C(25, 26);
+	I2C i2c = I2C();
 	uint8_t lastWrite;
 	bool invert = false;
 };

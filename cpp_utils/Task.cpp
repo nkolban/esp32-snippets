@@ -27,7 +27,7 @@ static char tag[] = "Task";
 Task::Task(std::string taskName, uint16_t stackSize) {
 	this->stackSize = stackSize;
 	taskData = nullptr;
-	handle = 0;
+	handle   = nullptr;
 } // Task
 
 Task::~Task() {
@@ -45,12 +45,14 @@ void Task::delay(int ms) {
 
 /**
  * Static class member that actually runs the target task.
+ *
+ * The code here will run on the task thread.
  */
 void Task::runTask(void *pData) {
 	ESP_LOGD(tag, ">> runTask");
 	Task *pTask = (Task *)pData;
 	pTask->run(pTask->taskData);
-	vTaskDelete(nullptr);
+	pTask->stop();
 } // runTask
 
 /**
@@ -59,11 +61,19 @@ void Task::runTask(void *pData) {
  * @param [in] Data to be passed into the task.
  */
 void Task::start(void *taskData) {
+	if (handle != nullptr) {
+		ESP_LOGW(tag, "Task::start - There might be a task already running!");
+	}
 	this->taskData = taskData;
 	::xTaskCreate(&runTask, taskName.c_str(), stackSize, this, 5, &handle);
 } // start
 
 
 void Task::stop() {
-	::vTaskDelete(nullptr);
+	if (handle == nullptr) {
+		return;
+	}
+	xTaskHandle temp = handle;
+	handle = nullptr;
+	::vTaskDelete(temp);
 } // stop

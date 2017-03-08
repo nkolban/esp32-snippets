@@ -10,6 +10,17 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <string>
+/**
+ * @brief Encapsulate a runnable task.
+ *
+ * This class is designed to be subclassed with the method:
+ *
+ * ```
+ * void run(void *data) { ... }
+ * ```
+ *
+ * implemented.
+ */
 class Task {
 public:
 	Task(std::string taskName="Task", uint16_t stackSize=2048);

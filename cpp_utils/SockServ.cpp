@@ -73,7 +73,7 @@ void SockServ::start() {
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
 	serverAddress.sin_port = htons(port);
-	int rc = ::bind(sock, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+	int rc = ::bind(sock, (const struct sockaddr *)&serverAddress, sizeof(serverAddress));
 	if (rc == -1) {
 		ESP_LOGE(tag, "bind(): %s", strerror(errno));
 	}

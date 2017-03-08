@@ -8,13 +8,15 @@
 #ifndef COMPONENTS_CPP_UTILS_SPI_H_
 #define COMPONENTS_CPP_UTILS_SPI_H_
 #include <driver/spi_master.h>
+#include <driver/gpio.h>
 /**
  * @brief Handle SPI protocol.
  */
 class SPI {
 public:
-	SPI(int mosiPin=13, int misoPin=12, int clkPin=14, int csPin=15);
+	SPI();
 	virtual ~SPI();
+	void init(gpio_num_t mosiPin=GPIO_NUM_13, gpio_num_t misoPin=GPIO_NUM_12, gpio_num_t clkPin=GPIO_NUM_14, gpio_num_t csPin=GPIO_NUM_15);
 	void transfer(uint8_t *data, size_t dataLen);
 private:
   spi_device_handle_t handle;

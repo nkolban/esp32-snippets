@@ -15,10 +15,12 @@ public:
 	Socket();
 	virtual ~Socket();
 	void close_cpp();
-	void connect_cpp(struct in_addr address, uint16_t port);
+	int connect_cpp(struct in_addr address, uint16_t port);
+	int connect_cpp(char *address, uint16_t port);
 	int receive_cpp(uint8_t *data, size_t length);
 	void send_cpp(const uint8_t *data, size_t length);
 	void send_cpp(std::string value);
+	void init();
 private:
 	int sock;
 };

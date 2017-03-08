@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <driver/i2c.h>
+#include <driver/gpio.h>
 
 
 /**
@@ -22,7 +23,7 @@ private:
 	bool directionKnown;
 
 public:
-	I2C(int sdaPin, int sclPin);
+	I2C();
 	void beginTransaction();
 	void endTransaction();
 	/**
@@ -34,6 +35,8 @@ public:
 	{
 		return address;
 	}
+
+	void init(gpio_num_t sdaPin = DEFAULT_SDA_PIN, gpio_num_t sclPin = DEFAULT_CLK_PIN);
 
 	void read(uint8_t *bytes, size_t length, bool ack=true);
 	void readByte(uint8_t *byte, bool ack=true);
@@ -51,6 +54,8 @@ public:
 	void stop();
 	void write(uint8_t byte, bool ack=true);
 	void write(uint8_t *bytes, size_t length, bool ack=true);
+	static const gpio_num_t DEFAULT_SDA_PIN = GPIO_NUM_25;
+	static const gpio_num_t DEFAULT_CLK_PIN = GPIO_NUM_26;
 };
 
 #endif /* MAIN_I2C_H_ */
