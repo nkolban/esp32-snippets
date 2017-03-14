@@ -77,3 +77,7 @@ void Task::stop() {
 	handle = nullptr;
 	::vTaskDelete(temp);
 } // stop
+
+void Task::setStackSize(uint16_t stackSize) {
+	this->stackSize = stackSize;
+}

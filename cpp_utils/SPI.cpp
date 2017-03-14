@@ -10,6 +10,8 @@
 #include <esp_log.h>
 #include "sdkconfig.h"
 
+//#define DEBUG 1
+
 static char tag[] = "SPI";
 /**
  * @brief Construct an instance of the class.
@@ -21,7 +23,7 @@ static char tag[] = "SPI";
  *
  */
 SPI::SPI() {
-
+	handle = nullptr;
 }
 
 /**
@@ -35,7 +37,8 @@ SPI::~SPI() {
   ESP_ERROR_CHECK(spi_bus_free(HSPI_HOST));
 }
 
-void SPI::init(gpio_num_t mosiPin, gpio_num_t misoPin, gpio_num_t clkPin, gpio_num_t csPin) {
+void SPI::init(int mosiPin, int misoPin, int clkPin, int csPin) {
+	ESP_LOGD(tag, "init: mosi=%d, miso=%d, clk=%d, cs=%d", mosiPin, misoPin, clkPin, csPin);
 	spi_bus_config_t bus_config;
 	bus_config.sclk_io_num   = clkPin; // CLK
 	bus_config.mosi_io_num   = mosiPin; // MOSI
@@ -73,6 +76,11 @@ void SPI::init(gpio_num_t mosiPin, gpio_num_t misoPin, gpio_num_t clkPin, gpio_n
 void SPI::transfer(uint8_t *data, size_t dataLen) {
 	assert(data != nullptr);
 	assert(dataLen > 0);
+#ifdef DEBUG
+	for (auto i=0; i<dataLen; i++) {
+		ESP_LOGD(tag, "> %2d %.2x", i, data[i]);
+	}
+#endif
 	spi_transaction_t trans_desc;
 	trans_desc.address   = 0;
 	trans_desc.command   = 0;

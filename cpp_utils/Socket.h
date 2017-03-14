@@ -20,7 +20,6 @@ public:
 	int receive_cpp(uint8_t *data, size_t length);
 	void send_cpp(const uint8_t *data, size_t length);
 	void send_cpp(std::string value);
-	void init();
 private:
 	int sock;
 };

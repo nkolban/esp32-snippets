@@ -19,7 +19,7 @@
  */
 class NeoPixelWiFiEventHandler: public WiFiEventHandler {
 public:
-	NeoPixelWiFiEventHandler();
+	NeoPixelWiFiEventHandler(gpio_num_t gpioPin);
 	virtual ~NeoPixelWiFiEventHandler();
 
 	esp_err_t apStart() override;
@@ -29,7 +29,8 @@ public:
 	esp_err_t wifiReady() override;
 	esp_err_t staStart() override;
 private:
-	WS2812 ws2812 = WS2812(GPIO_NUM_16, 8);
+	gpio_num_t gpioPin;
+	WS2812 *ws2812;
 };
 
 #endif /* MAIN_NEOPIXELWIFIEVENTHANDLER_H_ */

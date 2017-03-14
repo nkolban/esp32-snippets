@@ -28,6 +28,7 @@ static char tag[] = "SockServ";
 SockServ::SockServ(uint16_t port) {
 	this->port = port;
 	clientSock = -1;
+	sock = -1;
 } // SockServ
 
 

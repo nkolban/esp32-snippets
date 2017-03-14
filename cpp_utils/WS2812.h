@@ -49,9 +49,9 @@ public:
 	virtual ~WS2812();
 private:
 	char          *colorOrder;
-	uint16_t      pixelCount;
-	rmt_channel_t channel;
-	rmt_item32_t  *items;//
+	uint16_t       pixelCount;
+	rmt_channel_t  channel;
+	rmt_item32_t  *items;
 	pixel_t       *pixels;
 };
 

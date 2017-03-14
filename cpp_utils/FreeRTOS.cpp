@@ -6,7 +6,7 @@
  */
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-
+#include <string>
 #include "FreeRTOS.h"
 #include "sdkconfig.h"
 

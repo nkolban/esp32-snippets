@@ -13,9 +13,10 @@
  * @brief Construct an %MPU6050 handler.
  */
 MPU6050::MPU6050() {
-
 	accel_x = accel_y = accel_z = 0;
 	gyro_x  = gyro_y  = gyro_z  = 0;
+	i2c=nullptr;
+	inited=false;
 }
 
 
@@ -34,6 +35,7 @@ MPU6050::~MPU6050() {
  * acceleration data that is then stored in the class instance ready for retrieval.
  */
 void MPU6050::readAccel() {
+	assert(inited);
 	i2c->beginTransaction();
 	i2c->write(MPU6050_ACCEL_XOUT_H);
 	i2c->endTransaction();
@@ -56,6 +58,7 @@ void MPU6050::readAccel() {
  * gyroscopic data that is then stored in the class instance ready for retrieval.
  */
 void MPU6050::readGyro() {
+	assert(inited);
 	i2c->beginTransaction();
 	i2c->write(MPU6050_GYRO_XOUT_H);
 	i2c->endTransaction();
@@ -91,4 +94,5 @@ void MPU6050::init(gpio_num_t sdaPin, gpio_num_t clkPin) {
 	i2c->write(MPU6050_PWR_MGMT_1);
 	i2c->write(0);
 	i2c->endTransaction();
+	inited=true;
 }

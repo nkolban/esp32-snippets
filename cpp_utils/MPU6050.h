@@ -20,6 +20,7 @@ private:
 	I2C *i2c;
 	short accel_x, accel_y, accel_z;
 	short gyro_x, gyro_y, gyro_z;
+	bool inited;
 public:
 	MPU6050();
 	virtual ~MPU6050();

@@ -15,9 +15,19 @@
  *
  * This class is designed to be subclassed with the method:
  *
- * ```
+ * @code{.cpp}
  * void run(void *data) { ... }
- * ```
+ * @endcode
+ *
+ * For example:
+ *
+ * @code{.cpp}
+ * class CurlTestTask : public Task {
+ *    void run(void *data) {
+ *       // Do something
+ *    }
+ * };
+ * @endcode
  *
  * implemented.
  */
@@ -25,6 +35,7 @@ class Task {
 public:
 	Task(std::string taskName="Task", uint16_t stackSize=2048);
 	virtual ~Task();
+	void setStackSize(uint16_t stackSize);
 	void start(void *taskData=nullptr);
 	void stop();
 	/**
