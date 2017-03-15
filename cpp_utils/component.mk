@@ -6,3 +6,6 @@
 # in the build directory. This behaviour is entirely configurable,
 # please read the ESP-IDF documents if you need to do this.
 COMPONENT_ADD_INCLUDEDIRS=.
+
+## Uncomment the following line if we have an implementation of libcurl available to us.
+#CXXFLAGS+=-DESP_HAVE_CURL

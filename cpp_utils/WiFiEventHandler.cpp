@@ -56,7 +56,7 @@ esp_err_t WiFiEventHandler::eventHandler(void *ctx, system_event_t *event) {
 		printf("Found a next handler\n");
 		rc = eventHandler(pWiFiEventHandler->nextHandler, event);
 	} else {
-		printf("NOT Found a next handler\n");
+		//printf("NOT Found a next handler\n");
 	}
 	return rc;
 }

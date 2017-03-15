@@ -87,7 +87,6 @@ void WiFi::connectAP(std::string ssid, std::string password){
 	}
 
 
-
 	ESP_ERROR_CHECK( esp_event_loop_init(wifiEventHandler->getEventHandler(), wifiEventHandler));
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	ESP_ERROR_CHECK(::esp_wifi_init(&cfg));
