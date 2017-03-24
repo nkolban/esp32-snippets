@@ -7,8 +7,36 @@
 
 #ifndef MAIN_WIFI_H_
 #define MAIN_WIFI_H_
+#include "sdkconfig.h"
+#if defined(CONFIG_WIFI_ENABLED)
 #include <string>
+#include <vector>
 #include "WiFiEventHandler.h"
+
+
+
+class WiFiAPRecord {
+public:
+	friend class WiFi;
+	wifi_auth_mode_t getAuthMode() {
+		return authMode;
+	}
+
+	int8_t getRSSI() {
+		return rssi;
+	}
+
+	std::string getSSID() {
+		return ssid;
+	}
+
+	std::string toString();
+private:
+	uint8_t bssid[6];
+	int8_t rssi;
+	std::string ssid;
+	wifi_auth_mode_t authMode;
+};
 /**
  * @brief %WiFi driver.
  *
@@ -44,6 +72,7 @@ public:
 	struct in_addr getHostByName(std::string hostName);
 	void connectAP(std::string ssid, std::string passwd);
 	void dump();
+	std::vector<WiFiAPRecord> scan();
 	void startAP(std::string ssid, std::string passwd);
 	void setIPInfo(std::string ip, std::string gw, std::string netmask);
 
@@ -61,4 +90,5 @@ private:
 	char *dnsServer = nullptr;
 };
 
+#endif // CONFIG_WIFI_ENABLED
 #endif /* MAIN_WIFI_H_ */

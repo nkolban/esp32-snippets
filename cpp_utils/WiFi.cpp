@@ -4,6 +4,9 @@
  *  Created on: Feb 25, 2017
  *      Author: kolban
  */
+#include "sdkconfig.h"
+#if defined(CONFIG_WIFI_ENABLED)
+#define _GLIBCXX_USE_C99
 
 #include "WiFi.h"
 #include <esp_event.h>
@@ -20,7 +23,7 @@
 #include <string.h>
 #include <Task.h>
 
-#include "sdkconfig.h"
+
 
 static char tag[]= "WiFi";
 
@@ -140,6 +143,51 @@ struct in_addr WiFi::getHostByName(std::string hostName) {
 
 
 /**
+ * @brief Perform a WiFi scan looking for access points.
+ *
+ * An access point scan is performed and a vector of WiFi access point records
+ * is built and returned with one record per found scan instance.  The scan is
+ * performed in a blocking fashion and will not return until the set of scanned
+ * access points has been built.
+ *
+ * @return A vector of WiFiAPRecord instances.
+ */
+std::vector<WiFiAPRecord> WiFi::scan() {
+	::nvs_flash_init();
+	::tcpip_adapter_init();
+	ESP_ERROR_CHECK(esp_event_loop_init(wifiEventHandler->getEventHandler(), wifiEventHandler));
+	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+	ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+	ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
+	ESP_ERROR_CHECK(::esp_wifi_set_mode(WIFI_MODE_STA));
+	ESP_ERROR_CHECK( esp_wifi_start() );
+	wifi_scan_config_t conf;
+	memset(&conf, 0, sizeof(conf));
+	conf.show_hidden = true;
+	esp_err_t rc = ::esp_wifi_scan_start(&conf, true);
+	if (rc != ESP_OK) {
+		ESP_LOGE(tag, "esp_wifi_scan_start: %d", rc);
+	}
+	uint16_t apCount;
+	rc = ::esp_wifi_scan_get_ap_num(&apCount);
+	ESP_LOGD(tag, "Count of found access points: %d", apCount);
+    wifi_ap_record_t *list =
+      (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * apCount);
+    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&apCount, list));
+    std::vector<WiFiAPRecord> apRecords;
+    for (auto i=0; i<apCount; i++) {
+    	WiFiAPRecord apR;
+    	memcpy(apR.bssid, list[i].bssid, 6);
+    	apR.ssid = std::string((char *)list[i].ssid);
+    	apR.authMode = list[i].authmode;
+    	apRecords.push_back(apR);
+    }
+    free(list);
+    return apRecords;
+} // scan
+
+
+/**
  * Start being an access point.
  * @param[in] ssid The SSID to use to advertize for stations.
  * @param[in] password The password to use for station connections.
@@ -185,3 +233,35 @@ void WiFi::setIPInfo(std::string ip, std::string gw, std::string netmask) {
 	this->gw = gw;
 	this->netmask = netmask;
 }
+
+
+/**
+ * @brief Return a string representation of the WiFi access point record.
+ *
+ * @return A string representation of the WiFi access point record.
+ */
+std::string WiFiAPRecord::toString() {
+	std::string auth;
+	switch(getAuthMode()) {
+	case WIFI_AUTH_OPEN:
+		auth = "WIFI_AUTH_OPEN";
+		break;
+	case WIFI_AUTH_WEP:
+		auth = "WIFI_AUTH_WEP";
+		break;
+	case WIFI_AUTH_WPA_PSK:
+		auth = "WIFI_AUTH_WPA_PSK";
+		break;
+	case WIFI_AUTH_WPA2_PSK:
+		auth = "WIFI_AUTH_WPA2_PSK";
+		break;
+	case WIFI_AUTH_WPA_WPA2_PSK:
+		auth = "WIFI_AUTH_WPA_WPA2_PSK";
+		break;
+	default:
+		auth = "<unknown>";
+		break;
+	}
+	return "ssid: " + ssid + ", auth: " + auth + ", rssi: " + std::to_string(rssi);
+} // toString
+#endif // CONFIG_WIFI_ENABLED
