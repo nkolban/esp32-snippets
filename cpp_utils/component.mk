@@ -8,4 +8,7 @@
 COMPONENT_ADD_INCLUDEDIRS=.
 
 ## Uncomment the following line if we have an implementation of libcurl available to us.
-#CXXFLAGS+=-DESP_HAVE_CURL
+CXXFLAGS+=-DESP_HAVE_CURL
+
+## Uncomment the following line to enable exception handling 
+#CXXFLAGS+=-fexceptions

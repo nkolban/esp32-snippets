@@ -1,0 +1,135 @@
+\hypertarget{class_sock_serv}{}\section{Sock\+Serv Class Reference}
+\label{class_sock_serv}\index{Sock\+Serv@{Sock\+Serv}}
+
+
+Provide a socket listener and the ability to send data to connected partners.  
+
+
+
+
+{\ttfamily \#include $<$Sock\+Serv.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_sock_serv_a8c3fa6bf7bb34ebf9b8db86048ded61c}{Sock\+Serv} (uint16\+\_\+t port)
+\begin{DoxyCompactList}\small\item\em Create an instance of the class. \end{DoxyCompactList}\item 
+int \hyperlink{class_sock_serv_a74fdc3b3fcb84a1e64505b1c792032f9}{connected\+Count} ()
+\begin{DoxyCompactList}\small\item\em Determine the number of connected partners. \end{DoxyCompactList}\item 
+void \hyperlink{class_sock_serv_ab82b0f06ba60f2a676e07ad76326c428}{disconnect} ()\hypertarget{class_sock_serv_ab82b0f06ba60f2a676e07ad76326c428}{}\label{class_sock_serv_ab82b0f06ba60f2a676e07ad76326c428}
+
+\begin{DoxyCompactList}\small\item\em Disconnect any connected partners. \end{DoxyCompactList}\item 
+void \hyperlink{class_sock_serv_a3e4e4cc30becc9440573c3285e8004d2}{send\+Data} (uint8\+\_\+t $\ast$data, size\+\_\+t length)
+\begin{DoxyCompactList}\small\item\em Send data to any connected partners. \end{DoxyCompactList}\item 
+void \hyperlink{class_sock_serv_ac50c88830b1b4a3e75b8fbd82799b08d}{send\+Data} (std\+::string str)
+\begin{DoxyCompactList}\small\item\em Send data from a string to any connected partners. \end{DoxyCompactList}\item 
+void \hyperlink{class_sock_serv_abbfb5d8eba2ef0a47fa0aa981a43f6dc}{start} ()
+\begin{DoxyCompactList}\small\item\em Start listening for new partner connections. \end{DoxyCompactList}\item 
+void \hyperlink{class_sock_serv_a4d6d90089cd108ba10e481e4aca274f4}{stop} ()\hypertarget{class_sock_serv_a4d6d90089cd108ba10e481e4aca274f4}{}\label{class_sock_serv_a4d6d90089cd108ba10e481e4aca274f4}
+
+\begin{DoxyCompactList}\small\item\em Stop listening for new partner connections. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Provide a socket listener and the ability to send data to connected partners. 
+
+We use this class to listen on a given socket and accept connections from partners. When we call one of the \hyperlink{class_sock_serv_a3e4e4cc30becc9440573c3285e8004d2}{send\+Data()} methods, the data passed as parameters is then sent to the connected partners.
+
+Here is an example code fragment that uses the class\+:
+
+
+\begin{DoxyCode}
+\hyperlink{class_sock_serv}{SockServ} mySockServer = \hyperlink{class_sock_serv_a8c3fa6bf7bb34ebf9b8db86048ded61c}{SockServ}(9876);
+mySockServer.\hyperlink{class_sock_serv_abbfb5d8eba2ef0a47fa0aa981a43f6dc}{start}();
+
+\textcolor{comment}{// Later ...}
+mySockServer.\hyperlink{class_sock_serv_a3e4e4cc30becc9440573c3285e8004d2}{sendData}(data, dataLen);
+\end{DoxyCode}
+ 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{Sock\+Serv@{Sock\+Serv}!Sock\+Serv@{Sock\+Serv}}
+\index{Sock\+Serv@{Sock\+Serv}!Sock\+Serv@{Sock\+Serv}}
+\subsubsection[{\texorpdfstring{Sock\+Serv(uint16\+\_\+t port)}{SockServ(uint16_t port)}}]{\setlength{\rightskip}{0pt plus 5cm}Sock\+Serv\+::\+Sock\+Serv (
+\begin{DoxyParamCaption}
+\item[{uint16\+\_\+t}]{port}
+\end{DoxyParamCaption}
+)}\hypertarget{class_sock_serv_a8c3fa6bf7bb34ebf9b8db86048ded61c}{}\label{class_sock_serv_a8c3fa6bf7bb34ebf9b8db86048ded61c}
+
+
+Create an instance of the class. 
+
+We won\textquotesingle{}t actually start listening for clients until after the \hyperlink{class_sock_serv_abbfb5d8eba2ef0a47fa0aa981a43f6dc}{start()} method has been called. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em port} & The T\+C\+P/\+IP port number on which we will listen for incoming connection requests. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\index{Sock\+Serv@{Sock\+Serv}!connected\+Count@{connected\+Count}}
+\index{connected\+Count@{connected\+Count}!Sock\+Serv@{Sock\+Serv}}
+\subsubsection[{\texorpdfstring{connected\+Count()}{connectedCount()}}]{\setlength{\rightskip}{0pt plus 5cm}int Sock\+Serv\+::connected\+Count (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_sock_serv_a74fdc3b3fcb84a1e64505b1c792032f9}{}\label{class_sock_serv_a74fdc3b3fcb84a1e64505b1c792032f9}
+
+
+Determine the number of connected partners. 
+
+\begin{DoxyReturn}{Returns}
+The number of connected partners. 
+\end{DoxyReturn}
+\index{Sock\+Serv@{Sock\+Serv}!send\+Data@{send\+Data}}
+\index{send\+Data@{send\+Data}!Sock\+Serv@{Sock\+Serv}}
+\subsubsection[{\texorpdfstring{send\+Data(uint8\+\_\+t $\ast$data, size\+\_\+t length)}{sendData(uint8_t *data, size_t length)}}]{\setlength{\rightskip}{0pt plus 5cm}void Sock\+Serv\+::send\+Data (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t $\ast$}]{data, }
+\item[{size\+\_\+t}]{length}
+\end{DoxyParamCaption}
+)}\hypertarget{class_sock_serv_a3e4e4cc30becc9440573c3285e8004d2}{}\label{class_sock_serv_a3e4e4cc30becc9440573c3285e8004d2}
+
+
+Send data to any connected partners. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em data} & A sequence of bytes to send to the partner. \\
+\hline
+\mbox{\tt in}  & {\em length} & The length of the sequence of bytes to send to the partner. \\
+\hline
+\end{DoxyParams}
+\index{Sock\+Serv@{Sock\+Serv}!send\+Data@{send\+Data}}
+\index{send\+Data@{send\+Data}!Sock\+Serv@{Sock\+Serv}}
+\subsubsection[{\texorpdfstring{send\+Data(std\+::string str)}{sendData(std::string str)}}]{\setlength{\rightskip}{0pt plus 5cm}void Sock\+Serv\+::send\+Data (
+\begin{DoxyParamCaption}
+\item[{std\+::string}]{str}
+\end{DoxyParamCaption}
+)}\hypertarget{class_sock_serv_ac50c88830b1b4a3e75b8fbd82799b08d}{}\label{class_sock_serv_ac50c88830b1b4a3e75b8fbd82799b08d}
+
+
+Send data from a string to any connected partners. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em str} & A string from which sequence of bytes will be used to send to the partner. \\
+\hline
+\end{DoxyParams}
+\index{Sock\+Serv@{Sock\+Serv}!start@{start}}
+\index{start@{start}!Sock\+Serv@{Sock\+Serv}}
+\subsubsection[{\texorpdfstring{start()}{start()}}]{\setlength{\rightskip}{0pt plus 5cm}void Sock\+Serv\+::start (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_sock_serv_abbfb5d8eba2ef0a47fa0aa981a43f6dc}{}\label{class_sock_serv_abbfb5d8eba2ef0a47fa0aa981a43f6dc}
+
+
+Start listening for new partner connections. 
+
+The port number on which we will listen is the one defined when the class was created. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+Sock\+Serv.\+h\item 
+Sock\+Serv.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,313 @@
+\hypertarget{class_m_a_x7219}{}\section{M\+A\+X7219 Class Reference}
+\label{class_m_a_x7219}\index{M\+A\+X7219@{M\+A\+X7219}}
+
+
+M\+A\+X7219 and M\+A\+X7221 controller.  
+
+
+
+
+{\ttfamily \#include $<$M\+A\+X7219.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_m_a_x7219_ad7a658d65e610e3e35fff96279bd5abe}{M\+A\+X7219} (\hyperlink{class_s_p_i}{S\+PI} $\ast$spi, int num\+Devices=1)
+\begin{DoxyCompactList}\small\item\em Create a new M\+A\+X7219 controller. \end{DoxyCompactList}\item 
+void \hyperlink{class_m_a_x7219_ae21eeb2689755ebbd05b1df56e5bcca0}{clear\+Display} (int addr)
+\begin{DoxyCompactList}\small\item\em Switch all Leds on the display off. \end{DoxyCompactList}\item 
+int \hyperlink{class_m_a_x7219_a2765aed08c5ea70f43937c8b88d8b71a}{get\+Device\+Count} ()
+\begin{DoxyCompactList}\small\item\em Gets the number of devices attached to this M\+A\+X7219. \end{DoxyCompactList}\item 
+void \hyperlink{class_m_a_x7219_a8a4624d45533a9de52585202f7b2fc78}{set\+Char} (int digit, char value, bool dp=false, int addr=0)
+\begin{DoxyCompactList}\small\item\em Display a character on a 7-\/\+Segment display. \end{DoxyCompactList}\item 
+void \hyperlink{class_m_a_x7219_a4cc8fe7ad21942e059ac4a931fce502e}{set\+Column} (int col, uint8\+\_\+t value, int addr=0)
+\begin{DoxyCompactList}\small\item\em Set all 8 Led\textquotesingle{}s in a column to a new state. \end{DoxyCompactList}\item 
+void \hyperlink{class_m_a_x7219_aa4f94d965ecde62d2dd8a4091005b0a0}{set\+Digit} (int digit, uint8\+\_\+t value, bool dp=false, int addr=0)
+\begin{DoxyCompactList}\small\item\em Display a hexadecimal digit on a 7-\/\+Segment Display. \end{DoxyCompactList}\item 
+void \hyperlink{class_m_a_x7219_a204133a6b253f5d519acd5dc0077f32a}{set\+Intensity} (int intensity, int addr=0)
+\begin{DoxyCompactList}\small\item\em Set the brightness of the display. \end{DoxyCompactList}\item 
+void \hyperlink{class_m_a_x7219_aebc8bfad65290b1b4580688c719f7e13}{set\+Led} (int row, int col, bool state, int addr=0)
+\begin{DoxyCompactList}\small\item\em Set the status of a single Led. \end{DoxyCompactList}\item 
+void \hyperlink{class_m_a_x7219_a1e50065060426b3433ec16ea2e304760}{set\+Number} (uint32\+\_\+t number, int addr=0)
+\begin{DoxyCompactList}\small\item\em Display a number on the 7-\/\+Segment display. \end{DoxyCompactList}\item 
+void \hyperlink{class_m_a_x7219_aecd0b20a63757fd74e849369dd797e74}{set\+Row} (int row, uint8\+\_\+t value, int addr=0)
+\begin{DoxyCompactList}\small\item\em Set all 8 Led\textquotesingle{}s in a row to a new state. \end{DoxyCompactList}\item 
+void \hyperlink{class_m_a_x7219_a14cd47938ff60879b676d9a0c02d4268}{set\+Scan\+Limit} (int limit, int addr=0)
+\begin{DoxyCompactList}\small\item\em Set the number of digits (or rows) to be displayed. See datasheet for side effects of the scanlimit on the brightness of the display. \end{DoxyCompactList}\item 
+void \hyperlink{class_m_a_x7219_a948326a74baa10f8fead88c7b04a21b1}{shutdown} (bool status, int addr=0)
+\begin{DoxyCompactList}\small\item\em Set the shutdown (power saving) mode for the device. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+M\+A\+X7219 and M\+A\+X7221 controller. 
+
+This is a port of the Arduino \href{http://playground.arduino.cc/Main/MAX7219}{\tt M\+A\+X7219 class} to the E\+S\+P32. We can attach multiple IC instances daisy chained together. Each device has its own {\itshape address} with the first device being 0 (the default).
+
+All the devices are in shutdown mode by default when we start. Any devices that are to be used must be taken out of shutdown mode with a call to\+:
+
+
+\begin{DoxyCode}
+\hyperlink{class_m_a_x7219_a948326a74baa10f8fead88c7b04a21b1}{shutdown}(\textcolor{keyword}{false});
+\end{DoxyCode}
+
+
+For a given configuration, we are likely going to work with the M\+A\+X7219 as either an 8 digit 7 segment L\+ED driver or an 8x8 led matrix. Working with the two styles have similarities and distinctions. For the 7 segment L\+ED, we will typically use \hyperlink{class_m_a_x7219_aa4f94d965ecde62d2dd8a4091005b0a0}{set\+Digit()}, \hyperlink{class_m_a_x7219_a8a4624d45533a9de52585202f7b2fc78}{set\+Char()} and \hyperlink{class_m_a_x7219_a1e50065060426b3433ec16ea2e304760}{set\+Number()} to set digits while in the 8x8 led matrix, we will use \hyperlink{class_m_a_x7219_aebc8bfad65290b1b4580688c719f7e13}{set\+Led()}, \hyperlink{class_m_a_x7219_aecd0b20a63757fd74e849369dd797e74}{set\+Row()} and \hyperlink{class_m_a_x7219_a4cc8fe7ad21942e059ac4a931fce502e}{set\+Column()}. 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{M\+A\+X7219@{M\+A\+X7219}!M\+A\+X7219@{M\+A\+X7219}}
+\index{M\+A\+X7219@{M\+A\+X7219}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{M\+A\+X7219(\+S\+P\+I $\ast$spi, int num\+Devices=1)}{MAX7219(SPI *spi, int numDevices=1)}}]{\setlength{\rightskip}{0pt plus 5cm}M\+A\+X7219\+::\+M\+A\+X7219 (
+\begin{DoxyParamCaption}
+\item[{{\bf S\+PI} $\ast$}]{spi, }
+\item[{int}]{num\+Devices = {\ttfamily 1}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_ad7a658d65e610e3e35fff96279bd5abe}{}\label{class_m_a_x7219_ad7a658d65e610e3e35fff96279bd5abe}
+
+
+Create a new M\+A\+X7219 controller. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em spi} & S\+PI controller. \\
+\hline
+\mbox{\tt in}  & {\em num\+Devices} & maximum number of devices that can be controlled that are daisy chained together. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\index{M\+A\+X7219@{M\+A\+X7219}!clear\+Display@{clear\+Display}}
+\index{clear\+Display@{clear\+Display}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{clear\+Display(int addr)}{clearDisplay(int addr)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+A\+X7219\+::clear\+Display (
+\begin{DoxyParamCaption}
+\item[{int}]{addr}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_ae21eeb2689755ebbd05b1df56e5bcca0}{}\label{class_m_a_x7219_ae21eeb2689755ebbd05b1df56e5bcca0}
+
+
+Switch all Leds on the display off. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em addr} & Address of the display to control. \\
+\hline
+\end{DoxyParams}
+\index{M\+A\+X7219@{M\+A\+X7219}!get\+Device\+Count@{get\+Device\+Count}}
+\index{get\+Device\+Count@{get\+Device\+Count}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{get\+Device\+Count()}{getDeviceCount()}}]{\setlength{\rightskip}{0pt plus 5cm}int M\+A\+X7219\+::get\+Device\+Count (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_a2765aed08c5ea70f43937c8b88d8b71a}{}\label{class_m_a_x7219_a2765aed08c5ea70f43937c8b88d8b71a}
+
+
+Gets the number of devices attached to this M\+A\+X7219. 
+
+\begin{DoxyReturn}{Returns}
+The number of devices on this M\+A\+X7219. 
+\end{DoxyReturn}
+\index{M\+A\+X7219@{M\+A\+X7219}!set\+Char@{set\+Char}}
+\index{set\+Char@{set\+Char}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{set\+Char(int digit, char value, bool dp=false, int addr=0)}{setChar(int digit, char value, bool dp=false, int addr=0)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+A\+X7219\+::set\+Char (
+\begin{DoxyParamCaption}
+\item[{int}]{digit, }
+\item[{char}]{value, }
+\item[{bool}]{dp = {\ttfamily false}, }
+\item[{int}]{addr = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_a8a4624d45533a9de52585202f7b2fc78}{}\label{class_m_a_x7219_a8a4624d45533a9de52585202f7b2fc78}
+
+
+Display a character on a 7-\/\+Segment display. 
+
+There are only a few characters that make sense here \+: \textquotesingle{}0\textquotesingle{},\textquotesingle{}1\textquotesingle{},\textquotesingle{}2\textquotesingle{},\textquotesingle{}3\textquotesingle{},\textquotesingle{}4\textquotesingle{},\textquotesingle{}5\textquotesingle{},\textquotesingle{}6\textquotesingle{},\textquotesingle{}7\textquotesingle{},\textquotesingle{}8\textquotesingle{},\textquotesingle{}9\textquotesingle{},\textquotesingle{}0\textquotesingle{}, \textquotesingle{}A\textquotesingle{},\textquotesingle{}b\textquotesingle{},\textquotesingle{}c\textquotesingle{},\textquotesingle{}d\textquotesingle{},\textquotesingle{}E\textquotesingle{},\textquotesingle{}F\textquotesingle{},\textquotesingle{}H\textquotesingle{},\textquotesingle{}L\textquotesingle{},\textquotesingle{}P\textquotesingle{}, \textquotesingle{}.\textquotesingle{},\textquotesingle{}-\/\textquotesingle{},\textquotesingle{}\+\_\+\textquotesingle{},\textquotesingle{} \textquotesingle{}
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em digit} & The position of the character on the display (0..7). \\
+\hline
+\mbox{\tt in}  & {\em value} & The character to be displayed. \\
+\hline
+\mbox{\tt in}  & {\em dp} & Sets the decimal point. \\
+\hline
+\mbox{\tt in}  & {\em addr} & Address of the display. \\
+\hline
+\end{DoxyParams}
+\index{M\+A\+X7219@{M\+A\+X7219}!set\+Column@{set\+Column}}
+\index{set\+Column@{set\+Column}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{set\+Column(int col, uint8\+\_\+t value, int addr=0)}{setColumn(int col, uint8_t value, int addr=0)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+A\+X7219\+::set\+Column (
+\begin{DoxyParamCaption}
+\item[{int}]{col, }
+\item[{uint8\+\_\+t}]{value, }
+\item[{int}]{addr = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_a4cc8fe7ad21942e059ac4a931fce502e}{}\label{class_m_a_x7219_a4cc8fe7ad21942e059ac4a931fce502e}
+
+
+Set all 8 Led\textquotesingle{}s in a column to a new state. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em col} & column which is to be set (0..7). \\
+\hline
+\mbox{\tt in}  & {\em value} & each bit set to 1 will light up the corresponding Led. \\
+\hline
+\mbox{\tt in}  & {\em addr} & address of the display. \\
+\hline
+\end{DoxyParams}
+\index{M\+A\+X7219@{M\+A\+X7219}!set\+Digit@{set\+Digit}}
+\index{set\+Digit@{set\+Digit}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{set\+Digit(int digit, uint8\+\_\+t value, bool dp=false, int addr=0)}{setDigit(int digit, uint8_t value, bool dp=false, int addr=0)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+A\+X7219\+::set\+Digit (
+\begin{DoxyParamCaption}
+\item[{int}]{digit, }
+\item[{uint8\+\_\+t}]{value, }
+\item[{bool}]{dp = {\ttfamily false}, }
+\item[{int}]{addr = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_aa4f94d965ecde62d2dd8a4091005b0a0}{}\label{class_m_a_x7219_aa4f94d965ecde62d2dd8a4091005b0a0}
+
+
+Display a hexadecimal digit on a 7-\/\+Segment Display. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em digit} & The position of the digit on the display (0..7). \\
+\hline
+\mbox{\tt in}  & {\em value} & The value to be displayed. (0x00..0x0F). \\
+\hline
+\mbox{\tt in}  & {\em dp} & Sets the decimal point. \\
+\hline
+\mbox{\tt in}  & {\em addr} & Address of the display. \\
+\hline
+\end{DoxyParams}
+\index{M\+A\+X7219@{M\+A\+X7219}!set\+Intensity@{set\+Intensity}}
+\index{set\+Intensity@{set\+Intensity}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{set\+Intensity(int intensity, int addr=0)}{setIntensity(int intensity, int addr=0)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+A\+X7219\+::set\+Intensity (
+\begin{DoxyParamCaption}
+\item[{int}]{intensity, }
+\item[{int}]{addr = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_a204133a6b253f5d519acd5dc0077f32a}{}\label{class_m_a_x7219_a204133a6b253f5d519acd5dc0077f32a}
+
+
+Set the brightness of the display. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em intensity} & the brightness of the display. (0..15). \\
+\hline
+\mbox{\tt in}  & {\em addr} & The address of the display to control. \\
+\hline
+\end{DoxyParams}
+\index{M\+A\+X7219@{M\+A\+X7219}!set\+Led@{set\+Led}}
+\index{set\+Led@{set\+Led}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{set\+Led(int row, int col, bool state, int addr=0)}{setLed(int row, int col, bool state, int addr=0)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+A\+X7219\+::set\+Led (
+\begin{DoxyParamCaption}
+\item[{int}]{row, }
+\item[{int}]{col, }
+\item[{bool}]{state, }
+\item[{int}]{addr = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_aebc8bfad65290b1b4580688c719f7e13}{}\label{class_m_a_x7219_aebc8bfad65290b1b4580688c719f7e13}
+
+
+Set the status of a single Led. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em row} & The row of the Led (0..7). \\
+\hline
+\mbox{\tt in}  & {\em col} & The column of the Led (0..7). \\
+\hline
+\mbox{\tt in}  & {\em state} & If true the led is switched on, if false it is switched off. \\
+\hline
+\mbox{\tt in}  & {\em addr} & Address of the display. \\
+\hline
+\end{DoxyParams}
+\index{M\+A\+X7219@{M\+A\+X7219}!set\+Number@{set\+Number}}
+\index{set\+Number@{set\+Number}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{set\+Number(uint32\+\_\+t number, int addr=0)}{setNumber(uint32_t number, int addr=0)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+A\+X7219\+::set\+Number (
+\begin{DoxyParamCaption}
+\item[{uint32\+\_\+t}]{number, }
+\item[{int}]{addr = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_a1e50065060426b3433ec16ea2e304760}{}\label{class_m_a_x7219_a1e50065060426b3433ec16ea2e304760}
+
+
+Display a number on the 7-\/\+Segment display. 
+
+A non negative whole number that is 8 digits or less is displayed.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em number} & The number to display. \\
+\hline
+\mbox{\tt in}  & {\em addr} & Address of the display. \\
+\hline
+\end{DoxyParams}
+\index{M\+A\+X7219@{M\+A\+X7219}!set\+Row@{set\+Row}}
+\index{set\+Row@{set\+Row}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{set\+Row(int row, uint8\+\_\+t value, int addr=0)}{setRow(int row, uint8_t value, int addr=0)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+A\+X7219\+::set\+Row (
+\begin{DoxyParamCaption}
+\item[{int}]{row, }
+\item[{uint8\+\_\+t}]{value, }
+\item[{int}]{addr = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_aecd0b20a63757fd74e849369dd797e74}{}\label{class_m_a_x7219_aecd0b20a63757fd74e849369dd797e74}
+
+
+Set all 8 Led\textquotesingle{}s in a row to a new state. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em row} & Row which is to be set (0..7). \\
+\hline
+\mbox{\tt in}  & {\em value} & Each bit set to 1 will light up the corresponding Led. \\
+\hline
+\mbox{\tt in}  & {\em addr} & Address of the display. \\
+\hline
+\end{DoxyParams}
+\index{M\+A\+X7219@{M\+A\+X7219}!set\+Scan\+Limit@{set\+Scan\+Limit}}
+\index{set\+Scan\+Limit@{set\+Scan\+Limit}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{set\+Scan\+Limit(int limit, int addr=0)}{setScanLimit(int limit, int addr=0)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+A\+X7219\+::set\+Scan\+Limit (
+\begin{DoxyParamCaption}
+\item[{int}]{limit, }
+\item[{int}]{addr = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_a14cd47938ff60879b676d9a0c02d4268}{}\label{class_m_a_x7219_a14cd47938ff60879b676d9a0c02d4268}
+
+
+Set the number of digits (or rows) to be displayed. See datasheet for side effects of the scanlimit on the brightness of the display. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em limit} & Number of digits to be displayed (1..8). \\
+\hline
+\mbox{\tt in}  & {\em addr} & Address of the display to control. \\
+\hline
+\end{DoxyParams}
+\index{M\+A\+X7219@{M\+A\+X7219}!shutdown@{shutdown}}
+\index{shutdown@{shutdown}!M\+A\+X7219@{M\+A\+X7219}}
+\subsubsection[{\texorpdfstring{shutdown(bool status, int addr=0)}{shutdown(bool status, int addr=0)}}]{\setlength{\rightskip}{0pt plus 5cm}void M\+A\+X7219\+::shutdown (
+\begin{DoxyParamCaption}
+\item[{bool}]{status, }
+\item[{int}]{addr = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_m_a_x7219_a948326a74baa10f8fead88c7b04a21b1}{}\label{class_m_a_x7219_a948326a74baa10f8fead88c7b04a21b1}
+
+
+Set the shutdown (power saving) mode for the device. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em status} & If true the device goes into power-\/down mode. Set to false for normal operation. \\
+\hline
+\mbox{\tt in}  & {\em addr} & The address of the display to control. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+M\+A\+X7219.\+h\item 
+M\+A\+X7219.\+cpp\end{DoxyCompactItemize}

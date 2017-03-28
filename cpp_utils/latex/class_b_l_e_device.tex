@@ -1,0 +1,71 @@
+\hypertarget{class_b_l_e_device}{}\section{B\+L\+E\+Device Class Reference}
+\label{class_b_l_e_device}\index{B\+L\+E\+Device@{B\+L\+E\+Device}}
+
+
+A B\+LE device.  
+
+
+
+
+{\ttfamily \#include $<$B\+L\+E\+Device.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{class_b_l_e_device_a650aada692e52d54376e632d81f8ac40}{dump} ()\hypertarget{class_b_l_e_device_a650aada692e52d54376e632d81f8ac40}{}\label{class_b_l_e_device_a650aada692e52d54376e632d81f8ac40}
+
+\begin{DoxyCompactList}\small\item\em Dump the status of this \hyperlink{class_b_l_e}{B\+LE} device. \end{DoxyCompactList}\item 
+void \hyperlink{class_b_l_e_device_a7c1836e7eac318d643169ce80d95c18e}{set\+Address} (uint8\+\_\+t $\ast$p\+Data)
+\begin{DoxyCompactList}\small\item\em Set the device address from 6 bytes of storage. \end{DoxyCompactList}\item 
+void {\bfseries set\+R\+S\+SI} (int rssi)\hypertarget{class_b_l_e_device_a39e8d59ebab8b0bdf70169ddcc6da2fa}{}\label{class_b_l_e_device_a39e8d59ebab8b0bdf70169ddcc6da2fa}
+
+\item 
+void {\bfseries set\+Ad\+Flag} (uint8\+\_\+t ad\+Flag)\hypertarget{class_b_l_e_device_aa3b866720c0d6516e4dd20b8299314b9}{}\label{class_b_l_e_device_aa3b866720c0d6516e4dd20b8299314b9}
+
+\item 
+std\+::string {\bfseries get\+Address} ()\hypertarget{class_b_l_e_device_a5d9954069757af65b571a154420d5a45}{}\label{class_b_l_e_device_a5d9954069757af65b571a154420d5a45}
+
+\item 
+bool {\bfseries is\+Limited\+Discoverable} ()\hypertarget{class_b_l_e_device_a9c88313fce2e1add75ba476e337993c7}{}\label{class_b_l_e_device_a9c88313fce2e1add75ba476e337993c7}
+
+\item 
+bool {\bfseries is\+General\+Discoverable} ()\hypertarget{class_b_l_e_device_a50d7f4d14e1bf220df02f6349815fc01}{}\label{class_b_l_e_device_a50d7f4d14e1bf220df02f6349815fc01}
+
+\item 
+bool {\bfseries is\+B\+R\+E\+D\+R\+Supported} ()\hypertarget{class_b_l_e_device_ad4d8e42401bf122a83d6e80004f28f56}{}\label{class_b_l_e_device_ad4d8e42401bf122a83d6e80004f28f56}
+
+\item 
+void \hyperlink{class_b_l_e_device_ad8d5c2daaaa016e7b71cfa7f5b940308}{open} ()\hypertarget{class_b_l_e_device_ad8d5c2daaaa016e7b71cfa7f5b940308}{}\label{class_b_l_e_device_ad8d5c2daaaa016e7b71cfa7f5b940308}
+
+\begin{DoxyCompactList}\small\item\em Open a connection to the B\+LE partner. \end{DoxyCompactList}\item 
+void {\bfseries parse\+Payload} (uint8\+\_\+t $\ast$payload)\hypertarget{class_b_l_e_device_a759527ce3fa16dee457c56d04a273e1a}{}\label{class_b_l_e_device_a759527ce3fa16dee457c56d04a273e1a}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A B\+LE device. 
+
+\subsection{Member Function Documentation}
+\index{B\+L\+E\+Device@{B\+L\+E\+Device}!set\+Address@{set\+Address}}
+\index{set\+Address@{set\+Address}!B\+L\+E\+Device@{B\+L\+E\+Device}}
+\subsubsection[{\texorpdfstring{set\+Address(uint8\+\_\+t $\ast$p\+Data)}{setAddress(uint8_t *pData)}}]{\setlength{\rightskip}{0pt plus 5cm}void B\+L\+E\+Device\+::set\+Address (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t $\ast$}]{p\+Data}
+\end{DoxyParamCaption}
+)}\hypertarget{class_b_l_e_device_a7c1836e7eac318d643169ce80d95c18e}{}\label{class_b_l_e_device_a7c1836e7eac318d643169ce80d95c18e}
+
+
+Set the device address from 6 bytes of storage. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+Data} & The 6 bytes that correspond to the address. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+B\+L\+E\+Device.\+h\item 
+B\+L\+E\+Device.\+cpp\end{DoxyCompactItemize}

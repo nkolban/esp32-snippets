@@ -8,8 +8,11 @@
 #ifndef MAIN_IFTTT_H_
 #define MAIN_IFTTT_H_
 
-#include "RESTClient.h"
-
+#include <RESTClient.h>
+#include <string>
+/**
+ * @brief Ecnapsulate IFTTT calls.
+ */
 class IFTTT {
 public:
 	IFTTT(std::string key);

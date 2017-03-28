@@ -7,10 +7,15 @@
 
 #ifndef MAIN_RESTCLIENT_H_
 #define MAIN_RESTCLIENT_H_
+#if defined(ESP_HAVE_CURL)
+
 #include <string>
 #include <curl/curl.h>
 class RESTClient;
 
+/**
+ * @brief Timing data for REST calls.
+ */
 class RESTTimings {
 public:
 	RESTTimings(RESTClient *client);
@@ -26,6 +31,9 @@ private:
 	RESTClient *client = nullptr;
 };
 
+/**
+ * @brief Encapsulate a REST client call.
+ */
 class RESTClient {
 public:
 	RESTClient();
@@ -76,5 +84,5 @@ private:
 	static size_t handleData(void *buffer, size_t size, size_t nmemb, void *userp);
 	void prepForCall();
 };
-
+#endif /* ESP_HAVE_CURL */
 #endif /* MAIN_RESTCLIENT_H_ */

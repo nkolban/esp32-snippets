@@ -22,13 +22,17 @@ Socket::Socket() {
 }
 
 Socket::~Socket() {
-	close_cpp();
+	close_cpp(); // When the class instance has ended, delete the socket.
 }
 
+
 void Socket::close_cpp() {
-	::close(sock);
+	if (sock != -1) {
+		::close(sock);
+	}
 	sock = -1;
-}
+} // close_cpp
+
 
 /**
  * @brief Connect to a partner.
@@ -100,7 +104,7 @@ void Socket::send_cpp(const uint8_t* data, size_t length) {
 	if (rc == -1) {
 		ESP_LOGE(tag, "receive_cpp: %s", strerror(errno));
 	}
-}
+} // send_cpp
 
 
 /**
@@ -111,4 +115,4 @@ void Socket::send_cpp(const uint8_t* data, size_t length) {
 
 void Socket::send_cpp(std::string value) {
 	send_cpp((uint8_t *)value.data(), value.size());
-}
+} // send_cpp

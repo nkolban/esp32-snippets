@@ -1,0 +1,217 @@
+\hypertarget{class_i2_c}{}\section{I2C Class Reference}
+\label{class_i2_c}\index{I2C@{I2C}}
+
+
+Interface to I2C functions.  
+
+
+
+
+{\ttfamily \#include $<$I2\+C.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_i2_c_a7a9a84fccdacb3346ff97d6f3e158850}{I2C} ()
+\begin{DoxyCompactList}\small\item\em Create an instance of an I2C object. \end{DoxyCompactList}\item 
+void \hyperlink{class_i2_c_a414fa12d9ddd715be6802cd6fbe8d0ed}{begin\+Transaction} ()
+\begin{DoxyCompactList}\small\item\em Begin a new I2C transaction. \end{DoxyCompactList}\item 
+void \hyperlink{class_i2_c_ad43e562aaf70eac7acca8fde9f904234}{end\+Transaction} ()
+\begin{DoxyCompactList}\small\item\em End an \hyperlink{class_i2_c}{I2C} transaction. \end{DoxyCompactList}\item 
+uint8\+\_\+t \hyperlink{class_i2_c_a593bd4823b8533e05aa286f7479fe038}{get\+Address} () const 
+\begin{DoxyCompactList}\small\item\em Get the address of the I2C slave against which we are working. \end{DoxyCompactList}\item 
+void {\bfseries init} (gpio\+\_\+num\+\_\+t sda\+Pin=D\+E\+F\+A\+U\+L\+T\+\_\+\+S\+D\+A\+\_\+\+P\+IN, gpio\+\_\+num\+\_\+t scl\+Pin=D\+E\+F\+A\+U\+L\+T\+\_\+\+C\+L\+K\+\_\+\+P\+IN)\hypertarget{class_i2_c_a6130d92fc5baeca4f4a9bf2c874996c0}{}\label{class_i2_c_a6130d92fc5baeca4f4a9bf2c874996c0}
+
+\item 
+void \hyperlink{class_i2_c_ac81d33d8192945eb2caa210ae5055851}{read} (uint8\+\_\+t $\ast$bytes, size\+\_\+t length, bool ack=true)
+\begin{DoxyCompactList}\small\item\em Read a sequence of bytes from the slave. \end{DoxyCompactList}\item 
+void \hyperlink{class_i2_c_a0f0864bb484bbfebe64e520ee189ca41}{read\+Byte} (uint8\+\_\+t $\ast$byte, bool ack=true)
+\begin{DoxyCompactList}\small\item\em Read a single byte from the slave. \end{DoxyCompactList}\item 
+void \hyperlink{class_i2_c_ab6ea7b33432cfea858484411741b3bca}{set\+Address} (uint8\+\_\+t address)
+\begin{DoxyCompactList}\small\item\em Set the address of the I2C slave against which we will be working. \end{DoxyCompactList}\item 
+void \hyperlink{class_i2_c_a07463a2babdabbd675a2745fb53650ca}{start} ()\hypertarget{class_i2_c_a07463a2babdabbd675a2745fb53650ca}{}\label{class_i2_c_a07463a2babdabbd675a2745fb53650ca}
+
+\begin{DoxyCompactList}\small\item\em Add an \hyperlink{class_i2_c}{I2C} start request to the command stream. \end{DoxyCompactList}\item 
+void \hyperlink{class_i2_c_ac9a9e5ea511ff86f474866052a7fabf1}{stop} ()\hypertarget{class_i2_c_ac9a9e5ea511ff86f474866052a7fabf1}{}\label{class_i2_c_ac9a9e5ea511ff86f474866052a7fabf1}
+
+\begin{DoxyCompactList}\small\item\em Add an I2C stop request to the command stream. \end{DoxyCompactList}\item 
+void \hyperlink{class_i2_c_a4a8d11dbd76409914f1e6404dacb2073}{write} (uint8\+\_\+t byte, bool ack=true)
+\begin{DoxyCompactList}\small\item\em Write a single byte to the I2C slave. \end{DoxyCompactList}\item 
+void \hyperlink{class_i2_c_a870ba63321e9a51f4b7475e85ae112ce}{write} (uint8\+\_\+t $\ast$bytes, size\+\_\+t length, bool ack=true)
+\begin{DoxyCompactList}\small\item\em Write a sequence of byte to the I2C slave. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const gpio\+\_\+num\+\_\+t {\bfseries D\+E\+F\+A\+U\+L\+T\+\_\+\+S\+D\+A\+\_\+\+P\+IN} = G\+P\+I\+O\+\_\+\+N\+U\+M\+\_\+25\hypertarget{class_i2_c_a4d371d14b0fcae3b20f22ee8254536b8}{}\label{class_i2_c_a4d371d14b0fcae3b20f22ee8254536b8}
+
+\item 
+static const gpio\+\_\+num\+\_\+t {\bfseries D\+E\+F\+A\+U\+L\+T\+\_\+\+C\+L\+K\+\_\+\+P\+IN} = G\+P\+I\+O\+\_\+\+N\+U\+M\+\_\+26\hypertarget{class_i2_c_aece11572688a31925150176f2241e956}{}\label{class_i2_c_aece11572688a31925150176f2241e956}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Interface to I2C functions. 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{I2C@{I2C}!I2C@{I2C}}
+\index{I2C@{I2C}!I2C@{I2C}}
+\subsubsection[{\texorpdfstring{I2\+C()}{I2C()}}]{\setlength{\rightskip}{0pt plus 5cm}I2\+C\+::\+I2C (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_i2_c_a7a9a84fccdacb3346ff97d6f3e158850}{}\label{class_i2_c_a7a9a84fccdacb3346ff97d6f3e158850}
+
+
+Create an instance of an I2C object. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em sda\+Pin} & The pin number used for the S\+DA line. \\
+\hline
+\mbox{\tt in}  & {\em scl\+Pin} & The pin number used for the S\+CL line. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\index{I2C@{I2C}!begin\+Transaction@{begin\+Transaction}}
+\index{begin\+Transaction@{begin\+Transaction}!I2C@{I2C}}
+\subsubsection[{\texorpdfstring{begin\+Transaction()}{beginTransaction()}}]{\setlength{\rightskip}{0pt plus 5cm}void I2\+C\+::begin\+Transaction (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_i2_c_a414fa12d9ddd715be6802cd6fbe8d0ed}{}\label{class_i2_c_a414fa12d9ddd715be6802cd6fbe8d0ed}
+
+
+Begin a new I2C transaction. 
+
+Begin a transaction by sending a start. \index{I2C@{I2C}!end\+Transaction@{end\+Transaction}}
+\index{end\+Transaction@{end\+Transaction}!I2C@{I2C}}
+\subsubsection[{\texorpdfstring{end\+Transaction()}{endTransaction()}}]{\setlength{\rightskip}{0pt plus 5cm}void I2\+C\+::end\+Transaction (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_i2_c_ad43e562aaf70eac7acca8fde9f904234}{}\label{class_i2_c_ad43e562aaf70eac7acca8fde9f904234}
+
+
+End an \hyperlink{class_i2_c}{I2C} transaction. 
+
+This call will execute the I2C requests that have been queued up since the preceding call to the \hyperlink{class_i2_c_a414fa12d9ddd715be6802cd6fbe8d0ed}{begin\+Transaction()} function. An I2C \hyperlink{class_i2_c_ac9a9e5ea511ff86f474866052a7fabf1}{stop()} is also called. \index{I2C@{I2C}!get\+Address@{get\+Address}}
+\index{get\+Address@{get\+Address}!I2C@{I2C}}
+\subsubsection[{\texorpdfstring{get\+Address() const }{getAddress() const }}]{\setlength{\rightskip}{0pt plus 5cm}uint8\+\_\+t I2\+C\+::get\+Address (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}\hypertarget{class_i2_c_a593bd4823b8533e05aa286f7479fe038}{}\label{class_i2_c_a593bd4823b8533e05aa286f7479fe038}
+
+
+Get the address of the I2C slave against which we are working. 
+
+\begin{DoxyReturn}{Returns}
+The address of the I2C slave. 
+\end{DoxyReturn}
+\index{I2C@{I2C}!read@{read}}
+\index{read@{read}!I2C@{I2C}}
+\subsubsection[{\texorpdfstring{read(uint8\+\_\+t $\ast$bytes, size\+\_\+t length, bool ack=true)}{read(uint8_t *bytes, size_t length, bool ack=true)}}]{\setlength{\rightskip}{0pt plus 5cm}void I2\+C\+::read (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t $\ast$}]{bytes, }
+\item[{size\+\_\+t}]{length, }
+\item[{bool}]{ack = {\ttfamily true}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_i2_c_ac81d33d8192945eb2caa210ae5055851}{}\label{class_i2_c_ac81d33d8192945eb2caa210ae5055851}
+
+
+Read a sequence of bytes from the slave. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em byte} & The address into which the read bytes will be stored. \\
+\hline
+\mbox{\tt in}  & {\em length} & The number of expected bytes to read. \\
+\hline
+\mbox{\tt in}  & {\em ack} & Whether or not we should send an A\+CK to the slave after reading a byte. \\
+\hline
+\end{DoxyParams}
+\index{I2C@{I2C}!read\+Byte@{read\+Byte}}
+\index{read\+Byte@{read\+Byte}!I2C@{I2C}}
+\subsubsection[{\texorpdfstring{read\+Byte(uint8\+\_\+t $\ast$byte, bool ack=true)}{readByte(uint8_t *byte, bool ack=true)}}]{\setlength{\rightskip}{0pt plus 5cm}void I2\+C\+::read\+Byte (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t $\ast$}]{byte, }
+\item[{bool}]{ack = {\ttfamily true}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_i2_c_a0f0864bb484bbfebe64e520ee189ca41}{}\label{class_i2_c_a0f0864bb484bbfebe64e520ee189ca41}
+
+
+Read a single byte from the slave. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em byte} & The address into which the read byte will be stored. \\
+\hline
+\mbox{\tt in}  & {\em ack} & Whether or not we should send an A\+CK to the slave after reading a byte. \\
+\hline
+\end{DoxyParams}
+\index{I2C@{I2C}!set\+Address@{set\+Address}}
+\index{set\+Address@{set\+Address}!I2C@{I2C}}
+\subsubsection[{\texorpdfstring{set\+Address(uint8\+\_\+t address)}{setAddress(uint8_t address)}}]{\setlength{\rightskip}{0pt plus 5cm}void I2\+C\+::set\+Address (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t}]{address}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}\hypertarget{class_i2_c_ab6ea7b33432cfea858484411741b3bca}{}\label{class_i2_c_ab6ea7b33432cfea858484411741b3bca}
+
+
+Set the address of the I2C slave against which we will be working. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em address} & The address of the I2C slave. \\
+\hline
+\end{DoxyParams}
+\index{I2C@{I2C}!write@{write}}
+\index{write@{write}!I2C@{I2C}}
+\subsubsection[{\texorpdfstring{write(uint8\+\_\+t byte, bool ack=true)}{write(uint8_t byte, bool ack=true)}}]{\setlength{\rightskip}{0pt plus 5cm}void I2\+C\+::write (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t}]{byte, }
+\item[{bool}]{ack = {\ttfamily true}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_i2_c_a4a8d11dbd76409914f1e6404dacb2073}{}\label{class_i2_c_a4a8d11dbd76409914f1e6404dacb2073}
+
+
+Write a single byte to the I2C slave. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em byte} & The byte to write to the slave. \\
+\hline
+\mbox{\tt in}  & {\em ack} & Whether or not an acknowledgment is expected from the slave. \\
+\hline
+\end{DoxyParams}
+\index{I2C@{I2C}!write@{write}}
+\index{write@{write}!I2C@{I2C}}
+\subsubsection[{\texorpdfstring{write(uint8\+\_\+t $\ast$bytes, size\+\_\+t length, bool ack=true)}{write(uint8_t *bytes, size_t length, bool ack=true)}}]{\setlength{\rightskip}{0pt plus 5cm}void I2\+C\+::write (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t $\ast$}]{bytes, }
+\item[{size\+\_\+t}]{length, }
+\item[{bool}]{ack = {\ttfamily true}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_i2_c_a870ba63321e9a51f4b7475e85ae112ce}{}\label{class_i2_c_a870ba63321e9a51f4b7475e85ae112ce}
+
+
+Write a sequence of byte to the I2C slave. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em bytes} & The sequence of bytes to write to the I2C slave. \\
+\hline
+\mbox{\tt in}  & {\em length} & The number of bytes to write. \\
+\hline
+\mbox{\tt in}  & {\em ack} & Whether or not an acknowledgment is expected from the slave. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+I2\+C.\+h\item 
+I2\+C.\+cpp\end{DoxyCompactItemize}

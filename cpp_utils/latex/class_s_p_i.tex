@@ -1,0 +1,98 @@
+\hypertarget{class_s_p_i}{}\section{S\+PI Class Reference}
+\label{class_s_p_i}\index{S\+PI@{S\+PI}}
+
+
+Handle \hyperlink{class_s_p_i}{S\+PI} protocol.  
+
+
+
+
+{\ttfamily \#include $<$S\+P\+I.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_s_p_i_a2ba081c29fbdecc704c6bf00b24d5205}{S\+PI} ()
+\begin{DoxyCompactList}\small\item\em Construct an instance of the class. \end{DoxyCompactList}\item 
+virtual \hyperlink{class_s_p_i_a6babebf1ea3e8ff0330f43a3e2312ac4}{$\sim$\+S\+PI} ()\hypertarget{class_s_p_i_a6babebf1ea3e8ff0330f43a3e2312ac4}{}\label{class_s_p_i_a6babebf1ea3e8ff0330f43a3e2312ac4}
+
+\begin{DoxyCompactList}\small\item\em Class instance destructor. \end{DoxyCompactList}\item 
+void {\bfseries init} (int mosi\+Pin=D\+E\+F\+A\+U\+L\+T\+\_\+\+M\+O\+S\+I\+\_\+\+P\+IN, int miso\+Pin=D\+E\+F\+A\+U\+L\+T\+\_\+\+M\+I\+S\+O\+\_\+\+P\+IN, int clk\+Pin=D\+E\+F\+A\+U\+L\+T\+\_\+\+C\+L\+K\+\_\+\+P\+IN, int cs\+Pin=D\+E\+F\+A\+U\+L\+T\+\_\+\+C\+S\+\_\+\+P\+IN)\hypertarget{class_s_p_i_a832556869c632024fe6ab92473854131}{}\label{class_s_p_i_a832556869c632024fe6ab92473854131}
+
+\item 
+void \hyperlink{class_s_p_i_a3d0d6d9b84a7191b4a95971eee25f746}{transfer} (uint8\+\_\+t $\ast$data, size\+\_\+t data\+Len)
+\begin{DoxyCompactList}\small\item\em send and receive data through S\+PI. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const int {\bfseries D\+E\+F\+A\+U\+L\+T\+\_\+\+M\+O\+S\+I\+\_\+\+P\+IN} = G\+P\+I\+O\+\_\+\+N\+U\+M\+\_\+13\hypertarget{class_s_p_i_a311aea82b4ba1b8b57ac88ec62c94bf2}{}\label{class_s_p_i_a311aea82b4ba1b8b57ac88ec62c94bf2}
+
+\item 
+static const int {\bfseries D\+E\+F\+A\+U\+L\+T\+\_\+\+M\+I\+S\+O\+\_\+\+P\+IN} = G\+P\+I\+O\+\_\+\+N\+U\+M\+\_\+12\hypertarget{class_s_p_i_af64304a498004d8abd46931cfbb5bba6}{}\label{class_s_p_i_af64304a498004d8abd46931cfbb5bba6}
+
+\item 
+static const int {\bfseries D\+E\+F\+A\+U\+L\+T\+\_\+\+C\+L\+K\+\_\+\+P\+IN} = G\+P\+I\+O\+\_\+\+N\+U\+M\+\_\+14\hypertarget{class_s_p_i_a26f31b5eb7b69e66761d387116ea0003}{}\label{class_s_p_i_a26f31b5eb7b69e66761d387116ea0003}
+
+\item 
+static const int {\bfseries D\+E\+F\+A\+U\+L\+T\+\_\+\+C\+S\+\_\+\+P\+IN} = G\+P\+I\+O\+\_\+\+N\+U\+M\+\_\+15\hypertarget{class_s_p_i_a7ed47313c92be5762bb61a6d69a58d7e}{}\label{class_s_p_i_a7ed47313c92be5762bb61a6d69a58d7e}
+
+\item 
+static const int {\bfseries P\+I\+N\+\_\+\+N\+O\+T\+\_\+\+S\+ET} = -\/1\hypertarget{class_s_p_i_acebfbe004601caf512d1b5b84b1a0967}{}\label{class_s_p_i_acebfbe004601caf512d1b5b84b1a0967}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Handle \hyperlink{class_s_p_i}{S\+PI} protocol. 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{S\+PI@{S\+PI}!S\+PI@{S\+PI}}
+\index{S\+PI@{S\+PI}!S\+PI@{S\+PI}}
+\subsubsection[{\texorpdfstring{S\+P\+I()}{SPI()}}]{\setlength{\rightskip}{0pt plus 5cm}S\+P\+I\+::\+S\+PI (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_s_p_i_a2ba081c29fbdecc704c6bf00b24d5205}{}\label{class_s_p_i_a2ba081c29fbdecc704c6bf00b24d5205}
+
+
+Construct an instance of the class. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em mosi\+Pin} & Pin to use for M\+O\+SI S\+PI function. \\
+\hline
+\mbox{\tt in}  & {\em miso\+Pin} & Pin to use for M\+I\+SO S\+PI function. \\
+\hline
+\mbox{\tt in}  & {\em clk\+Pin} & Pin to use for C\+LK S\+PI function. \\
+\hline
+\mbox{\tt in}  & {\em cs\+Pin} & Pin to use for CS S\+PI function. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\index{S\+PI@{S\+PI}!transfer@{transfer}}
+\index{transfer@{transfer}!S\+PI@{S\+PI}}
+\subsubsection[{\texorpdfstring{transfer(uint8\+\_\+t $\ast$data, size\+\_\+t data\+Len)}{transfer(uint8_t *data, size_t dataLen)}}]{\setlength{\rightskip}{0pt plus 5cm}void S\+P\+I\+::transfer (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t $\ast$}]{data, }
+\item[{size\+\_\+t}]{data\+Len}
+\end{DoxyParamCaption}
+)}\hypertarget{class_s_p_i_a3d0d6d9b84a7191b4a95971eee25f746}{}\label{class_s_p_i_a3d0d6d9b84a7191b4a95971eee25f746}
+
+
+send and receive data through S\+PI. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em data} & A data buffer used to send and receive. \\
+\hline
+\mbox{\tt in}  & {\em data\+Len} & The number of bytes to transmit and receive. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+S\+P\+I.\+h\item 
+S\+P\+I.\+cpp\end{DoxyCompactItemize}

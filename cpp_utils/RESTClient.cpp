@@ -6,7 +6,7 @@
  */
 #if defined(ESP_HAVE_CURL)
 
-#define _GLIBCXX_USE_C99 // Needed for std::string inclusion.
+#define _GLIBCXX_USE_C99 // Needed for std::string -> to_string inclusion.
 
 
 #include <curl/curl.h>

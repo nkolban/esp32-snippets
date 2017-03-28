@@ -1,0 +1,142 @@
+\hypertarget{class_socket}{}\section{Socket Class Reference}
+\label{class_socket}\index{Socket@{Socket}}
+
+
+Encapsulate a socket.  
+
+
+
+
+{\ttfamily \#include $<$Socket.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void {\bfseries close\+\_\+cpp} ()\hypertarget{class_socket_a2f39e65b68fcae82a3c9f2665c7ab812}{}\label{class_socket_a2f39e65b68fcae82a3c9f2665c7ab812}
+
+\item 
+int \hyperlink{class_socket_a453f3704a57418550aa4f93eb3e7e583}{connect\+\_\+cpp} (struct in\+\_\+addr address, uint16\+\_\+t port)
+\begin{DoxyCompactList}\small\item\em Connect to a partner. \end{DoxyCompactList}\item 
+int \hyperlink{class_socket_a67d57f2841b0469f8d5e4d1c73e81871}{connect\+\_\+cpp} (char $\ast$address, uint16\+\_\+t port)
+\begin{DoxyCompactList}\small\item\em Connect to a partner. \end{DoxyCompactList}\item 
+int \hyperlink{class_socket_a58b0eba9803e12930dff91eabe00ae18}{receive\+\_\+cpp} (uint8\+\_\+t $\ast$data, size\+\_\+t length)
+\begin{DoxyCompactList}\small\item\em Receive data from the partner. \end{DoxyCompactList}\item 
+void \hyperlink{class_socket_a75d4cde966c827df816de5c086dde520}{send\+\_\+cpp} (const uint8\+\_\+t $\ast$data, size\+\_\+t length)
+\begin{DoxyCompactList}\small\item\em Send data to the partner. \end{DoxyCompactList}\item 
+void \hyperlink{class_socket_acfe9059df34833daa92b381492e20446}{send\+\_\+cpp} (std\+::string value)
+\begin{DoxyCompactList}\small\item\em Send a string to the partner. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Encapsulate a socket. 
+
+Using this class we can connect to a partner T\+CP server. Once connected, we can perform send and receive requests to send and receive data. We should not attempt to send or receive until after a successful connect nor should we send or receive after closing the socket. 
+
+\subsection{Member Function Documentation}
+\index{Socket@{Socket}!connect\+\_\+cpp@{connect\+\_\+cpp}}
+\index{connect\+\_\+cpp@{connect\+\_\+cpp}!Socket@{Socket}}
+\subsubsection[{\texorpdfstring{connect\+\_\+cpp(struct in\+\_\+addr address, uint16\+\_\+t port)}{connect_cpp(struct in_addr address, uint16_t port)}}]{\setlength{\rightskip}{0pt plus 5cm}int Socket\+::connect\+\_\+cpp (
+\begin{DoxyParamCaption}
+\item[{struct in\+\_\+addr}]{address, }
+\item[{uint16\+\_\+t}]{port}
+\end{DoxyParamCaption}
+)}\hypertarget{class_socket_a453f3704a57418550aa4f93eb3e7e583}{}\label{class_socket_a453f3704a57418550aa4f93eb3e7e583}
+
+
+Connect to a partner. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em address} & The IP address of the partner. \\
+\hline
+\mbox{\tt in}  & {\em port} & The port number of the partner. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Success or failure of the connection. 
+\end{DoxyReturn}
+\index{Socket@{Socket}!connect\+\_\+cpp@{connect\+\_\+cpp}}
+\index{connect\+\_\+cpp@{connect\+\_\+cpp}!Socket@{Socket}}
+\subsubsection[{\texorpdfstring{connect\+\_\+cpp(char $\ast$address, uint16\+\_\+t port)}{connect_cpp(char *address, uint16_t port)}}]{\setlength{\rightskip}{0pt plus 5cm}int Socket\+::connect\+\_\+cpp (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{str\+Address, }
+\item[{uint16\+\_\+t}]{port}
+\end{DoxyParamCaption}
+)}\hypertarget{class_socket_a67d57f2841b0469f8d5e4d1c73e81871}{}\label{class_socket_a67d57f2841b0469f8d5e4d1c73e81871}
+
+
+Connect to a partner. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em str\+Address} & The string representation of the IP address of the partner. \\
+\hline
+\mbox{\tt in}  & {\em port} & The port number of the partner. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Success or failure of the connection. 
+\end{DoxyReturn}
+\index{Socket@{Socket}!receive\+\_\+cpp@{receive\+\_\+cpp}}
+\index{receive\+\_\+cpp@{receive\+\_\+cpp}!Socket@{Socket}}
+\subsubsection[{\texorpdfstring{receive\+\_\+cpp(uint8\+\_\+t $\ast$data, size\+\_\+t length)}{receive_cpp(uint8_t *data, size_t length)}}]{\setlength{\rightskip}{0pt plus 5cm}int Socket\+::receive\+\_\+cpp (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t $\ast$}]{data, }
+\item[{size\+\_\+t}]{length}
+\end{DoxyParamCaption}
+)}\hypertarget{class_socket_a58b0eba9803e12930dff91eabe00ae18}{}\label{class_socket_a58b0eba9803e12930dff91eabe00ae18}
+
+
+Receive data from the partner. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em data} & The buffer into which the received data will be stored. \\
+\hline
+\mbox{\tt in}  & {\em length} & The size of the buffer. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The length of the data received or -\/1 on an error. 
+\end{DoxyReturn}
+\index{Socket@{Socket}!send\+\_\+cpp@{send\+\_\+cpp}}
+\index{send\+\_\+cpp@{send\+\_\+cpp}!Socket@{Socket}}
+\subsubsection[{\texorpdfstring{send\+\_\+cpp(const uint8\+\_\+t $\ast$data, size\+\_\+t length)}{send_cpp(const uint8_t *data, size_t length)}}]{\setlength{\rightskip}{0pt plus 5cm}void Socket\+::send\+\_\+cpp (
+\begin{DoxyParamCaption}
+\item[{const uint8\+\_\+t $\ast$}]{data, }
+\item[{size\+\_\+t}]{length}
+\end{DoxyParamCaption}
+)}\hypertarget{class_socket_a75d4cde966c827df816de5c086dde520}{}\label{class_socket_a75d4cde966c827df816de5c086dde520}
+
+
+Send data to the partner. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em data} & The buffer containing the data to send. \\
+\hline
+\mbox{\tt in}  & {\em length} & The length of data to be sent. \\
+\hline
+\end{DoxyParams}
+\index{Socket@{Socket}!send\+\_\+cpp@{send\+\_\+cpp}}
+\index{send\+\_\+cpp@{send\+\_\+cpp}!Socket@{Socket}}
+\subsubsection[{\texorpdfstring{send\+\_\+cpp(std\+::string value)}{send_cpp(std::string value)}}]{\setlength{\rightskip}{0pt plus 5cm}void Socket\+::send\+\_\+cpp (
+\begin{DoxyParamCaption}
+\item[{std\+::string}]{value}
+\end{DoxyParamCaption}
+)}\hypertarget{class_socket_acfe9059df34833daa92b381492e20446}{}\label{class_socket_acfe9059df34833daa92b381492e20446}
+
+
+Send a string to the partner. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em value} & The string to send to the partner. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+Socket.\+h\item 
+Socket.\+cpp\end{DoxyCompactItemize}

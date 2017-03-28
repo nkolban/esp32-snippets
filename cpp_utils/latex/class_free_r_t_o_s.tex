@@ -1,0 +1,89 @@
+\hypertarget{class_free_r_t_o_s}{}\section{Free\+R\+T\+OS Class Reference}
+\label{class_free_r_t_o_s}\index{Free\+R\+T\+OS@{Free\+R\+T\+OS}}
+
+
+Interface to Free\+R\+T\+OS functions.  
+
+
+
+
+{\ttfamily \#include $<$Free\+R\+T\+O\+S.\+h$>$}
+
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \hyperlink{class_free_r_t_o_s_abea19fd141147c054f47c6a00e77f2ff}{sleep} (uint32\+\_\+t ms)
+\item 
+static void \hyperlink{class_free_r_t_o_s_ae2540d35409fe97ce0c95c3b4a3dd9e6}{start\+Task} (void task(void $\ast$), std\+::string task\+Name, void $\ast$param=nullptr, int stack\+Size=2048)
+\item 
+static void \hyperlink{class_free_r_t_o_s_a965b07cf1ca57fd0eb61df092b98edab}{delete\+Task} (Task\+Handle\+\_\+t p\+Task=nullptr)
+\item 
+static uint32\+\_\+t \hyperlink{class_free_r_t_o_s_aa2f4b1bd2944ae5e0c97a5dcbca65e66}{get\+Time\+Since\+Start} ()
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Interface to Free\+R\+T\+OS functions. 
+
+\subsection{Member Function Documentation}
+\index{Free\+R\+T\+OS@{Free\+R\+T\+OS}!delete\+Task@{delete\+Task}}
+\index{delete\+Task@{delete\+Task}!Free\+R\+T\+OS@{Free\+R\+T\+OS}}
+\subsubsection[{\texorpdfstring{delete\+Task(\+Task\+Handle\+\_\+t p\+Task=nullptr)}{deleteTask(TaskHandle_t pTask=nullptr)}}]{\setlength{\rightskip}{0pt plus 5cm}void Free\+R\+T\+O\+S\+::delete\+Task (
+\begin{DoxyParamCaption}
+\item[{Task\+Handle\+\_\+t}]{p\+Task = {\ttfamily nullptr}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}\hypertarget{class_free_r_t_o_s_a965b07cf1ca57fd0eb61df092b98edab}{}\label{class_free_r_t_o_s_a965b07cf1ca57fd0eb61df092b98edab}
+Delete the task. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em p\+Task} & An optional handle to the task to be deleted. If not supplied the calling task will be deleted. \\
+\hline
+\end{DoxyParams}
+\index{Free\+R\+T\+OS@{Free\+R\+T\+OS}!get\+Time\+Since\+Start@{get\+Time\+Since\+Start}}
+\index{get\+Time\+Since\+Start@{get\+Time\+Since\+Start}!Free\+R\+T\+OS@{Free\+R\+T\+OS}}
+\subsubsection[{\texorpdfstring{get\+Time\+Since\+Start()}{getTimeSinceStart()}}]{\setlength{\rightskip}{0pt plus 5cm}uint32\+\_\+t Free\+R\+T\+O\+S\+::get\+Time\+Since\+Start (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}\hypertarget{class_free_r_t_o_s_aa2f4b1bd2944ae5e0c97a5dcbca65e66}{}\label{class_free_r_t_o_s_aa2f4b1bd2944ae5e0c97a5dcbca65e66}
+Get the time in milliseconds since the Free\+R\+T\+OS scheduler started. \begin{DoxyReturn}{Returns}
+The time in milliseconds since the Free\+R\+T\+OS scheduler started. 
+\end{DoxyReturn}
+\index{Free\+R\+T\+OS@{Free\+R\+T\+OS}!sleep@{sleep}}
+\index{sleep@{sleep}!Free\+R\+T\+OS@{Free\+R\+T\+OS}}
+\subsubsection[{\texorpdfstring{sleep(uint32\+\_\+t ms)}{sleep(uint32_t ms)}}]{\setlength{\rightskip}{0pt plus 5cm}void Free\+R\+T\+O\+S\+::sleep (
+\begin{DoxyParamCaption}
+\item[{uint32\+\_\+t}]{ms}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}\hypertarget{class_free_r_t_o_s_abea19fd141147c054f47c6a00e77f2ff}{}\label{class_free_r_t_o_s_abea19fd141147c054f47c6a00e77f2ff}
+Sleep for the specified number of milliseconds. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em ms} & The period in milliseconds for which to sleep. \\
+\hline
+\end{DoxyParams}
+\index{Free\+R\+T\+OS@{Free\+R\+T\+OS}!start\+Task@{start\+Task}}
+\index{start\+Task@{start\+Task}!Free\+R\+T\+OS@{Free\+R\+T\+OS}}
+\subsubsection[{\texorpdfstring{start\+Task(void task(void $\ast$), std\+::string task\+Name, void $\ast$param=nullptr, int stack\+Size=2048)}{startTask(void task(void *), std::string taskName, void *param=nullptr, int stackSize=2048)}}]{\setlength{\rightskip}{0pt plus 5cm}void Free\+R\+T\+O\+S\+::start\+Task (
+\begin{DoxyParamCaption}
+\item[{void }]{taskvoid $\ast$, }
+\item[{std\+::string}]{task\+Name, }
+\item[{void $\ast$}]{param = {\ttfamily nullptr}, }
+\item[{int}]{stack\+Size = {\ttfamily 2048}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}\hypertarget{class_free_r_t_o_s_ae2540d35409fe97ce0c95c3b4a3dd9e6}{}\label{class_free_r_t_o_s_ae2540d35409fe97ce0c95c3b4a3dd9e6}
+Start a new task. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em task} & The function pointer to the function to be run in the task. \\
+\hline
+\mbox{\tt in}  & {\em task\+Name} & A string identifier for the task. \\
+\hline
+\mbox{\tt in}  & {\em param} & An optional parameter to be passed to the started task. \\
+\hline
+\mbox{\tt in}  & {\em stack\+Size} & An optional paremeter supplying the size of the stack in which to run the task. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+Free\+R\+T\+O\+S.\+h\item 
+Free\+R\+T\+O\+S.\+cpp\end{DoxyCompactItemize}

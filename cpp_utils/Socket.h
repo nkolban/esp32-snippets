@@ -10,6 +10,13 @@
 #include <lwip/inet.h>
 #include <string>
 
+/**
+ * @brief Encapsulate a socket.
+ *
+ * Using this class we can connect to a partner TCP server.  Once connected, we can perform
+ * send and receive requests to send and receive data.  We should not attempt to send or receive
+ * until after a successful connect nor should we send or receive after closing the socket.
+ */
 class Socket {
 public:
 	Socket();

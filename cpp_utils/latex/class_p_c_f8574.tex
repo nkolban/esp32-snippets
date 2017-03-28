@@ -1,0 +1,176 @@
+\hypertarget{class_p_c_f8574}{}\section{P\+C\+F8574 Class Reference}
+\label{class_p_c_f8574}\index{P\+C\+F8574@{P\+C\+F8574}}
+
+
+Encapsulate a P\+C\+F8574 device.  
+
+
+
+
+{\ttfamily \#include $<$P\+C\+F8574.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_p_c_f8574_aeaba161d7932ea2aa7f3bb9d05d36fba}{P\+C\+F8574} (int address)
+\begin{DoxyCompactList}\small\item\em Class constructor. \end{DoxyCompactList}\item 
+virtual \hyperlink{class_p_c_f8574_a20ddebfc28ba46646ca84f8c75034b34}{$\sim$\+P\+C\+F8574} ()\hypertarget{class_p_c_f8574_a20ddebfc28ba46646ca84f8c75034b34}{}\label{class_p_c_f8574_a20ddebfc28ba46646ca84f8c75034b34}
+
+\begin{DoxyCompactList}\small\item\em Class instance destructor. \end{DoxyCompactList}\item 
+void \hyperlink{class_p_c_f8574_abfe627fd97523863fa0075422b0158b6}{init} (gpio\+\_\+num\+\_\+t sda\+Pin=I2\+C\+::\+D\+E\+F\+A\+U\+L\+T\+\_\+\+S\+D\+A\+\_\+\+P\+IN, gpio\+\_\+num\+\_\+t clk\+Pin=I2\+C\+::\+D\+E\+F\+A\+U\+L\+T\+\_\+\+C\+L\+K\+\_\+\+P\+IN)
+\begin{DoxyCompactList}\small\item\em Initialize the \hyperlink{class_p_c_f8574}{P\+C\+F8574} device. \end{DoxyCompactList}\item 
+uint8\+\_\+t \hyperlink{class_p_c_f8574_a90a8a8c48e0530c7371dacabc1f6a282}{read} ()
+\begin{DoxyCompactList}\small\item\em Read all the input bits from the device. \end{DoxyCompactList}\item 
+bool \hyperlink{class_p_c_f8574_a4e484981cdf6451bb36a13f9d3a60400}{read\+Bit} (uint8\+\_\+t bit)
+\begin{DoxyCompactList}\small\item\em Read the logic level on a given pin. \end{DoxyCompactList}\item 
+void \hyperlink{class_p_c_f8574_a9663079a19f252a5edc2471f384bc28b}{set\+Invert} (bool value)
+\begin{DoxyCompactList}\small\item\em Invert the bit values. Normally setting a pin\textquotesingle{}s value to 1 means that a high signal is generated and a 0 means a low signal is generated. Setting the inversion to true, inverts that meaning. \end{DoxyCompactList}\item 
+void \hyperlink{class_p_c_f8574_a5d51dcc9e396c431561b8a0b044a9e6b}{write} (uint8\+\_\+t value)
+\begin{DoxyCompactList}\small\item\em Set the output values of the device. \end{DoxyCompactList}\item 
+void \hyperlink{class_p_c_f8574_a0d2f2b79548651b4fc40faefdc7156b0}{write\+Bit} (uint8\+\_\+t bit, bool value)
+\begin{DoxyCompactList}\small\item\em Change the output value of a specific pin. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Encapsulate a P\+C\+F8574 device. 
+
+The P\+C\+F8574 is a 8 bit G\+P\+IO expander attached to I2C. It can read and write 8 bits of data and hence has 8 pins that can be used for input or output.
+
+\begin{DoxySeeAlso}{See also}
+\href{http://www.ti.com/product/PCF8574}{\tt P\+C\+F8574 home page} 
+\end{DoxySeeAlso}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{P\+C\+F8574@{P\+C\+F8574}!P\+C\+F8574@{P\+C\+F8574}}
+\index{P\+C\+F8574@{P\+C\+F8574}!P\+C\+F8574@{P\+C\+F8574}}
+\subsubsection[{\texorpdfstring{P\+C\+F8574(int address)}{PCF8574(int address)}}]{\setlength{\rightskip}{0pt plus 5cm}P\+C\+F8574\+::\+P\+C\+F8574 (
+\begin{DoxyParamCaption}
+\item[{int}]{address}
+\end{DoxyParamCaption}
+)}\hypertarget{class_p_c_f8574_aeaba161d7932ea2aa7f3bb9d05d36fba}{}\label{class_p_c_f8574_aeaba161d7932ea2aa7f3bb9d05d36fba}
+
+
+Class constructor. 
+
+The address is the address of the device on the I2C bus. This is the value 0x20 plus the value of the device input pins {\ttfamily A0}, {\ttfamily A1} and {\ttfamily A2}. This means that the address should be between 0x20 and 0x27.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em address} & The I2C address of the device on the I2C bus. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\index{P\+C\+F8574@{P\+C\+F8574}!init@{init}}
+\index{init@{init}!P\+C\+F8574@{P\+C\+F8574}}
+\subsubsection[{\texorpdfstring{init(gpio\+\_\+num\+\_\+t sda\+Pin=\+I2\+C\+::\+D\+E\+F\+A\+U\+L\+T\+\_\+\+S\+D\+A\+\_\+\+P\+I\+N, gpio\+\_\+num\+\_\+t clk\+Pin=\+I2\+C\+::\+D\+E\+F\+A\+U\+L\+T\+\_\+\+C\+L\+K\+\_\+\+P\+I\+N)}{init(gpio_num_t sdaPin=I2C::DEFAULT_SDA_PIN, gpio_num_t clkPin=I2C::DEFAULT_CLK_PIN)}}]{\setlength{\rightskip}{0pt plus 5cm}void P\+C\+F8574\+::init (
+\begin{DoxyParamCaption}
+\item[{gpio\+\_\+num\+\_\+t}]{sda\+Pin = {\ttfamily I2C\+:\+:DEFAULT\+\_\+SDA\+\_\+PIN}, }
+\item[{gpio\+\_\+num\+\_\+t}]{clk\+Pin = {\ttfamily I2C\+:\+:DEFAULT\+\_\+CLK\+\_\+PIN}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_p_c_f8574_abfe627fd97523863fa0075422b0158b6}{}\label{class_p_c_f8574_abfe627fd97523863fa0075422b0158b6}
+
+
+Initialize the \hyperlink{class_p_c_f8574}{P\+C\+F8574} device. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em sda\+Pin} & The pin to use for the I2C S\+DA functions. \\
+\hline
+\mbox{\tt in}  & {\em clk\+Pin} & The pin to use for the I2C C\+LK functions. \\
+\hline
+\end{DoxyParams}
+\index{P\+C\+F8574@{P\+C\+F8574}!read@{read}}
+\index{read@{read}!P\+C\+F8574@{P\+C\+F8574}}
+\subsubsection[{\texorpdfstring{read()}{read()}}]{\setlength{\rightskip}{0pt plus 5cm}uint8\+\_\+t P\+C\+F8574\+::read (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_p_c_f8574_a90a8a8c48e0530c7371dacabc1f6a282}{}\label{class_p_c_f8574_a90a8a8c48e0530c7371dacabc1f6a282}
+
+
+Read all the input bits from the device. 
+
+\begin{DoxyReturn}{Returns}
+An 8 bit value representing the values on each of the input pins. 
+\end{DoxyReturn}
+\index{P\+C\+F8574@{P\+C\+F8574}!read\+Bit@{read\+Bit}}
+\index{read\+Bit@{read\+Bit}!P\+C\+F8574@{P\+C\+F8574}}
+\subsubsection[{\texorpdfstring{read\+Bit(uint8\+\_\+t bit)}{readBit(uint8_t bit)}}]{\setlength{\rightskip}{0pt plus 5cm}bool P\+C\+F8574\+::read\+Bit (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t}]{bit}
+\end{DoxyParamCaption}
+)}\hypertarget{class_p_c_f8574_a4e484981cdf6451bb36a13f9d3a60400}{}\label{class_p_c_f8574_a4e484981cdf6451bb36a13f9d3a60400}
+
+
+Read the logic level on a given pin. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em bit} & The input pin of the device to read. Values are 0-\/7. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if the pin is high, false otherwise. Undefined if there is no signal on the pin. 
+\end{DoxyReturn}
+\index{P\+C\+F8574@{P\+C\+F8574}!set\+Invert@{set\+Invert}}
+\index{set\+Invert@{set\+Invert}!P\+C\+F8574@{P\+C\+F8574}}
+\subsubsection[{\texorpdfstring{set\+Invert(bool value)}{setInvert(bool value)}}]{\setlength{\rightskip}{0pt plus 5cm}void P\+C\+F8574\+::set\+Invert (
+\begin{DoxyParamCaption}
+\item[{bool}]{value}
+\end{DoxyParamCaption}
+)}\hypertarget{class_p_c_f8574_a9663079a19f252a5edc2471f384bc28b}{}\label{class_p_c_f8574_a9663079a19f252a5edc2471f384bc28b}
+
+
+Invert the bit values. Normally setting a pin\textquotesingle{}s value to 1 means that a high signal is generated and a 0 means a low signal is generated. Setting the inversion to true, inverts that meaning. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em value} & True if we wish to invert the signals and false otherwise. \\
+\hline
+\end{DoxyParams}
+\index{P\+C\+F8574@{P\+C\+F8574}!write@{write}}
+\index{write@{write}!P\+C\+F8574@{P\+C\+F8574}}
+\subsubsection[{\texorpdfstring{write(uint8\+\_\+t value)}{write(uint8_t value)}}]{\setlength{\rightskip}{0pt plus 5cm}void P\+C\+F8574\+::write (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t}]{value}
+\end{DoxyParamCaption}
+)}\hypertarget{class_p_c_f8574_a5d51dcc9e396c431561b8a0b044a9e6b}{}\label{class_p_c_f8574_a5d51dcc9e396c431561b8a0b044a9e6b}
+
+
+Set the output values of the device. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em value} & The bit pattern to set on the output. \\
+\hline
+\end{DoxyParams}
+\index{P\+C\+F8574@{P\+C\+F8574}!write\+Bit@{write\+Bit}}
+\index{write\+Bit@{write\+Bit}!P\+C\+F8574@{P\+C\+F8574}}
+\subsubsection[{\texorpdfstring{write\+Bit(uint8\+\_\+t bit, bool value)}{writeBit(uint8_t bit, bool value)}}]{\setlength{\rightskip}{0pt plus 5cm}void P\+C\+F8574\+::write\+Bit (
+\begin{DoxyParamCaption}
+\item[{uint8\+\_\+t}]{bit, }
+\item[{bool}]{value}
+\end{DoxyParamCaption}
+)}\hypertarget{class_p_c_f8574_a0d2f2b79548651b4fc40faefdc7156b0}{}\label{class_p_c_f8574_a0d2f2b79548651b4fc40faefdc7156b0}
+
+
+Change the output value of a specific pin. 
+
+The other bits beyond the one setting retain their values from the previous call to \hyperlink{class_p_c_f8574_a5d51dcc9e396c431561b8a0b044a9e6b}{write()} or previous calls to \hyperlink{class_p_c_f8574_a0d2f2b79548651b4fc40faefdc7156b0}{write\+Bit()}.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em bit} & The pin to have its value changed. The pin may be 0-\/7. \\
+\hline
+\mbox{\tt in}  & {\em value} & The logic level to appear on the identified output pin. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+P\+C\+F8574.\+h\item 
+P\+C\+F8574.\+cpp\end{DoxyCompactItemize}

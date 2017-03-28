@@ -1,0 +1,185 @@
+\hypertarget{class_w_s2812}{}\section{W\+S2812 Class Reference}
+\label{class_w_s2812}\index{W\+S2812@{W\+S2812}}
+
+
+Driver for W\+S2812/\+Neo\+Pixel data.  
+
+
+
+
+{\ttfamily \#include $<$W\+S2812.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_w_s2812_a873e567f57a612a0e408b5bb310d9024}{W\+S2812} (gpio\+\_\+num\+\_\+t gpio\+Num, uint16\+\_\+t pixel\+Count, int channel=R\+M\+T\+\_\+\+C\+H\+A\+N\+N\+E\+L\+\_\+0)
+\begin{DoxyCompactList}\small\item\em Construct a wrapper for the pixels. \end{DoxyCompactList}\item 
+void \hyperlink{class_w_s2812_ad03797836617dccf530cb7c6423c03fe}{show} ()
+\begin{DoxyCompactList}\small\item\em Show the current Neopixel data. \end{DoxyCompactList}\item 
+void \hyperlink{class_w_s2812_a7a68e53534f4b1f68e447621caf0e2e6}{set\+Color\+Order} (char $\ast$order)
+\begin{DoxyCompactList}\small\item\em Set the color order of data sent to the L\+E\+Ds. \end{DoxyCompactList}\item 
+void \hyperlink{class_w_s2812_a60025d23e7fc21c3ce8c1f02bd50bf86}{set\+Pixel} (uint16\+\_\+t index, uint8\+\_\+t red, uint8\+\_\+t green, uint8\+\_\+t blue)
+\begin{DoxyCompactList}\small\item\em Set the given pixel to the specified color. \end{DoxyCompactList}\item 
+void \hyperlink{class_w_s2812_a2f37824dbf4730986d4ebde58c25a48d}{set\+Pixel} (uint16\+\_\+t index, \hyperlink{structpixel__t}{pixel\+\_\+t} pixel)
+\begin{DoxyCompactList}\small\item\em Set the given pixel to the specified color. \end{DoxyCompactList}\item 
+void \hyperlink{class_w_s2812_a65924d977bab621786b01a09c91456f6}{set\+Pixel} (uint16\+\_\+t index, uint32\+\_\+t pixel)
+\begin{DoxyCompactList}\small\item\em Set the given pixel to the specified color. \end{DoxyCompactList}\item 
+void \hyperlink{class_w_s2812_aceeaba644d2cc545b84d2807732b6461}{clear} ()
+\begin{DoxyCompactList}\small\item\em Clear all the pixel colors. \end{DoxyCompactList}\item 
+virtual \hyperlink{class_w_s2812_a58973dedd9cbc5c3fd3397f07f9a720f}{$\sim$\+W\+S2812} ()\hypertarget{class_w_s2812_a58973dedd9cbc5c3fd3397f07f9a720f}{}\label{class_w_s2812_a58973dedd9cbc5c3fd3397f07f9a720f}
+
+\begin{DoxyCompactList}\small\item\em Class instance destructor. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Driver for W\+S2812/\+Neo\+Pixel data. 
+
+Neo\+Pixels or W\+S2812s are L\+ED devices that can illuminate in arbitrary colors with 8 bits of data for each of the red, green and blue channels. These devices can be daisy chained together to produce a string of L\+E\+Ds. If we call each L\+ED instance a pixel, then when we want to set the value of a string of pixels, we need to supply the data for all the pixels. This class encapsulates setting the color value for an individual pixel within the string and, once you have set up all the desired colors, you can then set all the pixels in a \hyperlink{class_w_s2812_ad03797836617dccf530cb7c6423c03fe}{show()} operation. The class hides from you the underlying details needed to drive the devices.
+
+
+\begin{DoxyCode}
+\hyperlink{class_w_s2812}{WS2812} ws2812 = \hyperlink{class_w_s2812_a873e567f57a612a0e408b5bb310d9024}{WS2812}(
+  16, \textcolor{comment}{// Pin}
+  8   \textcolor{comment}{// Pixel count}
+);
+ws2812.\hyperlink{class_w_s2812_a60025d23e7fc21c3ce8c1f02bd50bf86}{setPixel}(0, 128, 0, 0);
+ws2812.\hyperlink{class_w_s2812_ad03797836617dccf530cb7c6423c03fe}{show}();
+\end{DoxyCode}
+ 
+
+\subsection{Constructor \& Destructor Documentation}
+\index{W\+S2812@{W\+S2812}!W\+S2812@{W\+S2812}}
+\index{W\+S2812@{W\+S2812}!W\+S2812@{W\+S2812}}
+\subsubsection[{\texorpdfstring{W\+S2812(gpio\+\_\+num\+\_\+t gpio\+Num, uint16\+\_\+t pixel\+Count, int channel=\+R\+M\+T\+\_\+\+C\+H\+A\+N\+N\+E\+L\+\_\+0)}{WS2812(gpio_num_t gpioNum, uint16_t pixelCount, int channel=RMT_CHANNEL_0)}}]{\setlength{\rightskip}{0pt plus 5cm}W\+S2812\+::\+W\+S2812 (
+\begin{DoxyParamCaption}
+\item[{gpio\+\_\+num\+\_\+t}]{din\+Pin, }
+\item[{uint16\+\_\+t}]{pixel\+Count, }
+\item[{int}]{channel = {\ttfamily RMT\+\_\+CHANNEL\+\_\+0}}
+\end{DoxyParamCaption}
+)}\hypertarget{class_w_s2812_a873e567f57a612a0e408b5bb310d9024}{}\label{class_w_s2812_a873e567f57a612a0e408b5bb310d9024}
+
+
+Construct a wrapper for the pixels. 
+
+In order to drive the Neo\+Pixels we need to supply some basic information. This includes the \hyperlink{class_g_p_i_o}{G\+P\+IO} pin that is connected to the data-\/in (D\+IN) of the devices. Since we also want to be able to drive a string of pixels, we need to tell the class how many pixels are present in the string.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em gpio\+Num} & The \hyperlink{class_g_p_i_o}{G\+P\+IO} pin used to drive the data. \\
+\hline
+\mbox{\tt in}  & {\em pixel\+Count} & The number of pixels in the strand. \\
+\hline
+\mbox{\tt in}  & {\em channel} & The \hyperlink{class_r_m_t}{R\+MT} channel to use. Defaults to R\+M\+T\+\_\+\+C\+H\+A\+N\+N\+E\+L\+\_\+0. \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\index{W\+S2812@{W\+S2812}!clear@{clear}}
+\index{clear@{clear}!W\+S2812@{W\+S2812}}
+\subsubsection[{\texorpdfstring{clear()}{clear()}}]{\setlength{\rightskip}{0pt plus 5cm}void W\+S2812\+::clear (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_w_s2812_aceeaba644d2cc545b84d2807732b6461}{}\label{class_w_s2812_aceeaba644d2cc545b84d2807732b6461}
+
+
+Clear all the pixel colors. 
+
+This sets all the pixels to off which is no brightness for all of the color channels. The L\+E\+Ds are not actually updated until a call to \hyperlink{class_w_s2812_ad03797836617dccf530cb7c6423c03fe}{show()}. \index{W\+S2812@{W\+S2812}!set\+Color\+Order@{set\+Color\+Order}}
+\index{set\+Color\+Order@{set\+Color\+Order}!W\+S2812@{W\+S2812}}
+\subsubsection[{\texorpdfstring{set\+Color\+Order(char $\ast$order)}{setColorOrder(char *order)}}]{\setlength{\rightskip}{0pt plus 5cm}void W\+S2812\+::set\+Color\+Order (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{color\+Order}
+\end{DoxyParamCaption}
+)}\hypertarget{class_w_s2812_a7a68e53534f4b1f68e447621caf0e2e6}{}\label{class_w_s2812_a7a68e53534f4b1f68e447621caf0e2e6}
+
+
+Set the color order of data sent to the L\+E\+Ds. 
+
+Data is sent to the W\+S2812s in a serial fashion. There are 8 bits of data for each of the three channel colors (red, green and blue). The \hyperlink{class_w_s2812}{W\+S2812} L\+E\+Ds typically expect the data to arrive in the order of \char`\"{}green\char`\"{} then \char`\"{}red\char`\"{} then \char`\"{}blue\char`\"{}. However, this has been found to vary between some models and manufacturers. What this means is that some want \char`\"{}red\char`\"{}, \char`\"{}green\char`\"{}, \char`\"{}blue\char`\"{} and still others have their own orders. This function can be called to override the default ordering of \char`\"{}\+G\+R\+B\char`\"{}. We can specify an alternate order by supply an alternate three character string made up of \textquotesingle{}R\textquotesingle{}, \textquotesingle{}G\textquotesingle{} and \textquotesingle{}B\textquotesingle{} for example \char`\"{}\+R\+G\+B\char`\"{}. \index{W\+S2812@{W\+S2812}!set\+Pixel@{set\+Pixel}}
+\index{set\+Pixel@{set\+Pixel}!W\+S2812@{W\+S2812}}
+\subsubsection[{\texorpdfstring{set\+Pixel(uint16\+\_\+t index, uint8\+\_\+t red, uint8\+\_\+t green, uint8\+\_\+t blue)}{setPixel(uint16_t index, uint8_t red, uint8_t green, uint8_t blue)}}]{\setlength{\rightskip}{0pt plus 5cm}void W\+S2812\+::set\+Pixel (
+\begin{DoxyParamCaption}
+\item[{uint16\+\_\+t}]{index, }
+\item[{uint8\+\_\+t}]{red, }
+\item[{uint8\+\_\+t}]{green, }
+\item[{uint8\+\_\+t}]{blue}
+\end{DoxyParamCaption}
+)}\hypertarget{class_w_s2812_a60025d23e7fc21c3ce8c1f02bd50bf86}{}\label{class_w_s2812_a60025d23e7fc21c3ce8c1f02bd50bf86}
+
+
+Set the given pixel to the specified color. 
+
+The L\+E\+Ds are not actually updated until a call to \hyperlink{class_w_s2812_ad03797836617dccf530cb7c6423c03fe}{show()}.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em index} & The pixel that is to have its color set. \\
+\hline
+\mbox{\tt in}  & {\em red} & The amount of red in the pixel. \\
+\hline
+\mbox{\tt in}  & {\em green} & The amount of green in the pixel. \\
+\hline
+\mbox{\tt in}  & {\em blue} & The amount of blue in the pixel. \\
+\hline
+\end{DoxyParams}
+\index{W\+S2812@{W\+S2812}!set\+Pixel@{set\+Pixel}}
+\index{set\+Pixel@{set\+Pixel}!W\+S2812@{W\+S2812}}
+\subsubsection[{\texorpdfstring{set\+Pixel(uint16\+\_\+t index, pixel\+\_\+t pixel)}{setPixel(uint16_t index, pixel_t pixel)}}]{\setlength{\rightskip}{0pt plus 5cm}void W\+S2812\+::set\+Pixel (
+\begin{DoxyParamCaption}
+\item[{uint16\+\_\+t}]{index, }
+\item[{{\bf pixel\+\_\+t}}]{pixel}
+\end{DoxyParamCaption}
+)}\hypertarget{class_w_s2812_a2f37824dbf4730986d4ebde58c25a48d}{}\label{class_w_s2812_a2f37824dbf4730986d4ebde58c25a48d}
+
+
+Set the given pixel to the specified color. 
+
+The L\+E\+Ds are not actually updated until a call to \hyperlink{class_w_s2812_ad03797836617dccf530cb7c6423c03fe}{show()}.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em index} & The pixel that is to have its color set. \\
+\hline
+\mbox{\tt in}  & {\em pixel} & The color value of the pixel. \\
+\hline
+\end{DoxyParams}
+\index{W\+S2812@{W\+S2812}!set\+Pixel@{set\+Pixel}}
+\index{set\+Pixel@{set\+Pixel}!W\+S2812@{W\+S2812}}
+\subsubsection[{\texorpdfstring{set\+Pixel(uint16\+\_\+t index, uint32\+\_\+t pixel)}{setPixel(uint16_t index, uint32_t pixel)}}]{\setlength{\rightskip}{0pt plus 5cm}void W\+S2812\+::set\+Pixel (
+\begin{DoxyParamCaption}
+\item[{uint16\+\_\+t}]{index, }
+\item[{uint32\+\_\+t}]{pixel}
+\end{DoxyParamCaption}
+)}\hypertarget{class_w_s2812_a65924d977bab621786b01a09c91456f6}{}\label{class_w_s2812_a65924d977bab621786b01a09c91456f6}
+
+
+Set the given pixel to the specified color. 
+
+The L\+E\+Ds are not actually updated until a call to \hyperlink{class_w_s2812_ad03797836617dccf530cb7c6423c03fe}{show()}.
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em index} & The pixel that is to have its color set. \\
+\hline
+\mbox{\tt in}  & {\em pixel} & The color value of the pixel. \\
+\hline
+\end{DoxyParams}
+\index{W\+S2812@{W\+S2812}!show@{show}}
+\index{show@{show}!W\+S2812@{W\+S2812}}
+\subsubsection[{\texorpdfstring{show()}{show()}}]{\setlength{\rightskip}{0pt plus 5cm}void W\+S2812\+::show (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\hypertarget{class_w_s2812_ad03797836617dccf530cb7c6423c03fe}{}\label{class_w_s2812_ad03797836617dccf530cb7c6423c03fe}
+
+
+Show the current Neopixel data. 
+
+Drive the L\+E\+Ds with the values that were previously set. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+W\+S2812.\+h\item 
+W\+S2812.\+cpp\end{DoxyCompactItemize}
