@@ -1,4 +1,4 @@
-#Building curl
+# Building curl
 
 Create folder called `components` to host curl as a component.  In the `components` folder run:
 

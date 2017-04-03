@@ -9,6 +9,10 @@
 #define COMPONENTS_CPP_UTILS_NVS_H_
 #include <nvs.h>
 #include <string>
+
+/**
+ * @brief Provide Non Volatile Storage access.
+ */
 class NVS {
 public:
 	NVS(std::string name, nvs_open_mode openMode = NVS_READWRITE);

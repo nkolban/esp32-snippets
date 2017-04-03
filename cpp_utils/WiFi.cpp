@@ -65,10 +65,10 @@ WiFi::WiFi() {
  */
 void WiFi::addDNSServer(std::string ip) {
 	ip_addr_t dnsserver;
-	ESP_LOGD(tag, "Setting DNS[%d] to %s", dnsCount, ip.c_str());
+	ESP_LOGD(tag, "Setting DNS[%d] to %s", m_dnsCount, ip.c_str());
 	inet_pton(AF_INET, ip.c_str(), &dnsserver);
-	::dns_setserver(dnsCount, &dnsserver);
-	dnsCount++;
+	::dns_setserver(m_dnsCount, &dnsserver);
+	m_dnsCount++;
 } // addDNSServer
 
 /**
@@ -176,11 +176,11 @@ std::vector<WiFiAPRecord> WiFi::scan() {
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&apCount, list));
     std::vector<WiFiAPRecord> apRecords;
     for (auto i=0; i<apCount; i++) {
-    	WiFiAPRecord apR;
-    	memcpy(apR.bssid, list[i].bssid, 6);
-    	apR.ssid = std::string((char *)list[i].ssid);
-    	apR.authMode = list[i].authmode;
-    	apRecords.push_back(apR);
+    	WiFiAPRecord wifiAPRecord;
+    	memcpy(wifiAPRecord.m_bssid, list[i].bssid, 6);
+    	wifiAPRecord.m_ssid = std::string((char *)list[i].ssid);
+    	wifiAPRecord.m_authMode = list[i].authmode;
+    	apRecords.push_back(wifiAPRecord);
     }
     free(list);
     return apRecords;
@@ -262,6 +262,65 @@ std::string WiFiAPRecord::toString() {
 		auth = "<unknown>";
 		break;
 	}
-	return "ssid: " + ssid + ", auth: " + auth + ", rssi: " + std::to_string(rssi);
+	return "ssid: " + m_ssid + ", auth: " + auth + ", rssi: " + std::to_string(m_rssi);
 } // toString
+
+MDNS::MDNS() {
+	ESP_ERROR_CHECK(mdns_init(TCPIP_ADAPTER_IF_STA, &m_mdns_server));
+}
+
+MDNS::~MDNS() {
+	if (m_mdns_server != nullptr) {
+		mdns_free(m_mdns_server);
+	}
+	m_mdns_server = nullptr;
+}
+
+/**
+ * @brief Define the service for mDNS.
+ *
+ * @param [in] service
+ * @param [in] proto
+ * @param [in] port
+ *
+ */
+void MDNS::serviceAdd(std::string service, std::string proto, uint16_t port) {
+	ESP_ERROR_CHECK(mdns_service_add(m_mdns_server, service.c_str(), proto.c_str(), port));
+} // serviceAdd
+
+
+void MDNS::serviceInstanceSet(std::string service, std::string proto, std::string instance) {
+	ESP_ERROR_CHECK(mdns_service_instance_set(m_mdns_server, service.c_str(), proto.c_str(), instance.c_str()));
+} // serviceInstanceSet
+
+
+void MDNS::servicePortSet(std::string service, std::string proto, uint16_t port) {
+	ESP_ERROR_CHECK(mdns_service_port_set(m_mdns_server, service.c_str(), proto.c_str(), port));
+} // servicePortSet
+
+
+void MDNS::serviceRemove(std::string service, std::string proto) {
+	ESP_ERROR_CHECK(mdns_service_remove(m_mdns_server, service.c_str(), proto.c_str()));
+} // serviceRemove
+
+
+/**
+ * @brief Set the mDNS hostname.
+ *
+ * @param [in] hostname The host name to set against the mDNS.
+ */
+void MDNS::setHostname(std::string hostname) {
+	ESP_ERROR_CHECK(mdns_set_hostname(m_mdns_server,hostname.c_str()));
+} // setHostname
+
+
+/**
+ * @brief Set the mDNS instance.
+ *
+ * @param [in] instance The instance name to set against the mDNS.
+ */
+void MDNS::setInstance(std::string instance) {
+	ESP_ERROR_CHECK(mdns_set_instance(m_mdns_server, instance.c_str()));
+} // setInstance
+
 #endif // CONFIG_WIFI_ENABLED

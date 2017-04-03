@@ -28,10 +28,18 @@
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/smp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/api/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/core/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gatt/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gap/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btm/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btu/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/hcic/include</includepath>
+<includepath>${IDF_PATH}/components/mdns/include</includepath>
 
 </language>
 <language name="GNU C++">
 <includepath>/opt/xtensa-esp32-elf/xtensa-esp32-elf/include/c++/5.2.0</includepath>
+<includepath>/opt/xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/5.2.0/include</includepath>
 <includepath>${IDF_PATH}/components/esp32/include</includepath>
 <includepath>${IDF_PATH}/components/newlib/include</includepath>
 <includepath>${IDF_PATH}/components/freertos/include</includepath>
@@ -43,6 +51,7 @@
 <includepath>${IDF_PATH}/components/vfs/include</includepath>
 <includepath>${IDF_PATH}/components/spi_flash/include</includepath>
 <includepath>${IDF_PATH}/components/mbedtls/include</includepath>
+<includepath>${IDF_PATH}/components/mdns/include</includepath>
 <includepath>${IDF_PATH}/components/json/include</includepath>
 <includepath>${IDF_PATH}/components/bt/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/bta/include</includepath>
@@ -63,7 +72,12 @@
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/smp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/api/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/include</includepath>
-<includepath>/opt/xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/5.2.0/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/core/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gatt/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gap/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btm/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btu/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/hcic/include</includepath>
 
 </language>
 <language name="GNU C">
@@ -101,6 +115,13 @@
 <includepath>${IDF_PATH}/components/bt/bluedroid/api/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/include</includepath>
 <includepath>/opt/xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/5.2.0/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/core/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gatt/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gap/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btm/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btu/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/hcic/include</includepath>
+<includepath>${IDF_PATH}/components/mdns/include</includepath>
 
 </language>
 </section>

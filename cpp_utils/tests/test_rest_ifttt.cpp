@@ -3,6 +3,7 @@
  */
 #include <curl/curl.h>
 #include <esp_log.h>
+#include <IFTTT.h>
 #include <RESTClient.h>
 #include <string>
 #include <Task.h>
@@ -20,41 +21,24 @@ extern "C" {
 
 static WiFi *wifi;
 
-
-class CurlTestTask: public Task {
+class IFTTTTestTask: public Task {
 	void run(void *data) {
-		ESP_LOGD(tag, "Testing curl ...");
-		RESTClient client;
-
-		/**
-		 * Test POST
-		 */
-
-		RESTTimings *timings = client.getTimings();
-
-		client.setURL("https://httpbin.org/post");
-		client.addHeader("Content-Type", "application/json");
-		client.post("hello world!");
-		ESP_LOGD(tag, "Result: %s", client.getResponse().c_str());
-		timings->refresh();
-		ESP_LOGD(tag, "timings: %s", timings->toString().c_str());
-
-		printf("Tests done\n");
-		return;
+		IFTTT iftt = IFTTT("dG-QmEUwCUyBBLHm1owPtq");
+		iftt.trigger("test", "A", "BCD", "Val3");
+		ESP_LOGD(tag, "trigger done!");
 	}
 };
 
-static CurlTestTask *curlTestTask;
 
 class MyWiFiEventHandler: public WiFiEventHandler {
 
 	esp_err_t staGotIp(system_event_sta_got_ip_t event_sta_got_ip) {
 		ESP_LOGD(tag, "MyWiFiEventHandler(Class): staGotIp");
 
-		curlTestTask = new CurlTestTask();
-		curlTestTask->setStackSize(12000);
-		curlTestTask->start();
 
+		IFTTTTestTask *pTestTask= new IFTTTTestTask();
+		pTestTask->setStackSize(12000);
+		pTestTask->start();
 		return ESP_OK;
 	}
 };

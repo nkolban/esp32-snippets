@@ -11,31 +11,47 @@
 #if defined(CONFIG_WIFI_ENABLED)
 #include <string>
 #include <vector>
+#include <mdns.h>
 #include "WiFiEventHandler.h"
 
-
+/**
+ * @brief Manage mDNS server.
+ */
+class MDNS {
+public:
+	MDNS();
+	~MDNS();
+	void serviceAdd(std::string service, std::string proto, uint16_t port);
+	void serviceInstanceSet(std::string service, std::string proto, std::string instance);
+	void servicePortSet(std::string service, std::string proto, uint16_t port);
+	void serviceRemove(std::string service, std::string proto);
+	void setHostname(std::string hostname);
+	void setInstance(std::string instance);
+private:
+	mdns_server_t *m_mdns_server = nullptr;
+};
 
 class WiFiAPRecord {
 public:
 	friend class WiFi;
 	wifi_auth_mode_t getAuthMode() {
-		return authMode;
+		return m_authMode;
 	}
 
 	int8_t getRSSI() {
-		return rssi;
+		return m_rssi;
 	}
 
 	std::string getSSID() {
-		return ssid;
+		return m_ssid;
 	}
 
 	std::string toString();
 private:
-	uint8_t bssid[6];
-	int8_t rssi;
-	std::string ssid;
-	wifi_auth_mode_t authMode;
+	uint8_t m_bssid[6];
+	int8_t m_rssi;
+	std::string m_ssid;
+	wifi_auth_mode_t m_authMode;
 };
 /**
  * @brief %WiFi driver.
@@ -44,6 +60,9 @@ private:
  *
  * Here is an example fragment that illustrates connecting to an access point.
  * @code{.cpp}
+ * #include <WiFi.h>
+ * #include <WiFiEventHandler.h>
+ *
  * class TargetWiFiEventHandler: public WiFiEventHandler {
  *    esp_err_t staGotIp(system_event_sta_got_ip_t event_sta_got_ip) {
  *       ESP_LOGD(tag, "MyWiFiEventHandler(Class): staGotIp");
@@ -54,7 +73,7 @@ private:
  *
  * WiFi wifi;
  *
- * MyWiFiEventHandler *eventHandler = new MyWiFiEventHandler();
+ * TargetWiFiEventHandler *eventHandler = new TargetWiFiEventHandler();
  * wifi.setWifiEventHandler(eventHandler);
  * wifi.connectAP("myssid", "mypassword");
  * @endcode
@@ -86,8 +105,9 @@ public:
 		this->wifiEventHandler = wifiEventHandler;
 	}
 private:
-	int dnsCount=0;
-	char *dnsServer = nullptr;
+	int m_dnsCount=0;
+	//char *m_dnsServer = nullptr;
+
 };
 
 #endif // CONFIG_WIFI_ENABLED
