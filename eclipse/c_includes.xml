@@ -18,22 +18,18 @@
 <includepath>${IDF_PATH}/components/bt/bluedroid/hci/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/osi/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/esp/blufi/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid//btc/profile/esp/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/esp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/sdp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/gap/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/gatt/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/l2cap/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/sdp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/smp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/api/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/btc/core/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gatt/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gap/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btm/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btu/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/hcic/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/include</includepath>
 <includepath>${IDF_PATH}/components/mdns/include</includepath>
 
 </language>
@@ -62,22 +58,16 @@
 <includepath>${IDF_PATH}/components/bt/bluedroid/hci/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/osi/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/esp/blufi/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid//btc/profile/esp/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/esp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/sdp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/gap/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/gatt/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/l2cap/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/sdp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/smp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/api/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/btc/core/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gatt/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gap/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btm/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btu/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/hcic/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/include</includepath>
 
 </language>
 <language name="GNU C">
@@ -106,8 +96,7 @@
 <includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/esp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/sdp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/gap/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/gatt/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/l2cap/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/sdp/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/stack/smp/include</includepath>
@@ -115,12 +104,9 @@
 <includepath>${IDF_PATH}/components/bt/bluedroid/api/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/include</includepath>
 <includepath>/opt/xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/5.2.0/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/btc/core/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gatt/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/gap/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btm/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/btu/include</includepath>
-<includepath>${IDF_PATH}/components/bt/bluedroid/stack/hcic/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/btc/profile/std/include</includepath>
+<includepath>${IDF_PATH}/components/bt/bluedroid/stack/include</includepath>
 <includepath>${IDF_PATH}/components/mdns/include</includepath>
 
 </language>
