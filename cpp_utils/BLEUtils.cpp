@@ -82,6 +82,28 @@ std::string bt_event_type_to_string(uint32_t eventType) {
 			return "ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT";
 		case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
 			return "ESP_GAP_BLE_SCAN_START_COMPLETE_EVT";
+		case ESP_GAP_BLE_AUTH_CMPL_EVT:                              /* Authentication complete indication. */
+			return "ESP_GAP_BLE_AUTH_CMPL_EVT";
+		case ESP_GAP_BLE_KEY_EVT:                                    /* BLE  key event for peer device keys */
+			return "ESP_GAP_BLE_KEY_EVT";
+		case ESP_GAP_BLE_SEC_REQ_EVT:                                /* BLE  security request */
+			return "ESP_GAP_BLE_SEC_REQ_EVT";
+		case ESP_GAP_BLE_PASSKEY_NOTIF_EVT:                          /* passkey notification event */
+			return "ESP_GAP_BLE_PASSKEY_NOTIF_EVT";
+		case ESP_GAP_BLE_PASSKEY_REQ_EVT:                            /* passkey request event */
+			return "ESP_GAP_BLE_PASSKEY_REQ_EVT";
+		case ESP_GAP_BLE_OOB_REQ_EVT:                                /* OOB request event */
+			return "ESP_GAP_BLE_OOB_REQ_EVT";
+		case ESP_GAP_BLE_LOCAL_IR_EVT:                               /* BLE local IR event */
+			return "ESP_GAP_BLE_LOCAL_IR_EVT";
+		case ESP_GAP_BLE_LOCAL_ER_EVT:                               /* BLE local ER event */
+			return "ESP_GAP_BLE_LOCAL_ER_EVT";
+		case ESP_GAP_BLE_NC_REQ_EVT:                                 /* Numeric Comparison request event */
+			return "ESP_GAP_BLE_NC_REQ_EVT";
+		case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:                      /*!< When stop adv complete, the event comes */
+			return "ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT";
+		case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
+			return "ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT";
 		default:
 			ESP_LOGD(tag, "bt_event_type_to_string: Unknown event type 0x%x", eventType);
 			return "Unknown event type";
@@ -89,7 +111,7 @@ std::string bt_event_type_to_string(uint32_t eventType) {
 } // bt_event_type_to_string
 
 
-std::string bt_utils_gatt_event_type_to_string(esp_gattc_cb_event_t eventType) {
+std::string bt_utils_gatt_client_event_type_to_string(esp_gattc_cb_event_t eventType) {
 	switch(eventType) {
 		case ESP_GATTC_ACL_EVT:
 			return "ESP_GATTC_ACL_EVT";
@@ -176,6 +198,66 @@ std::string bt_utils_gatt_event_type_to_string(esp_gattc_cb_event_t eventType) {
 
 
 /**
+ * @brief Return a string representation of a GATT server event code.
+ * @param [in] eventType A GATT server event code.
+ * @return A string representation of the GATT server event code.
+ */
+std::string bt_utils_gatt_server_event_type_to_string(esp_gatts_cb_event_t eventType) {
+	switch(eventType) {
+	case ESP_GATTS_REG_EVT:
+		return "ESP_GATTS_REG_EVT";
+	case ESP_GATTS_READ_EVT:
+		return "ESP_GATTS_READ_EVT";
+	case ESP_GATTS_WRITE_EVT:
+		return "ESP_GATTS_WRITE_EVT";
+	case ESP_GATTS_EXEC_WRITE_EVT:
+		return "ESP_GATTS_EXEC_WRITE_EVT";
+	case ESP_GATTS_MTU_EVT:
+		return "ESP_GATTS_MTU_EVT";
+	case ESP_GATTS_CONF_EVT:
+		return "ESP_GATTS_CONF_EVT";
+	case ESP_GATTS_UNREG_EVT:
+		return "ESP_GATTS_UNREG_EVT";
+	case ESP_GATTS_CREATE_EVT:
+		return "ESP_GATTS_CREATE_EVT";
+	case ESP_GATTS_ADD_INCL_SRVC_EVT:
+		return "ESP_GATTS_ADD_INCL_SRVC_EVT";
+	case ESP_GATTS_ADD_CHAR_EVT:
+		return "ESP_GATTS_ADD_CHAR_EVT";
+	case ESP_GATTS_ADD_CHAR_DESCR_EVT:
+		return "ESP_GATTS_ADD_CHAR_DESCR_EVT";
+	case ESP_GATTS_DELETE_EVT:
+		return "ESP_GATTS_DELETE_EVT";
+	case ESP_GATTS_START_EVT:
+		return "ESP_GATTS_START_EVT";
+	case ESP_GATTS_STOP_EVT:
+		return "ESP_GATTS_STOP_EVT";
+	case ESP_GATTS_CONNECT_EVT:
+		return "ESP_GATTS_CONNECT_EVT";
+	case ESP_GATTS_DISCONNECT_EVT:
+		return "ESP_GATTS_DISCONNECT_EVT";
+	case ESP_GATTS_OPEN_EVT:
+		return "ESP_GATTS_OPEN_EVT";
+	case ESP_GATTS_CANCEL_OPEN_EVT:
+		return "ESP_GATTS_CANCEL_OPEN_EVT";
+	case ESP_GATTS_CLOSE_EVT:
+		return "ESP_GATTS_CLOSE_EVT";
+	case ESP_GATTS_LISTEN_EVT:
+		return "ESP_GATTS_LISTEN_EVT";
+	case ESP_GATTS_CONGEST_EVT:
+		return "ESP_GATTS_CONGEST_EVT";
+	case ESP_GATTS_RESPONSE_EVT:
+		return "ESP_GATTS_RESPONSE_EVT";
+	case ESP_GATTS_CREAT_ATTR_TAB_EVT:
+		return "ESP_GATTS_CREAT_ATTR_TAB_EVT";
+	case ESP_GATTS_SET_ATTR_VAL_EVT:
+		return "ESP_GATTS_SET_ATTR_VAL_EVT";
+	}
+	return "Unknown";
+}
+
+
+/**
  * @brief Convert an esp_ble_addr_type_t to a string representation.
  */
 static std::string bt_addr_t_to_string(esp_ble_addr_type_t type) {
@@ -197,7 +279,7 @@ static std::string bt_addr_t_to_string(esp_ble_addr_type_t type) {
 /**
  * @brief Convert a BLE device type to a string.
  */
-static std::string bt_dev_type_to_string(esp_bt_dev_type_t type) {
+std::string BLEUtils::devTypeToString(esp_bt_dev_type_t type) {
 	switch(type) {
 	case ESP_BT_DEVICE_TYPE_BREDR:
 		return "ESP_BT_DEVICE_TYPE_BREDR";
@@ -518,18 +600,18 @@ esp_gatt_srvc_id_t BLEUtils::buildGattSrvcId(esp_gatt_id_t gattId,
 }
 
 /**
- * @brief Decode and dump a GATT event
+ * @brief Decode and dump a GATT client event
  *
  * @param [in] event The type of event received.
  * @param [in] evtParam The data associated with the event.
  */
-void BLEUtils::dumpGattEvent(
+void BLEUtils::dumpGattClientEvent(
 	esp_gattc_cb_event_t event,
 	esp_gatt_if_t gattc_if,
 	esp_ble_gattc_cb_param_t *evtParam) {
 
 	//esp_ble_gattc_cb_param_t *evtParam = (esp_ble_gattc_cb_param_t *)param;
-	ESP_LOGD(tag, "GATT Event: %s", bt_utils_gatt_event_type_to_string(event).c_str());
+	ESP_LOGD(tag, "GATT Event: %s", bt_utils_gatt_client_event_type_to_string(event).c_str());
 	switch(event) {
 		//
 		// ESP_GATTC_CLOSE_EVT
@@ -641,23 +723,93 @@ void BLEUtils::dumpGattEvent(
 		default:
 			break;
 	}
-} // bt_utils_log_gatt_event
+} // dumpGattClientEvent
+
+/**
+ * @brief Dump the details of a GATT server event.
+ * A GATT Server event is a callback received from the BLE subsystem when we are acting as a BLE
+ * server.  The callback indicates the type of event in the `event` field.  The `evtParam` is a
+ * union of structures where we can use the `event` to indicate which of the structures has been
+ * populated and hence is valid.
+ *
+ * @param [in] event The event type that was posted.
+ * @param [in] evtParam A union of structures only one of which is populated.
+ */
+void BLEUtils::dumpGattServerEvent(esp_gatts_cb_event_t event,
+		esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t* evtParam) {
+	ESP_LOGD(tag, "GATT ServerEvent: %s", bt_utils_gatt_server_event_type_to_string(event).c_str());
+	switch(event) {
+
+	case ESP_GATTS_REG_EVT:
+		ESP_LOGD(tag, "[status: %s, app_id: %d]", gattStatusToString(evtParam->reg.status).c_str(), evtParam->reg.app_id);
+		break;
+
+	case ESP_GATTS_START_EVT:
+		ESP_LOGD(tag, "[status: %s, service_handle: %d]", gattStatusToString(evtParam->start.status).c_str(), evtParam->start.service_handle);
+		break;
+
+	case ESP_GATTS_CREATE_EVT:
+		ESP_LOGD(tag, "[status: %s, service_handle: %d, service_id: [%s]]",
+			gattStatusToString(evtParam->create.status).c_str(),
+			evtParam->create.service_handle,
+			gattServiceIdToString(evtParam->create.service_id).c_str());
+		break;
+
+	case ESP_GATTS_CONNECT_EVT:
+	case ESP_GATTS_DISCONNECT_EVT:
+		ESP_LOGD(tag, "[conn_id: %d, remote_bda: %s, is_connected: %d]",
+			evtParam->connect.conn_id,
+			addressToString(evtParam->connect.remote_bda).c_str(),
+			evtParam->connect.is_connected);
+		break;
+
+	case ESP_GATTS_ADD_CHAR_EVT:
+		ESP_LOGD(tag, "[status: %s, attr_handle: %d, service_handle: %d, char_uuid: %s]",
+			gattStatusToString(evtParam->add_char.status).c_str(),
+			evtParam->add_char.attr_handle,
+			evtParam->add_char.service_handle,
+			uuidToString(evtParam->add_char.char_uuid).c_str());
+		break;
+
+
+	default:
+		ESP_LOGD(tag, "dumpGattServerEvent: *** NOT CODED ***");
+		break;
+	}
+} // dumpGattServerEvent
+
+/**
+ * @brief Convert a BLE address to a string.
+ *
+ * @param [in] bda The natural representation of an address.
+ * @return The string representation of the address.
+ */
+std::string BLEUtils::addressToString(ble_address address) {
+	std::stringstream stream;
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)address[0] << ':';
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)address[1] << ':';
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)address[2] << ':';
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)address[3] << ':';
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)address[4] << ':';
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)address[5];
+	return stream.str();
+}
 
 
 /**
  * @brief Convert a BLE address to a string.
  *
- * @param [in] uuid The natural representation of an address.
+ * @param [in] bda The natural representation of an address.
  * @return The string representation of the address.
  */
-std::string BLEUtils::addressToString(ble_address uuid) {
+std::string BLEUtils::addressToString(esp_bd_addr_t address) {
 	std::stringstream stream;
-	stream << std::setfill('0') << std::setw(2) << std::hex << (int)uuid[0] << ':';
-	stream << std::setfill('0') << std::setw(2) << std::hex << (int)uuid[1] << ':';
-	stream << std::setfill('0') << std::setw(2) << std::hex << (int)uuid[2] << ':';
-	stream << std::setfill('0') << std::setw(2) << std::hex << (int)uuid[3] << ':';
-	stream << std::setfill('0') << std::setw(2) << std::hex << (int)uuid[4] << ':';
-	stream << std::setfill('0') << std::setw(2) << std::hex << (int)uuid[5];
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)((uint8_t *)(address))[0] << ':';
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)((uint8_t *)(address))[1] << ':';
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)((uint8_t *)(address))[2] << ':';
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)((uint8_t *)(address))[3] << ':';
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)((uint8_t *)(address))[4] << ':';
+	stream << std::setfill('0') << std::setw(2) << std::hex << (int)((uint8_t *)(address))[5];
 	return stream.str();
 }
 
@@ -798,9 +950,6 @@ void BLEUtils::registerByConnId(uint16_t conn_id, BLEDevice* pDevice) {
 	ESP_LOGD(tag, "registerByConnId(%d)", conn_id);
 	g_connIdMap.insert(std::pair<uint16_t, BLEDevice *>(conn_id, pDevice));
 } // registerByConnId
-
-
-
 
 
 

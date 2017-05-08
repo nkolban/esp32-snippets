@@ -40,6 +40,9 @@
 /* to disable LDAPS */
 #define CURL_DISABLE_LDAPS 1
 
+/* to disable NTLM */
+#define CURL_DISABLE_NTLM 1
+
 /* to disable --libcurl C code generation option */
 /* #undef CURL_DISABLE_LIBCURL_OPTION */
 

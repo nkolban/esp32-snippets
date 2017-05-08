@@ -105,7 +105,7 @@ WS2812::WS2812(gpio_num_t dinPin, uint16_t pixelCount, int channel) {
 		throw std::range_error("Pixel count was 0");
 	}
 	*/
-	assert(GPIO::inRange(dinPin));
+	assert(ESP32CPP::GPIO::inRange(dinPin));
 
 	this->pixelCount = pixelCount;
 	this->channel    = (rmt_channel_t)channel;

@@ -13,6 +13,7 @@
 #include <esp_bt_main.h>     // ESP32 BLE
 #include <esp_gap_ble_api.h> // ESP32 BLE
 #include <esp_gattc_api.h>   // ESP32 BLE
+#include <esp_gatts_api.h>   // ESP32 BLE
 #include <esp_err.h>         // ESP32 ESP-IDF
 #include <esp_log.h>         // ESP32 ESP-IDF
 #include <map>               // Part of C++ STL
@@ -42,6 +43,8 @@ static EventGroupHandle_t g_eventGroup;
  * the BLEDevice object that this device represents.
  */
 static std::map<ble_address, BLEDevice> g_devices;
+
+BLEServer *BLE::m_server;
 
 BLE::BLE() {
 }
@@ -166,24 +169,48 @@ static void dump_adv_payload(uint8_t *payload) {
 */
 
 
+/**
+ * @brief Handle GATT server events.
+ *
+ * @param [in] event
+ * @param [in] gatts_if
+ * @param [in] param
+ */
+void gatt_server_event_handler(
+   esp_gatts_cb_event_t event,
+   esp_gatt_if_t gatts_if,
+   esp_ble_gatts_cb_param_t *param
+) {
+	ESP_LOGD(tag, "gatt_server_event_handler [esp_gatt_if: %d] ... %s",
+		gatts_if, bt_utils_gatt_server_event_type_to_string(event).c_str());
+	BLEUtils::dumpGattServerEvent(event, gatts_if, param);
+	if (BLE::m_server != nullptr) {
+		BLE::m_server->handleGATTServerEvent(event, gatts_if, param);
+	}
+} // gatt_server_event_handler
+
 
 /**
- * @brief Handle GATT events.
+ * @brief Handle GATT client events.
  *
- * Handler for the GATT events.
+ * Handler for the GATT client events.
  * * `ESP_GATTC_OPEN_EVT` – Invoked when a connection is opened.
  * * `ESP_GATTC_PREP_WRITE_EVT` – Response to write a characteristic.
  * * `ESP_GATTC_READ_CHAR_EVT` – Response to read a characteristic.
  * * `ESP_GATTC_REG_EVT` – Invoked when a GATT client has been registered.
+ *
+ * @param [in] event
+ * @param [in] gattc_if
+ * @param [in] param
  */
-static void gatt_event_handler(
+static void gatt_client_event_handler(
 	esp_gattc_cb_event_t event,
 	esp_gatt_if_t gattc_if,
 	esp_ble_gattc_cb_param_t *param) {
 
-	ESP_LOGD(tag, "gatt_event_handler [esp_gatt_if: %d] ... %s",
-		gattc_if, bt_utils_gatt_event_type_to_string(event).c_str());
-	BLEUtils::dumpGattEvent(event, gattc_if, param);
+	ESP_LOGD(tag, "gatt_client_event_handler [esp_gatt_if: %d] ... %s",
+		gattc_if, bt_utils_gatt_client_event_type_to_string(event).c_str());
+	BLEUtils::dumpGattClientEvent(event, gattc_if, param);
 
 	switch(event) {
 	case ESP_GATTC_OPEN_EVT: {
@@ -257,6 +284,7 @@ static void gatt_event_handler(
 	default:
 		break;
 	}
+
 } // gatt_event_handler
 
 
@@ -275,6 +303,19 @@ static void gap_event_handler(
 
 	else if (event == ESP_GAP_BLE_SCAN_START_COMPLETE_EVT) {
 		ESP_LOGD(tag, "status: %d", param->scan_start_cmpl.status);
+	}
+
+	else if (event == ESP_GAP_BLE_AUTH_CMPL_EVT) {
+		// key is a 16 byte value
+
+		ESP_LOGD(tag, "[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
+				BLEUtils::addressToString(param->ble_security.auth_cmpl.bd_addr).c_str(),
+				param->ble_security.auth_cmpl.key_present,
+				param->ble_security.auth_cmpl.key_type,
+				param->ble_security.auth_cmpl.success,
+				param->ble_security.auth_cmpl.fail_reason,
+				BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type).c_str()
+			);
 	}
 
 	else if (event == ESP_GAP_BLE_SCAN_RESULT_EVT) {
@@ -304,6 +345,9 @@ static void gap_event_handler(
 			ESP_LOGD(tag, "Unhandled search_evt type!");
 		}
 	} // ESP_GAP_BLE_SCAN_RESULT_EVT
+	if (BLE::m_server != nullptr) {
+		BLE::m_server->handleGAPEvent(event, param);
+	}
 } // gap_event_handler
 
 
@@ -314,14 +358,21 @@ std::map<ble_address, BLEDevice> getDevices() {
 	return g_devices;
 } // getDevices
 
-
 /**
- * @brief Initialize the %BLE environment.
+ * @brief Initialize the server %BLE enevironment.
+ *
  */
-void BLE::init() {
-	esp_bt_controller_init();
 
-	esp_err_t errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
+void BLE::initServer() {
+	esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+	esp_err_t errRc = esp_bt_controller_init(&bt_cfg);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(tag, "esp_bt_controller_init: rc=%d %s", errRc, espToString(errRc));
+		return;
+	}
+
+
+	errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(tag, "esp_bt_controller_enable: rc=%d %s", errRc, espToString(errRc));
 		return;
@@ -345,7 +396,49 @@ void BLE::init() {
 		return;
 	}
 
-	errRc = esp_ble_gattc_register_callback(gatt_event_handler);
+	errRc = esp_ble_gatts_register_callback(gatt_server_event_handler);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(tag, "esp_ble_gatts_register_callback: rc=%d %s", errRc, espToString(errRc));
+		return;
+	}
+}
+/**
+ * @brief Initialize the client %BLE environment.
+ */
+void BLE::initClient() {
+  esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+  esp_err_t errRc = esp_bt_controller_init(&bt_cfg);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(tag, "esp_bt_controller_init: rc=%d %s", errRc, espToString(errRc));
+		return;
+	}
+
+
+	errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(tag, "esp_bt_controller_enable: rc=%d %s", errRc, espToString(errRc));
+		return;
+	}
+
+	errRc = esp_bluedroid_init();
+	if (errRc != ESP_OK) {
+		ESP_LOGE(tag, "esp_bluedroid_init: rc=%d %s", errRc, espToString(errRc));
+		return;
+	}
+
+	errRc = esp_bluedroid_enable();
+	if (errRc != ESP_OK) {
+		ESP_LOGE(tag, "esp_bluedroid_enable: rc=%d %s", errRc, espToString(errRc));
+		return;
+	}
+
+	errRc = esp_ble_gap_register_callback(gap_event_handler);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(tag, "esp_ble_gap_register_callback: rc=%d %s", errRc, espToString(errRc));
+		return;
+	}
+
+	errRc = esp_ble_gattc_register_callback(gatt_client_event_handler);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(tag, "esp_ble_gattc_register_callback: rc=%d %s", errRc, espToString(errRc));
 		return;
