@@ -42,8 +42,8 @@ void MPU6050::readAccel() {
 
 	uint8_t data[6];
 	i2c->beginTransaction();
-	i2c->read(data, 5, 1);
-	i2c->readByte(data+5, 0);
+	i2c->read(data, 5, true);
+	i2c->read(data+5, false);
 	i2c->endTransaction();
 
 	accel_x = (data[0] << 8) | data[1];
@@ -65,8 +65,8 @@ void MPU6050::readGyro() {
 
 	uint8_t data[6];
 	i2c->beginTransaction();
-	i2c->read(data, 5, 1);
-	i2c->readByte(data+5, 0);
+	i2c->read(data, 5, true);
+	i2c->read(data+5, false);
 	i2c->endTransaction();
 
 	gyro_x = (data[0] << 8) | data[1];
@@ -83,9 +83,9 @@ void MPU6050::readGyro() {
  */
 void MPU6050::init(gpio_num_t sdaPin, gpio_num_t clkPin) {
 	i2c = new I2C();
-	i2c->init(sdaPin, clkPin);
+	i2c->init(I2C_ADDRESS, sdaPin, clkPin);
 	// Dummy call
-	i2c->setAddress(I2C_ADDRESS);
+	//i2c->setAddress(I2C_ADDRESS);
 	i2c->beginTransaction();
 	i2c->write(MPU6050_ACCEL_XOUT_H);
 	i2c->endTransaction();

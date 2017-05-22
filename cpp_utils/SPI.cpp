@@ -16,11 +16,7 @@ static char tag[] = "SPI";
 /**
  * @brief Construct an instance of the class.
  *
- * @param [in] mosiPin Pin to use for MOSI %SPI function.
- * @param [in] misoPin Pin to use for MISO %SPI function.
- * @param [in] clkPin Pin to use for CLK %SPI function.
- * @param [in] csPin Pin to use for CS %SPI function.
- *
+ * @return N/A.
  */
 SPI::SPI() {
 	handle = nullptr;
@@ -37,6 +33,15 @@ SPI::~SPI() {
   ESP_ERROR_CHECK(spi_bus_free(HSPI_HOST));
 }
 
+/**
+ * @brief Initialize SPI.
+ *
+ * @param [in] mosiPin Pin to use for MOSI %SPI function.
+ * @param [in] misoPin Pin to use for MISO %SPI function.
+ * @param [in] clkPin Pin to use for CLK %SPI function.
+ * @param [in] csPin Pin to use for CS %SPI function.
+ * @return N/A.
+ */
 void SPI::init(int mosiPin, int misoPin, int clkPin, int csPin) {
 	ESP_LOGD(tag, "init: mosi=%d, miso=%d, clk=%d, cs=%d", mosiPin, misoPin, clkPin, csPin);
 	spi_bus_config_t bus_config;

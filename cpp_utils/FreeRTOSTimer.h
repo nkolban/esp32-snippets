@@ -11,7 +11,7 @@
 #include <freertos/task.h>
 #include <freertos/timers.h>
 /**
- * @brief Wrapper around the FreeRTOS timer functions.
+ * @brief Wrapper around the %FreeRTOS timer functions.
  */
 class FreeRTOSTimer {
 public:

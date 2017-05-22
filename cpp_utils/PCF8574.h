@@ -19,7 +19,7 @@
  */
 class PCF8574 {
 public:
-	PCF8574(int address);
+	PCF8574(uint8_t address);
 	virtual ~PCF8574();
 	void init(gpio_num_t sdaPin=I2C::DEFAULT_SDA_PIN, gpio_num_t clkPin=I2C::DEFAULT_CLK_PIN);
 	uint8_t read();

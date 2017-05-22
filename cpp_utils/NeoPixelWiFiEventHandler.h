@@ -11,11 +11,11 @@
 #include <WS2812.h>
 
 /**
- * @brief Color a neopixel as a function of the WiFi state.
+ * @brief Color a neopixel as a function of the %WiFi state.
  *
- * When an ESP32 runs, we can't tell by looking at it the state of the WiFi connection.
- * This class provides a WiFi event handler that colors a NeoPixel as a function of the
- * state of the WiFi.
+ * When an ESP32 runs, we can't tell by looking at it the state of the %WiFi connection.
+ * This class provides a %WiFi event handler that colors a NeoPixel as a function of the
+ * state of the %WiFi.
  */
 class NeoPixelWiFiEventHandler: public WiFiEventHandler {
 public:

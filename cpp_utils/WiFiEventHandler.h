@@ -40,7 +40,7 @@
 #include <esp_event_loop.h>
 
 /**
- * @brief WiFi state event handler.
+ * @brief %WiFi state event handler.
  *
  * Here is an example class that implements all the virtual functions that can be called
  * for events:

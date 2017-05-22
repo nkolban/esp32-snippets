@@ -4,6 +4,7 @@
  *  Created on: Feb 25, 2017
  *      Author: kolban
  */
+
 #include "sdkconfig.h"
 #if defined(CONFIG_WIFI_ENABLED)
 #define _GLIBCXX_USE_C99
@@ -62,6 +63,7 @@ WiFi::WiFi() {
  * @endcode
  *
  * @param [in] ip The IP address of the DNS Server.
+ * @return N/A.
  */
 void WiFi::addDNSServer(std::string ip) {
 	ip_addr_t dnsserver;
@@ -72,9 +74,13 @@ void WiFi::addDNSServer(std::string ip) {
 } // addDNSServer
 
 /**
- * Connect to an access point.
+ * @brief Connect to an external access point.
+ *
+ * The event handler will be called back with the outcome of the connection.
+ *
  * @param[in] ssid The network SSID of the access point to which we wish to connect.
  * @param[in] password The password of the access point to which we wish to connect.
+ * @return N/A.
  */
 void WiFi::connectAP(std::string ssid, std::string password){
 	::nvs_flash_init();
@@ -123,7 +129,7 @@ void WiFi::dump() {
 /**
  * @brief Lookup an IP address by host name.
  *
- * @param [in] hostname The hostname to resolve.
+ * @param [in] hostName The hostname to resolve.
  *
  * @return The IP address of the host or 0.0.0.0 if not found.
  */
@@ -188,9 +194,11 @@ std::vector<WiFiAPRecord> WiFi::scan() {
 
 
 /**
- * Start being an access point.
+ * @brief Start being an access point.
+ *
  * @param[in] ssid The SSID to use to advertize for stations.
  * @param[in] password The password to use for station connections.
+ * @return N/A.
  */
 void WiFi::startAP(std::string ssid, std::string password) {
 	::nvs_flash_init();
@@ -216,23 +224,26 @@ void WiFi::startAP(std::string ssid, std::string password) {
 
 
 /**
- * @brief Set the IP info used when connecting as a station to an access point.
+ * @brief Set the IP info used when connecting as a station to an external access point.
  *
- * For example, prior to calling connectAP() we could invoke:
+ * Do not call this method if we are being an access point ourselves.
+ *
+ * For example, prior to calling `connectAP()` we could invoke:
  *
  * @code{.cpp}
  * myWifi.setIPInfo("192.168.1.99", "192.168.1.1", "255.255.255.0");
- * @encode
+ * @endcode
  *
  * @param [in] ip IP address value.
  * @param [in] gw Gateway value.
  * @param [in] netmask Netmask value.
+ * @return N/A.
  */
 void WiFi::setIPInfo(std::string ip, std::string gw, std::string netmask) {
 	this->ip = ip;
 	this->gw = gw;
 	this->netmask = netmask;
-}
+} // setIPInfo
 
 
 /**
@@ -282,7 +293,7 @@ MDNS::~MDNS() {
  * @param [in] service
  * @param [in] proto
  * @param [in] port
- *
+ * @return N/A.
  */
 void MDNS::serviceAdd(std::string service, std::string proto, uint16_t port) {
 	ESP_ERROR_CHECK(mdns_service_add(m_mdns_server, service.c_str(), proto.c_str(), port));
@@ -308,6 +319,7 @@ void MDNS::serviceRemove(std::string service, std::string proto) {
  * @brief Set the mDNS hostname.
  *
  * @param [in] hostname The host name to set against the mDNS.
+ * @return N/A.
  */
 void MDNS::setHostname(std::string hostname) {
 	ESP_ERROR_CHECK(mdns_set_hostname(m_mdns_server,hostname.c_str()));
@@ -318,6 +330,7 @@ void MDNS::setHostname(std::string hostname) {
  * @brief Set the mDNS instance.
  *
  * @param [in] instance The instance name to set against the mDNS.
+ * @return N/A.
  */
 void MDNS::setInstance(std::string instance) {
 	ESP_ERROR_CHECK(mdns_set_instance(m_mdns_server, instance.c_str()));

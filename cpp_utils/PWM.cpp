@@ -10,32 +10,48 @@
 /**
  * @brief Construct an instance.
  *
+ * A timer starts ticking up from 0 to the maximum value of the bit size.  When it reaches
+ * the maximum value, it resets.
+ *
+ * In the following example, we create a signal that has a frequency of 100Hz and is
+ * a square wave (50% on, 50% off).
+ *
+ * @code{.cpp}
+ * PWM pwm(GPIO_NUM_21);
+ * pwm.setDutyPercentage(50);
+ * pwm.setFrequency(100);
+ * @endcode
+ *
+ * @param [in] gpioNum The GPIO pin to use for output.
+ * @param [in] frequency The frequency of the period.
  * @param [in] bitSize The size in bits of the timer.  Allowed values are LEDC_TIMER_10_BIT,
  * LEDC_TIMER_11_BIT, LEDC_TIMER_12_BIT, LEDC_TIMER_13_BIT, LEDC_TIMER_14_BIT, LEDC_TIMER_15_BIT.
  * @param [in] timer The timer to use. A value of LEDC_TIMER0, LEDC_TIMER1, LEDC_TIMER2 or LEDC_TIMER3.
  * @param [in] channel The channel to use.  A value from LEDC_CHANNEL0 to LEDC_CHANNEL1.
+
+ * @return N/A.
  */
-PWM::PWM(ledc_timer_bit_t bitSize, ledc_timer_t timer, ledc_channel_t channel,
-		int gpioNum) {
+PWM::PWM(int gpioNum, uint32_t frequency, ledc_timer_bit_t bitSize, ledc_timer_t timer, ledc_channel_t channel) {
 	ledc_timer_config_t timer_conf;
-	timer_conf.bit_num = bitSize;
-	timer_conf.freq_hz = 100;
+	timer_conf.bit_num    = bitSize;
+	timer_conf.freq_hz    = frequency;
 	timer_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
-	timer_conf.timer_num = timer;
-	::ledc_timer_config(&timer_conf);
+	timer_conf.timer_num  = timer;
+	ESP_ERROR_CHECK(::ledc_timer_config(&timer_conf));
 
 	ledc_channel_config_t ledc_conf;
-	ledc_conf.channel = channel;
-	ledc_conf.duty = 0;
-	ledc_conf.gpio_num = gpioNum;
-	ledc_conf.intr_type = LEDC_INTR_DISABLE;
+	ledc_conf.channel    = channel;
+	ledc_conf.duty       = 0;
+	ledc_conf.gpio_num   = gpioNum;
+	ledc_conf.intr_type  = LEDC_INTR_DISABLE;
 	ledc_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
-	ledc_conf.timer_sel = timer;
-	::ledc_channel_config(&ledc_conf);
+	ledc_conf.timer_sel  = timer;
+	ESP_ERROR_CHECK(::ledc_channel_config(&ledc_conf));
 
-	this->channel = channel;
-	this->timer = timer;
-}
+	this->channel  = channel;
+	this->timer    = timer;
+	this->bitSize  = bitSize;
+} // PWM
 
 
 /**
@@ -60,23 +76,79 @@ uint32_t PWM::getFrequency() {
 
 /**
  * @brief Set the duty cycle value.
+ *
+ * The duty cycle value is a numeric between 0 and the maximum bit size.  When the
+ * %PWM tick value is less than this value, the output is high while when it is higher
+ * than this value, the output is low.
+ * @param [in] duty The duty cycle value.
+ * @return N/A.
  */
 void PWM::setDuty(uint32_t duty) {
-	::ledc_set_duty(LEDC_HIGH_SPEED_MODE, channel, duty);
-	::ledc_update_duty(LEDC_HIGH_SPEED_MODE, channel);
+	ESP_ERROR_CHECK(::ledc_set_duty(LEDC_HIGH_SPEED_MODE, channel, duty));
+	ESP_ERROR_CHECK(::ledc_update_duty(LEDC_HIGH_SPEED_MODE, channel));
 } // setDuty
 
 
 /**
+ * @brief Set the duty cycle as a percentage value.
+ *
+ * @param [in] percent The percentage of the duty cycle (0-100).
+ * @return N/A.
+ */
+void PWM::setDutyPercentage(uint8_t percent) {
+	uint32_t max;
+	switch(bitSize) {
+		case LEDC_TIMER_10_BIT:
+			max = 1 << 10;
+			break;
+		case LEDC_TIMER_11_BIT:
+			max = 1 << 11;
+			break;
+		case LEDC_TIMER_12_BIT:
+			max = 1 << 12;
+			break;
+		case LEDC_TIMER_13_BIT:
+			max = 1 << 13;
+			break;
+		case LEDC_TIMER_14_BIT:
+			max = 1 << 14;
+			break;
+		case LEDC_TIMER_15_BIT:
+			max = 1 << 15;
+			break;
+		default:
+			max = 1 << 10;
+			break;
+	}
+	if (percent > 100) {
+		percent = 100;
+	}
+	uint32_t value = max * percent / 100;
+	if (value >= max) {
+		value = max-1;
+	}
+	setDuty(value);
+
+} // setDutyPercentage
+
+
+/**
  * @brief Set the frequency/period in Hz.
+ *
+ * @param [in] freq The frequency to set the %PWM.
+ * @return N/A.
  */
 void PWM::setFrequency(uint32_t freq) {
-	::ledc_set_freq(LEDC_HIGH_SPEED_MODE, timer, freq);
+	ESP_ERROR_CHECK(::ledc_set_freq(LEDC_HIGH_SPEED_MODE, timer, freq));
 } // setFrequency
+
 
 /**
  * @brief Stop the %PWM.
+ *
+ * @param [in] idleLevel The level to leave the output after end.
+ * @return N/A.
  */
 void PWM::stop(bool idleLevel) {
-	::ledc_stop(LEDC_HIGH_SPEED_MODE, channel, idleLevel);
+	ESP_ERROR_CHECK(::ledc_stop(LEDC_HIGH_SPEED_MODE, channel, idleLevel));
 } // stop

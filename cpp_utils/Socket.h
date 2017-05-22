@@ -8,6 +8,7 @@
 #ifndef COMPONENTS_CPP_UTILS_SOCKET_H_
 #define COMPONENTS_CPP_UTILS_SOCKET_H_
 #include <lwip/inet.h>
+#include <lwip/sockets.h>
 #include <string>
 
 /**
@@ -21,14 +22,22 @@ class Socket {
 public:
 	Socket();
 	virtual ~Socket();
+
+	void send_cpp(std::string value);
+	static std::string addressToString(struct sockaddr *addr);
+	void bind_cpp(uint16_t port, uint32_t address);
 	void close_cpp();
 	int connect_cpp(struct in_addr address, uint16_t port);
 	int connect_cpp(char *address, uint16_t port);
+	int createSocket_cpp(bool isDatagram = false);
+	void getBind_cpp(struct sockaddr *pAddr);
+	void listen_cpp(uint16_t port, bool isDatagram);
 	int receive_cpp(uint8_t *data, size_t length);
+	int receiveFrom_cpp(uint8_t *data, size_t length, struct sockaddr *pAddr);
 	void send_cpp(const uint8_t *data, size_t length);
-	void send_cpp(std::string value);
+	void sendTo_cpp(const uint8_t *data, size_t length, struct sockaddr *pAddr);
 private:
-	int sock;
+	int m_sock;
 };
 
 #endif /* COMPONENTS_CPP_UTILS_SOCKET_H_ */

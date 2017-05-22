@@ -11,7 +11,7 @@
 #include <RESTClient.h>
 #include <string>
 /**
- * @brief Ecnapsulate IFTTT calls.
+ * @brief Encapsulate %IFTTT calls.
  */
 class IFTTT {
 public:

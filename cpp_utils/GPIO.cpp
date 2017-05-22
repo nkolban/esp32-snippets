@@ -31,6 +31,8 @@ bool ESP32CPP::GPIO::inRange(gpio_num_t pin) {
 
 /**
  * @brief Read a value from the given pin.
+ *
+ * Ensure the pin is set as input before calling this method.
  * @param [in] pin The pin to read from.
  * @return True if the pin is high, false if the pin is low.
  */
@@ -40,7 +42,10 @@ bool ESP32CPP::GPIO::read(gpio_num_t pin) {
 
 /**
  * @brief Set the pin as input.
+ *
+ * Set the direction of the pin as input.
  * @param [in] pin The pin to set as input.
+ * @return N/A.
  */
 void ESP32CPP::GPIO::setInput(gpio_num_t pin) {
 	::gpio_set_direction(pin, GPIO_MODE_INPUT);
@@ -49,7 +54,10 @@ void ESP32CPP::GPIO::setInput(gpio_num_t pin) {
 
 /**
  * @brief Set the pin as output.
+ *
+ * Set the direction of the pin as output.
  * @param [in] pin The pin to set as output.
+ * @return N/A.
  */
 void ESP32CPP::GPIO::setOutput(gpio_num_t pin) {
 	::gpio_set_direction(pin, GPIO_MODE_OUTPUT);
@@ -59,8 +67,10 @@ void ESP32CPP::GPIO::setOutput(gpio_num_t pin) {
 /**
  * @brief Write a value to the given pin.
  *
+ * Ensure that the pin is set as output before calling this method.
  * @param [in] pin The gpio pin to change.
  * @param [out] value The value to be written to the pin.
+ * @return N/A.
  */
 void ESP32CPP::GPIO::write(gpio_num_t pin, bool value) {
 	::gpio_set_level(pin, value);

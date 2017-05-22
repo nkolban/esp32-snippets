@@ -95,7 +95,7 @@ static uint8_t getChannelValueByType(char type, pixel_t pixel) {
  * how many pixels are present in the string.
  *
 
- * @param [in] gpioNum The GPIO pin used to drive the data.
+ * @param [in] dinPin The GPIO pin used to drive the data.
  * @param [in] pixelCount The number of pixels in the strand.
  * @param [in] channel The RMT channel to use.  Defaults to RMT_CHANNEL_0.
  */
@@ -248,10 +248,10 @@ void WS2812::setPixel(uint16_t index, uint32_t pixel) {
  *
  * @param [in] index The pixel that is to have its color set.
  * @param [in] hue The amount of hue in the pixel (0-360).
- * @param [in] green The amount of saturation in the pixel (0-255).
- * @param [in] blue The amount of brightnes in the pixel (0-255).
+ * @param [in] saturation The amount of saturation in the pixel (0-255).
+ * @param [in] brightness The amount of brightness in the pixel (0-255).
  */
-void WS2812::setHSBPixel(uint16_t index, uint16_t hue, uint8_t saturation,	uint8_t brightnes) {
+void WS2812::setHSBPixel(uint16_t index, uint16_t hue, uint8_t saturation,	uint8_t brightness) {
     double sat_red;
     double sat_green;
     double sat_blue;
@@ -262,7 +262,7 @@ void WS2812::setHSBPixel(uint16_t index, uint16_t hue, uint8_t saturation,	uint8
     double new_green;
     double new_blue;
     double dSaturation=(double)saturation/255;
-    double dBrightnes=(double)brightnes/255;
+    double dBrightness=(double)brightness/255;
 
     assert(index < pixelCount);
 
@@ -294,14 +294,14 @@ void WS2812::setHSBPixel(uint16_t index, uint16_t hue, uint8_t saturation,	uint8
     ctmp_green = 2 * dSaturation * sat_green + (1 - dSaturation);
     ctmp_blue = 2 * dSaturation * sat_blue + (1 - dSaturation);
 
-    if (dBrightnes < 0.5) {
-    	new_red = dBrightnes * ctmp_red;
-    	new_green = dBrightnes * ctmp_green;
-    	new_blue = dBrightnes * ctmp_blue;
+    if (dBrightness < 0.5) {
+    	new_red = dBrightness * ctmp_red;
+    	new_green = dBrightness * ctmp_green;
+    	new_blue = dBrightness * ctmp_blue;
     } else {
-    	new_red = (1 - dBrightnes) * ctmp_red + 2 * dBrightnes - 1;
-    	new_green = (1 - dBrightnes) * ctmp_green + 2 * dBrightnes - 1;
-    	new_blue = (1 - dBrightnes) * ctmp_blue + 2 * dBrightnes - 1;
+    	new_red = (1 - dBrightness) * ctmp_red + 2 * dBrightness - 1;
+    	new_green = (1 - dBrightness) * ctmp_green + 2 * dBrightness - 1;
+    	new_blue = (1 - dBrightness) * ctmp_blue + 2 * dBrightness - 1;
     }
 
     this->pixels[index].red   = (uint8_t)(new_red*255);

@@ -21,6 +21,8 @@ private:
 	uint8_t address;
 	i2c_cmd_handle_t cmd;
 	bool directionKnown;
+	gpio_num_t sdaPin;
+	gpio_num_t sclPin;
 
 public:
 	I2C();
@@ -36,10 +38,9 @@ public:
 		return address;
 	}
 
-	void init(gpio_num_t sdaPin = DEFAULT_SDA_PIN, gpio_num_t sclPin = DEFAULT_CLK_PIN);
-
+	void init(uint8_t address, gpio_num_t sdaPin = DEFAULT_SDA_PIN, gpio_num_t sclPin = DEFAULT_CLK_PIN);
 	void read(uint8_t *bytes, size_t length, bool ack=true);
-	void readByte(uint8_t *byte, bool ack=true);
+	void read(uint8_t *byte, bool ack=true);
 
 	/**
 	 * @brief Set the address of the %I2C slave against which we will be working.
@@ -50,11 +51,19 @@ public:
 	{
 		this->address = address;
 	}
+
+	void scan();
 	void start();
 	void stop();
 	void write(uint8_t byte, bool ack=true);
 	void write(uint8_t *bytes, size_t length, bool ack=true);
+	/**
+	 * @brief The default SDA pin.
+	 */
 	static const gpio_num_t DEFAULT_SDA_PIN = GPIO_NUM_25;
+	/**
+	 * @brief The default Clock pin.
+	 */
 	static const gpio_num_t DEFAULT_CLK_PIN = GPIO_NUM_26;
 };
 

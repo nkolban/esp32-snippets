@@ -11,7 +11,7 @@
 #include <vector>
 
 /**
- * @brief Drive the RMT peripheral.
+ * @brief Drive the %RMT peripheral.
  */
 class RMT {
 public:

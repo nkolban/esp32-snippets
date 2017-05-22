@@ -17,7 +17,7 @@
  *
  * @param [in] address The %I2C address of the device on the %I2C bus.
  */
-PCF8574::PCF8574(int address) {
+PCF8574::PCF8574(uint8_t address) {
 	i2c.setAddress(address);
 	lastWrite = 0;
 }
@@ -36,7 +36,7 @@ PCF8574::~PCF8574() {
 uint8_t PCF8574::read() {
 	uint8_t value;
 	i2c.beginTransaction();
-	i2c.readByte(&value,true);
+	i2c.read(&value,true);
 	i2c.endTransaction();
 	return value;
 } // read
@@ -117,5 +117,5 @@ void PCF8574::setInvert(bool value) {
  * @param [in] clkPin The pin to use for the %I2C CLK functions.
  */
 void PCF8574::init(gpio_num_t sdaPin, gpio_num_t clkPin) {
-	i2c.init(sdaPin, clkPin);
+	i2c.init(0, sdaPin, clkPin);
 } // init
