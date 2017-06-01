@@ -106,9 +106,18 @@ public:
 	struct in_addr getHostByName(std::string hostName);
 	void connectAP(std::string ssid, std::string passwd);
 	void dump();
+	static std::string getApMac();
+	static tcpip_adapter_ip_info_t getApIpInfo();
+	static std::string getApSSID();
+	static std::string getMode();
+	static tcpip_adapter_ip_info_t getStaIpInfo();
+	static std::string getStaMac();
+	static std::string getStaSSID();
 	std::vector<WiFiAPRecord> scan();
 	void startAP(std::string ssid, std::string passwd);
 	void setIPInfo(std::string ip, std::string gw, std::string netmask);
+
+
 
 
 

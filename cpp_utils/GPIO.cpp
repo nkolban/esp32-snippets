@@ -55,7 +55,8 @@ void ESP32CPP::GPIO::setInput(gpio_num_t pin) {
 /**
  * @brief Set the pin as output.
  *
- * Set the direction of the pin as output.
+ * Set the direction of the pin as output.  Note that pins 34 through 39 are input only and can **not** be
+ * set as output.
  * @param [in] pin The pin to set as output.
  * @return N/A.
  */

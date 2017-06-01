@@ -9,6 +9,7 @@
 #define COMPONENTS_CPP_UTILS_TFTP_H_
 #define TFTP_DEFAULT_PORT (69)
 #include <string>
+#include <Socket.h>
 /**
  * @brief A %TFTP server.
  *
@@ -36,6 +37,24 @@ public:
 	virtual ~TFTP();
 	void start(uint16_t port=TFTP_DEFAULT_PORT);
 	void setBaseDir(std::string baseDir);
+	/**
+	 * @brief Internal class for %TFTP processing.
+	 */
+	class TFTP_Transaction {
+	public:
+		TFTP_Transaction();
+		void sendAck(uint16_t blockNumber);
+		void waitForRequest(Socket *pServerSocket);
+		void process();
+		void setBaseDir(std::string baseDir);
+	private:
+		Socket m_partnerSocket;
+		struct sockaddr m_partnerAddress;
+		uint16_t m_opCode;
+		std::string m_filename;
+		std::string m_mode;
+		std::string m_baseDir;
+	};
 private:
 	std::string m_baseDir;
 };

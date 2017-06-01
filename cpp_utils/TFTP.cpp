@@ -32,24 +32,7 @@ struct data_packet {
 	std::string data;
 };
 
-/**
- * @brief Internal class for %TFTP processing.
- */
-class TFTP_Transaction {
-public:
-	TFTP_Transaction();
-	void sendAck(uint16_t blockNumber);
-	void waitForRequest(Socket *pServerSocket);
-	void process();
-	void setBaseDir(std::string baseDir);
-private:
-	Socket m_partnerSocket;
-	struct sockaddr m_partnerAddress;
-	uint16_t m_opCode;
-	std::string m_filename;
-	std::string m_mode;
-	std::string m_baseDir;
-};
+
 
 TFTP::TFTP() {
 	m_baseDir = "";
@@ -59,7 +42,7 @@ TFTP::~TFTP() {
 	// TODO Auto-generated destructor stub
 }
 
-TFTP_Transaction::TFTP_Transaction() {
+TFTP::TFTP_Transaction::TFTP_Transaction() {
 	m_baseDir = "";
 	m_filename = "";
 	m_mode = "";
@@ -75,7 +58,7 @@ TFTP_Transaction::TFTP_Transaction() {
  * @param pServerSocket The server socket on which to listen for requests.
  * @return N/A.
  */
-void TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
+void TFTP::TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
 /*
  *        2 bytes    string   1 byte     string   1 byte
  *        -----------------------------------------------
@@ -105,7 +88,7 @@ void TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
  * @brief Process a partner request ...
  * @return N/A.
  */
-void TFTP_Transaction::process() {
+void TFTP::TFTP_Transaction::process() {
 /*
  *        2 bytes    2 bytes       n bytes
  *        ---------------------------------
@@ -159,7 +142,7 @@ void TFTP_Transaction::process() {
  * @param [in] addr The address of the partner.
  * @param [in] blockNumber The block number to send.
  */
-void TFTP_Transaction::sendAck(uint16_t blockNumber) {
+void TFTP::TFTP_Transaction::sendAck(uint16_t blockNumber) {
 	struct {
 		uint16_t opCode;
 		uint16_t blockNumber;
@@ -174,6 +157,9 @@ void TFTP_Transaction::sendAck(uint16_t blockNumber) {
 
 /**
  * @brief Start being a TFTP server.
+ *
+ * This function does not return.
+ *
  * @param [in] port The port number on which to listen.  The default is 69.
  * @return N/A.
  */
@@ -197,7 +183,7 @@ void TFTP::start(uint16_t port) {
  * @param baseDir Base directory for file access.
  * @return N/A.
  */
-void TFTP_Transaction::setBaseDir(std::string baseDir) {
+void TFTP::TFTP_Transaction::setBaseDir(std::string baseDir) {
 	m_baseDir = baseDir;
 }
 

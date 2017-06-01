@@ -135,3 +135,13 @@ void GeneralUtils::hexDump(uint8_t* pData, uint32_t length) {
 	}
 } // hexDump
 
+/**
+ * @brief Convert an IP address to string.
+ * @param ip The 4 byte IP address.
+ * @return A string representation of the IP address.
+ */
+std::string GeneralUtils::ipToString(uint8_t *ip) {
+	std::stringstream s;
+	s << (int)ip[0] << '.' << (int)ip[1] << '.' << (int)ip[2] << '.' << (int)ip[3];
+	return s.str();
+} // ipToString

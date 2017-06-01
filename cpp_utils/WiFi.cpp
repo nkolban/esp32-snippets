@@ -5,9 +5,13 @@
  *      Author: kolban
  */
 
+//#define _GLIBCXX_USE_C99
+#include <string>
+#include <sstream>
+#include <iomanip>
 #include "sdkconfig.h"
 #if defined(CONFIG_WIFI_ENABLED)
-#define _GLIBCXX_USE_C99
+
 
 #include "WiFi.h"
 #include <esp_event.h>
@@ -20,7 +24,7 @@
 #include <lwip/dns.h>
 #include <lwip/netdb.h>
 #include <lwip/sockets.h>
-#include <string>
+
 #include <string.h>
 #include <Task.h>
 
@@ -125,6 +129,41 @@ void WiFi::dump() {
 	ESP_LOGD(tag, "DNS Server[0]: %s", ipAddrStr);
 } // dump
 
+/**
+ * @brief Get the AP IP Info.
+ * @return The AP IP Info.
+ */
+tcpip_adapter_ip_info_t WiFi::getApIpInfo() {
+	tcpip_adapter_ip_info_t ipInfo;
+	tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &ipInfo);
+	return ipInfo;
+} // getApIpInfo
+
+
+
+/**
+ * @brief Get the MAC address of the AP interface.
+ * @return The MAC address of the AP interface.
+ */
+std::string WiFi::getApMac() {
+	uint8_t mac[6];
+	esp_wifi_get_mac(WIFI_IF_AP, mac);
+	std::stringstream s;
+	s << std::hex << std::setfill('0') << std::setw(2) << (int) mac[0] << ':' << (int) mac[1] << ':' << (int) mac[2] << ':' << (int) mac[3] << ':' << (int) mac[4] << ':' << (int) mac[5];
+	return s.str();
+} // getApMac
+
+
+/**
+ * @brief Get the AP SSID.
+ * @return The AP SSID.
+ */
+std::string WiFi::getApSSID() {
+	wifi_config_t conf;
+	esp_wifi_get_config(WIFI_IF_AP, &conf);
+	return std::string((char *)conf.sta.ssid);
+} // getApSSID
+
 
 /**
  * @brief Lookup an IP address by host name.
@@ -146,6 +185,63 @@ struct in_addr WiFi::getHostByName(std::string hostName) {
 	}
 	return retAddr;
 } // getHostByName
+
+
+/**
+ * @brief Get the WiFi Mode.
+ * @return The WiFi Mode.
+ */
+std::string WiFi::getMode() {
+	wifi_mode_t mode;
+	esp_wifi_get_mode(&mode);
+	switch(mode) {
+		case WIFI_MODE_NULL:
+			return "WIFI_MODE_NULL";
+		case WIFI_MODE_STA:
+			return "WIFI_MODE_STA";
+		case WIFI_MODE_AP:
+			return "WIFI_MODE_AP";
+		case WIFI_MODE_APSTA:
+			return "WIFI_MODE_APSTA";
+		default:
+			return "unknown";
+	}
+} // getMode
+
+
+/**
+ * @brief Get the STA IP Info.
+ * @return The STA IP Info.
+ */
+tcpip_adapter_ip_info_t WiFi::getStaIpInfo() {
+	tcpip_adapter_ip_info_t ipInfo;
+	tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
+	return ipInfo;
+} // getStaIpInfo
+
+
+/**
+ * @brief Get the MAC address of the STA interface.
+ * @return The MAC address of the STA interface.
+ */
+std::string WiFi::getStaMac() {
+	uint8_t mac[6];
+	esp_wifi_get_mac(WIFI_IF_STA, mac);
+	std::stringstream s;
+	s << std::hex << std::setfill('0') << std::setw(2) << (int) mac[0] << ':' << (int) mac[1] << ':' << (int) mac[2] << ':' << (int) mac[3] << ':' << (int) mac[4] << ':' << (int) mac[5];
+	return s.str();
+} // getStaMac
+
+
+/**
+ * @brief Get the STA SSID.
+ * @return The STA SSID.
+ */
+std::string WiFi::getStaSSID() {
+	wifi_config_t conf;
+	esp_wifi_get_config(WIFI_IF_STA, &conf);
+	return std::string((char *)conf.ap.ssid);
+} // getStaSSID
 
 
 /**
@@ -273,7 +369,9 @@ std::string WiFiAPRecord::toString() {
 		auth = "<unknown>";
 		break;
 	}
-	return "ssid: " + m_ssid + ", auth: " + auth + ", rssi: " + std::to_string(m_rssi);
+	std::stringstream s;
+	s<< "ssid: " << m_ssid << ", auth: " << auth << ", rssi: " << m_rssi;
+	return s.str();
 } // toString
 
 MDNS::MDNS() {
@@ -335,5 +433,6 @@ void MDNS::setHostname(std::string hostname) {
 void MDNS::setInstance(std::string instance) {
 	ESP_ERROR_CHECK(mdns_set_instance(m_mdns_server, instance.c_str()));
 } // setInstance
+
 
 #endif // CONFIG_WIFI_ENABLED
