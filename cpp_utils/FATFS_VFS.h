@@ -13,6 +13,19 @@ extern "C" {
 }
 /**
  * @brief Provide access to the FAT file system on %SPI flash.
+ * The FATFS_VFS file system needs a partition definition.  This is a map of flash memory that
+ * specified an array into which the files should be saved and loaded.  A partition is a named
+ * entity and the name we choose in the partition definition should be named in the constructor.
+ *
+ * A partition configuration file can be described in the `make menuconfig` settings.  For example:
+ * ~~~~
+ * nvs,      data, nvs,     0x9000,  0x6000,
+ * phy_init, data, phy,     0xf000,  0x1000,
+ * factory,  app,  factory, 0x10000, 1M,
+ * storage,  data, fat,     ,        1M,
+ * ~~~~
+ *
+ * The recommended file name for the partition description is `partitions.csv`
  *
  * A typical example would be:
  *

@@ -14,6 +14,9 @@
 class JsonObject;
 class JsonArray;
 
+/**
+ * @brief Top level JSON handler.
+ */
 class JSON {
 public:
 	static JsonObject createObject();
@@ -24,6 +27,10 @@ public:
 	static JsonArray parseArray(std::string text);
 }; // JSON
 
+
+/**
+ * @brief A JSON array.
+ */
 class JsonArray {
 public:
 	JsonArray(cJSON *node);
@@ -37,9 +44,16 @@ public:
 	void addInt(int value);
 	void addObject(JsonObject value);
 	void addString(std::string value);
+	/**
+	 * @brief The underlying cJSON node.
+	 */
 	cJSON *m_node;
 }; // JsonArray
 
+
+/**
+ * @brief A JSON object.
+ */
 class JsonObject {
 public:
 	JsonObject(cJSON *node);
@@ -55,6 +69,9 @@ public:
 	void setObject(std::string name, JsonObject value);
 	void setString(std::string name, std::string value);
 	std::string toString();
+	/**
+	 * @brief The underlying cJSON node.
+	 */
 	cJSON *m_node;
 }; // JsonObject
 

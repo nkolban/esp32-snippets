@@ -13,7 +13,7 @@
 /**
  * @brief A %TFTP server.
  *
- * The Trivial File Transfer Protocol is a specification for simple file transfer
+ * The Trivial %File Transfer Protocol is a specification for simple file transfer
  * without the richness of implementation of full FTP.  It is very easy to implement
  * both a server and a client.  The protocol leverages UDP as opposed to connection
  * oriented (TCP).  The specification can be found <a href="https://tools.ietf.org/html/rfc1350">here</a>.
@@ -24,6 +24,7 @@
  * @code{.cpp}
  * FATFS_VFS fs("/spiflash", "storage");
  * fs.mount();
+ *
  * TFTP tftp;
  * tftp.setBaseDir("/spiflash");
  * tftp.start();
@@ -43,17 +44,23 @@ public:
 	class TFTP_Transaction {
 	public:
 		TFTP_Transaction();
+		void processWRQ();
+		void processRRQ();
 		void sendAck(uint16_t blockNumber);
-		void waitForRequest(Socket *pServerSocket);
-		void process();
+		void sendError(uint16_t code, std::string message);
 		void setBaseDir(std::string baseDir);
+		void waitForAck(uint16_t blockNumber);
+		uint16_t waitForRequest(Socket *pServerSocket);
 	private:
+		/**
+		 * Socket on which the server will communicate with the client..
+		 */
 		Socket m_partnerSocket;
 		struct sockaddr m_partnerAddress;
-		uint16_t m_opCode;
-		std::string m_filename;
+		uint16_t    m_opCode; // The last op code received.
+		std::string m_filename; // The name of the file.
 		std::string m_mode;
-		std::string m_baseDir;
+		std::string m_baseDir; // The base directory.
 	};
 private:
 	std::string m_baseDir;

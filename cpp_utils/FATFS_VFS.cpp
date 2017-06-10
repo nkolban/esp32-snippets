@@ -13,6 +13,15 @@ extern "C" {
 
 /**
  * @brief Constructor.
+ *
+ * In ESP32, every file system has a mount point.  If a file access is attempted south of that
+ * mount point, then the corresponding file system will be used.  The `mountPath` parameter defines
+ * the mount point for this instance of the FATFS file system.
+ * In order to save the files for subsequent retrieval, the file data has to be written to flash memory.
+ * A partition table provides a map or layout of the flash memory by defining named partitions.  The
+ * `partitionName` parameter defines the name of the partition used to provide the underlying storage
+ * for this instance of the FATFS file system.
+ *
  * @param [in] mountPath The path in the VFS where the FAT file system should be mounted.
  * @param [in] partitionName The name of the partition used to store the FAT file system.
  */

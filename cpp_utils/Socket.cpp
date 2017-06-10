@@ -28,7 +28,7 @@ Socket::~Socket() {
 
 /**
  * @brief Convert a socket address to a string representation.
- * @param [in] The address to parse.
+ * @param [in] addr The address to parse.
  * @return A string representation of the address.
  */
 std::string Socket::addressToString(struct sockaddr* addr) {
@@ -142,7 +142,7 @@ int Socket::createSocket_cpp(bool isDatagram) {
 
 /**
  * @brief Get the bound address.
- * @param [out] The storage to hold the address.
+ * @param [out] pAddr The storage to hold the address.
  * @return N/A.
  */
 void Socket::getBind_cpp(struct sockaddr *pAddr) {
@@ -217,14 +217,20 @@ void Socket::send_cpp(const uint8_t* data, size_t length) {
  * @param [in] value The string to send to the partner.
  * @return N/A.
  */
-
 void Socket::send_cpp(std::string value) {
 	send_cpp((uint8_t *)value.data(), value.size());
 } // send_cpp
 
+
+/**
+ * @brief Send data to a specific address.
+ * @param [in] data The data to send.
+ * @param [in] length The length of the data to send/
+ * @param [in] pAddr The address to send the data.
+ */
 void Socket::sendTo_cpp(const uint8_t* data, size_t length, struct sockaddr* pAddr) {
 	int rc = ::sendto(m_sock, data, length, 0, pAddr, sizeof(struct sockaddr));
 	if (rc == -1) {
 		ESP_LOGE(tag, "sendto_cpp: socket=%d %s", m_sock, strerror(errno));
 	}
-}
+} // sendTo_cpp

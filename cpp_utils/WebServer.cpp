@@ -11,6 +11,8 @@
 #include <regex>
 #include "sdkconfig.h"
 #ifdef CONFIG_MONGOOSE_PRESENT
+#define MG_ENABLE_HTTP_STREAMING_MULTIPART 1
+#define MG_ENABLE_FILESYSTEM 1
 #include "WebServer.h"
 #include <esp_log.h>
 #include <mongoose.h>
@@ -18,6 +20,13 @@
 
 
 static char tag[] = "WebServer";
+
+struct WebServerUserData {
+	WebServer *pWebServer;
+	WebServer::HTTPMultiPart *pMultiPart;
+	WebServer::WebSocketHandler *pWebSocketHandler;
+	void *originalUserData;
+};
 
 /**
  * @brief Convert a Mongoose event type to a string.
@@ -40,6 +49,16 @@ static std::string mongoose_eventToString(int event) {
 		return "MG_EV_POLL";
 	case MG_EV_TIMER:
 		return "MG_EV_TIMER";
+	case MG_EV_HTTP_PART_DATA:
+		return "MG_EV_HTTP_PART_DATA";
+	case MG_EV_HTTP_MULTIPART_REQUEST:
+		return "MG_EV_HTTP_MULTIPART_REQUEST";
+	case MG_EV_HTTP_PART_BEGIN:
+		return "MG_EV_HTTP_PART_BEGIN";
+	case MG_EV_HTTP_PART_END:
+		return "MG_EV_HTTP_PART_END";
+	case MG_EV_HTTP_MULTIPART_REQUEST_END:
+		return "MG_EV_HTTP_MULTIPART_REQUEST_END";
 	case MG_EV_HTTP_REQUEST:
 		return "MG_EV_HTTP_REQUEST";
 	case MG_EV_HTTP_REPLY:
@@ -103,6 +122,13 @@ static void dumpHttpMessage(struct http_message *pHttpMessage) {
 	ESP_LOGD(tag, "URI: %s", mgStrToString(pHttpMessage->uri).c_str());
 }
 
+/*
+static struct mg_str uploadFileNameHandler(struct mg_connection *mgConnection, struct mg_str fname) {
+	ESP_LOGD(tag, "uploadFileNameHandler: %s", mgStrToString(fname).c_str());
+	return fname;
+}
+*/
+
 /**
  * @brief Mongoose event handler.
  * The event handler is called when an event occurs associated with the WebServer
@@ -121,16 +147,131 @@ static void mongoose_event_handler_web_server(
 	if (event == MG_EV_POLL) {
 		return;
 	}
-	ESP_LOGD(tag, "Event: %s", mongoose_eventToString(event).c_str());
+	ESP_LOGD(tag, "Event: %s [%d]", mongoose_eventToString(event).c_str(), mgConnection->sock);
 	switch (event) {
-	case MG_EV_HTTP_REQUEST: {
+		case MG_EV_HTTP_REQUEST: {
 			struct http_message *message = (struct http_message *) eventData;
 			dumpHttpMessage(message);
 
-			WebServer *pWebServer = (WebServer *)mgConnection->user_data;
+			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+			WebServer *pWebServer = pWebServerUserData->pWebServer;
 			pWebServer->processRequest(mgConnection, message);
 			break;
-		}
+		} // MG_EV_HTTP_REQUEST
+
+		case MG_EV_HTTP_MULTIPART_REQUEST: {
+			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+			ESP_LOGD(tag, "User_data address 0x%d", (uint32_t)pWebServerUserData);
+			WebServer *pWebServer = pWebServerUserData->pWebServer;
+			if (pWebServer->m_pMultiPartFactory == nullptr) {
+				return;
+			}
+			WebServer::HTTPMultiPart *pMultiPart = pWebServer->m_pMultiPartFactory->newInstance();
+			struct WebServerUserData *p2 = new WebServerUserData();
+			ESP_LOGD(tag, "New User_data address 0x%d", (uint32_t)p2);
+			p2->originalUserData    = pWebServerUserData;
+			p2->pWebServer          = pWebServerUserData->pWebServer;
+			p2->pMultiPart          = pMultiPart;
+			p2->pWebSocketHandler   = nullptr;
+			mgConnection->user_data = p2;
+			//struct http_message *message = (struct http_message *) eventData;
+			//dumpHttpMessage(message);
+			break;
+		} // MG_EV_HTTP_MULTIPART_REQUEST
+
+		case MG_EV_HTTP_MULTIPART_REQUEST_END: {
+			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+			if (pWebServerUserData->pMultiPart != nullptr) {
+				delete pWebServerUserData->pMultiPart;
+				pWebServerUserData->pMultiPart = nullptr;
+			}
+			mgConnection->user_data = pWebServerUserData->originalUserData;
+			delete pWebServerUserData;
+			WebServer::HTTPResponse httpResponse = WebServer::HTTPResponse(mgConnection);
+			httpResponse.setStatus(200);
+			httpResponse.sendData("");
+			break;
+		} // MG_EV_HTTP_MULTIPART_REQUEST_END
+
+		case MG_EV_HTTP_PART_BEGIN: {
+			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+			struct mg_http_multipart_part *part = (struct mg_http_multipart_part *)eventData;
+			ESP_LOGD(tag, "file_name: \"%s\", var_name: \"%s\", status: %d, user_data: 0x%d",
+					part->file_name, part->var_name, part->status, (uint32_t)part->user_data);
+			if (pWebServerUserData->pMultiPart != nullptr) {
+				pWebServerUserData->pMultiPart->begin(std::string(part->var_name), std::string(part->file_name));
+			}
+			break;
+		} // MG_EV_HTTP_PART_BEGIN
+
+		case MG_EV_HTTP_PART_DATA: {
+			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+			struct mg_http_multipart_part *part = (struct mg_http_multipart_part *)eventData;
+			ESP_LOGD(tag, "file_name: \"%s\", var_name: \"%s\", status: %d, user_data: 0x%d",
+					part->file_name, part->var_name, part->status, (uint32_t)part->user_data);
+			if (pWebServerUserData->pMultiPart != nullptr) {
+				pWebServerUserData->pMultiPart->data(mgStrToString(part->data));
+			}
+			break;
+		} // MG_EV_HTTP_PART_DATA
+
+		case MG_EV_HTTP_PART_END: {
+			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+			struct mg_http_multipart_part *part = (struct mg_http_multipart_part *)eventData;
+			ESP_LOGD(tag, "file_name: \"%s\", var_name: \"%s\", status: %d, user_data: 0x%d",
+					part->file_name, part->var_name, part->status, (uint32_t)part->user_data);
+			if (pWebServerUserData->pMultiPart != nullptr) {
+				pWebServerUserData->pMultiPart->end();
+			}
+			break;
+		} // MG_EV_HTTP_PART_END
+
+		case MG_EV_WEBSOCKET_HANDSHAKE_REQUEST: {
+			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+			WebServer *pWebServer = pWebServerUserData->pWebServer;
+			if (pWebServer->m_pWebSocketHandlerFactory != nullptr) {
+				if (pWebServerUserData->pWebSocketHandler != nullptr) {
+					ESP_LOGD(tag, "Warning: MG_EV_WEBSOCKET_HANDSHAKE_REQUEST: pWebSocketHandler was NOT null");
+				}
+				struct WebServerUserData *p2 = new WebServerUserData();
+				ESP_LOGD(tag, "New User_data address 0x%d", (uint32_t)p2);
+				p2->originalUserData    = pWebServerUserData;
+				p2->pWebServer          = pWebServerUserData->pWebServer;
+				p2->pWebSocketHandler = pWebServer->m_pWebSocketHandlerFactory->newInstance();
+				mgConnection->user_data = p2;
+			} else {
+				ESP_LOGD(tag, "We received a WebSocket request but we have no handler factory!");
+			}
+			break;
+		} // MG_EV_WEBSOCKET_HANDSHAKE_REQUEST
+
+		case MG_EV_WEBSOCKET_HANDSHAKE_DONE: {
+			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+			if (pWebServerUserData->pWebSocketHandler == nullptr) {
+				ESP_LOGE(tag, "Error: MG_EV_WEBSOCKET_FRAME: pWebSocketHandler is null");
+				return;
+			}
+			pWebServerUserData->pWebSocketHandler->onCreated();
+			break;
+		} // MG_EV_WEBSOCKET_HANDSHAKE_DONE
+
+
+		/*
+		 * When we receive a MG_EV_WEBSOCKET_FRAME then we have received a chunk of data over the network.
+		 * Our goal will be to send this to the web socket handler (if one exists).
+		 */
+		case MG_EV_WEBSOCKET_FRAME: {
+			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+			if (pWebServerUserData->pWebSocketHandler == nullptr) {
+				ESP_LOGE(tag, "Error: MG_EV_WEBSOCKET_FRAME: pWebSocketHandler is null");
+				return;
+			}
+			struct websocket_message *ws_message = (websocket_message *)eventData;
+			ESP_LOGD(tag, "Received data length: %d", ws_message->size);
+			pWebServerUserData->pWebSocketHandler->onMessage(std::string((char *)ws_message->data, ws_message->size));
+			break;
+		} // MG_EV_WEBSOCKET_FRAME
+
 	} // End of switch
 } // End of mongoose_event_handler
 
@@ -139,7 +280,9 @@ static void mongoose_event_handler_web_server(
  * @brief Constructor.
  */
 WebServer::WebServer() {
-	m_rootPath = "";
+	m_rootPath                 = "";
+	m_pMultiPartFactory        = nullptr;
+	m_pWebSocketHandlerFactory = nullptr;
 } // WebServer
 
 
@@ -169,7 +312,7 @@ std::string WebServer::getRootPath() {
  *    ...
  * }
  *
- * webServer.addPathHandler("GET", "\\/ESP32/WiFi", handle_REST_WiFi);
+ * webServer.addPathHandler("GET", "\\/ESP32\\/WiFi", handle_REST_WiFi);
  * @endcode
  *
  * @param [in] method The method being used for access ("GET", "POST" etc).
@@ -204,8 +347,11 @@ void WebServer::start(uint16_t port) {
 		return;
 	}
 
-	mgConnection->user_data = this; // Save the WebServer instance reference in user_data.
-
+	struct WebServerUserData *pWebServerUserData = new WebServerUserData();
+	pWebServerUserData->pWebServer = this;
+	pWebServerUserData->pMultiPart = nullptr;
+	mgConnection->user_data        = pWebServerUserData; // Save the WebServer instance reference in user_data.
+	ESP_LOGD(tag, "start: User_data address 0x%d", (uint32_t)pWebServerUserData);
 	mg_set_protocol_http_websocket(mgConnection);
 
 	ESP_LOGD(tag, "WebServer listening on port %d", port);
@@ -213,6 +359,15 @@ void WebServer::start(uint16_t port) {
 		mg_mgr_poll(&mgr, 2000);
 	}
 } // run
+
+
+/**
+ * @brief Set the multi part factory.
+ * @param [in] pMultiPart A pointer to the multi part factory.
+ */
+void WebServer::setMultiPartFactory(HTTPMultiPartFactory *pMultiPartFactory) {
+	m_pMultiPartFactory = pMultiPartFactory;
+}
 
 
 /**
@@ -235,6 +390,17 @@ void WebServer::start(uint16_t port) {
 void WebServer::setRootPath(std::string path) {
 	m_rootPath = path;
 } // setRootPath
+
+
+/**
+ * @brief Register the factory for creating web socket handlers.
+ *
+ * @param [in] pWebSocketHandlerFactory The instance that will create WebSocketHandlers.
+ * @return N/A.
+ */
+void WebServer::setWebSocketHandlerFactory(WebSocketHandlerFactory* pWebSocketHandlerFactory) {
+	m_pWebSocketHandlerFactory = pWebSocketHandlerFactory;
+} // setWebSocketHandlerFactory
 
 
 /**
@@ -301,10 +467,10 @@ void WebServer::HTTPResponse::sendData(uint8_t *pData, size_t length) {
 
 /**
  * @brief Set the headers to be sent in the HTTP response.
- * @param [in] header The complete set of headers to send to the caller.
+ * @param [in] headers The complete set of headers to send to the caller.
  * @return N/A.
  */
-void WebServer::HTTPResponse::setHeaders(std::map<std::string, std::string>  headers) {
+void WebServer::HTTPResponse::setHeaders(std::map<std::string, std::string> headers) {
 	m_headers = headers;
 } // setHeaders
 
@@ -352,17 +518,16 @@ void WebServer::HTTPResponse::setStatus(int status) {
  */
 void WebServer::processRequest(struct mg_connection *mgConnection, struct http_message* message) {
 	std::string uri = mgStrToString(message->uri);
-	ESP_LOGD(tag, "Matching: %s", uri.c_str());
+	ESP_LOGD(tag, "WebServer::processRequest: Matching: %s", uri.c_str());
 	HTTPResponse httpResponse = HTTPResponse(mgConnection);
 	httpResponse.setRootPath(getRootPath());
 
-
 	/*
-	 * Iterate through each of the path handlers looking for a match with the specified path.
+	 * Iterate through each of the path handlers looking for a match with the method and specified path.
 	 */
 	std::vector<PathHandler>::iterator it;
 	for (it = m_pathHandlers.begin(); it < m_pathHandlers.end(); it++) {
-		if ((*it).match(uri)) {
+		if ((*it).match(mgStrToString(message->method), uri)) {
 			HTTPRequest httpRequest(message);
 			(*it).invoke(&httpRequest, &httpResponse);
 			ESP_LOGD(tag, "Found a match!!");
@@ -370,7 +535,8 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
 		}
 	} // End of examine path handlers.
 
-
+	// Because we reached here, it means that we did NOT match a handler.  Now we want to attempt
+	// to retrieve the corresponding file content.
 	std::string filePath = httpResponse.getRootPath() + uri;
 	ESP_LOGD(tag, "Opening file: %s", filePath.c_str());
 	FILE *file = fopen(filePath.c_str(), "r");
@@ -408,11 +574,15 @@ WebServer::PathHandler::PathHandler(std::string method, std::string pathPattern,
 /**
  * @brief Determine if the path matches.
  *
+ * @param [in] method The method to be matched.
  * @param [in] path The path to be matched.
  * @return True if the path matches.
  */
-bool WebServer::PathHandler::match(std::string path) {
+bool WebServer::PathHandler::match(std::string method, std::string path) {
 	//ESP_LOGD(tag, "match: %s with %s", m_pattern.c_str(), path.c_str());
+	if (method != m_method) {
+		return false;
+	}
 	return std::regex_search(path, m_pattern);
 } // match
 
@@ -555,5 +725,123 @@ std::vector<std::string> WebServer::HTTPRequest::pathSplit() {
 	}
 	return ret;
 } // pathSplit
+
+/**
+ * @brief Indicate the beginning of a multipart part.
+ * An HTTP Multipart form is where each of the fields in the form are broken out into distinct
+ * sections.  We commonly see this with file uploads.
+ * @param [in] varName The name of the form variable.
+ * @param [in] fileName The name of the file being uploaded (may not be present).
+ * @return N/A.
+ */
+void WebServer::HTTPMultiPart::begin(std::string varName, std::string fileName) {
+	ESP_LOGD(tag, "WebServer::HTTPMultiPart::begin(varName=\"%s\", fileName=\"%s\")",
+		varName.c_str(), fileName.c_str());
+} // WebServer::HTTPMultiPart::begin
+
+
+/**
+ * @brief Indicate the end of a multipart part.
+ * This will eventually be called after a corresponding begin().
+ * @return N/A.
+ */
+void WebServer::HTTPMultiPart::end() {
+	ESP_LOGD(tag, "WebServer::HTTPMultiPart::end()");
+} // WebServer::HTTPMultiPart::end
+
+
+/**
+ * @brief Indicate the arrival of data of a multipart part.
+ * This will be called after a begin() and it may be called many times.  Each
+ * call will result in more data.  The end of the data will be indicated by a call to end().
+ * @param [in] data The data received in this callback.
+ * @return N/A.
+ */
+void WebServer::HTTPMultiPart::data(std::string data) {
+	ESP_LOGD(tag, "WebServer::HTTPMultiPart::data(), length=%d", data.length());
+} // WebServer::HTTPMultiPart::data
+
+
+/**
+ * @brief Indicate the end of all the multipart parts.
+ * @return N/A.
+ */
+void WebServer::HTTPMultiPart::multipartEnd() {
+	ESP_LOGD(tag, "WebServer::HTTPMultiPart::multipartEnd()");
+} // WebServer::HTTPMultiPart::multipartEnd
+
+
+/**
+ * @brief Indicate the start of all the multipart parts.
+ * @return N/A.
+ */
+void WebServer::HTTPMultiPart::multipartStart() {
+	ESP_LOGD(tag, "WebServer::HTTPMultiPart::multipartStart()");
+} // WebServer::HTTPMultiPart::multipartStart
+
+
+/**
+ * @brief Indicate that a new WebSocket instance has been created.
+ * @return N/A.
+ */
+void WebServer::WebSocketHandler::onCreated() {
+
+} // onCreated
+
+
+/**
+ * @brief Indicate that a new message has been received.
+ * @param [in] message The message received from the client.
+ * @return N/A.
+ */
+void WebServer::WebSocketHandler::onMessage(std::string message){
+
+} // onMessage
+
+/**
+ * @brief Indicate that the client has closed the WebSocket.
+ * @return N/A
+ */
+void WebServer::WebSocketHandler::onClosed() {
+
+} // onClosed
+
+
+/**
+ * @brief Send data down the WebSocket
+ * @param [in] message The message to send down the socket.
+ * @return N/A.
+ */
+void WebServer::WebSocketHandler::sendData(std::string message) {
+	ESP_LOGD(tag, "WebSocketHandler::sendData(length=%d)", message.length());
+	mg_send_websocket_frame(m_mgConnection,
+	   WEBSOCKET_OP_BINARY | WEBSOCKET_OP_CONTINUE,
+	   message.data(), message.length());
+} // sendData
+
+/**
+ * @brief Send data down the WebSocket
+ * @param [in] data The message to send down the socket.
+ * @param [in] size The size of the message
+ * @return N/A.
+ */
+void WebServer::WebSocketHandler::sendData(uint8_t *data, uint32_t size) {
+	mg_send_websocket_frame(m_mgConnection,
+	   WEBSOCKET_OP_BINARY | WEBSOCKET_OP_CONTINUE,
+	   data, size);
+} // sendData
+
+
+/**
+ * @brief Close the WebSocket from the web server end.
+ * Previously a client has connected to us and created a WebSocket.  By making this call we are
+ * declaring that the socket should be closed from the server end.
+ * @return N/A.
+ */
+void WebServer::WebSocketHandler::close() {
+	mg_send_websocket_frame(m_mgConnection, WEBSOCKET_OP_CLOSE, nullptr, 0);
+} // close
+
+
 
 #endif // CONFIG_MONGOOSE_PRESENT

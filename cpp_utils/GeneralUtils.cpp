@@ -16,6 +16,10 @@
 
 static char tag[] = "GeneralUtils";
 
+static const char kBase64Alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789+/";
+
 GeneralUtils::GeneralUtils() {
 	// TODO Auto-generated constructor stub
 
@@ -24,6 +28,157 @@ GeneralUtils::GeneralUtils() {
 GeneralUtils::~GeneralUtils() {
 	// TODO Auto-generated destructor stub
 }
+
+static int base64EncodedLength(size_t length) {
+	return (length + 2 - ((length + 2) % 3)) / 3 * 4;
+} // base64EncodedLength
+
+
+static int base64EncodedLength(const std::string &in) {
+	return base64EncodedLength(in.length());
+} // base64EncodedLength
+
+
+static void a3_to_a4(unsigned char * a4, unsigned char * a3) {
+	a4[0] = (a3[0] & 0xfc) >> 2;
+	a4[1] = ((a3[0] & 0x03) << 4) + ((a3[1] & 0xf0) >> 4);
+	a4[2] = ((a3[1] & 0x0f) << 2) + ((a3[2] & 0xc0) >> 6);
+	a4[3] = (a3[2] & 0x3f);
+} // a3_to_a4
+
+
+static void a4_to_a3(unsigned char * a3, unsigned char * a4) {
+	a3[0] = (a4[0] << 2) + ((a4[1] & 0x30) >> 4);
+	a3[1] = ((a4[1] & 0xf) << 4) + ((a4[2] & 0x3c) >> 2);
+	a3[2] = ((a4[2] & 0x3) << 6) + a4[3];
+} // a4_to_a3
+
+
+/**
+ * @brief Encode a string into base 64.
+ * @param [in] in
+ * @param [out] out
+ */
+bool GeneralUtils::base64Encode(const std::string &in, std::string *out) {
+	int i = 0, j = 0;
+	size_t enc_len = 0;
+	unsigned char a3[3];
+	unsigned char a4[4];
+
+	out->resize(base64EncodedLength(in));
+
+	int input_len = in.size();
+	std::string::const_iterator input = in.begin();
+
+	while (input_len--) {
+		a3[i++] = *(input++);
+		if (i == 3) {
+			a3_to_a4(a4, a3);
+
+			for (i = 0; i < 4; i++) {
+				(*out)[enc_len++] = kBase64Alphabet[a4[i]];
+			}
+
+			i = 0;
+		}
+	}
+
+	if (i) {
+		for (j = i; j < 3; j++) {
+			a3[j] = '\0';
+		}
+
+		a3_to_a4(a4, a3);
+
+		for (j = 0; j < i + 1; j++) {
+			(*out)[enc_len++] = kBase64Alphabet[a4[j]];
+		}
+
+		while ((i++ < 3)) {
+			(*out)[enc_len++] = '=';
+		}
+	}
+
+	return (enc_len == out->size());
+} // base64Encode
+
+
+static int DecodedLength(const std::string &in) {
+	int numEq = 0;
+	int n = in.size();
+
+	for (std::string::const_reverse_iterator it = in.rbegin(); *it == '='; ++it) {
+		++numEq;
+	}
+	return ((6 * n) / 8) - numEq;
+} // DecodedLength
+
+
+static unsigned char b64_lookup(unsigned char c) {
+	if(c >='A' && c <='Z') return c - 'A';
+	if(c >='a' && c <='z') return c - 71;
+	if(c >='0' && c <='9') return c + 4;
+	if(c == '+') return 62;
+	if(c == '/') return 63;
+	return 255;
+}; // b64_lookup
+
+
+/**
+ * @brief Decode a chunk of data that is base64 encoded.
+ * @param [in] in The string to be decoded.
+ * @param [out] out The resulting data.
+ */
+bool GeneralUtils::base64Decode(const std::string &in, std::string *out) {
+	int i = 0, j = 0;
+	size_t dec_len = 0;
+	unsigned char a3[3];
+	unsigned char a4[4];
+
+	int input_len = in.size();
+	std::string::const_iterator input = in.begin();
+
+	out->resize(DecodedLength(in));
+
+	while (input_len--) {
+		if (*input == '=') {
+			break;
+		}
+
+		a4[i++] = *(input++);
+		if (i == 4) {
+			for (i = 0; i <4; i++) {
+				a4[i] = b64_lookup(a4[i]);
+			}
+
+			a4_to_a3(a3,a4);
+
+			for (i = 0; i < 3; i++) {
+				(*out)[dec_len++] = a3[i];
+			}
+
+			i = 0;
+		}
+	}
+
+	if (i) {
+		for (j = i; j < 4; j++) {
+			a4[j] = '\0';
+		}
+
+		for (j = 0; j < 4; j++) {
+			a4[j] = b64_lookup(a4[j]);
+		}
+
+		a4_to_a3(a3,a4);
+
+		for (j = 0; j < i - 1; j++) {
+			(*out)[dec_len++] = a3[j];
+		}
+	}
+
+	return (dec_len == out->size());
+ } // base64Decode
 
 /*
 void GeneralUtils::hexDump(uint8_t* pData, uint32_t length) {
