@@ -7,6 +7,10 @@
 
 #include "GPIO.h"
 #include <driver/gpio.h>
+#include "sdkconfig.h"
+#include <esp_log.h>
+
+static char tag[] = "GPIO";
 
 /**
  * @brief Class instance constructor.
@@ -29,6 +33,33 @@ bool ESP32CPP::GPIO::inRange(gpio_num_t pin) {
 	return false;
 } // inRange
 
+
+/**
+ * @brief Disable interrupts on the named pin.
+ * @param [in] pin The pin to disable interrupts upon.
+ * @return N/A.
+ */
+void ESP32CPP::GPIO::interruptDisable(gpio_num_t pin) {
+	esp_err_t rc = ::gpio_intr_disable(pin);
+	if (rc != ESP_OK) {
+		ESP_LOGE(tag, "interruptDisable: %d", rc);
+	}
+} // interruptDisable
+
+
+/**
+ * @brief Enable interrupts on the named pin.
+ * @param [in] pin The pin to enable interrupts upon.
+ * @return N/A.
+ */
+void ESP32CPP::GPIO::interruptEnable(gpio_num_t pin) {
+	esp_err_t rc = ::gpio_intr_enable(pin);
+	if (rc != ESP_OK) {
+		ESP_LOGE(tag, "interruptEnable: %d", rc);
+	}
+} // interruptEnable
+
+
 /**
  * @brief Read a value from the given pin.
  *
@@ -50,6 +81,32 @@ bool ESP32CPP::GPIO::read(gpio_num_t pin) {
 void ESP32CPP::GPIO::setInput(gpio_num_t pin) {
 	::gpio_set_direction(pin, GPIO_MODE_INPUT);
 } // setInput
+
+
+/**
+ * @brief Set the interrupt type.
+ * The type of interrupt can be one of:
+ *
+ * * GPIO_INTR_ANYEDGE
+ * * GPIO_INTR_DISABLE
+ * * GPIO_INTR_NEGEDGE
+ * * GPIO_INTR_POSEDGE
+ * * GPIO_INTR_LOW_LEVEL
+ * * GPIO_INTR_HIGH_LEVEL
+ *
+ * @param [in] pin The pin to set the interrupt upon.
+ * @param [in] intrType The type of interrupt.
+ * @return N/A.
+ */
+void ESP32CPP::GPIO::setInterruptType(
+		gpio_num_t pin,
+		gpio_int_type_t intrType) {
+	esp_err_t rc = ::gpio_set_intr_type(pin, intrType);
+	if (rc != ESP_OK) {
+		ESP_LOGE(tag, "setInterruptType: %d", rc);
+	}
+
+} // setInterruptType
 
 
 /**
@@ -76,4 +133,5 @@ void ESP32CPP::GPIO::setOutput(gpio_num_t pin) {
 void ESP32CPP::GPIO::write(gpio_num_t pin, bool value) {
 	::gpio_set_level(pin, value);
 } // write
+
 

@@ -52,6 +52,7 @@ public:
 		this->address = address;
 	}
 
+	void setDebug(bool enabled);
 	void scan();
 	void start();
 	void stop();

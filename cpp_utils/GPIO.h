@@ -44,6 +44,9 @@ namespace ESP32CPP
 			write(pin, true);
 		}
 
+		static void interruptDisable(gpio_num_t pin);
+		static void interruptEnable(gpio_num_t pin);
+
 		static bool inRange(gpio_num_t pin);
 		/**
 		 * @brief Set the pin low.
@@ -58,6 +61,7 @@ namespace ESP32CPP
 		}
 		static bool read(gpio_num_t pin);
 		static void setInput(gpio_num_t pin);
+		static void setInterruptType(gpio_num_t pin, gpio_int_type_t intrType);
 		static void setOutput(gpio_num_t pin);
 		static void write(gpio_num_t pin, bool value);
 

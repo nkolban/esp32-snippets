@@ -30,18 +30,16 @@ class BLEServer {
 public:
 	BLEServer(uint16_t appId, std::string deviceName);
 	virtual ~BLEServer();
-	void setDeviceName(std::string deviceName) {
-		m_deviceName = deviceName;
-	}
-	void handleGATTServerEvent(esp_gatts_cb_event_t event,
-		esp_gatt_if_t gatts_if,
-		esp_ble_gatts_cb_param_t *param);
+
 	void handleGAPEvent(
 		esp_gap_ble_cb_event_t event,
 		esp_ble_gap_cb_param_t *param);
-	void setUUID(uint8_t uuid[32]) {
-		memcpy(m_uuid, uuid, 32);
-	}
+	void handleGATTServerEvent(esp_gatts_cb_event_t event,
+		esp_gatt_if_t gatts_if,
+		esp_ble_gatts_cb_param_t *param);
+	void setDeviceName(std::string deviceName);
+	void setUUID(uint8_t uuid[32]);
+
 private:
 	std::string m_deviceName;
 	uint16_t m_appId;

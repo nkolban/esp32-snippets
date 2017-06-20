@@ -30,7 +30,7 @@ public:
 	static void initServer();
 	static void scan(int duration, esp_ble_scan_type_t scan_type = BLE_SCAN_TYPE_PASSIVE);
 	static esp_gatt_if_t getGattcIF();
-	static BLEServer *m_server;
+	static BLEServer *m_bleServer;
 }; // class BLE
 
 #endif // CONFIG_BT_ENABLED

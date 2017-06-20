@@ -44,7 +44,7 @@ static EventGroupHandle_t g_eventGroup;
  */
 static std::map<ble_address, BLEDevice> g_devices;
 
-BLEServer *BLE::m_server;
+BLEServer *BLE::m_bleServer;
 
 BLE::BLE() {
 }
@@ -184,8 +184,8 @@ void gatt_server_event_handler(
 	ESP_LOGD(tag, "gatt_server_event_handler [esp_gatt_if: %d] ... %s",
 		gatts_if, bt_utils_gatt_server_event_type_to_string(event).c_str());
 	BLEUtils::dumpGattServerEvent(event, gatts_if, param);
-	if (BLE::m_server != nullptr) {
-		BLE::m_server->handleGATTServerEvent(event, gatts_if, param);
+	if (BLE::m_bleServer != nullptr) {
+		BLE::m_bleServer->handleGATTServerEvent(event, gatts_if, param);
 	}
 } // gatt_server_event_handler
 
@@ -345,8 +345,8 @@ static void gap_event_handler(
 			ESP_LOGD(tag, "Unhandled search_evt type!");
 		}
 	} // ESP_GAP_BLE_SCAN_RESULT_EVT
-	if (BLE::m_server != nullptr) {
-		BLE::m_server->handleGAPEvent(event, param);
+	if (BLE::m_bleServer != nullptr) {
+		BLE::m_bleServer->handleGAPEvent(event, param);
 	}
 } // gap_event_handler
 
