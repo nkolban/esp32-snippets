@@ -233,9 +233,9 @@ static const char *adv_type_to_string(uint8_t advType) {
 
 void BLEDevice::addService(esp_gatt_srvc_id_t srvc_id) {
 	ESP_LOGD(tag, ">> addService: %s", BLEUtils::uuidToString(srvc_id.id.uuid).c_str());
-	BLEService service;
-	service.setService(srvc_id);
-	m_gattServices.insert(std::pair<esp_bt_uuid_t, BLEService>(srvc_id.id.uuid, service));
+	//BLEService service;
+	//service.setService(srvc_id);
+	//m_gattServices.insert(std::pair<esp_bt_uuid_t, BLEService>(srvc_id.id.uuid, service));
 } // addService
 
 
@@ -343,7 +343,7 @@ void BLEDevice::getCharacteristics(BLEService service) {
 } // getCharacteristics
 
 
-void BLEDevice::getCharacteristics(BLECharacteristic characteristic) {
+void BLEDevice::getCharacteristics(BLECharacteristicXXX characteristic) {
 	esp_gatt_srvc_id_t srvc_id = characteristic.getSrvcId();
 	esp_gatt_id_t lastCharacteristic = characteristic.getCharId();
 	getCharacteristics(&srvc_id, &lastCharacteristic);
@@ -369,7 +369,7 @@ void BLEDevice::searchService() {
 } // searchService
 
 
-void BLEDevice::onCharacteristic(BLECharacteristic characteristic) {
+void BLEDevice::onCharacteristic(BLECharacteristicXXX characteristic) {
 	if (m_oncharacteristic != nullptr) {
 		m_oncharacteristic(this, characteristic);
 	} else {

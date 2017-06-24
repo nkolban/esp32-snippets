@@ -23,7 +23,7 @@
 #include "BLEUtils.h"
 #include "BLE.h"
 #include "BLEDevice.h"
-#include "BLECharacteristic.h"
+#include "BLEXXXCharacteristic.h"
 
 static char tag[] = "BLE";
 
@@ -177,12 +177,13 @@ static void dump_adv_payload(uint8_t *payload) {
  * @param [in] param
  */
 void gatt_server_event_handler(
-   esp_gatts_cb_event_t event,
-   esp_gatt_if_t gatts_if,
+   esp_gatts_cb_event_t      event,
+   esp_gatt_if_t             gatts_if,
    esp_ble_gatts_cb_param_t *param
 ) {
 	ESP_LOGD(tag, "gatt_server_event_handler [esp_gatt_if: %d] ... %s",
-		gatts_if, bt_utils_gatt_server_event_type_to_string(event).c_str());
+		gatts_if,
+		bt_utils_gatt_server_event_type_to_string(event).c_str());
 	BLEUtils::dumpGattServerEvent(event, gatts_if, param);
 	if (BLE::m_bleServer != nullptr) {
 		BLE::m_bleServer->handleGATTServerEvent(event, gatts_if, param);
@@ -253,7 +254,7 @@ static void gatt_client_event_handler(
 	case ESP_GATTC_GET_CHAR_EVT: {
 		if (param->get_char.status == ESP_GATT_OK) {
 			BLEDevice *pDevice = BLEUtils::findByConnId(param->get_char.conn_id);
-			BLECharacteristic characteristic(param->get_char.conn_id,
+			BLECharacteristicXXX characteristic(param->get_char.conn_id,
 					param->get_char.srvc_id, param->get_char.char_id, param->get_char.char_prop);
 			pDevice->onCharacteristic(characteristic);
 		}
@@ -358,11 +359,11 @@ std::map<ble_address, BLEDevice> getDevices() {
 	return g_devices;
 } // getDevices
 
+
 /**
- * @brief Initialize the server %BLE enevironment.
+ * @brief Initialize the server %BLE environment.
  *
  */
-
 void BLE::initServer() {
 	esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
 	esp_err_t errRc = esp_bt_controller_init(&bt_cfg);

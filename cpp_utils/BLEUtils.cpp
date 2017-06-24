@@ -741,76 +741,91 @@ void BLEUtils::dumpGattServerEvent(
 		esp_ble_gatts_cb_param_t *evtParam) {
 	ESP_LOGD(tag, "GATT ServerEvent: %s", bt_utils_gatt_server_event_type_to_string(event).c_str());
 	switch(event) {
+
 		case ESP_GATTS_ADD_CHAR_EVT: {
-			ESP_LOGD(tag, "[status: %s, attr_handle: %d (0x%.2x), service_handle: %d (0x%.2x), char_uuid: %s]",
+			ESP_LOGD(tag, "[status: %s, attr_handle: 0x%.2x, service_handle: 0x%.2x, char_uuid: %s]",
 				gattStatusToString(evtParam->add_char.status).c_str(),
 				evtParam->add_char.attr_handle,
-				evtParam->add_char.attr_handle,
-				evtParam->add_char.service_handle,
 				evtParam->add_char.service_handle,
 				uuidToString(evtParam->add_char.char_uuid).c_str());
 			break;
-		}
+		} // ESP_GATTS_ADD_CHAR_EVT
 
-		case ESP_GATTS_CONNECT_EVT:
+		case ESP_GATTS_CONNECT_EVT: {
+			ESP_LOGD(tag, "[conn_id: %d, remote_bda: %s, is_connected: %d]",
+				evtParam->connect.conn_id,
+				addressToString(evtParam->connect.remote_bda).c_str(),
+				evtParam->connect.is_connected);
+			break;
+		} // ESP_GATTS_CONNECT_EVT
+
 		case ESP_GATTS_DISCONNECT_EVT: {
 			ESP_LOGD(tag, "[conn_id: %d, remote_bda: %s, is_connected: %d]",
 				evtParam->connect.conn_id,
 				addressToString(evtParam->connect.remote_bda).c_str(),
 				evtParam->connect.is_connected);
 			break;
-		}
+		} // ESP_GATTS_DISCONNECT_EVT
 
 		case ESP_GATTS_CREATE_EVT: {
-			ESP_LOGD(tag, "[status: %s, service_handle: %d (0x%.2x), service_id: [%s]]",
+			ESP_LOGD(tag, "[status: %s, service_handle: 0x%.2x, service_id: [%s]]",
 				gattStatusToString(evtParam->create.status).c_str(),
-				evtParam->create.service_handle,
 				evtParam->create.service_handle,
 				gattServiceIdToString(evtParam->create.service_id).c_str());
 			break;
-		}
+		} // ESP_GATTS_CREATE_EVT
 
 		case ESP_GATTS_MTU_EVT: {
 			ESP_LOGD(tag, "[conn_id: %d, mtu: %d]",
 					evtParam->mtu.conn_id,
 					evtParam->mtu.mtu);
 			break;
-		}
+		} // ESP_GATTS_MTU_EVT
 
 		case ESP_GATTS_READ_EVT: {
-			ESP_LOGD(tag, "[conn_id: %d, trans_id: %d, bda: %s, handle: %d (0x%.2x), is_long: %d, need_rsp:%d]",
+			ESP_LOGD(tag, "[conn_id: %d, trans_id: %d, bda: %s, handle: 0x%.2x, is_long: %d, need_rsp:%d]",
 					evtParam->read.conn_id,
 					evtParam->read.trans_id,
 					addressToString(evtParam->read.bda).c_str(),
 					evtParam->read.handle,
-					evtParam->read.handle,
 					evtParam->read.is_long,
 					evtParam->read.need_rsp);
 			break;
-		}
+		} // ESP_GATTS_READ_EVT
 
 		case ESP_GATTS_RESPONSE_EVT: {
-			ESP_LOGD(tag, "[status: %s, handle: %d (0x%.2x)]",
+			ESP_LOGD(tag, "[status: %s, handle: 0x%.2x]",
 				gattStatusToString(evtParam->rsp.status).c_str(),
-				evtParam->rsp.handle,
 				evtParam->rsp.handle);
 			break;
-		}
+		} // ESP_GATTS_RESPONSE_EVT
 
 		case ESP_GATTS_REG_EVT: {
 			ESP_LOGD(tag, "[status: %s, app_id: %d]",
 				gattStatusToString(evtParam->reg.status).c_str(),
 				evtParam->reg.app_id);
 			break;
-		}
+		} // ESP_GATTS_REG_EVT
 
 		case ESP_GATTS_START_EVT: {
-			ESP_LOGD(tag, "[status: %s, service_handle: %d (0x%.2x)]",
+			ESP_LOGD(tag, "[status: %s, service_handle: 0x%.2x]",
 				gattStatusToString(evtParam->start.status).c_str(),
-				evtParam->start.service_handle,
 				evtParam->start.service_handle);
 			break;
-		}
+		} // ESP_GATTS_START_EVT
+
+		case ESP_GATTS_WRITE_EVT: {
+			ESP_LOGD(tag, "[conn_id: %d, trans_id: %d, bda: %s, handle: 0x%.2x, offset: %d, need_rsp: %d, is_prep: %d, len: %d]",
+					evtParam->write.conn_id,
+					evtParam->write.trans_id,
+					addressToString(evtParam->write.bda).c_str(),
+					evtParam->write.handle,
+					evtParam->write.offset,
+					evtParam->write.need_rsp,
+					evtParam->write.is_prep,
+					evtParam->write.len);
+			break;
+		} // ESP_GATTS_WRITE_EVT
 
 		default:
 			ESP_LOGD(tag, "dumpGattServerEvent: *** NOT CODED ***");

@@ -1,0 +1,97 @@
+/*
+ * BLECharacteristicMap.cpp
+ *
+ *  Created on: Jun 22, 2017
+ *      Author: kolban
+ */
+#include <sstream>
+#include <iomanip>
+#include "BLECharacteristicMap.h"
+
+BLECharacteristicMap::BLECharacteristicMap() {
+}
+
+BLECharacteristicMap::~BLECharacteristicMap() {
+}
+
+
+/**
+ * @brief Return the characteristic by UUID.
+ * @param [in] UUID The UUID to look up the characteristic.
+ * @return The characteristic.
+ */
+BLECharacteristic* BLECharacteristicMap::getByUUID(BLEUUID uuid) {
+	for (auto &myPair : m_uuidMap) {
+		if (myPair.second->getUUID().equals(uuid)) {
+			return myPair.second;
+		}
+	}
+	//return m_uuidMap.at(uuid.toString());
+	return nullptr;
+} // getByUUID
+
+
+/**
+ * @brief Return the characteristic by handle.
+ * @param [in] handle The handle to look up the characteristic.
+ * @return The characteristic.
+ */
+BLECharacteristic* BLECharacteristicMap::getByHandle(uint16_t handle) {
+	return m_handleMap.at(handle);
+} // getByHandle
+
+
+/**
+ * @brief Set the characteristic by UUID.
+ * @param [in] uuid The uuid of the characteristic.
+ * @param [in] characteristic The characteristic to cache.
+ * @return N/A.
+ */
+void BLECharacteristicMap::setByUUID(
+		BLEUUID            uuid,
+		BLECharacteristic *pCharacteristic) {
+	m_uuidMap.insert(std::pair<std::string, BLECharacteristic *>(uuid.toString(), pCharacteristic));
+} // setByUUID
+
+
+/**
+ * @brief Set the characteristic by handle.
+ * @param [in] handle The handle of the characteristic.
+ * @param [in] characteristic The characteristic to cache.
+ * @return N/A.
+ */
+void BLECharacteristicMap::setByHandle(uint16_t handle,
+		BLECharacteristic *characteristic) {
+	m_handleMap.insert(std::pair<uint16_t, BLECharacteristic *>(handle, characteristic));
+} // setByHandle
+
+
+/**
+ * @brief Return a string representation of the characteristic map.
+ * @return A string representation of the characteristic map.
+ */
+std::string BLECharacteristicMap::toString() {
+	std::stringstream stringStream;
+	stringStream << std::hex << std::setfill('0');
+	for (auto &myPair: m_uuidMap) {
+		stringStream << "handle: 0x" << std::setw(2) << myPair.second->m_handle << ", uuid: " + myPair.second->getUUID().toString() << "\n";
+	}
+	return stringStream.str();
+} // toString
+
+
+/**
+ * @breif Pass the GATT server event onwards to each of the characteristics found in the mapping
+ * @param [in] event
+ * @param [in] gatts_if
+ * @param [in] param
+ */
+void BLECharacteristicMap::handleGATTServerEvent(
+		esp_gatts_cb_event_t      event,
+		esp_gatt_if_t             gatts_if,
+		esp_ble_gatts_cb_param_t *param) {
+	// Invoke the handler for every Service we have.
+	for (auto &myPair : m_uuidMap) {
+		myPair.second->handleGATTServerEvent(event, gatts_if, param);
+	}
+} // handleGATTServerEvent

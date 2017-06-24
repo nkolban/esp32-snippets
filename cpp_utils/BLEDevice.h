@@ -18,7 +18,7 @@
 #include <unordered_set>
 
 #include "BLEService.h"
-#include "BLECharacteristic.h"
+#include "BLEXXXCharacteristic.h"
 
 typedef std::string ble_address;
 
@@ -63,7 +63,7 @@ public:
 	}
 	void getCharacteristics(esp_gatt_srvc_id_t *srvc_id, esp_gatt_id_t *lastCharacteristic);
 	void getCharacteristics(BLEService service);
-	void getCharacteristics(BLECharacteristic characteristic);
+	void getCharacteristics(BLECharacteristicXXX characteristic);
 	void getDescriptors();
 	bool isBREDRSupported() {
 		return (m_adFlag & 0b00100) == 0;
@@ -74,7 +74,7 @@ public:
 	bool isLimitedDiscoverable() {
 		return (m_adFlag & 0b00001) != 0;
 	}
-	void onCharacteristic(BLECharacteristic characteristic);
+	void onCharacteristic(BLECharacteristicXXX characteristic);
 	void onConnected(esp_gatt_status_t status);
 	void onSearchComplete();
 	void onRead(std::string data);
@@ -85,7 +85,7 @@ public:
 	void searchService();
 	void setAddress(ble_address address);
 	void setAdFlag(uint8_t adFlag);
-	void setOnCharacteristic(void (*oncharacteristic)(BLEDevice *pDevice, BLECharacteristic characteristic)) {
+	void setOnCharacteristic(void (*oncharacteristic)(BLEDevice *pDevice, BLECharacteristicXXX characteristic)) {
 		m_oncharacteristic = oncharacteristic;
 	}
 	/**
@@ -114,7 +114,7 @@ private:
 	std::map<esp_bt_uuid_t, BLEService, esp_bt_uuid_t_compare> m_gattServices;
 	uint8_t     m_manufacturerType[2];
 	std::string m_name;
-	void (*m_oncharacteristic)(BLEDevice *pDevice, BLECharacteristic characteristic);
+	void (*m_oncharacteristic)(BLEDevice *pDevice, BLECharacteristicXXX characteristic);
 	// The function to be called when a connection has been established.
 	void (*m_onconnected)(BLEDevice *pDevice, esp_gatt_status_t status);
 	void (*m_onread)(BLEDevice *pDevice, std::string data);
