@@ -8,7 +8,7 @@
 #ifndef COMPONENTS_CPP_UTILS_BLEADVERTISING_H_
 #define COMPONENTS_CPP_UTILS_BLEADVERTISING_H_
 #include <esp_gap_ble_api.h>
-
+#include "BLEUUID.h"
 class BLEAdvertising {
 public:
 	BLEAdvertising();
@@ -16,9 +16,11 @@ public:
 	void start();
 	void stop();
 	void setAppearance(uint16_t appearance);
+	void setServiceUUID(BLEUUID uuid);
 private:
-	esp_ble_adv_data_t m_advData;
+	esp_ble_adv_data_t   m_advData;
 	esp_ble_adv_params_t m_advParams;
+	BLEUUID              m_serviceUUID;
 };
 
 #endif /* COMPONENTS_CPP_UTILS_BLEADVERTISING_H_ */

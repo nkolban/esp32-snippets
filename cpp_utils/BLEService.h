@@ -10,6 +10,7 @@
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 #include <esp_gatts_api.h>
+#include "FreeRTOS.h"
 #include "BLEUUID.h"
 #include "BLECharacteristic.h"
 #include "BLECharacteristicMap.h"
@@ -37,12 +38,14 @@ private:
 	BLECharacteristicMap m_characteristicMap;
 	friend class BLEServer;
 	friend class BLEServiceMap;
+	friend class BLEDescriptor;
 	void setHandle(uint16_t handle);
 	uint16_t getHandle();
 	void handleGATTServerEvent(
 			esp_gatts_cb_event_t      event,
 			esp_gatt_if_t             gatts_if,
 			esp_ble_gatts_cb_param_t *param);
+	FreeRTOS::Semaphore m_serializeMutex;
 };
 #endif // CONFIG_BT_ENABLED
 #endif /* COMPONENTS_CPP_UTILS_BLESERVICE_H_ */

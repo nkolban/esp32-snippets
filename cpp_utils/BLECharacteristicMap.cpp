@@ -73,8 +73,13 @@ void BLECharacteristicMap::setByHandle(uint16_t handle,
 std::string BLECharacteristicMap::toString() {
 	std::stringstream stringStream;
 	stringStream << std::hex << std::setfill('0');
+	int count=0;
 	for (auto &myPair: m_uuidMap) {
-		stringStream << "handle: 0x" << std::setw(2) << myPair.second->m_handle << ", uuid: " + myPair.second->getUUID().toString() << "\n";
+		if (count > 0) {
+			stringStream << "\n";
+		}
+		count++;
+		stringStream << "handle: 0x" << std::setw(2) << myPair.second->getHandle() << ", uuid: " + myPair.second->getUUID().toString();
 	}
 	return stringStream.str();
 } // toString

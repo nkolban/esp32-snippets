@@ -31,19 +31,19 @@ BLEUUID::BLEUUID(std::string value) {
 }
 
 BLEUUID::BLEUUID(uint16_t uuid) {
-	m_uuid.len = ESP_UUID_LEN_16;
+	m_uuid.len         = ESP_UUID_LEN_16;
 	m_uuid.uuid.uuid16 = uuid;
-	m_valueSet = true;
+	m_valueSet         = true;
 }
 
 BLEUUID::BLEUUID(uint32_t uuid) {
-	m_uuid.len = ESP_UUID_LEN_32;
+	m_uuid.len         = ESP_UUID_LEN_32;
 	m_uuid.uuid.uuid32 = uuid;
-	m_valueSet = true;
+	m_valueSet         = true;
 }
 
 BLEUUID::BLEUUID(esp_bt_uuid_t uuid) {
-	m_uuid = uuid;
+	m_uuid     = uuid;
 	m_valueSet = true;
 }
 
@@ -56,11 +56,17 @@ BLEUUID::~BLEUUID() {
 }
 
 
-
+/**
+ * @brief Get the native UUID value.
+ * @return The native UUID value or NULL if not set.
+ */
 esp_bt_uuid_t *BLEUUID::getNative() {
+	ESP_LOGD(TAG, ">> getNative()")
 	if (m_valueSet == false) {
-		ESP_LOGE(TAG, "Return of un-initialized UUID!");
+		ESP_LOGD(TAG, "<< Return of un-initialized UUID!");
+		return nullptr;
 	}
+	ESP_LOGD(TAG, "<< getNative()");
 	return &m_uuid;
 }
 
@@ -98,7 +104,7 @@ std::string BLEUUID::toString() {
 				std::setw(2) << (int)m_uuid.uuid.uuid128[6]  <<
 				std::setw(2) << (int)m_uuid.uuid.uuid128[7]  << "-" <<
 				std::setw(2) << (int)m_uuid.uuid.uuid128[8]  <<
-				std::setw(2) << (int)m_uuid.uuid.uuid128[9]  <<
+				std::setw(2) << (int)m_uuid.uuid.uuid128[9]  << "-" <<
 				std::setw(2) << (int)m_uuid.uuid.uuid128[10] <<
 				std::setw(2) << (int)m_uuid.uuid.uuid128[11] <<
 				std::setw(2) << (int)m_uuid.uuid.uuid128[12] <<
@@ -132,4 +138,57 @@ bool BLEUUID::equals(BLEUUID uuid) {
 		return uuid.m_uuid.uuid.uuid32 == m_uuid.uuid.uuid32;
 	}
 	return memcmp(uuid.m_uuid.uuid.uuid128, m_uuid.uuid.uuid128, 16) == 0;
+}
+
+void BLEUUID::toFull() {
+	ESP_LOGD(TAG, ">> toFull() - %s", toString().c_str());
+	if (m_valueSet == false) {
+		return;
+	}
+	if (m_uuid.len == ESP_UUID_LEN_128) {
+		return;
+	}
+	/*
+	if (value.length() == 2) {
+		m_uuid.len = ESP_UUID_LEN_16;
+		m_uuid.uuid.uuid16 = value[0] | (value[1] << 8);
+		m_valueSet = true;
+	} else if (value.length() == 4) {
+		m_uuid.len = ESP_UUID_LEN_32;
+		m_uuid.uuid.uuid32 = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
+		m_valueSet = true;
+	*/
+	if (m_uuid.len == ESP_UUID_LEN_16) {
+
+		uint16_t temp = m_uuid.uuid.uuid16;
+		m_uuid.uuid.uuid128[0] = 0;
+		m_uuid.uuid.uuid128[1] = 0;
+		m_uuid.uuid.uuid128[2] = (temp >> 8) & 0xff;
+		m_uuid.uuid.uuid128[3] = temp & 0xff;
+
+	}
+	if (m_uuid.len == ESP_UUID_LEN_32) {
+		uint32_t temp = m_uuid.uuid.uuid32;
+		m_uuid.uuid.uuid128[0] = (temp >> 24) & 0xff;
+		m_uuid.uuid.uuid128[1] = (temp >> 16) & 0xff;
+		m_uuid.uuid.uuid128[2] = (temp >> 8) & 0xff;
+		m_uuid.uuid.uuid128[3] = temp & 0xff;
+	}
+	m_uuid.len = ESP_UUID_LEN_128;
+	m_uuid.uuid.uuid128[4] = 0x00;
+	m_uuid.uuid.uuid128[5] = 0x00;
+
+	m_uuid.uuid.uuid128[6] = 0x10;
+	m_uuid.uuid.uuid128[7] = 0x00;
+
+	m_uuid.uuid.uuid128[8] = 0x80;
+	m_uuid.uuid.uuid128[9] = 0x00;
+
+	m_uuid.uuid.uuid128[10] = 0x00;
+	m_uuid.uuid.uuid128[11] = 0x80;
+	m_uuid.uuid.uuid128[12] = 0x5f;
+	m_uuid.uuid.uuid128[13] = 0x9b;
+	m_uuid.uuid.uuid128[14] = 0x34;
+	m_uuid.uuid.uuid128[15] = 0xfb;
+	ESP_LOGD(TAG, "<< toFull <-  %s", toString().c_str());
 }

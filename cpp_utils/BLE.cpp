@@ -25,7 +25,7 @@
 #include "BLEDevice.h"
 #include "BLEXXXCharacteristic.h"
 
-static char tag[] = "BLE";
+static char LOG_TAG[] = "BLE";
 
 extern "C" {
 	char *espToString(esp_err_t value);
@@ -61,7 +61,7 @@ BLE::~BLE() {
  * will dump the details of all the devices.
  */
 void BLE::dumpDevices() {
-	ESP_LOGD(tag, "Number of devices: %d", g_devices.size());
+	ESP_LOGD(LOG_TAG, "Number of devices: %d", g_devices.size());
     for (auto &myPair : g_devices ) {
     	myPair.second.dump();
     }
@@ -181,7 +181,7 @@ void gatt_server_event_handler(
    esp_gatt_if_t             gatts_if,
    esp_ble_gatts_cb_param_t *param
 ) {
-	ESP_LOGD(tag, "gatt_server_event_handler [esp_gatt_if: %d] ... %s",
+	ESP_LOGD(LOG_TAG, "gatt_server_event_handler [esp_gatt_if: %d] ... %s",
 		gatts_if,
 		bt_utils_gatt_server_event_type_to_string(event).c_str());
 	BLEUtils::dumpGattServerEvent(event, gatts_if, param);
@@ -209,7 +209,7 @@ static void gatt_client_event_handler(
 	esp_gatt_if_t gattc_if,
 	esp_ble_gattc_cb_param_t *param) {
 
-	ESP_LOGD(tag, "gatt_client_event_handler [esp_gatt_if: %d] ... %s",
+	ESP_LOGD(LOG_TAG, "gatt_client_event_handler [esp_gatt_if: %d] ... %s",
 		gattc_if, bt_utils_gatt_client_event_type_to_string(event).c_str());
 	BLEUtils::dumpGattClientEvent(event, gattc_if, param);
 
@@ -296,20 +296,20 @@ static void gap_event_handler(
 	esp_gap_ble_cb_event_t event,
 	esp_ble_gap_cb_param_t *param) {
 
-	ESP_LOGD(tag, "Received a GAP event: %s", bt_event_type_to_string(event).c_str());
+	ESP_LOGD(LOG_TAG, "Received a GAP event: %s", bt_event_type_to_string(event).c_str());
 
 	if (event == ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT) {
-		ESP_LOGD(tag, "status: %d", param->scan_param_cmpl.status);
+		ESP_LOGD(LOG_TAG, "status: %d", param->scan_param_cmpl.status);
 	} // ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT
 
 	else if (event == ESP_GAP_BLE_SCAN_START_COMPLETE_EVT) {
-		ESP_LOGD(tag, "status: %d", param->scan_start_cmpl.status);
+		ESP_LOGD(LOG_TAG, "status: %d", param->scan_start_cmpl.status);
 	}
 
 	else if (event == ESP_GAP_BLE_AUTH_CMPL_EVT) {
 		// key is a 16 byte value
 
-		ESP_LOGD(tag, "[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
+		ESP_LOGD(LOG_TAG, "[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
 				BLEUtils::addressToString(param->ble_security.auth_cmpl.bd_addr).c_str(),
 				param->ble_security.auth_cmpl.key_present,
 				param->ble_security.auth_cmpl.key_type,
@@ -322,7 +322,7 @@ static void gap_event_handler(
 	else if (event == ESP_GAP_BLE_SCAN_RESULT_EVT) {
 		BLEDevice device;
 
-		ESP_LOGD(tag, "search_evt: %s", bt_gap_search_event_type_to_string(param->scan_rst.search_evt).c_str());
+		ESP_LOGD(LOG_TAG, "search_evt: %s", bt_gap_search_event_type_to_string(param->scan_rst.search_evt).c_str());
 
 		if (param->scan_rst.search_evt == ESP_GAP_SEARCH_INQ_CMPL_EVT) {
 			//ESP_LOGD(tag, "num_resps: %d", param->scan_rst.num_resps);
@@ -343,7 +343,7 @@ static void gap_event_handler(
 			g_devices.insert(std::pair<std::string,BLEDevice>(device.getAddress(),device));
 			//dump_adv_payload(param->scan_rst.ble_adv);
 		} else {
-			ESP_LOGD(tag, "Unhandled search_evt type!");
+			ESP_LOGD(LOG_TAG, "Unhandled search_evt type!");
 		}
 	} // ESP_GAP_BLE_SCAN_RESULT_EVT
 	if (BLE::m_bleServer != nullptr) {
@@ -364,45 +364,57 @@ std::map<ble_address, BLEDevice> getDevices() {
  * @brief Initialize the server %BLE environment.
  *
  */
-void BLE::initServer() {
+BLEServer *BLE::initServer(std::string deviceName) {
 	esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
 	esp_err_t errRc = esp_bt_controller_init(&bt_cfg);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_bt_controller_init: rc=%d %s", errRc, espToString(errRc));
-		return;
+		ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, espToString(errRc));
+		return nullptr;
 	}
 
 
 	errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_bt_controller_enable: rc=%d %s", errRc, espToString(errRc));
-		return;
+		ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, espToString(errRc));
+		return nullptr;
 	}
 
 	errRc = esp_bluedroid_init();
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_bluedroid_init: rc=%d %s", errRc, espToString(errRc));
-		return;
+		ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, espToString(errRc));
+		return nullptr;
 	}
 
 	errRc = esp_bluedroid_enable();
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_bluedroid_enable: rc=%d %s", errRc, espToString(errRc));
-		return;
+		ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, espToString(errRc));
+		return nullptr;
 	}
 
 	errRc = esp_ble_gap_register_callback(gap_event_handler);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gap_register_callback: rc=%d %s", errRc, espToString(errRc));
-		return;
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, espToString(errRc));
+		return nullptr;
 	}
 
 	errRc = esp_ble_gatts_register_callback(gatt_server_event_handler);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gatts_register_callback: rc=%d %s", errRc, espToString(errRc));
-		return;
+		ESP_LOGE(LOG_TAG, "esp_ble_gatts_register_callback: rc=%d %s", errRc, espToString(errRc));
+		return nullptr;
 	}
+
+	errRc = ::esp_ble_gap_set_device_name(deviceName.c_str());
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_device_name: rc=%d %s", errRc, espToString(errRc));
+		return nullptr;
+	};
+
+	m_bleServer = new BLEServer(0);
+	m_bleServer->registerApp();
+	return m_bleServer;
 }
+
+
 /**
  * @brief Initialize the client %BLE environment.
  */
@@ -410,44 +422,44 @@ void BLE::initClient() {
   esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
   esp_err_t errRc = esp_bt_controller_init(&bt_cfg);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_bt_controller_init: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
 
 
 	errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_bt_controller_enable: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
 
 	errRc = esp_bluedroid_init();
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_bluedroid_init: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
 
 	errRc = esp_bluedroid_enable();
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_bluedroid_enable: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
 
 	errRc = esp_ble_gap_register_callback(gap_event_handler);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gap_register_callback: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
 
 	errRc = esp_ble_gattc_register_callback(gatt_client_event_handler);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gattc_register_callback: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_callback: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
 
 	errRc = esp_ble_gattc_app_register(0);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gattc_app_register: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gattc_app_register: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
 	g_eventGroup = xEventGroupCreate();
@@ -475,13 +487,13 @@ void BLE::scan(int duration, esp_ble_scan_type_t scan_type) {
 	ble_scan_params.scan_window            = 0x30;
 	esp_err_t errRc = esp_ble_gap_set_scan_params(&ble_scan_params);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gap_set_scan_params: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_scan_params: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
 
 	errRc = esp_ble_gap_start_scanning(duration);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gap_start_scanning: rc=%d", errRc);
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_start_scanning: rc=%d", errRc);
 		return;
 	}
 	/*
@@ -492,7 +504,7 @@ void BLE::scan(int duration, esp_ble_scan_type_t scan_type) {
 		1, // Clear on exit
 		0, // Wait for all bits
 		portMAX_DELAY);
-	ESP_LOGD(tag, "Scan complete! - BLE:scan() returning.");
+	ESP_LOGD(LOG_TAG, "Scan complete! - BLE:scan() returning.");
 } // scan
 
 #endif // CONFIG_BT_ENABLED

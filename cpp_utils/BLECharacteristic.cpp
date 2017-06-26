@@ -14,139 +14,70 @@
 #include <esp_err.h>
 #include "BLECharacteristic.h"
 
-static char TAG[] = "BLECharacteristic";
+static char LOG_TAG[] = "BLECharacteristic";
 
 extern "C" {
 	char *espToString(esp_err_t value);
 }
 
-BLECharacteristic::BLECharacteristic(BLEUUID uuid) {
+BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
 	m_bleUUID            = uuid;
-	m_properties         = 0;
 	m_value.attr_value   = (uint8_t *)malloc(ESP_GATT_MAX_ATTR_LEN);
 	m_value.attr_len     = 0;
 	m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN;
 	m_handle             = 0;
-}
+	m_properties         = 0;
+
+	setBroadcastProperty((properties & PROPERTY_BROADCAST) !=0);
+	setReadProperty((properties & PROPERTY_READ) !=0);
+	setWriteProperty((properties & PROPERTY_WRITE) !=0);
+	setNotifyProperty((properties & PROPERTY_NOTIFY) !=0);
+	setIndicateProperty((properties & PROPERTY_INDICATE) !=0);
+	setWriteNoResponseProperty((properties & PROPERTY_WRITE_NR) !=0);
+} // BLECharacteristic
+
 
 BLECharacteristic::~BLECharacteristic() {
 	free(m_value.attr_value);
 }
 
-/**
- * @brief Set the permission to broadcast.
- * @param [in] value The value of the permission.
- * @return N/A
- */
-void BLECharacteristic::setBroadcastPermission(bool value) {
-	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_BROADCAST;
-	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_BROADCAST;
-	}
-}
-
-void BLECharacteristic::setReadPermission(bool value) {
-	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_READ;
-	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_READ;
-	}
-}
-
-void BLECharacteristic::setWritePermission(bool value) {
-	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_WRITE;
-	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_WRITE;
-	}
-}
-
-void BLECharacteristic::setNotifyPermission(bool value) {
-	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_NOTIFY;
-	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_NOTIFY;
-	}
-}
-
-void BLECharacteristic::setIndicatePermission(bool value) {
-	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_INDICATE;
-	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_INDICATE;
-	}
-}
-
-void BLECharacteristic::setWriteNoResponsePermission(bool value) {
-	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_WRITE_NR;
-	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_WRITE_NR;
-	}
-}
-
 
 /**
- * @brief Return a string representation of the characteristic.
- * @return A string representation of the characteristic.
+ * @brief Associate a descriptor with this characteristic.
+ * @param [in] pDescriptor
+ * @return N/A.
  */
-std::string BLECharacteristic::toString() {
-	std::stringstream stringstream;
-	stringstream << std::hex << std::setfill('0');
-	stringstream << "UUID: " << m_bleUUID.toString() + ", handle: 0x" << std::setw(2) << m_handle;
-	stringstream <<
-			((m_properties & ESP_GATT_CHAR_PROP_BIT_READ)?"Read ":"") <<
-			((m_properties & ESP_GATT_CHAR_PROP_BIT_WRITE)?"Write ":"") <<
-			((m_properties & ESP_GATT_CHAR_PROP_BIT_WRITE_NR)?"WriteNoResponse ":"") <<
-			((m_properties & ESP_GATT_CHAR_PROP_BIT_BROADCAST)?"Broadcast ":"") <<
-			((m_properties & ESP_GATT_CHAR_PROP_BIT_NOTIFY)?"Notify ":"") <<
-			((m_properties & ESP_GATT_CHAR_PROP_BIT_INDICATE)?"Indicate ":"") <<
-			"\n";
-	return stringstream.str();
-} // toString
+void BLECharacteristic::addDescriptor(BLEDescriptor* pDescriptor) {
+	ESP_LOGD(LOG_TAG, ">> addDescriptor(): Adding %s to %s", pDescriptor->toString().c_str(), toString().c_str());
+	m_descriptorMap.setByUUID(pDescriptor->getUUID(), pDescriptor);
+	ESP_LOGD(LOG_TAG, "<< addDescriptor()");
+} // addDescriptor
+
+
+uint16_t BLECharacteristic::getHandle() {
+	return m_handle;
+} // getHandle
+
+
+size_t BLECharacteristic::getLength() {
+	return m_value.attr_len;
+} // getLength
+
+
+esp_gatt_char_prop_t BLECharacteristic::getProperties() {
+	return m_properties;
+} // getProperties
 
 
 BLEUUID BLECharacteristic::getUUID() {
 	return m_bleUUID;
-}
+} // getUUID
 
-
-/**
- * @brief Set the value of the characteristic.
- * @param [in] data The data to set for the characteristic.
- * @param [in] length The length of the data in bytes.
- */
-void BLECharacteristic::setValue(uint8_t* data, size_t length) {
-	if (length > ESP_GATT_MAX_ATTR_LEN) {
-		ESP_LOGE(TAG, "Size %d too large, must be no bigger than %d", length, ESP_GATT_MAX_ATTR_LEN);
-		return;
-	}
-	m_value.attr_len = length;
-	memcpy(m_value.attr_value, data, length);
-} // setValue
-
-
-void BLECharacteristic::setValue(std::string value) {
-	setValue((uint8_t *)value.data(), value.length());
-}
 
 uint8_t* BLECharacteristic::getValue() {
 	return m_value.attr_value;
-}
+} // getValue
 
-size_t BLECharacteristic::getLength() {
-	return m_value.attr_len;
-}
-
-esp_gatt_char_prop_t BLECharacteristic::getProperties() {
-	return m_properties;
-}
-
-void BLECharacteristic::setHandle(uint16_t handle) {
-	ESP_LOGD(TAG, "Setting handle to be 0x%.2x", handle);
-	m_handle = handle;
-}
 
 void BLECharacteristic::handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
@@ -177,7 +108,7 @@ void BLECharacteristic::handleGATTServerEvent(
 				esp_err_t errRc = ::esp_ble_gatts_send_response(
 						gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, &rsp);
 				if (errRc != ESP_OK) {
-					ESP_LOGE(TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, espToString(errRc));
+					ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, espToString(errRc));
 				}
 			}
 			break;
@@ -195,9 +126,9 @@ void BLECharacteristic::handleGATTServerEvent(
 		// - bool need_rsp
 		//
 		case ESP_GATTS_READ_EVT: {
-			ESP_LOGD(TAG, "- Testing: %d == %d", param->read.handle, m_handle);
+			ESP_LOGD(LOG_TAG, "- Testing: %d == %d", param->read.handle, m_handle);
 			if (param->read.handle == m_handle) {
-				ESP_LOGD(TAG, "Sending a response (esp_ble_gatts_send_response)");
+				ESP_LOGD(LOG_TAG, "Sending a response (esp_ble_gatts_send_response)");
 				if (param->read.need_rsp) {
 					esp_gatt_rsp_t rsp;
 					rsp.attr_value.len    = getLength();
@@ -208,7 +139,7 @@ void BLECharacteristic::handleGATTServerEvent(
 					esp_err_t errRc = ::esp_ble_gatts_send_response(
 							gatts_if, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, &rsp);
 					if (errRc != ESP_OK) {
-						ESP_LOGE(TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, espToString(errRc));
+						ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, espToString(errRc));
 					}
 				}
 			} // ESP_GATTS_READ_EVT
@@ -218,4 +149,120 @@ void BLECharacteristic::handleGATTServerEvent(
 			break;
 		}
 	}// switch event
+} // handleGATTServerEvent
+
+
+/**
+ * @brief Set the permission to broadcast.
+ * @param [in] value The value of the property.
+ * @return N/A
+ */
+void BLECharacteristic::setBroadcastProperty(bool value) {
+	ESP_LOGD(LOG_TAG, "setBroadcastProperty(%d)", value);
+	if (value) {
+		m_properties |= ESP_GATT_CHAR_PROP_BIT_BROADCAST;
+	} else {
+		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_BROADCAST;
+	}
+} // setBroadcastProperty
+
+
+void BLECharacteristic::setHandle(uint16_t handle) {
+	ESP_LOGD(LOG_TAG, ">> setHandle(0x%.2x): Setting handle to be 0x%.2x", handle, handle);
+	m_handle = handle;
+	ESP_LOGD(LOG_TAG, "<< setHandle()");
+} // setHandle
+
+
+void BLECharacteristic::setIndicateProperty(bool value) {
+	ESP_LOGD(LOG_TAG, "setIndicateProperty(%d)", value);
+	if (value) {
+		m_properties |= ESP_GATT_CHAR_PROP_BIT_INDICATE;
+	} else {
+		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_INDICATE;
+	}
+} // setIndicateProperty
+
+
+void BLECharacteristic::setNotifyProperty(bool value) {
+	ESP_LOGD(LOG_TAG, "setNotifyProperty(%d)", value);
+	if (value) {
+		m_properties |= ESP_GATT_CHAR_PROP_BIT_NOTIFY;
+	} else {
+		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_NOTIFY;
+	}
+} // setNotifyProperty
+
+
+void BLECharacteristic::setReadProperty(bool value) {
+	ESP_LOGD(LOG_TAG, "setReadProperty(%d)", value);
+	if (value) {
+		m_properties |= ESP_GATT_CHAR_PROP_BIT_READ;
+	} else {
+		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_READ;
+	}
+} // setReadProperty
+
+
+/**
+ * @brief Set the value of the characteristic.
+ * @param [in] data The data to set for the characteristic.
+ * @param [in] length The length of the data in bytes.
+ */
+void BLECharacteristic::setValue(uint8_t* data, size_t length) {
+	if (length > ESP_GATT_MAX_ATTR_LEN) {
+		ESP_LOGE(LOG_TAG, "Size %d too large, must be no bigger than %d", length, ESP_GATT_MAX_ATTR_LEN);
+		return;
+	}
+	m_value.attr_len = length;
+	memcpy(m_value.attr_value, data, length);
+} // setValue
+
+
+void BLECharacteristic::setValue(std::string value) {
+	setValue((uint8_t *)value.data(), value.length());
+} // setValue
+
+
+void BLECharacteristic::setWriteNoResponseProperty(bool value) {
+	ESP_LOGD(LOG_TAG, "setWriteNoResponseProperty(%d)", value);
+	if (value) {
+		m_properties |= ESP_GATT_CHAR_PROP_BIT_WRITE_NR;
+	} else {
+		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_WRITE_NR;
+	}
+} // setWriteNoResponseProperty
+
+
+void BLECharacteristic::setWriteProperty(bool value) {
+	ESP_LOGD(LOG_TAG, "setWriteProperty(%d)", value);
+	if (value) {
+		m_properties |= ESP_GATT_CHAR_PROP_BIT_WRITE;
+	} else {
+		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_WRITE;
+	}
+} // setWriteProperty
+
+
+/**
+ * @brief Return a string representation of the characteristic.
+ * @return A string representation of the characteristic.
+ */
+std::string BLECharacteristic::toString() {
+	std::stringstream stringstream;
+	stringstream << std::hex << std::setfill('0');
+	stringstream << "UUID: " << m_bleUUID.toString() + ", handle: 0x" << std::setw(2) << m_handle;
+	stringstream <<
+			((m_properties & ESP_GATT_CHAR_PROP_BIT_READ)?"Read ":"") <<
+			((m_properties & ESP_GATT_CHAR_PROP_BIT_WRITE)?"Write ":"") <<
+			((m_properties & ESP_GATT_CHAR_PROP_BIT_WRITE_NR)?"WriteNoResponse ":"") <<
+			((m_properties & ESP_GATT_CHAR_PROP_BIT_BROADCAST)?"Broadcast ":"") <<
+			((m_properties & ESP_GATT_CHAR_PROP_BIT_NOTIFY)?"Notify ":"") <<
+			((m_properties & ESP_GATT_CHAR_PROP_BIT_INDICATE)?"Indicate ":"") <<
+			"\n";
+	return stringstream.str();
+} // toString
+
+BLEService* BLECharacteristic::getService() {
+	return m_pService;
 }

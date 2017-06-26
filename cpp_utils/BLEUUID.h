@@ -18,12 +18,14 @@ public:
 	BLEUUID(esp_bt_uuid_t uuid);
 	BLEUUID();
 	virtual ~BLEUUID();
-	esp_bt_uuid_t *getNative();
-	std::string toString();
 	bool equals(BLEUUID uuid);
+	esp_bt_uuid_t *getNative();
+	void toFull();
+	std::string toString();
+
 private:
 	esp_bt_uuid_t m_uuid;
-	bool m_valueSet;
+	bool          m_valueSet;
 };
 
 #endif /* COMPONENTS_CPP_UTILS_BLEUUID_H_ */

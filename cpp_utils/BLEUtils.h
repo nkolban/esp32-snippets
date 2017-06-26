@@ -27,6 +27,7 @@ public:
 	static esp_bt_uuid_t buildUUID(std::string uuid);
 	static esp_bt_uuid_t buildUUID(uint16_t uuid);
 	static esp_bt_uuid_t buildUUID(uint32_t uuid);
+	static void dumpHexData(uint8_t *target, uint8_t *source, uint8_t length);
 	static BLEDevice *findByConnId(uint16_t conn_id);
 	static BLEDevice *findByAddress(ble_address address);
 	static std::string gattServiceIdToString(esp_gatt_srvc_id_t srvcId);

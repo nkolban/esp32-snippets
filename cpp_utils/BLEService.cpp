@@ -20,12 +20,13 @@ extern "C" {
 	char *espToString(esp_err_t value);
 }
 
-static char tag[] = "BLEService";
+static char LOG_TAG[] = "BLEService";
 
 BLEService::BLEService(BLEUUID uuid) {
 	m_uuid     = uuid;
 	m_handle   = 0;
 	m_gatts_if = 0;
+	m_serializeMutex.setName("BLEService");
 }
 
 
@@ -35,34 +36,39 @@ BLEService::~BLEService() {
 
 /**
  * @brief Create the service.
+ * Create the service.
  * @param [in] gatts_if The handle of the GATT server interface.
  * @return N/A.
  */
 void BLEService::create(esp_gatt_if_t gatts_if) {
+	ESP_LOGD(LOG_TAG, ">> create() - Creating service (esp_ble_gatts_create_service)");
 	m_gatts_if           = gatts_if;
 	m_srvc_id.id.inst_id = 0;
 	m_srvc_id.id.uuid    = *m_uuid.getNative();
 
-	ESP_LOGD(tag, "Creating service (esp_ble_gatts_create_service)");
+	m_serializeMutex.take("create"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
 	esp_err_t errRc = ::esp_ble_gatts_create_service(m_gatts_if, &m_srvc_id, 4);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gatts_create_service: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gatts_create_service: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
+	ESP_LOGD(LOG_TAG, "<< create()");
 } // create
 
+
 /**
- * Dump details of this BLE GATT service.
+ * @brief Dump details of this BLE GATT service.
+ * @return N/A.
  */
 void BLEService::dump() {
 	std::string name = "unknown";
 	if (m_srvc_id.id.uuid.len == ESP_UUID_LEN_16) {
 		name = BLEUtils::gattServiceToString(m_srvc_id.id.uuid.uuid.uuid16);
 	}
-	ESP_LOGD(tag, "Service: uuid:%s, handle: 0x%.2x",
+	ESP_LOGD(LOG_TAG, "Service: uuid:%s, handle: 0x%.2x",
 		m_uuid.toString().c_str(),
 		m_handle);
-	ESP_LOGD(tag, "Characteristics:\n%s", m_characteristicMap.toString().c_str());
+	ESP_LOGD(LOG_TAG, "Characteristics:\n%s", m_characteristicMap.toString().c_str());
 } // dump
 
 
@@ -89,12 +95,13 @@ BLEUUID BLEService::getUUID() {
  * @return Start the service.
  */
 void BLEService::start() {
-	ESP_LOGD(tag, "Starting service (esp_ble_gatts_start_service): handle=0x%.2x", m_handle);
+	ESP_LOGD(LOG_TAG, ">> start(): Starting service (esp_ble_gatts_start_service): handle=0x%.2x", m_handle);
 	esp_err_t errRc = ::esp_ble_gatts_start_service(m_handle);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gatts_start_service: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_start_service: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
+	ESP_LOGD(LOG_TAG, "<< start()");
 } // start
 
 /**
@@ -102,7 +109,9 @@ void BLEService::start() {
  * @param [in] handle The handle associated with the service.
  */
 void BLEService::setHandle(uint16_t handle) {
+	ESP_LOGD(LOG_TAG, ">> setHandle(0x%.2x)", handle);
 	m_handle = handle;
+	ESP_LOGD(LOG_TAG, "<< setHandle()");
 } // setHandle
 
 
@@ -124,21 +133,26 @@ void BLEService::addCharacteristic(BLECharacteristic* pCharacteristic) {
 // BLECharacteristicMap class instance found in m_characteristicMap.  We add the characteristic
 // to the map and then ask the service to add the characteristic at the BLE level (ESP-IDF).
 //
-	ESP_LOGD(tag, "Adding characteristic (esp_ble_gatts_add_char): uuid=%s, serviceHandle=0x%.2x",
+	ESP_LOGD(LOG_TAG, ">> addCharacteristic()");
+	ESP_LOGD(LOG_TAG, "Adding characteristic (esp_ble_gatts_add_char): uuid=%s, serviceHandle=0x%.2x",
 		pCharacteristic->getUUID().toString().c_str(),
 		getHandle());
 
 	// Check that we don't add the same characteristic twice.
 	if (m_characteristicMap.getByUUID(pCharacteristic->getUUID()) != nullptr) {
-		ESP_LOGE(tag, "Attempt to add a characteristic but we already have one with this UUID");
+		ESP_LOGE(LOG_TAG, "<< Attempt to add a characteristic but we already have one with this UUID");
 		return;
 	}
 
+	// Remember this characteristic in our map of characteristics.  At this point, we can lookup by UUID
+	// but not by handle.  The handle is allocated to us on the ESP_GATTS_ADD_CHAR_EVT.
 	m_characteristicMap.setByUUID(pCharacteristic->getUUID(), pCharacteristic);
 	pCharacteristic->m_pService = this;
-	ESP_LOGD(tag, "We think we added a characteristic ...");
-	dump();
 
+	//ESP_LOGD(LOG_TAG, "We think we added a characteristic ...");
+	//dump();
+
+	m_serializeMutex.take("addCharacteristic"); // Take the mutex, released by event ESP_GATTS_ADD_CHAR_EVT
 	esp_err_t errRc = ::esp_ble_gatts_add_char(
 		getHandle(),
 		pCharacteristic->getUUID().getNative(),
@@ -148,10 +162,12 @@ void BLEService::addCharacteristic(BLECharacteristic* pCharacteristic) {
 		NULL);
 
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gatts_add_char: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_add_char: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
+	ESP_LOGD(LOG_TAG, "<< addCharacteristic()");
 } // addCharacteristic
+
 
 void BLEService::handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
@@ -167,31 +183,54 @@ void BLEService::handleGATTServerEvent(
 		// - uint16_t service_handle
 		// - esp_bt_uuid_t char_uuid
 
-		// If we have reached the correct service, the locate the characteristic and remember the handle
+		// If we have reached the correct service, then locate the characteristic and remember the handle
 		// for that characteristic.
 		case ESP_GATTS_ADD_CHAR_EVT: {
 			if (m_handle == param->add_char.service_handle) {
 				BLECharacteristic *pCharacteristic = getCharacteristic(BLEUUID(param->add_char.char_uuid));
 				if (pCharacteristic == nullptr) {
-					ESP_LOGE(tag, "Expected to find characteristic with UUID: %s, but didnt!",
+					ESP_LOGE(LOG_TAG, "Expected to find characteristic with UUID: %s, but didnt!",
 							BLEUUID(param->add_char.char_uuid).toString().c_str());
 					dump();
+					m_serializeMutex.give();
 					break;
 				}
 				pCharacteristic->setHandle(param->add_char.attr_handle);
 				m_characteristicMap.setByHandle(param->add_char.attr_handle, pCharacteristic);
 				//ESP_LOGD(tag, "Characteristic map: %s", m_characteristicMap.toString().c_str());
+				m_serializeMutex.give();
 				break;
 			} // Reached the correct service.
 		} // ESP_GATTS_ADD_CHAR_EVT
 
-		default: {
+		// ESP_GATTS_CREATE_EVT
+		// Called when a new service is registered as having been created.
+		//
+		// create:
+		// * esp_gatt_status_t status
+		// * uint16_t service_handle
+		// * esp_gatt_srvc_id_t service_id
+		// * - esp_gatt_id id
+		// *   - esp_bt_uuid uuid
+		// *   - uint8_t inst_id
+		// * - bool is_primary
+		//
+		case ESP_GATTS_CREATE_EVT: {
+			if (getUUID().equals(BLEUUID(param->create.service_id.id.uuid))) {
+				setHandle(param->create.service_handle);
+				m_serializeMutex.give();
+			}
 			break;
 		}
+
+		default: {
+			break;
+		} // Default
 	} // Switch
 
 	m_characteristicMap.handleGATTServerEvent(event, gatts_if, param);
-}
+} // handleGATTServerEvent
+
 
 BLECharacteristic* BLEService::getCharacteristic(BLEUUID uuid) {
 	return m_characteristicMap.getByUUID(uuid);

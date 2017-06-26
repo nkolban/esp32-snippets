@@ -1,0 +1,104 @@
+/*
+ * BLEDescriptorMap.cpp
+ *
+ *  Created on: Jun 22, 2017
+ *      Author: kolban
+ */
+#include <sstream>
+#include <iomanip>
+#include "BLEDescriptorMap.h"
+#include "BLEDescriptor.h"
+#include <esp_gatts_api.h>   // ESP32 BLE
+
+BLEDescriptorMap::BLEDescriptorMap() {
+}
+
+BLEDescriptorMap::~BLEDescriptorMap() {
+}
+
+
+/**
+ * @brief Return the descriptor by UUID.
+ * @param [in] UUID The UUID to look up the descriptor.
+ * @return The descriptor.
+ */
+BLEDescriptor* BLEDescriptorMap::getByUUID(BLEUUID uuid) {
+	for (auto &myPair : m_uuidMap) {
+		if (myPair.second->getUUID().equals(uuid)) {
+			return myPair.second;
+		}
+	}
+	//return m_uuidMap.at(uuid.toString());
+	return nullptr;
+} // getByUUID
+
+
+/**
+ * @brief Return the descriptor by handle.
+ * @param [in] handle The handle to look up the descriptor.
+ * @return The descriptor.
+ */
+BLEDescriptor* BLEDescriptorMap::getByHandle(uint16_t handle) {
+	return m_handleMap.at(handle);
+} // getByHandle
+
+
+/**
+ * @brief Set the descriptor by UUID.
+ * @param [in] uuid The uuid of the descriptor.
+ * @param [in] characteristic The descriptor to cache.
+ * @return N/A.
+ */
+void BLEDescriptorMap::setByUUID(
+		BLEUUID            uuid,
+		BLEDescriptor *pDescriptor) {
+	m_uuidMap.insert(std::pair<std::string, BLEDescriptor *>(uuid.toString(), pDescriptor));
+} // setByUUID
+
+
+/**
+ * @brief Set the descriptor by handle.
+ * @param [in] handle The handle of the descriptor.
+ * @param [in] descriptor The descriptor to cache.
+ * @return N/A.
+ */
+void BLEDescriptorMap::setByHandle(uint16_t handle,
+		BLEDescriptor *pDescriptor) {
+	m_handleMap.insert(std::pair<uint16_t, BLEDescriptor *>(handle, pDescriptor));
+} // setByHandle
+
+
+/**
+ * @brief Return a string representation of the descriptor map.
+ * @return A string representation of the descriptor map.
+ */
+std::string BLEDescriptorMap::toString() {
+	std::stringstream stringStream;
+	stringStream << std::hex << std::setfill('0');
+	int count=0;
+	for (auto &myPair: m_uuidMap) {
+		if (count > 0) {
+			stringStream << "\n";
+		}
+		count++;
+		stringStream << "handle: 0x" << std::setw(2) << myPair.second->getHandle() << ", uuid: " + myPair.second->getUUID().toString();
+	}
+	return stringStream.str();
+} // toString
+
+
+/**
+ * @breif Pass the GATT server event onwards to each of the descriptors found in the mapping
+ * @param [in] event
+ * @param [in] gatts_if
+ * @param [in] param
+ */
+void BLEDescriptorMap::handleGATTServerEvent(
+		esp_gatts_cb_event_t      event,
+		esp_gatt_if_t             gatts_if,
+		esp_ble_gatts_cb_param_t *param) {
+	// Invoke the handler for every descriptor we have.
+	for (auto &myPair : m_uuidMap) {
+		myPair.second->handleGATTServerEvent(event, gatts_if, param);
+	}
+} // handleGATTServerEvent

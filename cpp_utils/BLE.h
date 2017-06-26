@@ -12,6 +12,7 @@
 #include <esp_gap_ble_api.h> // ESP32 BLE
 #include <esp_gattc_api.h>   // ESP32 BLE
 #include <map>               // Part of C++ STL
+#include <string>
 
 #include "BLEServer.h"
 #include "BLEDevice.h"
@@ -27,7 +28,7 @@ public:
 	static std::map<ble_address, BLEDevice> getDevices();
 
 	static void initClient();
-	static void initServer();
+	static BLEServer *initServer(std::string deviceName);
 	static void scan(int duration, esp_ble_scan_type_t scan_type = BLE_SCAN_TYPE_PASSIVE);
 	static esp_gatt_if_t getGattcIF();
 	static BLEServer *m_bleServer;

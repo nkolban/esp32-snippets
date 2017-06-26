@@ -356,10 +356,10 @@ std::string BLEUtils::uuidToString(esp_bt_uuid_t uuid) {
  * @param [in] source The start of the binary data.
  * @param [in] length The length of the data to convert.
  */
-void bt_utils_dumpHexData(char *target, char *source, uint8_t length) {
+void BLEUtils::dumpHexData(uint8_t *target, uint8_t *source, uint8_t length) {
 	int i;
 	for (i=0; i<length; i++) {
-		sprintf(target, "%.2x", *source);
+		sprintf((char *)target, "%.2x", (char)*source);
 		source++;
 		target +=2;
 	}
@@ -669,8 +669,8 @@ void BLEUtils::dumpGattClientEvent(
 				evtParam->read.value_len
 			);
 			if (evtParam->read.status == ESP_GATT_OK) {
-				char *data = (char *)malloc(evtParam->read.value_len * 2 + 1);
-				bt_utils_dumpHexData(data, (char *)evtParam->read.value, evtParam->read.value_len);
+				uint8_t *data = (uint8_t *)malloc(evtParam->read.value_len * 2 + 1);
+				BLEUtils::dumpHexData(data, (uint8_t *)evtParam->read.value, evtParam->read.value_len);
 				ESP_LOGD(tag, "value: %s", data);
 				free(data);
 			}

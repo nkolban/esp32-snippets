@@ -21,7 +21,13 @@ BLEServiceMap::~BLEServiceMap() {
  * @return The characteristic.
  */
 BLEService* BLEServiceMap::getByUUID(BLEUUID uuid) {
-	return m_uuidMap.at(uuid.toString());
+	for (auto &myPair : m_uuidMap) {
+		if (myPair.second->getUUID().equals(uuid)) {
+			return myPair.second;
+		}
+	}
+	//return m_uuidMap.at(uuid.toString());
+	return nullptr;
 } // getByUUID
 
 

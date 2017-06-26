@@ -13,49 +13,75 @@
 #include <esp_gap_ble_api.h>
 #include <esp_gatts_api.h>
 #include "BLEServer.h"
+#include "BLEService.h"
 #include "BLEUtils.h"
 #include <string.h>
 #include <string>
 #include <gatt_api.h>
 #include <unordered_set>
 
-static char tag[] = "BLEServer";
+static char LOG_TAG[] = "BLEServer";
 
 extern "C" {
 	char *espToString(esp_err_t value);
 }
 
-//static esp_attr_value_t gatts_demo_char1_val;
-//static uint8_t char1_str[] = {0x11,0x22,0x33};
 
 /**
  * Construct a BLE Server
  */
-BLEServer::BLEServer(uint16_t appId, std::string deviceName) {
-	m_appId                                  = appId;
-	m_deviceName                             = deviceName;
-	::esp_ble_gatts_app_register(m_appId);
+BLEServer::BLEServer(uint16_t appId) {
+	m_appId = appId;
+	m_serializeMutex.setName("BLEServer");
 } // BLEServer
+
 
 BLEServer::~BLEServer() {
 }
 
 
+void BLEServer::registerApp() {
+	ESP_LOGD(LOG_TAG, ">> registerApp()");
+	m_serializeMutex.take("start"); // Take the mutex, will be released by ESP_GATTS_REG_EVT event.
+	::esp_ble_gatts_app_register(m_appId);
+	ESP_LOGD(LOG_TAG, "<< registerApp()");
+} // start
+
+
 /**
- * @brief setDeviceName
- * @param [in] deviceName
+ * @brief Create a BLE Service.
+ * With a BLE server, we can host one or more services.  Invoking this function causes the creation of a definition
+ * of a new service.  Every service must have a unique UUID.
+ * @param [in] uuid The UUID of the new service.
+ * @return A reference to the new service object.
  */
-void BLEServer::setDeviceName(std::string deviceName) {
-	m_deviceName = deviceName;
-} // setDeviceName
+BLEService *BLEServer::createService(BLEUUID uuid) {
+	ESP_LOGD(LOG_TAG, ">> createService(%s)", uuid.toString().c_str());
+	m_serializeMutex.take("createService");
+	// Check that a service with the supplied uuid does not already exist.
+	if (m_serviceMap.getByUUID(uuid) != nullptr) {
+		ESP_LOGE(LOG_TAG, "<< Attempt to create a new service with uuid %s but a service with that UUID already exists.",
+			uuid.toString().c_str());
+		m_serializeMutex.give();
+		return nullptr;
+	}
+	BLEService *pService = new BLEService(uuid);
+	m_serviceMap.setByUUID(uuid, pService);
+	pService->create(m_gatts_if);
+	ESP_LOGD(LOG_TAG, "<< createService");
+	return pService;
+} // createService
 
 
 /**
- * Start advertising.
+ * @brief Start advertising.
+ * Start the server advertising its existence.
  */
 void BLEServer::startAdvertising() {
+	ESP_LOGD(LOG_TAG, ">> startAdvertising()");
 	m_bleAdvertising.setAppearance(3);
 	m_bleAdvertising.start();
+	ESP_LOGD(LOG_TAG, "<< startAdvertising()");
 } // startAdvertising
 
 
@@ -70,10 +96,8 @@ void BLEServer::handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
 		esp_gatt_if_t             gatts_if,
 		esp_ble_gatts_cb_param_t *param) {
-// m_serviceMap.handleGATTServerEvent() ->
-//   For each BLEService in the map -> handleGattServerEvent()
-//      For each BLECharacteristic in the service -> handleGattServerEvent()
-	ESP_LOGD(tag, "handleGATTServerEvent: %s",
+
+	ESP_LOGD(LOG_TAG, ">> handleGATTServerEvent: %s",
 			bt_utils_gatt_server_event_type_to_string(event).c_str());
 
 	// Invoke the handler for every Service we have.
@@ -81,24 +105,20 @@ void BLEServer::handleGATTServerEvent(
 
 	switch(event) {
 		// ESP_GATTS_REG_EVT
+		// reg:
+		// - esp_gatt_status_t status
+		// - uint16_t app_id
 		case ESP_GATTS_REG_EVT: {
-			m_profile.gatts_if = gatts_if;
-			ESP_LOGD(tag, "Registering device name: %s (esp_ble_gap_set_device_name)", m_deviceName.c_str());
-			esp_err_t errRc = esp_ble_gap_set_device_name(m_deviceName.c_str());
-			if (errRc != ESP_OK) {
-				ESP_LOGE(tag, "esp_ble_gap_set_device_name: rc=%d %s", errRc, espToString(errRc));
-				return;
-			}
+			m_gatts_if = gatts_if;
 
-			startAdvertising();
-			BLEUUID uuid((uint16_t)0x1234);
-			BLEService *pService = new BLEService(uuid);
-			m_serviceMap.setByUUID(uuid, pService);
-			pService->create(gatts_if);
+			m_serializeMutex.give();
 			break;
 		} // ESP_GATTS_REG_EVT
 
+
 		// ESP_GATTS_CREATE_EVT
+		// Called when a new service is registered as having been created.
+		//
 		// create:
 		// * esp_gatt_status_t status
 		// * uint16_t service_handle
@@ -110,13 +130,7 @@ void BLEServer::handleGATTServerEvent(
 			pService->setHandle(param->create.service_handle);
 
 			pService->start();
-
-			BLECharacteristic *characteristic = new BLECharacteristic(BLEUUID((uint16_t)0x99AA));
-			characteristic->setWritePermission(true);
-			characteristic->setReadPermission(true);
-			characteristic->setNotifyPermission(true);
-			characteristic->setValue("hello steph");
-			pService->addCharacteristic(characteristic);
+			m_serializeMutex.give();
 			break;
 		} // ESP_GATTS_CREATE_EVT
 
@@ -169,12 +183,14 @@ void BLEServer::handleGATTServerEvent(
 		// - esp_bt_uuid_t char_uuid
 		case ESP_GATTS_ADD_CHAR_EVT: {
 			break;
-		}
+		} // ESP_GATTS_ADD_CHAR_EVT
 
 
-		default:
+		default: {
 			break;
+		}
 	}
+	ESP_LOGD(LOG_TAG, "<< handleGATTServerEvent");
 } // handleGATTServerEvent
 
 
@@ -186,7 +202,7 @@ void BLEServer::handleGATTServerEvent(
 void BLEServer::handleGAPEvent(
 		esp_gap_ble_cb_event_t event,
 		esp_ble_gap_cb_param_t *param) {
-	ESP_LOGD(tag, "BLEServer ... handling GAP event!");
+	ESP_LOGD(LOG_TAG, "BLEServer ... handling GAP event!");
 	switch(event) {
 		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT: {
 			/*
@@ -210,6 +226,10 @@ void BLEServer::handleGAPEvent(
 			break;
 	}
 } // handleGAPEvent
+
+BLEAdvertising* BLEServer::getAdvertising() {
+	return &m_bleAdvertising;
+}
 
 /*
 void BLEServer::addCharacteristic(BLECharacteristic *characteristic, BLEService *pService) {

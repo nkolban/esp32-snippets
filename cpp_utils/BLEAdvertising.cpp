@@ -8,15 +8,15 @@
 #include "BLEAdvertising.h"
 #include <esp_log.h>
 #include <esp_err.h>
+#include "BLEUtils.h"
 
-static char TAG[] = "BLEAdvertising";
+static char LOG_TAG[] = "BLEAdvertising";
 
 extern "C" {
 	char *espToString(esp_err_t value);
 }
 
 BLEAdvertising::BLEAdvertising() {
-	// TODO Auto-generated constructor stub
 	m_advData.set_scan_rsp        = false;
 	m_advData.include_name        = true;
 	m_advData.include_txpower     = true;
@@ -39,6 +39,7 @@ BLEAdvertising::BLEAdvertising() {
 	m_advParams.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY;
 } // BLEAdvertising
 
+
 BLEAdvertising::~BLEAdvertising() {
 	// TODO Auto-generated destructor stub
 }
@@ -50,20 +51,32 @@ BLEAdvertising::~BLEAdvertising() {
  * @return N/A.
  */
 void BLEAdvertising::start() {
+	ESP_LOGD(LOG_TAG, ">> start()");
+	uint8_t tempData[16*2+1];
+	if (m_advData.service_uuid_len > 0) {
+		BLEUtils::dumpHexData(tempData, m_advData.p_service_uuid, m_advData.service_uuid_len);
+	}
+
+	ESP_LOGD(LOG_TAG, " - Service: service_uuid_len=%d, p_service_uuid=0x%x (data=%s)",
+		m_advData.service_uuid_len,
+		(uint32_t)m_advData.p_service_uuid,
+		(m_advData.service_uuid_len > 0?(char *)tempData:"N/A")
+	);
 	// Set the configuration for advertising.
 	esp_err_t errRc = ::esp_ble_gap_config_adv_data(&m_advData);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(TAG, "esp_ble_gap_config_adv_data: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_config_adv_data: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
 
 	// Start advertising.
 	errRc = ::esp_ble_gap_start_advertising(&m_advParams);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(TAG, "esp_ble_gap_start_advertising: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_start_advertising: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
-} // advertising
+	ESP_LOGD(LOG_TAG, "<< start();")
+} // start
 
 
 /**
@@ -74,7 +87,7 @@ void BLEAdvertising::start() {
 void BLEAdvertising::stop() {
 	esp_err_t errRc = ::esp_ble_gap_stop_advertising();
 	if (errRc != ESP_OK) {
-		ESP_LOGE(TAG, "esp_ble_gap_stop_advertising: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_stop_advertising: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
 } // stop
@@ -82,7 +95,7 @@ void BLEAdvertising::stop() {
 
 /**
  * @brief Set the device appearance in the advertising data.
- * The apperance attribute is of type 0x19.  The codes for distinct appearances can be found here:
+ * The appearance attribute is of type 0x19.  The codes for distinct appearances can be found here:
  * https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.gap.appearance.xml.
  * @param [in] appearance The appearance of the device in the advertising data.
  * @return N/A.
@@ -90,3 +103,33 @@ void BLEAdvertising::stop() {
 void BLEAdvertising::setAppearance(uint16_t appearance) {
 	m_advData.appearance = appearance;
 } // setAppearance
+
+
+/**
+ * @brief Set the service UUID.
+ * @param [in] uuid The UUID of the service.
+ * @return N/A.
+ */
+void BLEAdvertising::setServiceUUID(BLEUUID uuid) {
+	ESP_LOGD(LOG_TAG, ">> setServiceUUID(%s)", uuid.toString().c_str());
+	m_serviceUUID = uuid; // Save the new service UUID
+	esp_bt_uuid_t espUUID = *m_serviceUUID.getNative();
+	switch(espUUID.len) {
+		case ESP_UUID_LEN_16: {
+			m_advData.service_uuid_len = 2;
+			m_advData.p_service_uuid = (uint8_t *)&espUUID.uuid.uuid16;
+			break;
+		}
+		case ESP_UUID_LEN_32: {
+			m_advData.service_uuid_len = 4;
+			m_advData.p_service_uuid = (uint8_t *)&espUUID.uuid.uuid32;
+			break;
+		}
+		case ESP_UUID_LEN_128: {
+			m_advData.service_uuid_len = 16;
+			m_advData.p_service_uuid = (uint8_t *)&espUUID.uuid.uuid128;
+			break;
+		}
+	} // switch
+	ESP_LOGD(LOG_TAG, "<< setServiceUUID()");
+} // setServiceUUID
