@@ -31,21 +31,26 @@ extern "C" {
  * Construct a BLE Server
  */
 BLEServer::BLEServer(uint16_t appId) {
-	m_appId = appId;
+	m_appId    = appId;
+	m_gatts_if = 0;
 	m_serializeMutex.setName("BLEServer");
 } // BLEServer
 
 
 BLEServer::~BLEServer() {
-}
+} // ~BLEServer
 
 
+/**
+ * @brief Register the app.
+ * @return N/A
+ */
 void BLEServer::registerApp() {
 	ESP_LOGD(LOG_TAG, ">> registerApp()");
-	m_serializeMutex.take("start"); // Take the mutex, will be released by ESP_GATTS_REG_EVT event.
+	m_serializeMutex.take("registerApp"); // Take the mutex, will be released by ESP_GATTS_REG_EVT event.
 	::esp_ble_gatts_app_register(m_appId);
 	ESP_LOGD(LOG_TAG, "<< registerApp()");
-} // start
+} // registerApp
 
 
 /**
@@ -58,16 +63,18 @@ void BLEServer::registerApp() {
 BLEService *BLEServer::createService(BLEUUID uuid) {
 	ESP_LOGD(LOG_TAG, ">> createService(%s)", uuid.toString().c_str());
 	m_serializeMutex.take("createService");
-	// Check that a service with the supplied uuid does not already exist.
+
+	// Check that a service with the supplied UUID does not already exist.
 	if (m_serviceMap.getByUUID(uuid) != nullptr) {
 		ESP_LOGE(LOG_TAG, "<< Attempt to create a new service with uuid %s but a service with that UUID already exists.",
 			uuid.toString().c_str());
 		m_serializeMutex.give();
 		return nullptr;
 	}
+
 	BLEService *pService = new BLEService(uuid);
-	m_serviceMap.setByUUID(uuid, pService);
-	pService->create(m_gatts_if);
+	m_serviceMap.setByUUID(uuid, pService); // Save a reference to this service being on this server.
+	pService->executeCreate(m_gatts_if);    // Perform the API calls to actually create the service.
 	ESP_LOGD(LOG_TAG, "<< createService");
 	return pService;
 } // createService
@@ -128,8 +135,6 @@ void BLEServer::handleGATTServerEvent(
 			BLEService *pService = m_serviceMap.getByUUID(param->create.service_id.id.uuid);
 			m_serviceMap.setByHandle(param->create.service_handle, pService);
 			pService->setHandle(param->create.service_handle);
-
-			pService->start();
 			m_serializeMutex.give();
 			break;
 		} // ESP_GATTS_CREATE_EVT

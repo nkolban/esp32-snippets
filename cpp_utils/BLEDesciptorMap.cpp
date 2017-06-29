@@ -102,3 +102,32 @@ void BLEDescriptorMap::handleGATTServerEvent(
 		myPair.second->handleGATTServerEvent(event, gatts_if, param);
 	}
 } // handleGATTServerEvent
+
+
+/**
+ * @brief Get the first descriptor in the map.
+ * @return The first descriptor in the map.
+ */
+BLEDescriptor* BLEDescriptorMap::getFirst() {
+	m_iterator = m_uuidMap.begin();
+	if (m_iterator == m_uuidMap.end()) {
+		return nullptr;
+	}
+	BLEDescriptor *pRet = m_iterator->second;
+	m_iterator++;
+	return pRet;
+} // getFirst
+
+
+/**
+ * @brief Get the next descriptor in the map.
+ * @return The next descriptor in the map.
+ */
+BLEDescriptor* BLEDescriptorMap::getNext() {
+	if (m_iterator == m_uuidMap.end()) {
+		return nullptr;
+	}
+	BLEDescriptor *pRet = m_iterator->second;
+	m_iterator++;
+	return pRet;
+} // getNext

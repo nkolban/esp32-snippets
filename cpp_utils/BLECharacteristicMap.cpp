@@ -100,3 +100,32 @@ void BLECharacteristicMap::handleGATTServerEvent(
 		myPair.second->handleGATTServerEvent(event, gatts_if, param);
 	}
 } // handleGATTServerEvent
+
+
+/**
+ * @brief Get the first characteristic in the map.
+ * @return The first characteristic in the map.
+ */
+BLECharacteristic* BLECharacteristicMap::getFirst() {
+	m_iterator = m_uuidMap.begin();
+	if (m_iterator == m_uuidMap.end()) {
+		return nullptr;
+	}
+	BLECharacteristic *pRet = m_iterator->second;
+	m_iterator++;
+	return pRet;
+} // getFirst
+
+
+/**
+ * @brief Get the next characteristic in the map.
+ * @return The next characteristic in the map.
+ */
+BLECharacteristic* BLECharacteristicMap::getNext() {
+	if (m_iterator == m_uuidMap.end()) {
+		return nullptr;
+	}
+	BLECharacteristic *pRet = m_iterator->second;
+	m_iterator++;
+	return pRet;
+} // getNext

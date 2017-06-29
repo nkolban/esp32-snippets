@@ -50,16 +50,18 @@ private:
 	friend class BLEService;
 	friend class BLEDescriptor;
 	friend class BLECharacteristicMap;
-	BLEUUID m_bleUUID;
+	BLEUUID              m_bleUUID;
 	esp_gatt_char_prop_t m_properties;
 	esp_attr_value_t     m_value;
 	uint16_t             m_handle;
 	BLEService          *m_pService;
-	BLEService *getService();
-	esp_gatt_char_prop_t getProperties();
-	void setHandle(uint16_t handle);
 	BLEDescriptorMap     m_descriptorMap;
+
+	void executeCreate(BLEService *pService);
 	uint16_t getHandle();
+	esp_gatt_char_prop_t getProperties();
+	BLEService *getService();
+	void setHandle(uint16_t handle);
 };
 
 #endif /* COMPONENTS_CPP_UTILS_BLECHARACTERISTIC_H_ */

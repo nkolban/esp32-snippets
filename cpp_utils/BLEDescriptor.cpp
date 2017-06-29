@@ -37,15 +37,22 @@ BLEDescriptor::~BLEDescriptor() {
 } // ~BLEDescriptor
 
 
-
 /**
- * @brief Register the descriptor with the BLE runtime in ESP.
+ * @brief Execute the creation of the descriptor with the BLE runtime in ESP.
  * @param [in] pCharacteristic The characteristic to which to register this descriptor.
  */
-void BLEDescriptor::espRegister(BLECharacteristic* pCharacteristic) {
-	ESP_LOGD(LOG_TAG, ">> espRegister");
-	m_pCharacteristic = pCharacteristic;
-	esp_err_t errRc = ::esp_ble_gatts_add_char_descr(pCharacteristic->getService()->getHandle(),
+void BLEDescriptor::executeCreate(BLECharacteristic* pCharacteristic) {
+	ESP_LOGD(LOG_TAG, ">> executeCreate(): %s", toString().c_str());
+
+	if (m_handle != 0) {
+		ESP_LOGE(LOG_TAG, "Descriptor already has a handle.");
+		return;
+	}
+
+	m_pCharacteristic = pCharacteristic; // Save the characteristic associated with this service.
+
+	esp_err_t errRc = ::esp_ble_gatts_add_char_descr(
+			pCharacteristic->getService()->getHandle(),
 			getUUID().getNative(),
 			ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
 			&m_value,
@@ -54,8 +61,9 @@ void BLEDescriptor::espRegister(BLECharacteristic* pCharacteristic) {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_add_char_descr: rc=%d %s", errRc, espToString(errRc));
 		return;
 	}
-	ESP_LOGD(LOG_TAG, "<< espRegister");
-} // espRegister
+	ESP_LOGD(LOG_TAG, "<< executeCreate");
+} // executeCreate
+
 
 /**
  * @brief Return a string representation of the descriptor.
@@ -101,17 +109,50 @@ size_t BLEDescriptor::getLength() {
 	return m_value.attr_len;
 }
 
+
+/**
+ * @brief Set the handle of this descriptor.
+ * Set the handle of this descriptor to be the supplied value.
+ * @param [in] handle The handle to be associated with this descriptor.
+ * @return N/A.
+ */
 void BLEDescriptor::setHandle(uint16_t handle) {
-	ESP_LOGD(LOG_TAG, ">> setHandle(0x%.2x): Setting handle to be 0x%.2x", handle, handle);
+	ESP_LOGD(LOG_TAG, ">> setHandle(0x%.2x): Setting descriptor handle to be 0x%.2x", handle, handle);
 	m_handle = handle;
 	ESP_LOGD(LOG_TAG, "<< setHandle()");
-}
+} // setHandle
 
 void BLEDescriptor::handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
 		esp_gatt_if_t             gatts_if,
 		esp_ble_gatts_cb_param_t *param) {
 	switch(event) {
+		// ESP_GATTS_ADD_CHAR_DESCR_EVT
+		//
+		// add_char_descr:
+		// - esp_gatt_status_t status
+		// - uint16_t attr_handle
+		// - uint16_t service_handle
+		// - esp_bt_uuid_t char_uuid
+		case ESP_GATTS_ADD_CHAR_DESCR_EVT: {
+			ESP_LOGD(LOG_TAG, "DEBUG: m_pCharacteristic: %x", (uint32_t)m_pCharacteristic);
+			ESP_LOGD(LOG_TAG, "DEBUG: m_bleUUID: %s, add_char_descr.char_uuid: %s, equals: %d",
+				m_bleUUID.toString().c_str(),
+				BLEUUID(param->add_char_descr.char_uuid).toString().c_str(),
+				m_bleUUID.equals(BLEUUID(param->add_char_descr.char_uuid)));
+			ESP_LOGD(LOG_TAG, "DEBUG: service->getHandle: %x, add_char_descr.service_handle: %x",
+					m_pCharacteristic->getService()->getHandle(), param->add_char_descr.service_handle);
+			ESP_LOGD(LOG_TAG, "DEBUG: service->lastCharacteristic: %x",
+					(uint32_t)m_pCharacteristic->getService()->getLastCreatedCharacteristic());
+			if (m_pCharacteristic != nullptr &&
+					m_bleUUID.equals(BLEUUID(param->add_char_descr.char_uuid)) &&
+					m_pCharacteristic->getService()->getHandle() == param->add_char_descr.service_handle &&
+					m_pCharacteristic == m_pCharacteristic->getService()->getLastCreatedCharacteristic()) {
+				setHandle(param->add_char_descr.attr_handle);
+			}
+			break;
+		} // ESP_GATTS_ADD_CHAR_DESCR_EVT
+
 		// ESP_GATTS_WRITE_EVT - A request to write the value of a descriptor has arrived.
 		//
 		// write:
@@ -154,7 +195,7 @@ void BLEDescriptor::handleGATTServerEvent(
 		// - bool need_rsp
 		//
 		case ESP_GATTS_READ_EVT: {
-			ESP_LOGD(LOG_TAG, "- Testing: %d == %d", param->read.handle, m_handle);
+			ESP_LOGD(LOG_TAG, "- Testing: Sought handle: 0x%.2x == descriptor handle: 0x%.2x ?", param->read.handle, m_handle);
 			if (param->read.handle == m_handle) {
 				ESP_LOGD(LOG_TAG, "Sending a response (esp_ble_gatts_send_response)");
 				if (param->read.need_rsp) {

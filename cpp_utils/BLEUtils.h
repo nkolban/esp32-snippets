@@ -11,6 +11,7 @@
 #if defined(CONFIG_BT_ENABLED)
 #include <esp_gattc_api.h>   // ESP32 BLE
 #include <esp_gatts_api.h>   // ESP32 BLE
+#include <esp_gap_ble_api.h> // ESP32 BLE
 #include <string>
 #include <BLEDevice.h>
 typedef std::string ble_address;
@@ -46,9 +47,10 @@ public:
 		esp_gatt_if_t gatts_if,
 		esp_ble_gatts_cb_param_t *evtParam);
 	static std::string devTypeToString(esp_bt_dev_type_t type);
+	static void dumpGapEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param);
 };
 
-std::string bt_event_type_to_string(uint32_t eventType);
+std::string gapEventToString(uint32_t eventType);
 std::string bt_utils_gatt_client_event_type_to_string(esp_gattc_cb_event_t eventType);
 std::string bt_utils_gatt_server_event_type_to_string(esp_gatts_cb_event_t eventType);
 std::string bt_gap_search_event_type_to_string(uint32_t searchEvt);

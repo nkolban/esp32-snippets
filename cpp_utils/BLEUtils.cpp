@@ -22,7 +22,7 @@
 #include <sstream>
 #include <iomanip>
 
-static char tag[] = "BLEUtils";
+static char LOG_TAG[] = "BLEUtils";
 
 static std::map<ble_address, BLEDevice *> g_addressMap;
 static std::map<uint16_t, BLEDevice *> g_connIdMap;
@@ -64,7 +64,7 @@ std::string bt_utils_gatt_close_reason_to_string(esp_gatt_conn_reason_t reason) 
  * @brief Convert a BT GAP event type to a string representation.
  */
 
-std::string bt_event_type_to_string(uint32_t eventType) {
+std::string gapEventToString(uint32_t eventType) {
 	switch(eventType) {
 		case ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT:
 			return "ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT";
@@ -105,10 +105,10 @@ std::string bt_event_type_to_string(uint32_t eventType) {
 		case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
 			return "ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT";
 		default:
-			ESP_LOGD(tag, "bt_event_type_to_string: Unknown event type 0x%x", eventType);
+			ESP_LOGD(LOG_TAG, "gapEventToString: Unknown event type 0x%x", eventType);
 			return "Unknown event type";
 	}
-} // bt_event_type_to_string
+} // gapEventToString
 
 
 std::string bt_utils_gatt_client_event_type_to_string(esp_gattc_cb_event_t eventType) {
@@ -260,6 +260,7 @@ std::string bt_utils_gatt_server_event_type_to_string(esp_gatts_cb_event_t event
 /**
  * @brief Convert an esp_ble_addr_type_t to a string representation.
  */
+/*
 static std::string bt_addr_t_to_string(esp_ble_addr_type_t type) {
 	switch(type) {
 		case BLE_ADDR_TYPE_PUBLIC:
@@ -274,7 +275,7 @@ static std::string bt_addr_t_to_string(esp_ble_addr_type_t type) {
 			return "Unknown addr_t";
 	}
 } // bt_addr_t_to_string
-
+*/
 
 /**
  * @brief Convert a BLE device type to a string.
@@ -323,22 +324,23 @@ std::string BLEUtils::uuidToString(esp_bt_uuid_t uuid) {
 		break;
 
 	case ESP_UUID_LEN_128:
-		stream << std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[0] <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[1] <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[2] <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[3] << "-" <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[4] <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[5] << "-" <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[6] <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[7] << "-" <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[8] <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[9] << "-" <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[10] <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[11] <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[12] <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[13] <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[14] <<
-			std::setfill('0') << std::setw(2) << std::hex << uuid.uuid.uuid128[15];
+		stream << std::setfill('0') << std::hex <<
+			std::setw(2) << uuid.uuid.uuid128[0] <<
+			std::setw(2) << uuid.uuid.uuid128[1] <<
+			std::setw(2) << uuid.uuid.uuid128[2] <<
+			std::setw(2) << uuid.uuid.uuid128[3] << "-" <<
+			std::setw(2) << uuid.uuid.uuid128[4] <<
+			std::setw(2) << uuid.uuid.uuid128[5] << "-" <<
+			std::setw(2) << uuid.uuid.uuid128[6] <<
+			std::setw(2) << uuid.uuid.uuid128[7] << "-" <<
+			std::setw(2) << uuid.uuid.uuid128[8] <<
+			std::setw(2) << uuid.uuid.uuid128[9] << "-" <<
+			std::setw(2) << uuid.uuid.uuid128[10] <<
+			std::setw(2) << uuid.uuid.uuid128[11] <<
+			std::setw(2) << uuid.uuid.uuid128[12] <<
+			std::setw(2) << uuid.uuid.uuid128[13] <<
+			std::setw(2) << uuid.uuid.uuid128[14] <<
+			std::setw(2) << uuid.uuid.uuid128[15];
 		break;
 	}
 
@@ -579,7 +581,7 @@ std::string bt_gap_search_event_type_to_string(uint32_t searchEvt) {
 		case ESP_GAP_SEARCH_SEARCH_CANCEL_CMPL_EVT:
 			return "ESP_GAP_SEARCH_SEARCH_CANCEL_CMPL_EVT";
 		default:
-			ESP_LOGD(tag, "Unknown event type: 0x%x", searchEvt);
+			ESP_LOGD(LOG_TAG, "Unknown event type: 0x%x", searchEvt);
 			return "Unknown event type";
 	}
 } // bt_gap_search_event_type_to_string
@@ -611,13 +613,13 @@ void BLEUtils::dumpGattClientEvent(
 	esp_ble_gattc_cb_param_t *evtParam) {
 
 	//esp_ble_gattc_cb_param_t *evtParam = (esp_ble_gattc_cb_param_t *)param;
-	ESP_LOGD(tag, "GATT Event: %s", bt_utils_gatt_client_event_type_to_string(event).c_str());
+	ESP_LOGD(LOG_TAG, "GATT Event: %s", bt_utils_gatt_client_event_type_to_string(event).c_str());
 	switch(event) {
 		//
 		// ESP_GATTC_CLOSE_EVT
 		//
 		case ESP_GATTC_CLOSE_EVT: {
-			ESP_LOGD(tag, "status: %s, reason:%s, conn_id: %d",
+			ESP_LOGD(LOG_TAG, "status: %s, reason:%s, conn_id: %d",
 				BLEUtils::gattStatusToString(evtParam->close.status).c_str(),
 				bt_utils_gatt_close_reason_to_string(evtParam->close.reason).c_str(),
 				evtParam->close.conn_id);
@@ -632,7 +634,7 @@ void BLEUtils::dumpGattClientEvent(
 			if (evtParam->get_char.char_id.uuid.len == ESP_UUID_LEN_16) {
 				description = BLEUtils::gattCharacteristicUUIDToString(evtParam->get_char.char_id.uuid.uuid.uuid16);
 			}
-			ESP_LOGD(tag, "[status: %s, conn_id: %d, srvc_id: %s, char_id: %s [description: %s]\nchar_prop: %s]",
+			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, srvc_id: %s, char_id: %s [description: %s]\nchar_prop: %s]",
 					BLEUtils::gattStatusToString(evtParam->get_char.status).c_str(),
 				evtParam->get_char.conn_id,
 				BLEUtils::gattServiceIdToString(evtParam->get_char.srvc_id).c_str(),
@@ -647,10 +649,10 @@ void BLEUtils::dumpGattClientEvent(
 		// ESP_GATTC_OPEN_EVT
 		//
 		case ESP_GATTC_OPEN_EVT: {
-			ESP_LOGD(tag, "status: %s", BLEUtils::gattStatusToString(evtParam->open.status).c_str());
-			ESP_LOGD(tag, "conn_id: %d", evtParam->open.conn_id);
-			ESP_LOGD(tag, "device address: %s", BLEUtils::addressToString(std::string((char *)evtParam->open.remote_bda, 6)).c_str());
-			ESP_LOGD(tag, "MTU: %d", evtParam->open.mtu);
+			ESP_LOGD(LOG_TAG, "status: %s", BLEUtils::gattStatusToString(evtParam->open.status).c_str());
+			ESP_LOGD(LOG_TAG, "conn_id: %d", evtParam->open.conn_id);
+			ESP_LOGD(LOG_TAG, "device address: %s", BLEUtils::addressToString(std::string((char *)evtParam->open.remote_bda, 6)).c_str());
+			ESP_LOGD(LOG_TAG, "MTU: %d", evtParam->open.mtu);
 			break;
 		} // ESP_GATTC_OPEN_EVT
 
@@ -659,7 +661,7 @@ void BLEUtils::dumpGattClientEvent(
 		// ESP_GATTC_READ_CHAR_EVT
 		//
 		case ESP_GATTC_READ_CHAR_EVT: {
-			ESP_LOGD(tag, "[status: %s, conn_id: %d, srvc_id: <%s>, char_id: <%s>, descr_id: <%s>, value_type: 0x%x, value_len: %d]",
+			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, srvc_id: <%s>, char_id: <%s>, descr_id: <%s>, value_type: 0x%x, value_len: %d]",
 				BLEUtils::gattStatusToString(evtParam->read.status).c_str(),
 				evtParam->read.conn_id,
 				BLEUtils::gattServiceIdToString(evtParam->read.srvc_id).c_str(),
@@ -671,7 +673,7 @@ void BLEUtils::dumpGattClientEvent(
 			if (evtParam->read.status == ESP_GATT_OK) {
 				uint8_t *data = (uint8_t *)malloc(evtParam->read.value_len * 2 + 1);
 				BLEUtils::dumpHexData(data, (uint8_t *)evtParam->read.value, evtParam->read.value_len);
-				ESP_LOGD(tag, "value: %s", data);
+				ESP_LOGD(LOG_TAG, "value: %s", data);
 				free(data);
 			}
 			break;
@@ -681,7 +683,7 @@ void BLEUtils::dumpGattClientEvent(
 		// ESP_GATTC_REG_EVT
 		//
 		case ESP_GATTC_REG_EVT: {
-			ESP_LOGD(tag, "status: %s, client_if: 0x%x, app_id: 0x%x",
+			ESP_LOGD(LOG_TAG, "status: %s, client_if: 0x%x, app_id: 0x%x",
 					BLEUtils::gattStatusToString(evtParam->reg.status).c_str(),
 				//evtParam->reg.gatt_if,
 				gattc_if,
@@ -693,7 +695,7 @@ void BLEUtils::dumpGattClientEvent(
 		// ESP_GATTC_SEARCH_CMP_EVT
 		//
 		case ESP_GATTC_SEARCH_CMPL_EVT: {
-			ESP_LOGD(tag, "status: %s, conn_id: %d",
+			ESP_LOGD(LOG_TAG, "status: %s, conn_id: %d",
 					BLEUtils::gattStatusToString(evtParam->search_cmpl.status).c_str(),
 				evtParam->search_cmpl.conn_id);
 			break;
@@ -711,7 +713,7 @@ void BLEUtils::dumpGattClientEvent(
 				name = "??";
 			}
 
-			ESP_LOGD(tag, "srvc_id: %s [%s], instanceId: 0x%.2x conn_id: %d",
+			ESP_LOGD(LOG_TAG, "srvc_id: %s [%s], instanceId: 0x%.2x conn_id: %d",
 				BLEUtils::gattServiceIdToString(evtParam->search_res.srvc_id).c_str(),
 				name.c_str(),
 				evtParam->search_res.srvc_id.id.inst_id,
@@ -724,6 +726,78 @@ void BLEUtils::dumpGattClientEvent(
 			break;
 	}
 } // dumpGattClientEvent
+
+
+void BLEUtils::dumpGapEvent(
+	esp_gap_ble_cb_event_t event,
+	esp_ble_gap_cb_param_t *param) {
+	ESP_LOGD(LOG_TAG, "Received a GAP event: %s", gapEventToString(event).c_str());
+	switch(event) {
+		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_rsp_data_cmpl.status);
+			break;
+		} // ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT
+
+		case ESP_GAP_BLE_ADV_START_COMPLETE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_start_cmpl.status);
+			break;
+		} // ESP_GAP_BLE_ADV_START_COMPLETE_EVT
+
+		case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_stop_cmpl.status);
+			break;
+		} // ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT
+
+		case ESP_GAP_BLE_NC_REQ_EVT: {
+			ESP_LOGD(LOG_TAG, "[bd_addr: %s, passkey: %d]",
+				BLEUtils::addressToString(param->ble_security.key_notif.bd_addr).c_str(),
+				param->ble_security.key_notif.passkey);
+			break;
+		} // ESP_GAP_BLE_NC_REQ_EVT
+
+		case ESP_GAP_BLE_LOCAL_IR_EVT: {
+			break;
+		} // ESP_GAP_BLE_LOCAL_IR_EVT
+
+		case ESP_GAP_BLE_LOCAL_ER_EVT: {
+			break;
+		} // ESP_GAP_BLE_LOCAL_ER_EVT
+
+		case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_param_cmpl.status);
+			break;
+		} // ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT
+
+		case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d]", param->scan_start_cmpl.status);
+			break;
+		} // ESP_GAP_BLE_SCAN_START_COMPLETE_EVT
+
+
+		case ESP_GAP_BLE_SEC_REQ_EVT: {
+			ESP_LOGD(LOG_TAG, "[bd_addr: %s]", BLEUtils::addressToString(param->ble_security.ble_req.bd_addr).c_str());
+			break;
+		} // ESP_GAP_BLE_SEC_REQ_EVT
+
+		case ESP_GAP_BLE_AUTH_CMPL_EVT: {
+			ESP_LOGD(LOG_TAG, "[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
+				BLEUtils::addressToString(param->ble_security.auth_cmpl.bd_addr).c_str(),
+				param->ble_security.auth_cmpl.key_present,
+				param->ble_security.auth_cmpl.key_type,
+				param->ble_security.auth_cmpl.success,
+				param->ble_security.auth_cmpl.fail_reason,
+				BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type).c_str()
+			);
+			break;
+		} // ESP_GAP_BLE_AUTH_CMPL_EVT
+
+		default: {
+			ESP_LOGD(LOG_TAG, "*** dumpGapEvent: Logger not coded ***")
+			break;
+		} // default
+	} // switch
+} // dumpGapEvent
+
 
 /**
  * @brief Dump the details of a GATT server event.
@@ -739,11 +813,20 @@ void BLEUtils::dumpGattServerEvent(
 		esp_gatts_cb_event_t event,
 		esp_gatt_if_t gatts_if,
 		esp_ble_gatts_cb_param_t *evtParam) {
-	ESP_LOGD(tag, "GATT ServerEvent: %s", bt_utils_gatt_server_event_type_to_string(event).c_str());
+	ESP_LOGD(LOG_TAG, "GATT ServerEvent: %s", bt_utils_gatt_server_event_type_to_string(event).c_str());
 	switch(event) {
 
+		case ESP_GATTS_ADD_CHAR_DESCR_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %s, attr_handle: 0x%.2x, service_handle: 0x%.2x, char_uuid: %s]",
+				gattStatusToString(evtParam->add_char_descr.status).c_str(),
+				evtParam->add_char_descr.attr_handle,
+				evtParam->add_char_descr.service_handle,
+				uuidToString(evtParam->add_char_descr.char_uuid).c_str());
+			break;
+		} // ESP_GATTS_ADD_CHAR_DESCR_EVT
+
 		case ESP_GATTS_ADD_CHAR_EVT: {
-			ESP_LOGD(tag, "[status: %s, attr_handle: 0x%.2x, service_handle: 0x%.2x, char_uuid: %s]",
+			ESP_LOGD(LOG_TAG, "[status: %s, attr_handle: 0x%.2x, service_handle: 0x%.2x, char_uuid: %s]",
 				gattStatusToString(evtParam->add_char.status).c_str(),
 				evtParam->add_char.attr_handle,
 				evtParam->add_char.service_handle,
@@ -752,7 +835,7 @@ void BLEUtils::dumpGattServerEvent(
 		} // ESP_GATTS_ADD_CHAR_EVT
 
 		case ESP_GATTS_CONNECT_EVT: {
-			ESP_LOGD(tag, "[conn_id: %d, remote_bda: %s, is_connected: %d]",
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s, is_connected: %d]",
 				evtParam->connect.conn_id,
 				addressToString(evtParam->connect.remote_bda).c_str(),
 				evtParam->connect.is_connected);
@@ -760,7 +843,7 @@ void BLEUtils::dumpGattServerEvent(
 		} // ESP_GATTS_CONNECT_EVT
 
 		case ESP_GATTS_DISCONNECT_EVT: {
-			ESP_LOGD(tag, "[conn_id: %d, remote_bda: %s, is_connected: %d]",
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s, is_connected: %d]",
 				evtParam->connect.conn_id,
 				addressToString(evtParam->connect.remote_bda).c_str(),
 				evtParam->connect.is_connected);
@@ -768,7 +851,7 @@ void BLEUtils::dumpGattServerEvent(
 		} // ESP_GATTS_DISCONNECT_EVT
 
 		case ESP_GATTS_CREATE_EVT: {
-			ESP_LOGD(tag, "[status: %s, service_handle: 0x%.2x, service_id: [%s]]",
+			ESP_LOGD(LOG_TAG, "[status: %s, service_handle: 0x%.2x, service_id: [%s]]",
 				gattStatusToString(evtParam->create.status).c_str(),
 				evtParam->create.service_handle,
 				gattServiceIdToString(evtParam->create.service_id).c_str());
@@ -776,14 +859,14 @@ void BLEUtils::dumpGattServerEvent(
 		} // ESP_GATTS_CREATE_EVT
 
 		case ESP_GATTS_MTU_EVT: {
-			ESP_LOGD(tag, "[conn_id: %d, mtu: %d]",
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, mtu: %d]",
 					evtParam->mtu.conn_id,
 					evtParam->mtu.mtu);
 			break;
 		} // ESP_GATTS_MTU_EVT
 
 		case ESP_GATTS_READ_EVT: {
-			ESP_LOGD(tag, "[conn_id: %d, trans_id: %d, bda: %s, handle: 0x%.2x, is_long: %d, need_rsp:%d]",
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, trans_id: %d, bda: %s, handle: 0x%.2x, is_long: %d, need_rsp:%d]",
 					evtParam->read.conn_id,
 					evtParam->read.trans_id,
 					addressToString(evtParam->read.bda).c_str(),
@@ -794,28 +877,28 @@ void BLEUtils::dumpGattServerEvent(
 		} // ESP_GATTS_READ_EVT
 
 		case ESP_GATTS_RESPONSE_EVT: {
-			ESP_LOGD(tag, "[status: %s, handle: 0x%.2x]",
+			ESP_LOGD(LOG_TAG, "[status: %s, handle: 0x%.2x]",
 				gattStatusToString(evtParam->rsp.status).c_str(),
 				evtParam->rsp.handle);
 			break;
 		} // ESP_GATTS_RESPONSE_EVT
 
 		case ESP_GATTS_REG_EVT: {
-			ESP_LOGD(tag, "[status: %s, app_id: %d]",
+			ESP_LOGD(LOG_TAG, "[status: %s, app_id: %d]",
 				gattStatusToString(evtParam->reg.status).c_str(),
 				evtParam->reg.app_id);
 			break;
 		} // ESP_GATTS_REG_EVT
 
 		case ESP_GATTS_START_EVT: {
-			ESP_LOGD(tag, "[status: %s, service_handle: 0x%.2x]",
+			ESP_LOGD(LOG_TAG, "[status: %s, service_handle: 0x%.2x]",
 				gattStatusToString(evtParam->start.status).c_str(),
 				evtParam->start.service_handle);
 			break;
 		} // ESP_GATTS_START_EVT
 
 		case ESP_GATTS_WRITE_EVT: {
-			ESP_LOGD(tag, "[conn_id: %d, trans_id: %d, bda: %s, handle: 0x%.2x, offset: %d, need_rsp: %d, is_prep: %d, len: %d]",
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, trans_id: %d, bda: %s, handle: 0x%.2x, offset: %d, need_rsp: %d, is_prep: %d, len: %d]",
 					evtParam->write.conn_id,
 					evtParam->write.trans_id,
 					addressToString(evtParam->write.bda).c_str(),
@@ -828,7 +911,7 @@ void BLEUtils::dumpGattServerEvent(
 		} // ESP_GATTS_WRITE_EVT
 
 		default:
-			ESP_LOGD(tag, "dumpGattServerEvent: *** NOT CODED ***");
+			ESP_LOGD(LOG_TAG, "dumpGattServerEvent: *** NOT CODED ***");
 			break;
 		}
 } // dumpGattServerEvent
@@ -898,7 +981,7 @@ esp_bt_uuid_t BLEUtils::buildUUID(std::string uuid) {
 	retUUID.len = 0;
 	int charcterCount = uuid.length();
 	if (charcterCount != 4 && charcterCount != 8) {
-		ESP_LOGE(tag, "BLEUtils::parseUUID: Malformed UUID string: %s", uuid.c_str());
+		ESP_LOGE(LOG_TAG, "BLEUtils::parseUUID: Malformed UUID string: %s", uuid.c_str());
 		return retUUID;
 	}
 	if (charcterCount == 4) {
@@ -921,7 +1004,7 @@ esp_bt_uuid_t BLEUtils::buildUUID(std::string uuid) {
  * @return A pointer to the %BLEDevice associated with this address.
  */
 BLEDevice* BLEUtils::findByAddress(ble_address address) {
-	ESP_LOGD(tag, "findByAddress(%s)", addressToString(address).c_str());
+	ESP_LOGD(LOG_TAG, "findByAddress(%s)", addressToString(address).c_str());
 	return g_addressMap.at(address);
 } // findByAddress
 
@@ -937,7 +1020,7 @@ BLEDevice* BLEUtils::findByAddress(ble_address address) {
  */
 BLEDevice* BLEUtils::findByConnId(uint16_t conn_id) {
 	//try {
-	ESP_LOGD(tag, "findByConnId(%d)", conn_id);
+	ESP_LOGD(LOG_TAG, "findByConnId(%d)", conn_id);
 	return g_connIdMap.at(conn_id);
 	/*
 	} catch(std::out_of_range &e) {
@@ -990,7 +1073,7 @@ ble_address BLEUtils::parseAddress(std::string uuid) {
  * @param [in] pDevice A pointer to a %BLEDevice instance.
  */
 void BLEUtils::registerByAddress(ble_address address, BLEDevice* pDevice) {
-	ESP_LOGD(tag, "registerByAddress(%s)", addressToString(address).c_str());
+	ESP_LOGD(LOG_TAG, "registerByAddress(%s)", addressToString(address).c_str());
 	g_addressMap.insert(std::pair<ble_address, BLEDevice *>(address, pDevice));
 }
 
@@ -1002,7 +1085,7 @@ void BLEUtils::registerByAddress(ble_address address, BLEDevice* pDevice) {
  * @param [in] pDevice A pointer to a %BLEDevice instance.
  */
 void BLEUtils::registerByConnId(uint16_t conn_id, BLEDevice* pDevice) {
-	ESP_LOGD(tag, "registerByConnId(%d)", conn_id);
+	ESP_LOGD(LOG_TAG, "registerByConnId(%d)", conn_id);
 	g_connIdMap.insert(std::pair<uint16_t, BLEDevice *>(conn_id, pDevice));
 } // registerByConnId
 

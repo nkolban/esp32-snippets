@@ -296,56 +296,53 @@ static void gap_event_handler(
 	esp_gap_ble_cb_event_t event,
 	esp_ble_gap_cb_param_t *param) {
 
-	ESP_LOGD(LOG_TAG, "Received a GAP event: %s", bt_event_type_to_string(event).c_str());
+	BLEUtils::dumpGapEvent(event, param);
 
-	if (event == ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT) {
-		ESP_LOGD(LOG_TAG, "status: %d", param->scan_param_cmpl.status);
-	} // ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT
+	switch(event) {
+		case ESP_GAP_BLE_SCAN_RESULT_EVT: {
+			BLEDevice device;
 
-	else if (event == ESP_GAP_BLE_SCAN_START_COMPLETE_EVT) {
-		ESP_LOGD(LOG_TAG, "status: %d", param->scan_start_cmpl.status);
-	}
+			ESP_LOGD(LOG_TAG, "search_evt: %s", bt_gap_search_event_type_to_string(param->scan_rst.search_evt).c_str());
 
-	else if (event == ESP_GAP_BLE_AUTH_CMPL_EVT) {
-		// key is a 16 byte value
+			if (param->scan_rst.search_evt == ESP_GAP_SEARCH_INQ_CMPL_EVT) {
+				//ESP_LOGD(tag, "num_resps: %d", param->scan_rst.num_resps);
+				//BLE::dumpDevices();
+				xEventGroupSetBits(g_eventGroup, EVENT_GROUP_SCAN_COMPLETE);
+			}
+			else if (param->scan_rst.search_evt == ESP_GAP_SEARCH_INQ_RES_EVT) {
+				//ESP_LOGD(tag, "device type: %s", bt_dev_type_to_string(param->scan_rst.dev_type));
+				//ESP_LOGD(tag, "device address (bda): %02x:%02x:%02x:%02x:%02x:%02x", BT_BD_ADDR_HEX(param->scan_rst.bda));
+				//ESP_LOGD(tag, "rssi: %d", param->scan_rst.rssi);
+				//ESP_LOGD(tag, "addr_type: %s", bt_addr_t_to_string(param->scan_rst.ble_addr_type));
+				//ESP_LOGD(tag, "flag: %d", param->scan_rst.flag);
+				device.setAddress(std::string((char *)param->scan_rst.bda, 6));
+				device.setRSSI(param->scan_rst.rssi);
+				device.setAdFlag(param->scan_rst.flag);
+				//device.dump();
+				device.parsePayload((uint8_t *)param->scan_rst.ble_adv);
+				g_devices.insert(std::pair<std::string,BLEDevice>(device.getAddress(),device));
+				//dump_adv_payload(param->scan_rst.ble_adv);
+			} else {
+				ESP_LOGD(LOG_TAG, "Unhandled search_evt type!");
+			}
+			break;
+		} // ESP_GAP_BLE_SCAN_RESULT_EVT
 
-		ESP_LOGD(LOG_TAG, "[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
-				BLEUtils::addressToString(param->ble_security.auth_cmpl.bd_addr).c_str(),
-				param->ble_security.auth_cmpl.key_present,
-				param->ble_security.auth_cmpl.key_type,
-				param->ble_security.auth_cmpl.success,
-				param->ble_security.auth_cmpl.fail_reason,
-				BLEUtils::devTypeToString(param->ble_security.auth_cmpl.dev_type).c_str()
-			);
-	}
-
-	else if (event == ESP_GAP_BLE_SCAN_RESULT_EVT) {
-		BLEDevice device;
-
-		ESP_LOGD(LOG_TAG, "search_evt: %s", bt_gap_search_event_type_to_string(param->scan_rst.search_evt).c_str());
-
-		if (param->scan_rst.search_evt == ESP_GAP_SEARCH_INQ_CMPL_EVT) {
-			//ESP_LOGD(tag, "num_resps: %d", param->scan_rst.num_resps);
-			//BLE::dumpDevices();
-			xEventGroupSetBits(g_eventGroup, EVENT_GROUP_SCAN_COMPLETE);
+		case ESP_GAP_BLE_SEC_REQ_EVT: {
+			esp_err_t errRc = ::esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, true);
+			if (errRc != ESP_OK) {
+				ESP_LOGE(LOG_TAG, "esp_ble_gap_security_rsp: rc=%d %s", errRc, espToString(errRc));
+			}
+			break;
 		}
-		else if (param->scan_rst.search_evt == ESP_GAP_SEARCH_INQ_RES_EVT) {
-			//ESP_LOGD(tag, "device type: %s", bt_dev_type_to_string(param->scan_rst.dev_type));
-			//ESP_LOGD(tag, "device address (bda): %02x:%02x:%02x:%02x:%02x:%02x", BT_BD_ADDR_HEX(param->scan_rst.bda));
-			//ESP_LOGD(tag, "rssi: %d", param->scan_rst.rssi);
-			//ESP_LOGD(tag, "addr_type: %s", bt_addr_t_to_string(param->scan_rst.ble_addr_type));
-			//ESP_LOGD(tag, "flag: %d", param->scan_rst.flag);
-			device.setAddress(std::string((char *)param->scan_rst.bda, 6));
-			device.setRSSI(param->scan_rst.rssi);
-			device.setAdFlag(param->scan_rst.flag);
-			//device.dump();
-			device.parsePayload((uint8_t *)param->scan_rst.ble_adv);
-			g_devices.insert(std::pair<std::string,BLEDevice>(device.getAddress(),device));
-			//dump_adv_payload(param->scan_rst.ble_adv);
-		} else {
-			ESP_LOGD(LOG_TAG, "Unhandled search_evt type!");
+
+		default: {
+			break;
 		}
-	} // ESP_GAP_BLE_SCAN_RESULT_EVT
+	} // switch
+
+
+
 	if (BLE::m_bleServer != nullptr) {
 		BLE::m_bleServer->handleGAPEvent(event, param);
 	}
@@ -406,6 +403,13 @@ BLEServer *BLE::initServer(std::string deviceName) {
 	errRc = ::esp_ble_gap_set_device_name(deviceName.c_str());
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_device_name: rc=%d %s", errRc, espToString(errRc));
+		return nullptr;
+	};
+
+	esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;
+	errRc = ::esp_ble_gap_set_security_param(ESP_BLE_SM_IOCAP_MODE, &iocap, sizeof(uint8_t));
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_security_param: rc=%d %s", errRc, espToString(errRc));
 		return nullptr;
 	};
 

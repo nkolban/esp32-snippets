@@ -30,18 +30,16 @@ public:
 	void setValue(std::string value);
 	std::string toString();
 
-
 private:
 	friend class BLEDescriptorMap;
+	friend class BLECharacteristic;
 	BLEUUID m_bleUUID;
 	esp_attr_value_t     m_value;
 	uint16_t             m_handle;
 	BLECharacteristic   *m_pCharacteristic;
-	void espRegister(BLECharacteristic *pCharacteristic);
+	void executeCreate(BLECharacteristic *pCharacteristic);
 	uint16_t getHandle();
 	void setHandle(uint16_t handle);
-
-
 };
 
 #endif /* COMPONENTS_CPP_UTILS_BLEDESCRIPTOR_H_ */
