@@ -37,6 +37,7 @@ BLEServer::BLEServer() {
 	m_connId   = -1;
 	m_serializeMutex.setName("BLEServer");
 	BLE::m_bleServer = this;
+	createApp(0);
 } // BLEServer
 
 
@@ -124,7 +125,7 @@ void BLEServer::handleGATTServerEvent(
 		// - bool is_connected
 		case ESP_GATTS_CONNECT_EVT: {
 			m_connId = param->connect.conn_id; // Save the connection id.
-			//onConnection(); // Invoke the connection handler (may be over-ridden)
+			onConnect(); // Invoke the connection handler (may be over-ridden)
 			break;
 		} // ESP_GATTS_CONNECT_EVT
 
@@ -193,6 +194,7 @@ void BLEServer::handleGATTServerEvent(
 
 		// ESP_GATTS_DISCONNECT_EVT
 		case ESP_GATTS_DISCONNECT_EVT: {
+			onDisconnect();
 			startAdvertising();
 			break;
 		} // ESP_GATTS_DISCONNECT_EVT
@@ -262,9 +264,14 @@ uint16_t BLEServer::getGattsIf() {
 	return m_gatts_if;
 }
 
-void BLEServer::onConnection() {
-	ESP_LOGD(LOG_TAG, ">> onConnection: Default");
-	ESP_LOGD(LOG_TAG, "<< onConnection");
+void BLEServer::onConnect() {
+	ESP_LOGD(LOG_TAG, ">> onConnect: Default");
+	ESP_LOGD(LOG_TAG, "<< onConnect");
+}
+
+void BLEServer::onDisconnect() {
+	ESP_LOGD(LOG_TAG, ">> onDisconnect: Default");
+	ESP_LOGD(LOG_TAG, "<< onDisconnect");
 }
 
 void BLEServer::createApp(uint16_t appId) {

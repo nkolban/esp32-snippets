@@ -20,7 +20,7 @@ static char LOG_TAG[] = "BLEDescriptor";
 extern "C" {
 	char *espToString(esp_err_t value);
 }
-
+#define NULL_HANDLE (0xffff)
 /**
  * @brief BLEDescriptor constructor.
  */
@@ -29,7 +29,7 @@ BLEDescriptor::BLEDescriptor(BLEUUID uuid) {
 	m_value.attr_value   = (uint8_t *)malloc(ESP_GATT_MAX_ATTR_LEN); // Allocate storage for the value.
 	m_value.attr_len     = 0;
 	m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN;
-	m_handle             = -1;
+	m_handle             = NULL_HANDLE;
 	m_pCharacteristic    = nullptr; // No initial characteristic.
 
 } // BLEDescriptor
@@ -50,7 +50,7 @@ BLEDescriptor::~BLEDescriptor() {
 void BLEDescriptor::executeCreate(BLECharacteristic* pCharacteristic) {
 	ESP_LOGD(LOG_TAG, ">> executeCreate(): %s", toString().c_str());
 
-	if (m_handle != 0) {
+	if (m_handle != NULL_HANDLE) {
 		ESP_LOGE(LOG_TAG, "Descriptor already has a handle.");
 		return;
 	}

@@ -25,6 +25,8 @@ extern "C" {
 	char *espToString(esp_err_t value);
 }
 
+#define NULL_HANDLE (0xffff)
+
 static char LOG_TAG[] = "BLEService"; // Tag for logging.
 
 /**
@@ -33,7 +35,7 @@ static char LOG_TAG[] = "BLEService"; // Tag for logging.
  */
 BLEService::BLEService(BLEUUID uuid) {
 	m_uuid     = uuid;
-	m_handle   = 0;
+	m_handle   = NULL_HANDLE;
 	m_pServer  = nullptr;
 	m_serializeMutex.setName("BLEService");
 	m_lastCreatedCharacteristic = nullptr;
@@ -132,6 +134,10 @@ void BLEService::start() {
  */
 void BLEService::setHandle(uint16_t handle) {
 	ESP_LOGD(LOG_TAG, ">> setHandle(0x%.2x)", handle);
+	if (m_handle != NULL_HANDLE) {
+		ESP_LOGE(LOG_TAG, "Handle is already set %.2x", m_handle);
+		return;
+	}
 	m_handle = handle;
 	ESP_LOGD(LOG_TAG, "<< setHandle()");
 } // setHandle
@@ -188,6 +194,10 @@ BLECharacteristic* BLEService::createCharacteristic(
 	return pCharacteristic;
 } // createCharacteristic
 
+
+/**
+ * @brief Handle a GATTS server event.
+ */
 void BLEService::handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
 		esp_gatt_if_t             gatts_if,

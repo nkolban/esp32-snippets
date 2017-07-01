@@ -35,7 +35,8 @@ public:
 	void startAdvertising();
 	void createApp(uint16_t appId);
 
-	virtual void onConnection();
+	virtual void onConnect();
+	virtual void onDisconnect();
 
 private:
 	esp_ble_adv_data_t  m_adv_data;

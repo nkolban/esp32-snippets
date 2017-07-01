@@ -8,27 +8,67 @@
 #include <string.h>
 #include <sstream>
 #include <iomanip>
+#include <stdio.h>
 #include "BLEUUID.h"
 static char TAG[] = "BLEUUID";
 
+
+/**
+ * @brief Create a UUID from a string.
+ * Create a UUID from a string.  There will be two possible stories here.  Either the string represents
+ * a binary data field or the string represents a hex encoding of a UUID.
+ * For the hex encoding, here is an example:
+ * "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+ *  0 1 2 3  4 5  6 7  8 9  0 1 2 3 4 5
+ * This has a length of 36 characters.  We need to parse this into 16 bytes
+ * @param [in] value The string to build a UUID from.
+ */
 BLEUUID::BLEUUID(std::string value) {
+	m_valueSet = true;
 	if (value.length() == 2) {
 		m_uuid.len = ESP_UUID_LEN_16;
 		m_uuid.uuid.uuid16 = value[0] | (value[1] << 8);
-		m_valueSet = true;
 	} else if (value.length() == 4) {
 		m_uuid.len = ESP_UUID_LEN_32;
 		m_uuid.uuid.uuid32 = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
-		m_valueSet = true;
 	} else if (value.length() == 16) {
 		m_uuid.len = ESP_UUID_LEN_128;
 		memcpy(m_uuid.uuid.uuid128, value.data(), 16);
-		m_valueSet = true;
-	} else {
+	} else if (value.length() == 36) {
+// If the length of the string is 36 bytes then we will assume it is a long hex string in
+// UUID format.
+		m_uuid.len = ESP_UUID_LEN_128;
+		int vals[16];
+		sscanf(value.c_str(), "%2x%2x%2x%2x-%2x%2x-%2x%2x-%2x%2x-%2x%2x%2x%2x%2x%2x",
+			&vals[0],
+			&vals[1],
+			&vals[2],
+			&vals[3],
+			&vals[4],
+			&vals[5],
+			&vals[6],
+			&vals[7],
+			&vals[8],
+			&vals[9],
+			&vals[10],
+			&vals[11],
+			&vals[12],
+			&vals[13],
+			&vals[14],
+			&vals[15]
+		);
+
+		int i;
+		for (i=0; i<16; i++) {
+			m_uuid.uuid.uuid128[i] = vals[i];
+		}
+	}
+	else {
 		ESP_LOGE(TAG, "ERROR: UUID value not 2, 4 or 16 bytes");
 		m_valueSet = false;
 	}
-}
+} //BLEUUID(std::string)
+
 
 BLEUUID::BLEUUID(uint16_t uuid) {
 	m_uuid.len         = ESP_UUID_LEN_16;

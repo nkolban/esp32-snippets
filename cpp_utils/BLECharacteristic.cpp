@@ -18,6 +18,8 @@
 
 static char LOG_TAG[] = "BLECharacteristic";
 
+#define NULL_HANDLE (0xffff)
+
 extern "C" {
 	char *espToString(esp_err_t value);
 }
@@ -32,7 +34,7 @@ BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
 	m_value.attr_value   = (uint8_t *)malloc(ESP_GATT_MAX_ATTR_LEN); // Allocate storage for the value
 	m_value.attr_len     = 0; // Initial length of actual data is none.
 	m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN; // Maximum length of data.
-	m_handle             = -1;
+	m_handle             = NULL_HANDLE;
 	m_properties         = 0;
 
 	setBroadcastProperty((properties & PROPERTY_BROADCAST) !=0);
@@ -70,7 +72,7 @@ void BLECharacteristic::addDescriptor(BLEDescriptor* pDescriptor) {
 void BLECharacteristic::executeCreate(BLEService* pService) {
 	ESP_LOGD(LOG_TAG, ">> executeCreate()");
 
-	if (m_handle != 0) {
+	if (m_handle != NULL_HANDLE) {
 		ESP_LOGE(LOG_TAG, "Characteristic already has a handle.");
 		return;
 	}
@@ -188,12 +190,11 @@ void BLECharacteristic::handleGATTServerEvent(
 			if (param->write.handle == m_handle) {
 				setValue(param->write.value, param->write.len);
 
-				ESP_LOGD(LOG_TAG, " - Write event: New value: handle: %.2x, uuid: %s",
+				ESP_LOGD(LOG_TAG, " - Response to write event: New value: handle: %.2x, uuid: %s",
 						getHandle(), getUUID().toString().c_str());
 
 				char *pHexData = BLEUtils::buildHexData(nullptr, param->write.value, param->write.len);
-				BLEUtils::buildHexData((uint8_t*)pHexData, param->write.value, param->write.len);
-				ESP_LOGD(LOG_TAG, " - Data: %d %s", param->write.len, pHexData);
+				ESP_LOGD(LOG_TAG, " - Data: length: %d, data: %s", param->write.len, pHexData);
 				free(pHexData);
 
 				if (param->write.need_rsp) {
@@ -212,7 +213,7 @@ void BLECharacteristic::handleGATTServerEvent(
 					}
 				} // Response needed
 
-				//onWrite(); // Invoke the onWrite callback handler.
+				onWrite(); // Invoke the onWrite callback handler.
 			} // Match on handles.
 			break;
 		} // ESP_GATTS_WRITE_EVT
@@ -233,7 +234,7 @@ void BLECharacteristic::handleGATTServerEvent(
 			ESP_LOGD(LOG_TAG, "- Testing: 0x%.2x == 0x%.2x", param->read.handle, m_handle);
 			if (param->read.handle == m_handle) {
 
-				//onRead(); // Invoke the read callback.
+				onRead(); // Invoke the read callback.
 
 // Here's an interesting thing.  The read request has the option of saying whether we need a response
 // or not.  What would it "mean" to receive a read request and NOT send a response back?  That feels like
@@ -246,6 +247,11 @@ void BLECharacteristic::handleGATTServerEvent(
 					rsp.attr_value.offset   = 0;
 					rsp.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
 					memcpy(rsp.attr_value.value, getValue(), rsp.attr_value.len);
+
+					char *pHexData = BLEUtils::buildHexData(nullptr, rsp.attr_value.value, rsp.attr_value.len);
+					ESP_LOGD(LOG_TAG, " - Data: length: %d, data: %s", param->write.len, pHexData);
+					free(pHexData);
+
 					esp_err_t errRc = ::esp_ble_gatts_send_response(
 							gatts_if, param->read.conn_id,
 							param->read.trans_id,
@@ -281,21 +287,16 @@ void BLECharacteristic::handleGATTServerEvent(
  */
 void BLECharacteristic::indicate() {
 
-	/*
 	char *pHexData = BLEUtils::buildHexData(nullptr, getValue(), getLength());
 	ESP_LOGD(LOG_TAG, ">> indicate: length: %d, data: [%s]", getLength(), pHexData );
-	ESP_LOGD(LOG_TAG, "A");
 	free(pHexData);
-	*/
+
 	assert(getService() != nullptr);
-	ESP_LOGD(LOG_TAG, "A2");
 	assert(getService()->getServer() != nullptr);
-	ESP_LOGD(LOG_TAG, "B");
 	esp_err_t errRc = ::esp_ble_gatts_send_indicate(
 			getService()->getServer()->getGattsIf(),
 			getService()->getServer()->getConnId(),
 			getHandle(), getLength(), getValue(), false);
-	ESP_LOGD(LOG_TAG, "C");
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_send_indicate: rc=%d %s", errRc, espToString(errRc));
 		return;
