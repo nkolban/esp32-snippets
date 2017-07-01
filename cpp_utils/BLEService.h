@@ -12,46 +12,52 @@
 #include <esp_gatts_api.h>
 #include "FreeRTOS.h"
 #include "BLEUUID.h"
+#include "BLEServer.h"
 #include "BLECharacteristic.h"
 #include "BLECharacteristicMap.h"
 
+class BLEServer;
 
 class BLEService {
 public:
 	BLEService(BLEUUID uuid);
 	virtual ~BLEService();
 
-	void addCharacteristic(BLECharacteristic *pCharacteristic);
+	void               addCharacteristic(BLECharacteristic *pCharacteristic);
+	BLECharacteristic *createCharacteristic(BLEUUID uuid, uint32_t properties);
+	void               dump();
+	void               executeCreate(BLEServer *pServer);
 	BLECharacteristic *getCharacteristic(BLEUUID uuid);
-	void executeCreate(esp_gatt_if_t gatts_if);
-	void dump();
-	esp_gatt_srvc_id_t getService();
-	BLEUUID getUUID();
-	void setService(esp_gatt_srvc_id_t srvc_id);
-	void start();
-	std::string toString();
+	BLEUUID            getUUID();
+	BLEServer         *getServer();
+	void               start();
+	std::string        toString();
 
 private:
-	esp_gatt_srvc_id_t   m_srvc_id;
-	BLEUUID              m_uuid;
-	esp_gatt_if_t        m_gatts_if;
-	uint16_t             m_handle;
-	BLECharacteristicMap m_characteristicMap;
-	BLECharacteristic   *m_lastCreatedCharacteristic;
 	friend class BLEServer;
 	friend class BLEServiceMap;
 	friend class BLEDescriptor;
 	friend class BLECharacteristic;
+	friend class BLEDevice;
 
+	BLECharacteristicMap  m_characteristicMap;
+	uint16_t              m_handle;
+	BLECharacteristic    *m_lastCreatedCharacteristic;
+	BLEServer						 *m_pServer;
+	FreeRTOS::Semaphore   m_serializeMutex;
+	//esp_gatt_srvc_id_t    m_srvc_id;
+	BLEUUID               m_uuid;
+
+	uint16_t           getHandle();
 	BLECharacteristic *getLastCreatedCharacteristic();
-	void setHandle(uint16_t handle);
-	uint16_t getHandle();
-	void handleGATTServerEvent(
-			esp_gatts_cb_event_t      event,
-			esp_gatt_if_t             gatts_if,
-			esp_ble_gatts_cb_param_t *param);
-	FreeRTOS::Semaphore m_serializeMutex;
+	//esp_gatt_srvc_id_t getService();
+	void               handleGATTServerEvent(
+		esp_gatts_cb_event_t      event,
+		esp_gatt_if_t             gatts_if,
+		esp_ble_gatts_cb_param_t *param);
+	void               setHandle(uint16_t handle);
+	//void               setService(esp_gatt_srvc_id_t srvc_id);
+}; // BLEService
 
-};
 #endif // CONFIG_BT_ENABLED
 #endif /* COMPONENTS_CPP_UTILS_BLESERVICE_H_ */

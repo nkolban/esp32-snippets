@@ -8,6 +8,7 @@
 #include <sstream>
 #include <iomanip>
 #include "BLEServiceMap.h"
+#include "BLEService.h"
 
 BLEServiceMap::BLEServiceMap() {
 }

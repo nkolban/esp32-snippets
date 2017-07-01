@@ -20,10 +20,14 @@ public:
 	BLECharacteristic(BLEUUID uuid, uint32_t properties = 0);
 	virtual ~BLECharacteristic();
 
-	void addDescriptor(BLEDescriptor *pDescriptor);
-	size_t getLength();
-	BLEUUID getUUID();
+	void     addDescriptor(BLEDescriptor *pDescriptor);
+	size_t   getLength();
+	BLEUUID  getUUID();
 	uint8_t *getValue();
+
+	void indicate();
+	virtual void onRead();
+	virtual void onWrite();
 	void setBroadcastProperty(bool value);
 	void setIndicateProperty(bool value);
 	void setNotifyProperty(bool value);
@@ -33,10 +37,7 @@ public:
 	void setWriteProperty(bool value);
 	void setWriteNoResponseProperty(bool value);
 	std::string toString();
-	void handleGATTServerEvent(
-			esp_gatts_cb_event_t      event,
-			esp_gatt_if_t             gatts_if,
-			esp_ble_gatts_cb_param_t *param);
+
 
 	static const uint32_t PROPERTY_READ      = 1<<0;
 	static const uint32_t PROPERTY_WRITE     = 1<<1;
@@ -50,6 +51,7 @@ private:
 	friend class BLEService;
 	friend class BLEDescriptor;
 	friend class BLECharacteristicMap;
+
 	BLEUUID              m_bleUUID;
 	esp_gatt_char_prop_t m_properties;
 	esp_attr_value_t     m_value;
@@ -57,11 +59,16 @@ private:
 	BLEService          *m_pService;
 	BLEDescriptorMap     m_descriptorMap;
 
-	void executeCreate(BLEService *pService);
-	uint16_t getHandle();
+	void handleGATTServerEvent(
+			esp_gatts_cb_event_t      event,
+			esp_gatt_if_t             gatts_if,
+			esp_ble_gatts_cb_param_t *param);
+
+	void                 executeCreate(BLEService *pService);
+	uint16_t             getHandle();
 	esp_gatt_char_prop_t getProperties();
-	BLEService *getService();
-	void setHandle(uint16_t handle);
-};
+	BLEService          *getService();
+	void                 setHandle(uint16_t handle);
+}; // BLECharacteristic
 
 #endif /* COMPONENTS_CPP_UTILS_BLECHARACTERISTIC_H_ */

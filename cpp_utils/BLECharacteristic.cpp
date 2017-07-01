@@ -14,6 +14,7 @@
 #include <esp_err.h>
 #include "BLECharacteristic.h"
 #include "BLEService.h"
+#include "BLEUtils.h"
 
 static char LOG_TAG[] = "BLECharacteristic";
 
@@ -28,10 +29,10 @@ extern "C" {
  */
 BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
 	m_bleUUID            = uuid;
-	m_value.attr_value   = (uint8_t *)malloc(ESP_GATT_MAX_ATTR_LEN);
-	m_value.attr_len     = 0;
-	m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN;
-	m_handle             = 0;
+	m_value.attr_value   = (uint8_t *)malloc(ESP_GATT_MAX_ATTR_LEN); // Allocate storage for the value
+	m_value.attr_len     = 0; // Initial length of actual data is none.
+	m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN; // Maximum length of data.
+	m_handle             = -1;
 	m_properties         = 0;
 
 	setBroadcastProperty((properties & PROPERTY_BROADCAST) !=0);
@@ -42,10 +43,12 @@ BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
 	setWriteNoResponseProperty((properties & PROPERTY_WRITE_NR) !=0);
 } // BLECharacteristic
 
-
+/**
+ * @brief Destructor.
+ */
 BLECharacteristic::~BLECharacteristic() {
-	free(m_value.attr_value);
-}
+	free(m_value.attr_value); // Release the storage for the value.
+} // ~BLECharacteristic
 
 
 /**
@@ -60,11 +63,69 @@ void BLECharacteristic::addDescriptor(BLEDescriptor* pDescriptor) {
 } // addDescriptor
 
 
+/**
+ * @brief Register a new characteristic with the ESP runtime.
+ * @param [in] pService The service with which to associate this characteristic.
+ */
+void BLECharacteristic::executeCreate(BLEService* pService) {
+	ESP_LOGD(LOG_TAG, ">> executeCreate()");
+
+	if (m_handle != 0) {
+		ESP_LOGE(LOG_TAG, "Characteristic already has a handle.");
+		return;
+	}
+
+	m_pService = pService; // Save the service for this characteristic.
+
+	ESP_LOGD(LOG_TAG, "Registering characteristic (esp_ble_gatts_add_char): uuid: %s, service: %s",
+		getUUID().toString().c_str(),
+		m_pService->toString().c_str());
+
+	//m_serializeMutex.take("addCharacteristic"); // Take the mutex, released by event ESP_GATTS_ADD_CHAR_EVT
+
+	esp_attr_control_t control;
+	control.auto_rsp = ESP_GATT_RSP_BY_APP;
+
+	esp_err_t errRc = ::esp_ble_gatts_add_char(
+		m_pService->getHandle(),
+		getUUID().getNative(),
+		(esp_gatt_perm_t)(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE),
+		getProperties(),
+		&m_value,
+		&control); // Whether to autorespond or not.
+
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_add_char: rc=%d %s", errRc, espToString(errRc));
+		return;
+	}
+
+	// Now that we have registered the characteristic, we must also register all the descriptors associated with this
+	// characteristic.  We iterate through each of those and invoke the registration call to register them with the
+	// ESP environment.
+
+	BLEDescriptor *pDescriptor = m_descriptorMap.getFirst();
+
+	while (pDescriptor != nullptr) {
+		pDescriptor->executeCreate(this);
+		pDescriptor = m_descriptorMap.getNext();
+	} // End while
+
+	ESP_LOGD(LOG_TAG, "<< executeCreate()");
+} // executeCreate
+
+
+/**
+ * @brief Get the handle of the characteristic.
+ * @return The handle of the characteristic.
+ */
 uint16_t BLECharacteristic::getHandle() {
 	return m_handle;
 } // getHandle
 
 
+/**
+ * @brief Get the length of the value.
+ */
 size_t BLECharacteristic::getLength() {
 	return m_value.attr_len;
 } // getLength
@@ -75,11 +136,27 @@ esp_gatt_char_prop_t BLECharacteristic::getProperties() {
 } // getProperties
 
 
+/**
+ * @brief Get the service associated with this characteristic.
+ */
+BLEService* BLECharacteristic::getService() {
+	return m_pService;
+} // getService
+
+
+/**
+ * @brief Get the UUID of the characteristic.
+ * @return The UUID of the characteristic.
+ */
 BLEUUID BLECharacteristic::getUUID() {
 	return m_bleUUID;
 } // getUUID
 
 
+/**
+ * @brief Retrieve the current value of the characteristic.
+ * @return A pointer to storage containing the current characteristic value.
+ */
 uint8_t* BLECharacteristic::getValue() {
 	return m_value.attr_value;
 } // getValue
@@ -105,22 +182,41 @@ void BLECharacteristic::handleGATTServerEvent(
 		// - uint8_t      *value
 		//
 		case ESP_GATTS_WRITE_EVT: {
+// We check if this write request is for us by comparing the handles in the event.  If it is for us
+// we save the new value.  Next we look at the need_rsp flag which indicates whether or not we need
+// to send a response.  If we do, then we formulate a response and send it.
 			if (param->write.handle == m_handle) {
 				setValue(param->write.value, param->write.len);
-				esp_gatt_rsp_t rsp;
-				rsp.attr_value.len      = getLength();
-				rsp.attr_value.handle   = m_handle;
-				rsp.attr_value.offset   = 0;
-				rsp.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
-				memcpy(rsp.attr_value.value, getValue(), rsp.attr_value.len);
-				esp_err_t errRc = ::esp_ble_gatts_send_response(
-						gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, &rsp);
-				if (errRc != ESP_OK) {
-					ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, espToString(errRc));
-				}
-			}
+
+				ESP_LOGD(LOG_TAG, " - Write event: New value: handle: %.2x, uuid: %s",
+						getHandle(), getUUID().toString().c_str());
+
+				char *pHexData = BLEUtils::buildHexData(nullptr, param->write.value, param->write.len);
+				BLEUtils::buildHexData((uint8_t*)pHexData, param->write.value, param->write.len);
+				ESP_LOGD(LOG_TAG, " - Data: %d %s", param->write.len, pHexData);
+				free(pHexData);
+
+				if (param->write.need_rsp) {
+					esp_gatt_rsp_t rsp;
+					rsp.attr_value.len      = getLength();
+					rsp.attr_value.handle   = m_handle;
+					rsp.attr_value.offset   = 0;
+					rsp.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+					memcpy(rsp.attr_value.value, getValue(), rsp.attr_value.len);
+					esp_err_t errRc = ::esp_ble_gatts_send_response(
+							gatts_if,
+							param->write.conn_id,
+							param->write.trans_id, ESP_GATT_OK, &rsp);
+					if (errRc != ESP_OK) {
+						ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, espToString(errRc));
+					}
+				} // Response needed
+
+				//onWrite(); // Invoke the onWrite callback handler.
+			} // Match on handles.
 			break;
 		} // ESP_GATTS_WRITE_EVT
+
 
 		// ESP_GATTS_READ_EVT - A request to read the value of a characteristic has arrived.
 		//
@@ -136,8 +232,14 @@ void BLECharacteristic::handleGATTServerEvent(
 		case ESP_GATTS_READ_EVT: {
 			ESP_LOGD(LOG_TAG, "- Testing: 0x%.2x == 0x%.2x", param->read.handle, m_handle);
 			if (param->read.handle == m_handle) {
-				ESP_LOGD(LOG_TAG, "Sending a response (esp_ble_gatts_send_response)");
+
+				//onRead(); // Invoke the read callback.
+
+// Here's an interesting thing.  The read request has the option of saying whether we need a response
+// or not.  What would it "mean" to receive a read request and NOT send a response back?  That feels like
+// a very strange read.
 				if (param->read.need_rsp) {
+					ESP_LOGD(LOG_TAG, "Sending a response (esp_ble_gatts_send_response)");
 					esp_gatt_rsp_t rsp;
 					rsp.attr_value.len      = getLength();
 					rsp.attr_value.handle   = param->read.handle;
@@ -145,12 +247,15 @@ void BLECharacteristic::handleGATTServerEvent(
 					rsp.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
 					memcpy(rsp.attr_value.value, getValue(), rsp.attr_value.len);
 					esp_err_t errRc = ::esp_ble_gatts_send_response(
-							gatts_if, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, &rsp);
+							gatts_if, param->read.conn_id,
+							param->read.trans_id,
+							ESP_GATT_OK,
+							&rsp);
 					if (errRc != ESP_OK) {
 						ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, espToString(errRc));
 					}
-				}
-			} // ESP_GATTS_READ_EVT
+				} // Response needed
+			} // Handle matches this characteristic.
 			break;
 		} // ESP_GATTS_READ_EVT
 
@@ -169,6 +274,60 @@ void BLECharacteristic::handleGATTServerEvent(
 	}
 
 } // handleGATTServerEvent
+
+/**
+ * @brief Send an indication.
+ * @return N/A
+ */
+void BLECharacteristic::indicate() {
+
+	/*
+	char *pHexData = BLEUtils::buildHexData(nullptr, getValue(), getLength());
+	ESP_LOGD(LOG_TAG, ">> indicate: length: %d, data: [%s]", getLength(), pHexData );
+	ESP_LOGD(LOG_TAG, "A");
+	free(pHexData);
+	*/
+	assert(getService() != nullptr);
+	ESP_LOGD(LOG_TAG, "A2");
+	assert(getService()->getServer() != nullptr);
+	ESP_LOGD(LOG_TAG, "B");
+	esp_err_t errRc = ::esp_ble_gatts_send_indicate(
+			getService()->getServer()->getGattsIf(),
+			getService()->getServer()->getConnId(),
+			getHandle(), getLength(), getValue(), false);
+	ESP_LOGD(LOG_TAG, "C");
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_send_indicate: rc=%d %s", errRc, espToString(errRc));
+		return;
+	}
+
+	ESP_LOGD(LOG_TAG, "<< indicate");
+} // indicate
+
+
+/**
+ * @brief Callback function called when a read request has been received.
+ * This function is called when a read request has been received but before returning the
+ * characteristic data.  We have the opportunity here to set a new value for the
+ * characteristic which will be returned when we return from this function.
+ */
+void BLECharacteristic::onRead() {
+	ESP_LOGD(LOG_TAG, ">> onRead: Default");
+	ESP_LOGD(LOG_TAG, "<< onRead");
+} // onRead
+
+
+/**
+ * @brief Callback function called when a write request has been received.
+ * This function is called when a write request has been received.  It is invoked
+ * after the characteristic's value has been changed.  We can perform work here
+ * that might be of importance because of the new value.  We can read the current value
+ * of the characteristic as normal to see the new value.
+ */
+void BLECharacteristic::onWrite() {
+	ESP_LOGD(LOG_TAG, ">> onWrite: Default");
+	ESP_LOGD(LOG_TAG, "<< onWrite");
+} // onWrite
 
 
 /**
@@ -238,6 +397,13 @@ void BLECharacteristic::setValue(uint8_t* data, size_t length) {
 } // setValue
 
 
+/**
+ * @brief Set the value of the characteristic from string data.
+ * We set the value of the characteristic from the bytes contained in the
+ * string.
+ * @param [in] Set the value of the characteristic.
+ * @return N/A.
+ */
 void BLECharacteristic::setValue(std::string value) {
 	setValue((uint8_t *)value.data(), value.length());
 } // setValue
@@ -280,54 +446,3 @@ std::string BLECharacteristic::toString() {
 		((m_properties & ESP_GATT_CHAR_PROP_BIT_INDICATE)?"Indicate ":"");
 	return stringstream.str();
 } // toString
-
-BLEService* BLECharacteristic::getService() {
-	return m_pService;
-}
-
-
-/**
- * @brief Register a new characteristic with the ESP runtime.
- * @param [in] pService The service with which to associate this characteristic.
- */
-void BLECharacteristic::executeCreate(BLEService* pService) {
-	ESP_LOGD(LOG_TAG, ">> executeCreate()");
-
-	if (m_handle != 0) {
-		ESP_LOGE(LOG_TAG, "Characteristic already has a handle.");
-		return;
-	}
-
-	m_pService = pService; // Save the service for this characteristic.
-
-	ESP_LOGD(LOG_TAG, "Registering characteristic (esp_ble_gatts_add_char): uuid: %s, service: %s",
-		getUUID().toString().c_str(),
-		m_pService->toString().c_str());
-
-	//m_serializeMutex.take("addCharacteristic"); // Take the mutex, released by event ESP_GATTS_ADD_CHAR_EVT
-	esp_err_t errRc = ::esp_ble_gatts_add_char(
-		m_pService->getHandle(),
-		getUUID().getNative(),
-		(esp_gatt_perm_t)(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE),
-		getProperties(),
-		&m_value,
-		NULL);
-
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_add_char: rc=%d %s", errRc, espToString(errRc));
-		return;
-	}
-
-	// Now that we have registered the characteristic, we must also register all the descriptors associated with this
-	// characteristic.  We iterate through each of those and invoke the registration call to register them with the
-	// ESP environment.
-
-	BLEDescriptor *pDescriptor = m_descriptorMap.getFirst();
-
-	while (pDescriptor != nullptr) {
-		pDescriptor->executeCreate(this);
-		pDescriptor = m_descriptorMap.getNext();
-	} // End while
-
-	ESP_LOGD(LOG_TAG, "<< executeCreate()");
-} // executeCreate

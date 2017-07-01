@@ -338,8 +338,11 @@ void BLEDevice::getCharacteristics(esp_gatt_srvc_id_t *srvc_id, esp_gatt_id_t *l
 
 
 void BLEDevice::getCharacteristics(BLEService service) {
+	// FIX
+	/*
 	esp_gatt_srvc_id_t tempService = service.getService();
 	getCharacteristics(&tempService, nullptr);
+	*/
 } // getCharacteristics
 
 

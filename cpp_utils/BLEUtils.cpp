@@ -354,18 +354,28 @@ std::string BLEUtils::uuidToString(esp_bt_uuid_t uuid) {
 /**
  * @brief Create a hex representation of data.
  *
- * @param [in] target Where to write the hex string.
+ * @param [in] target Where to write the hex string.  If this is null, we malloc storage.
  * @param [in] source The start of the binary data.
  * @param [in] length The length of the data to convert.
+ * @return A pointer to the formatted buffer.
  */
-void BLEUtils::dumpHexData(uint8_t *target, uint8_t *source, uint8_t length) {
+char *BLEUtils::buildHexData(uint8_t *target, uint8_t *source, uint8_t length) {
 	int i;
+	if (target == nullptr) {
+		target = (uint8_t *)malloc(length * 2 + 1);
+		if (target == nullptr) {
+			ESP_LOGE(LOG_TAG, "buildHexData: malloc failed");
+			return nullptr;
+		}
+	}
+	char *startOfData = (char *)target;
 	for (i=0; i<length; i++) {
 		sprintf((char *)target, "%.2x", (char)*source);
 		source++;
 		target +=2;
 	}
-} // dumpHexData
+	return startOfData;
+} // buildHexData
 
 
 typedef struct {
@@ -671,10 +681,9 @@ void BLEUtils::dumpGattClientEvent(
 				evtParam->read.value_len
 			);
 			if (evtParam->read.status == ESP_GATT_OK) {
-				uint8_t *data = (uint8_t *)malloc(evtParam->read.value_len * 2 + 1);
-				BLEUtils::dumpHexData(data, (uint8_t *)evtParam->read.value, evtParam->read.value_len);
-				ESP_LOGD(LOG_TAG, "value: %s", data);
-				free(data);
+				char *pHexData = BLEUtils::buildHexData(nullptr, evtParam->read.value, evtParam->read.value_len);
+				ESP_LOGD(LOG_TAG, "value: %s", pHexData);
+				free(pHexData);
 			}
 			break;
 		} // ESP_GATTC_READ_CHAR_EVT
@@ -834,6 +843,19 @@ void BLEUtils::dumpGattServerEvent(
 			break;
 		} // ESP_GATTS_ADD_CHAR_EVT
 
+		case ESP_GATTS_CONF_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: 0x%.2x]",
+				gattStatusToString(evtParam->conf.status).c_str(),
+				evtParam->conf.conn_id);
+			break;
+		} // ESP_GATTS_CONF_EVT
+
+		case ESP_GATTS_CONGEST_EVT: {
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, congested: %d]",
+				evtParam->congest.conn_id,
+				evtParam->congest.congested);
+		} // ESP_GATTS_CONGEST_EVT
+
 		case ESP_GATTS_CONNECT_EVT: {
 			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s, is_connected: %d]",
 				evtParam->connect.conn_id,
@@ -841,6 +863,14 @@ void BLEUtils::dumpGattServerEvent(
 				evtParam->connect.is_connected);
 			break;
 		} // ESP_GATTS_CONNECT_EVT
+
+		case ESP_GATTS_CREATE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %s, service_handle: 0x%.2x, service_id: [%s]]",
+				gattStatusToString(evtParam->create.status).c_str(),
+				evtParam->create.service_handle,
+				gattServiceIdToString(evtParam->create.service_id).c_str());
+			break;
+		} // ESP_GATTS_CREATE_EVT
 
 		case ESP_GATTS_DISCONNECT_EVT: {
 			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s, is_connected: %d]",
@@ -850,13 +880,14 @@ void BLEUtils::dumpGattServerEvent(
 			break;
 		} // ESP_GATTS_DISCONNECT_EVT
 
-		case ESP_GATTS_CREATE_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %s, service_handle: 0x%.2x, service_id: [%s]]",
-				gattStatusToString(evtParam->create.status).c_str(),
-				evtParam->create.service_handle,
-				gattServiceIdToString(evtParam->create.service_id).c_str());
+		case ESP_GATTS_EXEC_WRITE_EVT: {
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, trans_id: %d, bda: %s, exec_write_flag: 0x%.2x]",
+				evtParam->exec_write.conn_id,
+				evtParam->exec_write.trans_id,
+				addressToString(evtParam->exec_write.bda).c_str(),
+				evtParam->exec_write.exec_write_flag);
 			break;
-		} // ESP_GATTS_CREATE_EVT
+		} // ESP_GATTS_DISCONNECT_EVT
 
 		case ESP_GATTS_MTU_EVT: {
 			ESP_LOGD(LOG_TAG, "[conn_id: %d, mtu: %d]",

@@ -18,25 +18,31 @@
 #include "BLECharacteristicMap.h"
 #include "BLEServiceMap.h"
 
+
 class BLEServer {
 public:
-	BLEServer(uint16_t appId);
+	BLEServer();
 	virtual ~BLEServer();
 
 	BLEService *createService(BLEUUID uuid);
+	uint16_t getConnId();
+	uint16_t getGattsIf();
 	void handleGAPEvent(esp_gap_ble_cb_event_t event,	esp_ble_gap_cb_param_t *param);
 	void handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
 	void setUUID(uint8_t uuid[32]);
 	void registerApp();
 	BLEAdvertising *getAdvertising();
 	void startAdvertising();
+	void createApp(uint16_t appId);
 
+	virtual void onConnection();
 
 private:
 	esp_ble_adv_data_t  m_adv_data;
 	uint16_t            m_appId;
 	BLEAdvertising      m_bleAdvertising;
   uint16_t            m_gatts_if;
+  uint16_t						m_connId;
 	FreeRTOS::Semaphore m_serializeMutex;
 	BLEServiceMap       m_serviceMap;
 }; // BLEServer

@@ -52,15 +52,15 @@ BLEAdvertising::~BLEAdvertising() {
  */
 void BLEAdvertising::start() {
 	ESP_LOGD(LOG_TAG, ">> start()");
-	uint8_t tempData[16*2+1];
+	uint8_t hexData[16*2+1];
 	if (m_advData.service_uuid_len > 0) {
-		BLEUtils::dumpHexData(tempData, m_advData.p_service_uuid, m_advData.service_uuid_len);
+		BLEUtils::buildHexData(hexData, m_advData.p_service_uuid, m_advData.service_uuid_len);
 	}
 
 	ESP_LOGD(LOG_TAG, " - Service: service_uuid_len=%d, p_service_uuid=0x%x (data=%s)",
 		m_advData.service_uuid_len,
 		(uint32_t)m_advData.p_service_uuid,
-		(m_advData.service_uuid_len > 0?(char *)tempData:"N/A")
+		(m_advData.service_uuid_len > 0?(char *)hexData:"N/A")
 	);
 	// Set the configuration for advertising.
 	esp_err_t errRc = ::esp_ble_gap_config_adv_data(&m_advData);

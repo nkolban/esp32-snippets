@@ -361,61 +361,59 @@ std::map<ble_address, BLEDevice> getDevices() {
  * @brief Initialize the server %BLE environment.
  *
  */
-BLEServer *BLE::initServer(std::string deviceName) {
+ void BLE::initServer(std::string deviceName) {
 	esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
 	esp_err_t errRc = esp_bt_controller_init(&bt_cfg);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, espToString(errRc));
-		return nullptr;
+		return;
 	}
 
 
 	errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, espToString(errRc));
-		return nullptr;
+		return;
 	}
 
 	errRc = esp_bluedroid_init();
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, espToString(errRc));
-		return nullptr;
+		return;
 	}
 
 	errRc = esp_bluedroid_enable();
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, espToString(errRc));
-		return nullptr;
+		return;
 	}
 
 	errRc = esp_ble_gap_register_callback(gap_event_handler);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, espToString(errRc));
-		return nullptr;
+		return;
 	}
 
 	errRc = esp_ble_gatts_register_callback(gatt_server_event_handler);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gatts_register_callback: rc=%d %s", errRc, espToString(errRc));
-		return nullptr;
+		return;
 	}
 
 	errRc = ::esp_ble_gap_set_device_name(deviceName.c_str());
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_device_name: rc=%d %s", errRc, espToString(errRc));
-		return nullptr;
+		return;
 	};
 
 	esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;
 	errRc = ::esp_ble_gap_set_security_param(ESP_BLE_SM_IOCAP_MODE, &iocap, sizeof(uint8_t));
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_security_param: rc=%d %s", errRc, espToString(errRc));
-		return nullptr;
+		return;
 	};
 
-	m_bleServer = new BLEServer(0);
-	m_bleServer->registerApp();
-	return m_bleServer;
+	return;
 }
 
 

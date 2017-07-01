@@ -12,6 +12,7 @@
 #include <esp_bt_main.h>
 #include <esp_gap_ble_api.h>
 #include <esp_gatts_api.h>
+#include "BLE.h"
 #include "BLEServer.h"
 #include "BLEService.h"
 #include "BLEUtils.h"
@@ -30,10 +31,12 @@ extern "C" {
 /**
  * Construct a BLE Server
  */
-BLEServer::BLEServer(uint16_t appId) {
-	m_appId    = appId;
-	m_gatts_if = 0;
+BLEServer::BLEServer() {
+	m_appId    = -1;
+	m_gatts_if = -1;
+	m_connId   = -1;
 	m_serializeMutex.setName("BLEServer");
+	BLE::m_bleServer = this;
 } // BLEServer
 
 
@@ -46,7 +49,7 @@ BLEServer::~BLEServer() {
  * @return N/A
  */
 void BLEServer::registerApp() {
-	ESP_LOGD(LOG_TAG, ">> registerApp()");
+	ESP_LOGD(LOG_TAG, ">> registerApp(%d)", m_appId);
 	m_serializeMutex.take("registerApp"); // Take the mutex, will be released by ESP_GATTS_REG_EVT event.
 	::esp_ble_gatts_app_register(m_appId);
 	ESP_LOGD(LOG_TAG, "<< registerApp()");
@@ -74,7 +77,8 @@ BLEService *BLEServer::createService(BLEUUID uuid) {
 
 	BLEService *pService = new BLEService(uuid);
 	m_serviceMap.setByUUID(uuid, pService); // Save a reference to this service being on this server.
-	pService->executeCreate(m_gatts_if);    // Perform the API calls to actually create the service.
+	pService->executeCreate(this);          // Perform the API calls to actually create the service.
+
 	ESP_LOGD(LOG_TAG, "<< createService");
 	return pService;
 } // createService
@@ -111,6 +115,20 @@ void BLEServer::handleGATTServerEvent(
 	m_serviceMap.handleGATTServerEvent(event, gatts_if, param);
 
 	switch(event) {
+
+
+		// ESP_GATTS_CONNECT_EVT
+		// connect:
+		// - uint16_t conn_id
+		// - esp_bd_addr_t remote_bda
+		// - bool is_connected
+		case ESP_GATTS_CONNECT_EVT: {
+			m_connId = param->connect.conn_id; // Save the connection id.
+			//onConnection(); // Invoke the connection handler (may be over-ridden)
+			break;
+		} // ESP_GATTS_CONNECT_EVT
+
+
 		// ESP_GATTS_REG_EVT
 		// reg:
 		// - esp_gatt_status_t status
@@ -234,6 +252,24 @@ void BLEServer::handleGAPEvent(
 
 BLEAdvertising* BLEServer::getAdvertising() {
 	return &m_bleAdvertising;
+}
+
+uint16_t BLEServer::getConnId() {
+	return m_connId;
+}
+
+uint16_t BLEServer::getGattsIf() {
+	return m_gatts_if;
+}
+
+void BLEServer::onConnection() {
+	ESP_LOGD(LOG_TAG, ">> onConnection: Default");
+	ESP_LOGD(LOG_TAG, "<< onConnection");
+}
+
+void BLEServer::createApp(uint16_t appId) {
+	m_appId = appId;
+	registerApp();
 }
 
 /*

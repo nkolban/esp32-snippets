@@ -28,7 +28,7 @@ public:
 	static std::map<ble_address, BLEDevice> getDevices();
 
 	static void initClient();
-	static BLEServer *initServer(std::string deviceName);
+	static void initServer(std::string deviceName);
 	static void scan(int duration, esp_ble_scan_type_t scan_type = BLE_SCAN_TYPE_PASSIVE);
 	static esp_gatt_if_t getGattcIF();
 	static BLEServer *m_bleServer;

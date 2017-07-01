@@ -8,7 +8,10 @@
 #ifndef COMPONENTS_CPP_UTILS_BLESERVICEMAP_H_
 #define COMPONENTS_CPP_UTILS_BLESERVICEMAP_H_
 #include <map>
-#include "BLEService.h"
+#include "BLEUUID.h"
+#include <esp_gatts_api.h>
+
+class BLEService;
 
 class BLEServiceMap {
 public:
