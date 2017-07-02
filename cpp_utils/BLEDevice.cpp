@@ -58,7 +58,7 @@ BLEDevice::~BLEDevice() {
  */
 BLEService BLEDevice::findServiceByUUID(esp_bt_uuid_t uuid) {
 	assert(uuid.len == ESP_UUID_LEN_16 || uuid.len == ESP_UUID_LEN_32 || uuid.len == ESP_UUID_LEN_128);
-	ESP_LOGD(tag, "Looking for service with uuid: %s", BLEUtils::uuidToString(uuid).c_str());
+	ESP_LOGD(tag, "Looking for service with uuid: %s", BLEUUID(uuid).toString().c_str());
 	return m_gattServices.at(uuid);
 } // findServiceByUUID
 
@@ -232,7 +232,7 @@ static const char *adv_type_to_string(uint8_t advType) {
 
 
 void BLEDevice::addService(esp_gatt_srvc_id_t srvc_id) {
-	ESP_LOGD(tag, ">> addService: %s", BLEUtils::uuidToString(srvc_id.id.uuid).c_str());
+	ESP_LOGD(tag, ">> addService: %s", BLEUUID(srvc_id.id.uuid).toString().c_str());
 	//BLEService service;
 	//service.setService(srvc_id);
 	//m_gattServices.insert(std::pair<esp_bt_uuid_t, BLEService>(srvc_id.id.uuid, service));

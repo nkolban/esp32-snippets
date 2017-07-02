@@ -249,7 +249,7 @@ void BLECharacteristic::handleGATTServerEvent(
 					memcpy(rsp.attr_value.value, getValue(), rsp.attr_value.len);
 
 					char *pHexData = BLEUtils::buildHexData(nullptr, rsp.attr_value.value, rsp.attr_value.len);
-					ESP_LOGD(LOG_TAG, " - Data: length: %d, data: %s", param->write.len, pHexData);
+					ESP_LOGD(LOG_TAG, " - Data: length: %d, data: %s", rsp.attr_value.len, pHexData);
 					free(pHexData);
 
 					esp_err_t errRc = ::esp_ble_gatts_send_response(
@@ -389,6 +389,9 @@ void BLECharacteristic::setReadProperty(bool value) {
  * @param [in] length The length of the data in bytes.
  */
 void BLECharacteristic::setValue(uint8_t* data, size_t length) {
+	char *pHex = BLEUtils::buildHexData(nullptr, data, length);
+	ESP_LOGD(LOG_TAG, ">> setValue(length: %d, %s)", length, pHex);
+	free(pHex);
 	if (length > ESP_GATT_MAX_ATTR_LEN) {
 		ESP_LOGE(LOG_TAG, "Size %d too large, must be no bigger than %d", length, ESP_GATT_MAX_ATTR_LEN);
 		return;

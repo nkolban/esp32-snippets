@@ -7,6 +7,7 @@
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 #include "BLEUtils.h"
+#include "BLEUUID.h"
 #include "BLEDevice.h"
 
 
@@ -300,55 +301,10 @@ std::string BLEUtils::devTypeToString(esp_bt_dev_type_t type) {
  */
 static std::string gattIdToString(esp_gatt_id_t gattId) {
 	std::stringstream stream;
-	stream << "uuid: " << BLEUtils::uuidToString(gattId.uuid) << ", inst_id: " << (int)gattId.inst_id;
+	stream << "uuid: " << BLEUUID(gattId.uuid).toString() << ", inst_id: " << (int)gattId.inst_id;
 	//sprintf(buffer, "uuid: %s, inst_id: %d", uuidToString(gattId.uuid).c_str(), gattId.inst_id);
 	return stream.str();
 } // gattIdToString
-
-
-/**
- * @brief Convert a UUID into a string representation.
- *
- * @param [in] A UUID.
- * @return A string representation of the UUID.
- */
-std::string BLEUtils::uuidToString(esp_bt_uuid_t uuid) {
-	std::stringstream stream;
-	switch (uuid.len) {
-	case ESP_UUID_LEN_16:
-		stream << std::setfill('0') << std::setw(4) << std::hex << uuid.uuid.uuid16;
-		break;
-
-	case ESP_UUID_LEN_32:
-		stream << std::setfill('0') << std::setw(8) << std::hex << uuid.uuid.uuid32;
-		break;
-
-	case ESP_UUID_LEN_128:
-		stream << std::setfill('0') << std::hex <<
-			std::setw(2) << uuid.uuid.uuid128[0] <<
-			std::setw(2) << uuid.uuid.uuid128[1] <<
-			std::setw(2) << uuid.uuid.uuid128[2] <<
-			std::setw(2) << uuid.uuid.uuid128[3] << "-" <<
-			std::setw(2) << uuid.uuid.uuid128[4] <<
-			std::setw(2) << uuid.uuid.uuid128[5] << "-" <<
-			std::setw(2) << uuid.uuid.uuid128[6] <<
-			std::setw(2) << uuid.uuid.uuid128[7] << "-" <<
-			std::setw(2) << uuid.uuid.uuid128[8] <<
-			std::setw(2) << uuid.uuid.uuid128[9] << "-" <<
-			std::setw(2) << uuid.uuid.uuid128[10] <<
-			std::setw(2) << uuid.uuid.uuid128[11] <<
-			std::setw(2) << uuid.uuid.uuid128[12] <<
-			std::setw(2) << uuid.uuid.uuid128[13] <<
-			std::setw(2) << uuid.uuid.uuid128[14] <<
-			std::setw(2) << uuid.uuid.uuid128[15];
-		break;
-	}
-
-	return stream.str();
-} // uuidToString
-
-
-
 
 
 /**
@@ -360,7 +316,12 @@ std::string BLEUtils::uuidToString(esp_bt_uuid_t uuid) {
  * @return A pointer to the formatted buffer.
  */
 char *BLEUtils::buildHexData(uint8_t *target, uint8_t *source, uint8_t length) {
-	int i;
+// Guard against too much data.
+	if (length > 100) {
+		length = 100;
+	}
+
+
 	if (target == nullptr) {
 		target = (uint8_t *)malloc(length * 2 + 1);
 		if (target == nullptr) {
@@ -369,11 +330,19 @@ char *BLEUtils::buildHexData(uint8_t *target, uint8_t *source, uint8_t length) {
 		}
 	}
 	char *startOfData = (char *)target;
+
+	int i;
 	for (i=0; i<length; i++) {
 		sprintf((char *)target, "%.2x", (char)*source);
 		source++;
 		target +=2;
 	}
+
+// Handle the special case where there was no data.
+	if (length == 0) {
+		*startOfData = 0;
+	}
+
 	return startOfData;
 } // buildHexData
 
@@ -830,7 +799,7 @@ void BLEUtils::dumpGattServerEvent(
 				gattStatusToString(evtParam->add_char_descr.status).c_str(),
 				evtParam->add_char_descr.attr_handle,
 				evtParam->add_char_descr.service_handle,
-				uuidToString(evtParam->add_char_descr.char_uuid).c_str());
+				BLEUUID(evtParam->add_char_descr.char_uuid).toString().c_str());
 			break;
 		} // ESP_GATTS_ADD_CHAR_DESCR_EVT
 
@@ -839,7 +808,7 @@ void BLEUtils::dumpGattServerEvent(
 				gattStatusToString(evtParam->add_char.status).c_str(),
 				evtParam->add_char.attr_handle,
 				evtParam->add_char.service_handle,
-				uuidToString(evtParam->add_char.char_uuid).c_str());
+				BLEUUID(evtParam->add_char.char_uuid).toString().c_str());
 			break;
 		} // ESP_GATTS_ADD_CHAR_EVT
 

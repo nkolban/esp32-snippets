@@ -36,7 +36,6 @@ public:
 	static std::string gattServiceToString(uint32_t serviceId);
 	static void registerByAddress(ble_address address, BLEDevice *pDevice);
 	static void registerByConnId(uint16_t conn_id, BLEDevice *pDevice);
-	static std::string uuidToString(esp_bt_uuid_t uuid);
 	static std::string gattCharacteristicUUIDToString(uint32_t characteristicUUID);
 	static void dumpGattClientEvent(
 		esp_gattc_cb_event_t event,
