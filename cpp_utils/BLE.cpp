@@ -20,16 +20,14 @@
 #include <sstream>
 #include <iomanip>
 
-#include "BLEUtils.h"
 #include "BLE.h"
-#include "BLEDevice.h"
+#include "BLERemoteDevice.h"
+#include "BLEUtils.h"
 #include "BLEXXXCharacteristic.h"
+#include "GeneralUtils.h"
 
 static char LOG_TAG[] = "BLE";
 
-extern "C" {
-	char *espToString(esp_err_t value);
-}
 
 static EventGroupHandle_t g_eventGroup;
 #define EVENT_GROUP_SCAN_COMPLETE (1<<0)
@@ -42,7 +40,7 @@ static EventGroupHandle_t g_eventGroup;
  * Note that this address is binary and should not be directly printed.  The value of the map is
  * the BLEDevice object that this device represents.
  */
-static std::map<ble_address, BLEDevice> g_devices;
+static std::map<std::string, BLERemoteDevice> g_devices;
 
 BLEServer *BLE::m_bleServer;
 
@@ -215,7 +213,7 @@ static void gatt_client_event_handler(
 
 	switch(event) {
 	case ESP_GATTC_OPEN_EVT: {
-		BLEDevice *pDevice = BLEUtils::findByAddress(std::string((char *)param->open.remote_bda, 6));
+		BLERemoteDevice *pDevice = BLEUtils::findByAddress(std::string((char *)param->open.remote_bda, 6));
 		BLEUtils::registerByConnId(param->open.conn_id, pDevice);
 		pDevice->dump();
 		pDevice->onConnected(param->open.status);
@@ -232,13 +230,13 @@ static void gatt_client_event_handler(
 	 *   * bool is_primary
 	 */
 	case ESP_GATTC_SEARCH_RES_EVT: {
-		BLEDevice *pDevice = BLEUtils::findByConnId(param->search_res.conn_id);
+		BLERemoteDevice *pDevice = BLEUtils::findByConnId(param->search_res.conn_id);
 		pDevice->addService(param->search_res.srvc_id);
 		break;
 	}
 
 	case ESP_GATTC_SEARCH_CMPL_EVT: {
-		BLEDevice *pDevice = BLEUtils::findByConnId(param->search_cmpl.conn_id);
+		BLERemoteDevice *pDevice = BLEUtils::findByConnId(param->search_cmpl.conn_id);
 		pDevice->onSearchComplete();
 		break;
 	}
@@ -253,7 +251,7 @@ static void gatt_client_event_handler(
 	 */
 	case ESP_GATTC_GET_CHAR_EVT: {
 		if (param->get_char.status == ESP_GATT_OK) {
-			BLEDevice *pDevice = BLEUtils::findByConnId(param->get_char.conn_id);
+			BLERemoteDevice *pDevice = BLEUtils::findByConnId(param->get_char.conn_id);
 			BLECharacteristicXXX characteristic(param->get_char.conn_id,
 					param->get_char.srvc_id, param->get_char.char_id, param->get_char.char_prop);
 			pDevice->onCharacteristic(characteristic);
@@ -275,7 +273,7 @@ static void gatt_client_event_handler(
 	 */
 	case ESP_GATTC_READ_CHAR_EVT: {
 		if (param->read.status == ESP_GATT_OK) {
-			BLEDevice *pDevice = BLEUtils::findByConnId(param->read.conn_id);
+			BLERemoteDevice *pDevice = BLEUtils::findByConnId(param->read.conn_id);
 			std::string data = std::string((char *)param->read.value, param->read.value_len);
 			pDevice->onRead(data);
 		}
@@ -299,10 +297,9 @@ static void gap_event_handler(
 	BLEUtils::dumpGapEvent(event, param);
 
 	switch(event) {
+	/*
 		case ESP_GAP_BLE_SCAN_RESULT_EVT: {
-			BLEDevice device;
-
-			ESP_LOGD(LOG_TAG, "search_evt: %s", bt_gap_search_event_type_to_string(param->scan_rst.search_evt).c_str());
+			BLERemoteDevice device;
 
 			if (param->scan_rst.search_evt == ESP_GAP_SEARCH_INQ_CMPL_EVT) {
 				//ESP_LOGD(tag, "num_resps: %d", param->scan_rst.num_resps);
@@ -315,23 +312,24 @@ static void gap_event_handler(
 				//ESP_LOGD(tag, "rssi: %d", param->scan_rst.rssi);
 				//ESP_LOGD(tag, "addr_type: %s", bt_addr_t_to_string(param->scan_rst.ble_addr_type));
 				//ESP_LOGD(tag, "flag: %d", param->scan_rst.flag);
-				device.setAddress(std::string((char *)param->scan_rst.bda, 6));
+				device.setAddress(BLEAddress(param->scan_rst.bda));
 				device.setRSSI(param->scan_rst.rssi);
 				device.setAdFlag(param->scan_rst.flag);
 				//device.dump();
 				device.parsePayload((uint8_t *)param->scan_rst.ble_adv);
-				g_devices.insert(std::pair<std::string,BLEDevice>(device.getAddress(),device));
+				g_devices.insert(std::pair<std::string,BLERemoteDevice>(device.getAddress().toString(),device));
 				//dump_adv_payload(param->scan_rst.ble_adv);
 			} else {
-				ESP_LOGD(LOG_TAG, "Unhandled search_evt type!");
+				ESP_LOGD(LOG_TAG, "Un-handled search_evt type!");
 			}
 			break;
 		} // ESP_GAP_BLE_SCAN_RESULT_EVT
+		*/
 
 		case ESP_GAP_BLE_SEC_REQ_EVT: {
 			esp_err_t errRc = ::esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, true);
 			if (errRc != ESP_OK) {
-				ESP_LOGE(LOG_TAG, "esp_ble_gap_security_rsp: rc=%d %s", errRc, espToString(errRc));
+				ESP_LOGE(LOG_TAG, "esp_ble_gap_security_rsp: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 			}
 			break;
 		}
@@ -352,7 +350,7 @@ static void gap_event_handler(
 /**
  * @brief Get the current set of known devices.
  */
-std::map<ble_address, BLEDevice> getDevices() {
+std::map<std::string, BLERemoteDevice> getDevices() {
 	return g_devices;
 } // getDevices
 
@@ -365,51 +363,51 @@ std::map<ble_address, BLEDevice> getDevices() {
 	esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
 	esp_err_t errRc = esp_bt_controller_init(&bt_cfg);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 
 	errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 	errRc = esp_bluedroid_init();
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 	errRc = esp_bluedroid_enable();
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 	errRc = esp_ble_gap_register_callback(gap_event_handler);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 	errRc = esp_ble_gatts_register_callback(gatt_server_event_handler);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gatts_register_callback: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gatts_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 	errRc = ::esp_ble_gap_set_device_name(deviceName.c_str());
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_device_name: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_device_name: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	};
 
 	esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;
 	errRc = ::esp_ble_gap_set_security_param(ESP_BLE_SM_IOCAP_MODE, &iocap, sizeof(uint8_t));
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_security_param: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_security_param: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	};
 
@@ -424,44 +422,44 @@ void BLE::initClient() {
   esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
   esp_err_t errRc = esp_bt_controller_init(&bt_cfg);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 
 	errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 	errRc = esp_bluedroid_init();
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 	errRc = esp_bluedroid_enable();
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 	errRc = esp_ble_gap_register_callback(gap_event_handler);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 	errRc = esp_ble_gattc_register_callback(gatt_client_event_handler);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_callback: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 	errRc = esp_ble_gattc_app_register(0);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gattc_app_register: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gattc_app_register: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 	g_eventGroup = xEventGroupCreate();
@@ -479,6 +477,7 @@ void BLE::initClient() {
  * @param [in] scanType The type of scanning requested.  The choices are `BLE_SCA_TYPE_PASSIVE` and `BLE_SCAN_TYPE_ACTIVE`.
  * The distinction between them is whether or not the advertizer has a scan response requested from it.
  */
+/*
 void BLE::scan(int duration, esp_ble_scan_type_t scan_type) {
 	g_devices.clear();
 	static esp_ble_scan_params_t ble_scan_params;
@@ -489,7 +488,7 @@ void BLE::scan(int duration, esp_ble_scan_type_t scan_type) {
 	ble_scan_params.scan_window            = 0x30;
 	esp_err_t errRc = esp_ble_gap_set_scan_params(&ble_scan_params);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_scan_params: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_scan_params: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
@@ -498,9 +497,7 @@ void BLE::scan(int duration, esp_ble_scan_type_t scan_type) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_start_scanning: rc=%d", errRc);
 		return;
 	}
-	/*
-	 * Block until done
-	 */
+
 	xEventGroupWaitBits(g_eventGroup,
 		EVENT_GROUP_SCAN_COMPLETE,
 		1, // Clear on exit
@@ -508,5 +505,5 @@ void BLE::scan(int duration, esp_ble_scan_type_t scan_type) {
 		portMAX_DELAY);
 	ESP_LOGD(LOG_TAG, "Scan complete! - BLE:scan() returning.");
 } // scan
-
+*/
 #endif // CONFIG_BT_ENABLED

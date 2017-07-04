@@ -15,7 +15,7 @@
 #include <string>
 
 #include "BLEServer.h"
-#include "BLEDevice.h"
+#include "BLERemoteDevice.h"
 #include "BLEUtils.h"
 /**
  * @brief %BLE functions.
@@ -25,11 +25,11 @@ public:
 	BLE();
 	virtual ~BLE();
 	static void dumpDevices();
-	static std::map<ble_address, BLEDevice> getDevices();
+	static std::map<std::string, BLERemoteDevice> getDevices();
 
 	static void initClient();
 	static void initServer(std::string deviceName);
-	static void scan(int duration, esp_ble_scan_type_t scan_type = BLE_SCAN_TYPE_PASSIVE);
+	//static void scan(int duration, esp_ble_scan_type_t scan_type = BLE_SCAN_TYPE_PASSIVE);
 	static esp_gatt_if_t getGattcIF();
 	static BLEServer *m_bleServer;
 }; // class BLE

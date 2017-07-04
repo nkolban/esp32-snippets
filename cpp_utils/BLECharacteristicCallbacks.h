@@ -7,7 +7,8 @@
 
 #ifndef COMPONENTS_CPP_UTILS_BLECHARACTERISTICCALLBACKS_H_
 #define COMPONENTS_CPP_UTILS_BLECHARACTERISTICCALLBACKS_H_
-#include "BLECharacteristic.h"
+#include <BLECharacteristic.h>
+class BLECharacteristic;
 
 class BLECharacteristicCallbacks {
 public:

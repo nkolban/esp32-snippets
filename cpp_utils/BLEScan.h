@@ -8,11 +8,15 @@
 #ifndef COMPONENTS_CPP_UTILS_BLESCAN_H_
 #define COMPONENTS_CPP_UTILS_BLESCAN_H_
 #include <esp_gap_ble_api.h>
+#include "BLERemoteDevice.h"
 
 class BLEScan {
 public:
 	BLEScan();
 	virtual ~BLEScan();
+	void gapEventHandler(
+		esp_gap_ble_cb_event_t event,
+		esp_ble_gap_cb_param_t *param);
 	virtual void onResults();
 	void setActiveScan(bool active);
 	void setInterval(uint16_t intervalMSecs);
@@ -22,6 +26,7 @@ public:
 
 private:
 	esp_ble_scan_params_t m_scan_params;
+	void parseAdvertisement(BLERemoteDevice *pRemoteDevice, uint8_t *payload);
 }; // BLEScan
 
 #endif /* COMPONENTS_CPP_UTILS_BLESCAN_H_ */

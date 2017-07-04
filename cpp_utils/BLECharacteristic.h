@@ -12,8 +12,11 @@
 #include <esp_gatts_api.h>
 #include "BLEDescriptor.h"
 #include "BLEDescriptorMap.h"
+#include "BLECharacteristicCallbacks.h"
+
 class BLEService;
 class BLEDescriptor;
+class BLECharacteristicCallbacks;
 
 class BLECharacteristic {
 public:
@@ -26,9 +29,9 @@ public:
 	uint8_t *getValue();
 
 	void indicate();
-	virtual void onRead();
-	virtual void onWrite();
+	void notify();
 	void setBroadcastProperty(bool value);
+	void setCallbacks(BLECharacteristicCallbacks *pCallbacks);
 	void setIndicateProperty(bool value);
 	void setNotifyProperty(bool value);
 	void setReadProperty(bool value);
@@ -58,6 +61,7 @@ private:
 	uint16_t             m_handle;
 	BLEService          *m_pService;
 	BLEDescriptorMap     m_descriptorMap;
+	BLECharacteristicCallbacks *m_pCallbacks;
 
 	void handleGATTServerEvent(
 			esp_gatts_cb_event_t      event,

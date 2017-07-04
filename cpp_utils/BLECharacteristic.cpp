@@ -15,14 +15,11 @@
 #include "BLECharacteristic.h"
 #include "BLEService.h"
 #include "BLEUtils.h"
+#include "GeneralUtils.h"
 
 static char LOG_TAG[] = "BLECharacteristic";
 
 #define NULL_HANDLE (0xffff)
-
-extern "C" {
-	char *espToString(esp_err_t value);
-}
 
 /**
  * @brief Construct a characteristic
@@ -36,6 +33,7 @@ BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
 	m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN; // Maximum length of data.
 	m_handle             = NULL_HANDLE;
 	m_properties         = 0;
+	m_pCallbacks         = nullptr;
 
 	setBroadcastProperty((properties & PROPERTY_BROADCAST) !=0);
 	setReadProperty((properties & PROPERTY_READ) !=0);
@@ -97,7 +95,7 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 		&control); // Whether to autorespond or not.
 
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_add_char: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_add_char: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
@@ -209,11 +207,13 @@ void BLECharacteristic::handleGATTServerEvent(
 							param->write.conn_id,
 							param->write.trans_id, ESP_GATT_OK, &rsp);
 					if (errRc != ESP_OK) {
-						ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, espToString(errRc));
+						ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 					}
 				} // Response needed
 
-				onWrite(); // Invoke the onWrite callback handler.
+				if (m_pCallbacks != nullptr) {
+					m_pCallbacks->onWrite(this); // Invoke the onWrite callback handler.
+				}
 			} // Match on handles.
 			break;
 		} // ESP_GATTS_WRITE_EVT
@@ -234,7 +234,9 @@ void BLECharacteristic::handleGATTServerEvent(
 			ESP_LOGD(LOG_TAG, "- Testing: 0x%.2x == 0x%.2x", param->read.handle, m_handle);
 			if (param->read.handle == m_handle) {
 
-				onRead(); // Invoke the read callback.
+				if (m_pCallbacks != nullptr) {
+					m_pCallbacks->onRead(this); // Invoke the read callback.
+				}
 
 // Here's an interesting thing.  The read request has the option of saying whether we need a response
 // or not.  What would it "mean" to receive a read request and NOT send a response back?  That feels like
@@ -258,7 +260,7 @@ void BLECharacteristic::handleGATTServerEvent(
 							ESP_GATT_OK,
 							&rsp);
 					if (errRc != ESP_OK) {
-						ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, espToString(errRc));
+						ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 					}
 				} // Response needed
 			} // Handle matches this characteristic.
@@ -296,9 +298,9 @@ void BLECharacteristic::indicate() {
 	esp_err_t errRc = ::esp_ble_gatts_send_indicate(
 			getService()->getServer()->getGattsIf(),
 			getService()->getServer()->getConnId(),
-			getHandle(), getLength(), getValue(), false);
+			getHandle(), getLength(), getValue(), true); // The need_confirm = true makes this an indication.
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_send_indicate: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_send_indicate: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
@@ -307,28 +309,28 @@ void BLECharacteristic::indicate() {
 
 
 /**
- * @brief Callback function called when a read request has been received.
- * This function is called when a read request has been received but before returning the
- * characteristic data.  We have the opportunity here to set a new value for the
- * characteristic which will be returned when we return from this function.
+ * @brief Send a notify.
+ * @return N/A.
  */
-void BLECharacteristic::onRead() {
-	ESP_LOGD(LOG_TAG, ">> onRead: Default");
-	ESP_LOGD(LOG_TAG, "<< onRead");
-} // onRead
+void BLECharacteristic::notify() {
 
+	char *pHexData = BLEUtils::buildHexData(nullptr, getValue(), getLength());
+	ESP_LOGD(LOG_TAG, ">> notify: length: %d, data: [%s]", getLength(), pHexData );
+	free(pHexData);
 
-/**
- * @brief Callback function called when a write request has been received.
- * This function is called when a write request has been received.  It is invoked
- * after the characteristic's value has been changed.  We can perform work here
- * that might be of importance because of the new value.  We can read the current value
- * of the characteristic as normal to see the new value.
- */
-void BLECharacteristic::onWrite() {
-	ESP_LOGD(LOG_TAG, ">> onWrite: Default");
-	ESP_LOGD(LOG_TAG, "<< onWrite");
-} // onWrite
+	assert(getService() != nullptr);
+	assert(getService()->getServer() != nullptr);
+	esp_err_t errRc = ::esp_ble_gatts_send_indicate(
+			getService()->getServer()->getGattsIf(),
+			getService()->getServer()->getConnId(),
+			getHandle(), getLength(), getValue(), false); // The need_confirm = false makes this a notify.
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_send_indicate: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		return;
+	}
+
+	ESP_LOGD(LOG_TAG, "<< notify");
+} // Notify
 
 
 /**
@@ -344,6 +346,13 @@ void BLECharacteristic::setBroadcastProperty(bool value) {
 		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_BROADCAST;
 	}
 } // setBroadcastProperty
+
+/**
+ * @brief Set the callback handlers for this characteristic.
+ */
+void BLECharacteristic::setCallbacks(BLECharacteristicCallbacks* pCallbacks) {
+	m_pCallbacks = pCallbacks;
+} // setCallbacks
 
 
 void BLECharacteristic::setHandle(uint16_t handle) {
@@ -450,3 +459,5 @@ std::string BLECharacteristic::toString() {
 		((m_properties & ESP_GATT_CHAR_PROP_BIT_INDICATE)?"Indicate ":"");
 	return stringstream.str();
 } // toString
+
+

@@ -14,12 +14,11 @@
 #include <esp_err.h>
 #include "BLEService.h"
 #include "BLEDescriptor.h"
+#include "GeneralUtils.h"
 
 static char LOG_TAG[] = "BLEDescriptor";
 
-extern "C" {
-	char *espToString(esp_err_t value);
-}
+
 #define NULL_HANDLE (0xffff)
 /**
  * @brief BLEDescriptor constructor.
@@ -66,7 +65,7 @@ void BLEDescriptor::executeCreate(BLECharacteristic* pCharacteristic) {
 			&m_value,
 			&control);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_add_char_descr: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_add_char_descr: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 	ESP_LOGD(LOG_TAG, "<< executeCreate");
@@ -170,7 +169,7 @@ void BLEDescriptor::handleGATTServerEvent(
 				esp_err_t errRc = ::esp_ble_gatts_send_response(
 						gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, &rsp);
 				if (errRc != ESP_OK) {
-					ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, espToString(errRc));
+					ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 				}
 			}
 			break;
@@ -201,7 +200,7 @@ void BLEDescriptor::handleGATTServerEvent(
 					esp_err_t errRc = ::esp_ble_gatts_send_response(
 							gatts_if, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, &rsp);
 					if (errRc != ESP_OK) {
-						ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, espToString(errRc));
+						ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 					}
 				}
 			} // ESP_GATTS_READ_EVT

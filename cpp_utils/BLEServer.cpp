@@ -23,10 +23,6 @@
 
 static char LOG_TAG[] = "BLEServer";
 
-extern "C" {
-	char *espToString(esp_err_t value);
-}
-
 
 /**
  * Construct a BLE Server

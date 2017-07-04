@@ -9,12 +9,9 @@
 #include <esp_log.h>
 #include <esp_err.h>
 #include "BLEUtils.h"
+#include "GeneralUtils.h"
 
 static char LOG_TAG[] = "BLEAdvertising";
-
-extern "C" {
-	char *espToString(esp_err_t value);
-}
 
 BLEAdvertising::BLEAdvertising() {
 	m_advData.set_scan_rsp        = false;
@@ -65,14 +62,14 @@ void BLEAdvertising::start() {
 	// Set the configuration for advertising.
 	esp_err_t errRc = ::esp_ble_gap_config_adv_data(&m_advData);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_config_adv_data: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_config_adv_data: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
 	// Start advertising.
 	errRc = ::esp_ble_gap_start_advertising(&m_advParams);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_start_advertising: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_start_advertising: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 	ESP_LOGD(LOG_TAG, "<< start();")
@@ -87,7 +84,7 @@ void BLEAdvertising::start() {
 void BLEAdvertising::stop() {
 	esp_err_t errRc = ::esp_ble_gap_stop_advertising();
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gap_stop_advertising: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_stop_advertising: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 } // stop

@@ -10,16 +10,14 @@
 static char LOG_TAG[] = "BLECharacteristicCallbacks";
 
 BLECharacteristicCallbacks::BLECharacteristicCallbacks() {
-	// TODO Auto-generated constructor stub
-
 }
 
 BLECharacteristicCallbacks::~BLECharacteristicCallbacks() {
-	// TODO Auto-generated destructor stub
 }
 
 /**
  * @brief Callback function to support a read request.
+ * @param [in] pCharacteristic The characteristic that is the source of the event.
  */
 void BLECharacteristicCallbacks::onRead(BLECharacteristic *pCharacteristic) {
 	ESP_LOGD(LOG_TAG, ">> onRead: default");
@@ -29,6 +27,7 @@ void BLECharacteristicCallbacks::onRead(BLECharacteristic *pCharacteristic) {
 
 /**
  * @brief Callback function to support a write request.
+ * @param [in] pCharacteristic The characteristic that is the source of the event.
  */
 void BLECharacteristicCallbacks::onWrite(BLECharacteristic *pCharacteristic) {
 	ESP_LOGD(LOG_TAG, ">> onWrite: default");

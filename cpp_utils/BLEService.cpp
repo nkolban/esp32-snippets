@@ -20,10 +20,7 @@
 #include "BLEServer.h"
 #include "BLEService.h"
 #include "BLEUtils.h"
-
-extern "C" {
-	char *espToString(esp_err_t value);
-}
+#include "GeneralUtils.h"
 
 #define NULL_HANDLE (0xffff)
 
@@ -62,7 +59,7 @@ void BLEService::executeCreate(BLEServer *pServer) {
 	m_serializeMutex.take("executeCreate"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
 	esp_err_t errRc = ::esp_ble_gatts_create_service(getServer()->getGattsIf(), &srvc_id, 10);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gatts_create_service: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_ble_gatts_create_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 	ESP_LOGD(LOG_TAG, "<< executeCreate()");
@@ -112,7 +109,7 @@ void BLEService::start() {
 	ESP_LOGD(LOG_TAG, ">> start(): Starting service (esp_ble_gatts_start_service): %s", toString().c_str());
 	esp_err_t errRc = ::esp_ble_gatts_start_service(m_handle);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_start_service: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_start_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 	BLECharacteristic *pCharacteristic = m_characteristicMap.getFirst();

@@ -18,14 +18,14 @@
 #include <unordered_set>
 
 #include "BLEService.h"
+#include "BLEAddress.h"
 #include "BLEXXXCharacteristic.h"
-
-typedef std::string ble_address;
 
 
 /**
  * @brief An operator for comparing items
  */
+
 struct esp_bt_uuid_t_compare {
 	bool operator()(const esp_bt_uuid_t &lhs, const esp_bt_uuid_t &rhs) const {
 		if (lhs.len != rhs.len) {
@@ -40,7 +40,7 @@ struct esp_bt_uuid_t_compare {
 		if (lhs.len == ESP_UUID_LEN_128) {
 			return ::memcmp(lhs.uuid.uuid128, rhs.uuid.uuid128, 16) < 0;
 		}
-		assert(false); // Shouldn't reach here.
+		//assert(false); // Shouldn't reach here.
 		return true; // Will never reach here.
 	} // operator()
 }; // esp_bt_uuid_t_compare
@@ -49,16 +49,16 @@ struct esp_bt_uuid_t_compare {
 /**
  * @brief A %BLE device.
  */
-class BLEDevice {
+class BLERemoteDevice {
 public:
-	BLEDevice();
-	BLEDevice(std::string address);
-	virtual ~BLEDevice();
+	BLERemoteDevice();
+	BLERemoteDevice(std::string address);
+	virtual ~BLERemoteDevice();
 	void addService(esp_gatt_srvc_id_t srvc_id);
 	void dump();
 
 	BLEService findServiceByUUID(esp_bt_uuid_t uuid);
-	std::string getAddress() {
+	BLEAddress getAddress() {
 		return m_address;
 	}
 	void getCharacteristics(esp_gatt_srvc_id_t *srvc_id, esp_gatt_id_t *lastCharacteristic);
@@ -83,29 +83,39 @@ public:
 	void readCharacteristic(uint16_t srvcId, uint16_t characteristicId);
 	void parsePayload(uint8_t *payload);
 	void searchService();
-	void setAddress(ble_address address);
-	void setAdFlag(uint8_t adFlag);
-	void setOnCharacteristic(void (*oncharacteristic)(BLEDevice *pDevice, BLECharacteristicXXX characteristic)) {
+
+
+	void setOnCharacteristic(void (*oncharacteristic)(BLERemoteDevice *pDevice, BLECharacteristicXXX characteristic)) {
 		m_oncharacteristic = oncharacteristic;
 	}
 	/**
 	 * @brief Set the function to be called when a connection has been established.
 	 */
-	void setOnConnected(void (*onconnected)(BLEDevice *pDevice, esp_gatt_status_t status)) {
+	void setOnConnected(void (*onconnected)(BLERemoteDevice *pDevice, esp_gatt_status_t status)) {
 		m_onconnected = onconnected;
 	}
 
-	void setOnRead(	void (*onread)(BLEDevice *pDevice, std::string data)) {
+	void setOnRead(	void (*onread)(BLERemoteDevice *pDevice, std::string data)) {
 		m_onread = onread;
 	}
 
-	void setOnSearchComplete(void (*onsearchcomplete)(BLEDevice *pDevice)) {
+	void setOnSearchComplete(void (*onsearchcomplete)(BLERemoteDevice *pDevice)) {
 		m_onsearchcomplete = onsearchcomplete;
 	}
-	void setRSSI(int rssi);
+
 
 private:
-	ble_address m_address;
+	friend class BLEScan;
+	friend class BLE;
+	void setAddress(BLEAddress address);
+	void setAdFlag(uint8_t adFlag);
+	void setAdvertizementResult(uint8_t *payload);
+	void setName(std::string name);
+	void setRSSI(int rssi);
+	void setTXPower(uint8_t txPower);
+	void setAppearance(uint16_t appearance);
+
+	BLEAddress  m_address = BLEAddress((uint8_t *)"\0\0\0\0\0\0");
 	uint8_t     m_adFlag;
 	uint16_t    m_appearance;
 	uint16_t    m_conn_id;
@@ -114,16 +124,17 @@ private:
 	std::map<esp_bt_uuid_t, BLEService, esp_bt_uuid_t_compare> m_gattServices;
 	uint8_t     m_manufacturerType[2];
 	std::string m_name;
-	void (*m_oncharacteristic)(BLEDevice *pDevice, BLECharacteristicXXX characteristic);
-	// The function to be called when a connection has been established.
-	void (*m_onconnected)(BLEDevice *pDevice, esp_gatt_status_t status);
-	void (*m_onread)(BLEDevice *pDevice, std::string data);
-	void (*m_onsearchcomplete)(BLEDevice *pDevice);
 	int         m_rssi;
-	std::unordered_set<std::string> m_services;
 	int8_t      m_txPower;
-	void setAdvertizementResult(uint8_t *payload);
-	bool m_haveAdvertizement;
+	bool        m_haveAdvertizement;
+
+	void (*m_oncharacteristic)(BLERemoteDevice *pDevice, BLECharacteristicXXX characteristic);
+	// The function to be called when a connection has been established.
+	void (*m_onconnected)(BLERemoteDevice *pDevice, esp_gatt_status_t status);
+	void (*m_onread)(BLERemoteDevice *pDevice, std::string data);
+	void (*m_onsearchcomplete)(BLERemoteDevice *pDevice);
+
+	std::unordered_set<std::string> m_services;
 }; // class BLEDevice
 
 #endif // CONFIG_BT_ENABLED

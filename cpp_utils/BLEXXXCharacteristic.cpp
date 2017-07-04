@@ -10,10 +10,8 @@
 #include <esp_log.h>
 #include <esp_err.h>
 #include "BLEXXXCharacteristic.h"
+#include "GeneralUtils.h"
 
-extern "C" {
-	char *espToString(esp_err_t value);
-}
 
 static char tag[] = "BLECharacteristic";
 
@@ -39,7 +37,7 @@ void BLECharacteristicXXX::nextCharacterisic(esp_gatt_if_t gattc_if) {
 		&m_char_id
 	);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gattc_get_characteristic: rc=%d %s", errRc, espToString(errRc));
+		ESP_LOGE(tag, "esp_ble_gattc_get_characteristic: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 }
