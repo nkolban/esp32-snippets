@@ -42,7 +42,8 @@ static EventGroupHandle_t g_eventGroup;
  */
 static std::map<std::string, BLERemoteDevice> g_devices;
 
-BLEServer *BLE::m_bleServer;
+BLEServer *BLE::m_bleServer = nullptr;
+BLEScan   *BLE::m_pScan     = nullptr;
 
 BLE::BLE() {
 }
@@ -64,107 +65,6 @@ void BLE::dumpDevices() {
     	myPair.second.dump();
     }
 } // dumpDevices
-
-
-/**
- * https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile
- */
-/*
-static const char *adv_type_to_string(uint8_t advType) {
-	switch(advType) {
-	case ESP_BLE_AD_TYPE_FLAG:
-		return "ESP_BLE_AD_TYPE_FLAG";
-	case ESP_BLE_AD_TYPE_16SRV_PART:
-		return "ESP_BLE_AD_TYPE_16SRV_PART";
-	case ESP_BLE_AD_TYPE_16SRV_CMPL:
-		return "ESP_BLE_AD_TYPE_16SRV_CMPL";
-	case ESP_BLE_AD_TYPE_32SRV_PART:
-		return "ESP_BLE_AD_TYPE_32SRV_PART";
-	case ESP_BLE_AD_TYPE_32SRV_CMPL:
-		return "ESP_BLE_AD_TYPE_32SRV_CMPL";
-	case ESP_BLE_AD_TYPE_128SRV_PART:
-		return "ESP_BLE_AD_TYPE_128SRV_PART";
-	case ESP_BLE_AD_TYPE_128SRV_CMPL:
-		return "ESP_BLE_AD_TYPE_128SRV_CMPL";
-	case ESP_BLE_AD_TYPE_NAME_SHORT:
-		return "ESP_BLE_AD_TYPE_NAME_SHORT";
-	case ESP_BLE_AD_TYPE_NAME_CMPL:
-		return "ESP_BLE_AD_TYPE_NAME_CMPL";
-	case ESP_BLE_AD_TYPE_TX_PWR:
-		return "ESP_BLE_AD_TYPE_TX_PWR";
-	case ESP_BLE_AD_TYPE_DEV_CLASS:
-		return "ESP_BLE_AD_TYPE_DEV_CLASS";
-	case ESP_BLE_AD_TYPE_SM_TK:
-		return "ESP_BLE_AD_TYPE_SM_TK";
-	case ESP_BLE_AD_TYPE_SM_OOB_FLAG:
-		return "ESP_BLE_AD_TYPE_SM_OOB_FLAG";
-	case ESP_BLE_AD_TYPE_INT_RANGE:
-		return "ESP_BLE_AD_TYPE_INT_RANGE";
-	case ESP_BLE_AD_TYPE_SOL_SRV_UUID:
-		return "ESP_BLE_AD_TYPE_SOL_SRV_UUID";
-	case ESP_BLE_AD_TYPE_128SOL_SRV_UUID:
-		return "ESP_BLE_AD_TYPE_128SOL_SRV_UUID";
-	case ESP_BLE_AD_TYPE_SERVICE_DATA:
-		return "ESP_BLE_AD_TYPE_SERVICE_DATA";
-	case ESP_BLE_AD_TYPE_PUBLIC_TARGET:
-		return "ESP_BLE_AD_TYPE_PUBLIC_TARGET";
-	case ESP_BLE_AD_TYPE_RANDOM_TARGET:
-		return "ESP_BLE_Amap1D_TYPE_RANDOM_TARGET";
-	case ESP_BLE_AD_TYPE_APPEARANCE:
-		return "ESP_BLE_AD_TYPE_APPEARANCE";
-	case ESP_BLE_AD_TYPE_ADV_INT:
-		return "ESP_BLE_AD_TYPE_ADV_INT";
-	case ESP_BLE_AD_TYPE_32SOL_SRV_UUID:
-		return "ESP_BLE_AD_TYPE_32SOL_SRV_UUID";
-	case ESP_BLE_AD_TYPE_32SERVICE_DATA:
-		return "ESP_BLE_AD_TYPE_32SERVICE_DATA";
-	case ESP_BLE_AD_TYPE_128SERVICE_DATA:
-		return "ESP_BLE_AD_TYPE_128SERVICE_DATA";
-	case ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE:
-		return "ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE";
-	default:
-		ESP_LOGD(tag, "Unknown adv data type: 0x%x", advType);
-		return "Unknown";
-	}
-}
-*/
-
-/**
- * @brief Dump the advertizing payload.
- *
- * The payload is a buffer of bytes that is either 31 bytes long or terminated by
- * a 0 length value.  Each entry in the buffer has the format:
- * [length][type][data...]
- *
- * The length does not include itself but does include everything after it until the next record.  A record
- * with a length value of 0 indicates a terminator.
- */
-/*
-static void dump_adv_payload(uint8_t *payload) {
-	uint8_t length;
-	uint8_t ad_type;
-	uint8_t sizeConsumed = 0;
-	bool finished = false;
-	//int i;
-	//char text[31*2+1];
-	//sprintf(text, "%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x")
-	while(!finished) {
-		length = *payload;
-		payload++;
-		if (length != 0) {
-			ad_type = *payload;
-			payload += length;
-			ESP_LOGD(tag, "Type: 0x%.2x (%s), length: %d", ad_type, adv_type_to_string(ad_type), length);
-
-		}
-
-		sizeConsumed = 1 + length;
-		if (sizeConsumed >=31 || length == 0) {
-			finished = true;
-		}
-	} // !finished
-} // dump_adv_payload
-*/
 
 
 /**
@@ -297,35 +197,6 @@ static void gap_event_handler(
 	BLEUtils::dumpGapEvent(event, param);
 
 	switch(event) {
-	/*
-		case ESP_GAP_BLE_SCAN_RESULT_EVT: {
-			BLERemoteDevice device;
-
-			if (param->scan_rst.search_evt == ESP_GAP_SEARCH_INQ_CMPL_EVT) {
-				//ESP_LOGD(tag, "num_resps: %d", param->scan_rst.num_resps);
-				//BLE::dumpDevices();
-				xEventGroupSetBits(g_eventGroup, EVENT_GROUP_SCAN_COMPLETE);
-			}
-			else if (param->scan_rst.search_evt == ESP_GAP_SEARCH_INQ_RES_EVT) {
-				//ESP_LOGD(tag, "device type: %s", bt_dev_type_to_string(param->scan_rst.dev_type));
-				//ESP_LOGD(tag, "device address (bda): %02x:%02x:%02x:%02x:%02x:%02x", BT_BD_ADDR_HEX(param->scan_rst.bda));
-				//ESP_LOGD(tag, "rssi: %d", param->scan_rst.rssi);
-				//ESP_LOGD(tag, "addr_type: %s", bt_addr_t_to_string(param->scan_rst.ble_addr_type));
-				//ESP_LOGD(tag, "flag: %d", param->scan_rst.flag);
-				device.setAddress(BLEAddress(param->scan_rst.bda));
-				device.setRSSI(param->scan_rst.rssi);
-				device.setAdFlag(param->scan_rst.flag);
-				//device.dump();
-				device.parsePayload((uint8_t *)param->scan_rst.ble_adv);
-				g_devices.insert(std::pair<std::string,BLERemoteDevice>(device.getAddress().toString(),device));
-				//dump_adv_payload(param->scan_rst.ble_adv);
-			} else {
-				ESP_LOGD(LOG_TAG, "Un-handled search_evt type!");
-			}
-			break;
-		} // ESP_GAP_BLE_SCAN_RESULT_EVT
-		*/
-
 		case ESP_GAP_BLE_SEC_REQ_EVT: {
 			esp_err_t errRc = ::esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, true);
 			if (errRc != ESP_OK) {
@@ -339,10 +210,12 @@ static void gap_event_handler(
 		}
 	} // switch
 
-
-
 	if (BLE::m_bleServer != nullptr) {
 		BLE::m_bleServer->handleGAPEvent(event, param);
+	}
+
+	if (BLE::getScan() != nullptr) {
+		BLE::getScan()->gapEventHandler(event, param);
 	}
 } // gap_event_handler
 
@@ -466,44 +339,11 @@ void BLE::initClient() {
 	xEventGroupClearBits(g_eventGroup, 0xff);
 } // init
 
-
-
-/**
- * @brief Perform a %BLE scan.
- *
- * We scan for BLE devices that are advertizing.
- *
- * @param [in] duration The duration that the scan is to run for measured in seconds.
- * @param [in] scanType The type of scanning requested.  The choices are `BLE_SCA_TYPE_PASSIVE` and `BLE_SCAN_TYPE_ACTIVE`.
- * The distinction between them is whether or not the advertizer has a scan response requested from it.
- */
-/*
-void BLE::scan(int duration, esp_ble_scan_type_t scan_type) {
-	g_devices.clear();
-	static esp_ble_scan_params_t ble_scan_params;
-	ble_scan_params.scan_type              = scan_type;
-	ble_scan_params.own_addr_type          = BLE_ADDR_TYPE_PUBLIC;
-	ble_scan_params.scan_filter_policy     = BLE_SCAN_FILTER_ALLOW_ALL;
-	ble_scan_params.scan_interval          = 0x50;
-	ble_scan_params.scan_window            = 0x30;
-	esp_err_t errRc = esp_ble_gap_set_scan_params(&ble_scan_params);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_scan_params: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
+BLEScan* BLE::getScan() {
+	if (m_pScan == nullptr) {
+		m_pScan = new BLEScan();
 	}
+	return m_pScan;
+} // getScan
 
-	errRc = esp_ble_gap_start_scanning(duration);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gap_start_scanning: rc=%d", errRc);
-		return;
-	}
-
-	xEventGroupWaitBits(g_eventGroup,
-		EVENT_GROUP_SCAN_COMPLETE,
-		1, // Clear on exit
-		0, // Wait for all bits
-		portMAX_DELAY);
-	ESP_LOGD(LOG_TAG, "Scan complete! - BLE:scan() returning.");
-} // scan
-*/
 #endif // CONFIG_BT_ENABLED

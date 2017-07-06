@@ -17,26 +17,26 @@
 #include "BLEService.h"
 #include "BLECharacteristicMap.h"
 #include "BLEServiceMap.h"
+#include "BLEServerCallbacks.h"
 
-
+class BLEServerCallbacks;
 class BLEServer {
 public:
 	BLEServer();
 	virtual ~BLEServer();
 
-	BLEService *createService(BLEUUID uuid);
-	uint16_t getConnId();
-	uint16_t getGattsIf();
-	void handleGAPEvent(esp_gap_ble_cb_event_t event,	esp_ble_gap_cb_param_t *param);
-	void handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
-	void setUUID(uint8_t uuid[32]);
-	void registerApp();
+	void            createApp(uint16_t appId);
+	BLEService     *createService(BLEUUID uuid);
 	BLEAdvertising *getAdvertising();
-	void startAdvertising();
-	void createApp(uint16_t appId);
+	uint16_t        getConnId();
+	uint16_t        getGattsIf();
+	void            handleGAPEvent(esp_gap_ble_cb_event_t event,	esp_ble_gap_cb_param_t *param);
+	void            handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
+	void            registerApp();
+	void            setCallbacks(BLEServerCallbacks *pCallbacks);
+	void            setUUID(uint8_t uuid[32]);
+	void            startAdvertising();
 
-	virtual void onConnect();
-	virtual void onDisconnect();
 
 private:
 	esp_ble_adv_data_t  m_adv_data;
@@ -46,6 +46,7 @@ private:
   uint16_t						m_connId;
 	FreeRTOS::Semaphore m_serializeMutex;
 	BLEServiceMap       m_serviceMap;
+	BLEServerCallbacks *m_pServerCallbacks;
 }; // BLEServer
 
 #endif /* COMPONENTS_CPP_UTILS_BLESERVER_H_ */

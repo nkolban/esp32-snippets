@@ -17,6 +17,7 @@
 #include "BLEServer.h"
 #include "BLERemoteDevice.h"
 #include "BLEUtils.h"
+#include "BLEScan.h"
 /**
  * @brief %BLE functions.
  */
@@ -30,8 +31,10 @@ public:
 	static void initClient();
 	static void initServer(std::string deviceName);
 	//static void scan(int duration, esp_ble_scan_type_t scan_type = BLE_SCAN_TYPE_PASSIVE);
+	static BLEScan *getScan();
 	static esp_gatt_if_t getGattcIF();
 	static BLEServer *m_bleServer;
+	static BLEScan   *m_pScan;
 }; // class BLE
 
 #endif // CONFIG_BT_ENABLED

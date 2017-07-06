@@ -1,6 +1,7 @@
 /*
  * BLEAdvertising.cpp
  *
+ * This class encapsulates advertising a BLE Server.
  *  Created on: Jun 21, 2017
  *      Author: kolban
  */
@@ -13,6 +14,11 @@
 
 static char LOG_TAG[] = "BLEAdvertising";
 
+
+/**
+ * @brief Construct a default advertising object.
+ *
+ */
 BLEAdvertising::BLEAdvertising() {
 	m_advData.set_scan_rsp        = false;
 	m_advData.include_name        = true;
@@ -38,56 +44,8 @@ BLEAdvertising::BLEAdvertising() {
 
 
 BLEAdvertising::~BLEAdvertising() {
-	// TODO Auto-generated destructor stub
-}
+} // ~BLEAdvertising
 
-
-/**
- * @brief Start advertising.
- * Start advertising.
- * @return N/A.
- */
-void BLEAdvertising::start() {
-	ESP_LOGD(LOG_TAG, ">> start()");
-	uint8_t hexData[16*2+1];
-	if (m_advData.service_uuid_len > 0) {
-		BLEUtils::buildHexData(hexData, m_advData.p_service_uuid, m_advData.service_uuid_len);
-	}
-
-	ESP_LOGD(LOG_TAG, " - Service: service_uuid_len=%d, p_service_uuid=0x%x (data=%s)",
-		m_advData.service_uuid_len,
-		(uint32_t)m_advData.p_service_uuid,
-		(m_advData.service_uuid_len > 0?(char *)hexData:"N/A")
-	);
-	// Set the configuration for advertising.
-	esp_err_t errRc = ::esp_ble_gap_config_adv_data(&m_advData);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_config_adv_data: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
-	}
-
-	// Start advertising.
-	errRc = ::esp_ble_gap_start_advertising(&m_advParams);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_start_advertising: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
-	}
-	ESP_LOGD(LOG_TAG, "<< start();")
-} // start
-
-
-/**
- * @brief Stop advertising.
- * Stop advertising.
- * @return N/A.
- */
-void BLEAdvertising::stop() {
-	esp_err_t errRc = ::esp_ble_gap_stop_advertising();
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gap_stop_advertising: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
-	}
-} // stop
 
 
 /**
@@ -130,3 +88,53 @@ void BLEAdvertising::setServiceUUID(BLEUUID uuid) {
 	} // switch
 	ESP_LOGD(LOG_TAG, "<< setServiceUUID()");
 } // setServiceUUID
+
+
+/**
+ * @brief Start advertising.
+ * Start advertising.
+ * @return N/A.
+ */
+void BLEAdvertising::start() {
+	ESP_LOGD(LOG_TAG, ">> start()");
+
+	if (m_advData.service_uuid_len > 0) {
+		uint8_t hexData[16*2+1];
+		BLEUtils::buildHexData(hexData, m_advData.p_service_uuid, m_advData.service_uuid_len);
+		ESP_LOGD(LOG_TAG, " - Service: service_uuid_len=%d, p_service_uuid=0x%x (data=%s)",
+			m_advData.service_uuid_len,
+			(uint32_t)m_advData.p_service_uuid,
+			(m_advData.service_uuid_len > 0?(char *)hexData:"N/A")
+		);
+	} // We have a service to advertise
+
+
+	// Set the configuration for advertising.
+	esp_err_t errRc = ::esp_ble_gap_config_adv_data(&m_advData);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_config_adv_data: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		return;
+	}
+
+	// Start advertising.
+	errRc = ::esp_ble_gap_start_advertising(&m_advParams);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_start_advertising: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		return;
+	}
+	ESP_LOGD(LOG_TAG, "<< start();")
+} // start
+
+
+/**
+ * @brief Stop advertising.
+ * Stop advertising.
+ * @return N/A.
+ */
+void BLEAdvertising::stop() {
+	esp_err_t errRc = ::esp_ble_gap_stop_advertising();
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_stop_advertising: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		return;
+	}
+} // stop

@@ -21,14 +21,12 @@
 static char tag[] = "BLEDevice";
 
 BLERemoteDevice::BLERemoteDevice() {
-	m_rssi                = -9999;
+
 	m_deviceType          = 0;
-	m_name                = "";
-	m_appearance          = 0;
-	m_txPower             = 0;
+
+
 	m_manufacturerType[0] = 0;
 	m_manufacturerType[1] = 0;
-	m_adFlag              = 0;
 	m_conn_id             = 0;
 	m_oncharacteristic    = nullptr;
 	m_onconnected         = nullptr;
@@ -73,79 +71,6 @@ void BLERemoteDevice::readCharacteristic(uint16_t srvcId, uint16_t characteristi
 
 
 /**
- * @brief Dump the advertizing payload.
- *
- * The payload is a buffer of bytes that is either 31 bytes long or terminated by
- * a 0 length value.  Each entry in the buffer has the format:
- * [length][type][data...]
- *
- * The length does not include itself but does include everything after it until the next record.  A record
- * with a length value of 0 indicates a terminator.
- *
- * https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile
- */
-void BLERemoteDevice::setAdvertizementResult(uint8_t *payload) {
-	uint8_t length;
-	uint8_t ad_type;
-	uint8_t sizeConsumed = 0;
-	bool finished = false;
-	//int i;
-	//char text[31*2+1];
-	//sprintf(text, "%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x")
-	while(!finished) {
-		length = *payload;
-		payload++;
-		sizeConsumed = 1 + length;
-
-		if (length != 0) {
-			ad_type = *payload;
-
-
-			ESP_LOGD(tag, "Type: 0x%.2x (%s), length: %d", ad_type, BLEUtils::advTypeToString(ad_type), length);
-			payload++;
-			length--;
-
-			switch(ad_type) {
-				case ESP_BLE_AD_TYPE_NAME_CMPL:
-					m_name = std::string((char *)payload, length);
-					break;
-				case ESP_BLE_AD_TYPE_TX_PWR:
-					m_txPower = *payload;
-					break;
-				case ESP_BLE_AD_TYPE_APPEARANCE:
-					m_appearance = *(uint16_t *)payload;
-					break;
-				case ESP_BLE_AD_TYPE_16SRV_PART:
-					m_services.insert(std::string((char *) payload, 2));
-					break;
-				case ESP_BLE_AD_TYPE_128SRV_PART:
-					m_services.insert(std::string((char *) payload, 16));
-					break;
-				case ESP_BLE_AD_TYPE_FLAG:
-					setAdFlag((uint8_t)*payload);
-					break;
-				case ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE:
-					assert(length >=2);
-					m_manufacturerType[0] = payload[0];
-					m_manufacturerType[1] = payload[1];
-					break;
-
-				default:
-					ESP_LOGD(tag, "Unhandled type");
-					break;
-			}
-			payload += length;
-		}
-
-
-		if (sizeConsumed >=31 || length == 0) {
-			finished = true;
-		}
-	} // !finished
-} // dump_adv_payload
-
-
-/**
  * @brief Open a connection to the %BLE partner.
  */
 void BLERemoteDevice::open(esp_gatt_if_t gattc_if) {
@@ -176,17 +101,6 @@ void BLERemoteDevice::dump() {
 		ESP_LOGD(tag, "No advertizement data");
 	} else {
 		ESP_LOGD(tag, "address: %s", m_address.toString().c_str());
-		ESP_LOGD(tag, "rssi: %d", m_rssi);
-		if (m_name.length() == 0) {
-			ESP_LOGD(tag, "name: <Unknown>");
-		} else {
-			ESP_LOGD(tag, "name: %s", m_name.c_str());
-		}
-		ESP_LOGD(tag, "Is limited discoverable?: %d", isLimitedDiscoverable());
-		ESP_LOGD(tag, "Is general discoverable?: %d", isGeneralDiscoverable());
-		ESP_LOGD(tag, "Is BR/EDR supported?: %d", isBREDRSupported());
-		ESP_LOGD(tag, "TX Power: %d", m_txPower);
-		ESP_LOGD(tag, "Appearance: %d", m_appearance);
 		ESP_LOGD(tag, "Manufacturer type: 0x%.2x 0x%.2x", m_manufacturerType[0], m_manufacturerType[1]);
 		ESP_LOGD(tag, "Num services: %d", m_services.size());
 		if (m_services.size() > 0) {
@@ -217,31 +131,6 @@ void BLERemoteDevice::dump() {
 	}
 } // dump
 
-
-/**
- * @brief Set the device address from 6 bytes of storage.
- *
- * @param pData The 6 bytes that correspond to the address.
- */
-void BLERemoteDevice::setAddress(BLEAddress address) {
-	m_address = address;
-} // setAddress
-
-
-void BLERemoteDevice::setRSSI(int rssi) {
-	m_rssi = rssi;
-} // setRSSI
-
-
-void BLERemoteDevice::setAdFlag(uint8_t adFlag) {
-	m_adFlag = adFlag;
-} // setAdFlag
-
-
-void BLERemoteDevice::parsePayload(uint8_t* payload) {
-	setAdvertizementResult(payload);
-	m_haveAdvertizement = true;
-} // parsePayload
 
 
 /**
@@ -340,16 +229,5 @@ void BLERemoteDevice::onSearchComplete() {
 	}
 }
 
-void BLERemoteDevice::setName(std::string name) {
-	m_name = name;
-}
-
-void BLERemoteDevice::setTXPower(uint8_t txPower) {
-	m_txPower = txPower;
-}
-
-void BLERemoteDevice::setAppearance(uint16_t appearance) {
-	m_appearance = appearance;
-}
 
 #endif // CONFIG_BT_ENABLED

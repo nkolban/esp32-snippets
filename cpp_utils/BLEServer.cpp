@@ -33,6 +33,7 @@ BLEServer::BLEServer() {
 	m_connId   = -1;
 	m_serializeMutex.setName("BLEServer");
 	BLE::m_bleServer = this;
+	m_pServerCallbacks = nullptr;
 	createApp(0);
 } // BLEServer
 
@@ -40,18 +41,10 @@ BLEServer::BLEServer() {
 BLEServer::~BLEServer() {
 } // ~BLEServer
 
-
-/**
- * @brief Register the app.
- * @return N/A
- */
-void BLEServer::registerApp() {
-	ESP_LOGD(LOG_TAG, ">> registerApp(%d)", m_appId);
-	m_serializeMutex.take("registerApp"); // Take the mutex, will be released by ESP_GATTS_REG_EVT event.
-	::esp_ble_gatts_app_register(m_appId);
-	ESP_LOGD(LOG_TAG, "<< registerApp()");
-} // registerApp
-
+void BLEServer::createApp(uint16_t appId) {
+	m_appId = appId;
+	registerApp();
+}
 
 /**
  * @brief Create a BLE Service.
@@ -81,16 +74,51 @@ BLEService *BLEServer::createService(BLEUUID uuid) {
 } // createService
 
 
+BLEAdvertising* BLEServer::getAdvertising() {
+	return &m_bleAdvertising;
+}
+
+uint16_t BLEServer::getConnId() {
+	return m_connId;
+}
+
+uint16_t BLEServer::getGattsIf() {
+	return m_gatts_if;
+}
+
 /**
- * @brief Start advertising.
- * Start the server advertising its existence.
+ * @brief Handle a receiver GAP event.
+ * @param [in] event
+ * @param [in] param
  */
-void BLEServer::startAdvertising() {
-	ESP_LOGD(LOG_TAG, ">> startAdvertising()");
-	m_bleAdvertising.setAppearance(3);
-	m_bleAdvertising.start();
-	ESP_LOGD(LOG_TAG, "<< startAdvertising()");
-} // startAdvertising
+void BLEServer::handleGAPEvent(
+		esp_gap_ble_cb_event_t event,
+		esp_ble_gap_cb_param_t *param) {
+	ESP_LOGD(LOG_TAG, "BLEServer ... handling GAP event!");
+	switch(event) {
+		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT: {
+			/*
+			esp_ble_adv_params_t adv_params;
+			adv_params.adv_int_min       = 0x20;
+			adv_params.adv_int_max       = 0x40;
+			adv_params.adv_type          = ADV_TYPE_IND;
+			adv_params.own_addr_type     = BLE_ADDR_TYPE_PUBLIC;
+			adv_params.channel_map       = ADV_CHNL_ALL;
+			adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY;
+			ESP_LOGD(tag, "Starting advertising");
+			esp_err_t errRc = ::esp_ble_gap_start_advertising(&adv_params);
+			if (errRc != ESP_OK) {
+				ESP_LOGE(tag, "esp_ble_gap_start_advertising: rc=%d %s", errRc, espToString(errRc));
+				return;
+			}
+			*/
+			break;
+		}
+		default:
+			break;
+	}
+} // handleGAPEvent
+
 
 
 /**
@@ -121,7 +149,9 @@ void BLEServer::handleGATTServerEvent(
 		// - bool is_connected
 		case ESP_GATTS_CONNECT_EVT: {
 			m_connId = param->connect.conn_id; // Save the connection id.
-			onConnect(); // Invoke the connection handler (may be over-ridden)
+			if (m_pServerCallbacks != nullptr) {
+				m_pServerCallbacks->onConnect(this);
+			}
 			break;
 		} // ESP_GATTS_CONNECT_EVT
 
@@ -190,7 +220,9 @@ void BLEServer::handleGATTServerEvent(
 
 		// ESP_GATTS_DISCONNECT_EVT
 		case ESP_GATTS_DISCONNECT_EVT: {
-			onDisconnect();
+			if (m_pServerCallbacks != nullptr) {
+				m_pServerCallbacks->onDisconnect(this);
+			}
 			startAdvertising();
 			break;
 		} // ESP_GATTS_DISCONNECT_EVT
@@ -216,64 +248,37 @@ void BLEServer::handleGATTServerEvent(
 
 
 /**
- * @brief Handle a receiver GAP event.
- * @param [in] event
- * @param [in] param
+ * @brief Register the app.
+ * @return N/A
  */
-void BLEServer::handleGAPEvent(
-		esp_gap_ble_cb_event_t event,
-		esp_ble_gap_cb_param_t *param) {
-	ESP_LOGD(LOG_TAG, "BLEServer ... handling GAP event!");
-	switch(event) {
-		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT: {
-			/*
-			esp_ble_adv_params_t adv_params;
-			adv_params.adv_int_min       = 0x20;
-			adv_params.adv_int_max       = 0x40;
-			adv_params.adv_type          = ADV_TYPE_IND;
-			adv_params.own_addr_type     = BLE_ADDR_TYPE_PUBLIC;
-			adv_params.channel_map       = ADV_CHNL_ALL;
-			adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY;
-			ESP_LOGD(tag, "Starting advertising");
-			esp_err_t errRc = ::esp_ble_gap_start_advertising(&adv_params);
-			if (errRc != ESP_OK) {
-				ESP_LOGE(tag, "esp_ble_gap_start_advertising: rc=%d %s", errRc, espToString(errRc));
-				return;
-			}
-			*/
-			break;
-		}
-		default:
-			break;
-	}
-} // handleGAPEvent
+void BLEServer::registerApp() {
+	ESP_LOGD(LOG_TAG, ">> registerApp(%d)", m_appId);
+	m_serializeMutex.take("registerApp"); // Take the mutex, will be released by ESP_GATTS_REG_EVT event.
+	::esp_ble_gatts_app_register(m_appId);
+	ESP_LOGD(LOG_TAG, "<< registerApp()");
+} // registerApp
 
-BLEAdvertising* BLEServer::getAdvertising() {
-	return &m_bleAdvertising;
-}
 
-uint16_t BLEServer::getConnId() {
-	return m_connId;
-}
+/**
+ * @brief Set the callbacks.
+ * @param [in] pCallbacks The callbacks to be invoked.
+ */
+void BLEServer::setCallbacks(BLEServerCallbacks* pCallbacks) {
+	m_pServerCallbacks = pCallbacks;
+} // setCallbacks
 
-uint16_t BLEServer::getGattsIf() {
-	return m_gatts_if;
-}
 
-void BLEServer::onConnect() {
-	ESP_LOGD(LOG_TAG, ">> onConnect: Default");
-	ESP_LOGD(LOG_TAG, "<< onConnect");
-}
+/**
+ * @brief Start advertising.
+ * Start the server advertising its existence.
+ */
+void BLEServer::startAdvertising() {
+	ESP_LOGD(LOG_TAG, ">> startAdvertising()");
+	m_bleAdvertising.setAppearance(3);
+	m_bleAdvertising.start();
+	ESP_LOGD(LOG_TAG, "<< startAdvertising()");
+} // startAdvertising
 
-void BLEServer::onDisconnect() {
-	ESP_LOGD(LOG_TAG, ">> onDisconnect: Default");
-	ESP_LOGD(LOG_TAG, "<< onDisconnect");
-}
-
-void BLEServer::createApp(uint16_t appId) {
-	m_appId = appId;
-	registerApp();
-}
 
 /*
 void BLEServer::addCharacteristic(BLECharacteristic *characteristic, BLEService *pService) {

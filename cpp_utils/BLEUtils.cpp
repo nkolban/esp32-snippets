@@ -207,6 +207,7 @@ const char* BLEUtils::advTypeToString(uint8_t advType) {
 	} // End switch
 } // advTypeToString
 
+
 esp_gatt_id_t BLEUtils::buildGattId(esp_bt_uuid_t uuid, uint8_t inst_id) {
 	esp_gatt_id_t retGattId;
 	retGattId.uuid = uuid;
@@ -564,18 +565,28 @@ void BLEUtils::dumpGapEvent(
 		// - flag
 		// - num_resps
 		case ESP_GAP_BLE_SCAN_RESULT_EVT: {
-			ESP_LOGD(LOG_TAG, "search_evt: %s, bda: %s, dev_type: %s, ble_addr_type: %s, ble_evt_type: %s, rssi: %d, ble_adv: ??, flag: %d, num_resps: %d, adv_data_len: %d, scan_rsp_len: %d",
-				searchEventTypeToString(param->scan_rst.search_evt),
-				BLEAddress(param->scan_rst.bda).toString().c_str(),
-				devTypeToString(param->scan_rst.dev_type),
-				addressTypeToString(param->scan_rst.ble_addr_type),
-				eventTypeToString(param->scan_rst.ble_evt_type),
-				param->scan_rst.rssi,
-				param->scan_rst.flag,
-				param->scan_rst.num_resps,
-				param->scan_rst.adv_data_len,
-				param->scan_rst.scan_rsp_len
-			);
+			switch(param->scan_rst.search_evt) {
+				case ESP_GAP_SEARCH_INQ_RES_EVT: {
+					ESP_LOGD(LOG_TAG, "search_evt: %s, bda: %s, dev_type: %s, ble_addr_type: %s, ble_evt_type: %s, rssi: %d, ble_adv: ??, flag: %d, num_resps: %d, adv_data_len: %d, scan_rsp_len: %d",
+						searchEventTypeToString(param->scan_rst.search_evt),
+						BLEAddress(param->scan_rst.bda).toString().c_str(),
+						devTypeToString(param->scan_rst.dev_type),
+						addressTypeToString(param->scan_rst.ble_addr_type),
+						eventTypeToString(param->scan_rst.ble_evt_type),
+						param->scan_rst.rssi,
+						param->scan_rst.flag,
+						param->scan_rst.num_resps,
+						param->scan_rst.adv_data_len,
+						param->scan_rst.scan_rsp_len
+					);
+					break;
+				} // ESP_GAP_SEARCH_INQ_RES_EVT
+
+				default: {
+					ESP_LOGD(LOG_TAG, "search_evt: %s",searchEventTypeToString(param->scan_rst.search_evt));
+					break;
+				}
+			}
 			break;
 		} // ESP_GAP_BLE_SCAN_RESULT_EVT
 
