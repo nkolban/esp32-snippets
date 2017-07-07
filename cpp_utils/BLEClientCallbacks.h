@@ -1,0 +1,20 @@
+/*
+ * BLEClientCallbacks.h
+ *
+ *  Created on: Jul 5, 2017
+ *      Author: kolban
+ */
+
+#ifndef COMPONENTS_CPP_UTILS_BLECLIENTCALLBACKS_H_
+#define COMPONENTS_CPP_UTILS_BLECLIENTCALLBACKS_H_
+#include "BLEClient.h"
+
+class BLEClient;
+class BLEClientCallbacks {
+public:
+	BLEClientCallbacks();
+	virtual ~BLEClientCallbacks();
+	virtual void onConnect(BLEClient *pClient);
+};
+
+#endif /* COMPONENTS_CPP_UTILS_BLECLIENTCALLBACKS_H_ */

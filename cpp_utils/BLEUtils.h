@@ -13,7 +13,7 @@
 #include <esp_gatts_api.h>   // ESP32 BLE
 #include <esp_gap_ble_api.h> // ESP32 BLE
 #include <string>
-#include "BLERemoteDevice.h"
+#include "BLEClient.h"
 
 class BLEUtils {
 public:
@@ -28,13 +28,13 @@ public:
 	static esp_bt_uuid_t buildUUID(uint16_t uuid);
 	static esp_bt_uuid_t buildUUID(uint32_t uuid);
 	static char *buildHexData(uint8_t *target, uint8_t *source, uint8_t length);
-	static BLERemoteDevice *findByConnId(uint16_t conn_id);
-	static BLERemoteDevice *findByAddress(BLEAddress address);
+	static BLEClient *findByConnId(uint16_t conn_id);
+	static BLEClient *findByAddress(BLEAddress address);
 	static std::string gattServiceIdToString(esp_gatt_srvc_id_t srvcId);
 	static std::string gattStatusToString(esp_gatt_status_t status);
 	static std::string gattServiceToString(uint32_t serviceId);
-	static void registerByAddress(BLEAddress address, BLERemoteDevice *pDevice);
-	static void registerByConnId(uint16_t conn_id, BLERemoteDevice *pDevice);
+	static void registerByAddress(BLEAddress address, BLEClient *pDevice);
+	static void registerByConnId(uint16_t conn_id, BLEClient *pDevice);
 	static std::string gattCharacteristicUUIDToString(uint32_t characteristicUUID);
 	static void dumpGattClientEvent(
 		esp_gattc_cb_event_t event,

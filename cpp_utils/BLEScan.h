@@ -10,7 +10,10 @@
 #include <esp_gap_ble_api.h>
 
 #include "BLEAdvertisedDeviceCallbacks.h"
-#include "BLERemoteDevice.h"
+#include "BLEClient.h"
+
+class BLEClient;
+class BLEAdvertisedDeviceCallbacks;
 
 class BLEScan {
 public:
@@ -31,7 +34,7 @@ private:
 	friend class BLE;
 
 	esp_ble_scan_params_t m_scan_params;
-	void parseAdvertisement(BLERemoteDevice *pRemoteDevice, uint8_t *payload);
+	void parseAdvertisement(BLEClient *pRemoteDevice, uint8_t *payload);
 	BLEAdvertisedDeviceCallbacks *m_pAdvertisedDeviceCallbacks;
 }; // BLEScan
 

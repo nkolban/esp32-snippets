@@ -8,7 +8,7 @@
 #if defined(CONFIG_BT_ENABLED)
 #include "BLEUtils.h"
 #include "BLEUUID.h"
-#include "BLERemoteDevice.h"
+#include "BLEClient.h"
 #include "BLEAddress.h"
 
 #include <freertos/FreeRTOS.h>
@@ -25,8 +25,8 @@
 
 static char LOG_TAG[] = "BLEUtils";
 
-static std::map<std::string, BLERemoteDevice *> g_addressMap;
-static std::map<uint16_t, BLERemoteDevice *> g_connIdMap;
+static std::map<std::string, BLEClient *> g_addressMap;
+static std::map<uint16_t, BLEClient *> g_connIdMap;
 
 BLEUtils::BLEUtils() {
 }
@@ -600,6 +600,11 @@ void BLEUtils::dumpGapEvent(
 			break;
 		} // ESP_GAP_BLE_SEC_REQ_EVT
 
+		case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d]", param->scan_stop_cmpl.status);
+			break;
+		} // ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT
+
 		default: {
 			ESP_LOGD(LOG_TAG, "*** dumpGapEvent: Logger not coded ***")
 			break;
@@ -909,7 +914,7 @@ const char* BLEUtils::eventTypeToString(esp_ble_evt_type_t eventType) {
  * @param [in] address The address of the device we want to locate.
  * @return A pointer to the %BLEDevice associated with this address.
  */
-BLERemoteDevice* BLEUtils::findByAddress(BLEAddress address) {
+BLEClient* BLEUtils::findByAddress(BLEAddress address) {
 	ESP_LOGD(LOG_TAG, "findByAddress(%s)", address.toString().c_str());
 	return g_addressMap.at(address.toString());
 } // findByAddress
@@ -924,7 +929,7 @@ BLERemoteDevice* BLEUtils::findByAddress(BLEAddress address) {
  * @param [in] conn_id The conn_id of the device we want to locate.
  * @return A pointer to the %BLEDevice associated with this conn_id.
  */
-BLERemoteDevice* BLEUtils::findByConnId(uint16_t conn_id) {
+BLEClient* BLEUtils::findByConnId(uint16_t conn_id) {
 	//try {
 	ESP_LOGD(LOG_TAG, "findByConnId(%d)", conn_id);
 	return g_connIdMap.at(conn_id);
@@ -1120,9 +1125,9 @@ std::string BLEUtils::gattStatusToString(esp_gatt_status_t status) {
  * @param [in] address The address of the device.
  * @param [in] pDevice A pointer to a %BLEDevice instance.
  */
-void BLEUtils::registerByAddress(BLEAddress address, BLERemoteDevice* pDevice) {
+void BLEUtils::registerByAddress(BLEAddress address, BLEClient* pDevice) {
 	ESP_LOGD(LOG_TAG, "registerByAddress(%s)", address.toString().c_str());
-	g_addressMap.insert(std::pair<std::string, BLERemoteDevice *>(address.toString(), pDevice));
+	g_addressMap.insert(std::pair<std::string, BLEClient *>(address.toString(), pDevice));
 }
 
 
@@ -1133,9 +1138,9 @@ void BLEUtils::registerByAddress(BLEAddress address, BLERemoteDevice* pDevice) {
  * @param [in] address The conn_id of the device.
  * @param [in] pDevice A pointer to a %BLEDevice instance.
  */
-void BLEUtils::registerByConnId(uint16_t conn_id, BLERemoteDevice* pDevice) {
+void BLEUtils::registerByConnId(uint16_t conn_id, BLEClient* pDevice) {
 	ESP_LOGD(LOG_TAG, "registerByConnId(%d)", conn_id);
-	g_connIdMap.insert(std::pair<uint16_t, BLERemoteDevice *>(conn_id, pDevice));
+	g_connIdMap.insert(std::pair<uint16_t, BLEClient *>(conn_id, pDevice));
 } // registerByConnId
 
 

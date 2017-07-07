@@ -8,6 +8,7 @@
 #ifndef COMPONENTS_CPP_UTILS_BLEADVERTISEDDEVICECALLBACKS_H_
 #define COMPONENTS_CPP_UTILS_BLEADVERTISEDDEVICECALLBACKS_H_
 #include "BLEAdvertisedDevice.h"
+class BLEAdvertisedDevice;
 
 class BLEAdvertisedDeviceCallbacks {
 public:

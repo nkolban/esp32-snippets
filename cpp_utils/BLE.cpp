@@ -21,7 +21,7 @@
 #include <iomanip>
 
 #include "BLE.h"
-#include "BLERemoteDevice.h"
+#include "BLEClient.h"
 #include "BLEUtils.h"
 #include "BLEXXXCharacteristic.h"
 #include "GeneralUtils.h"
@@ -40,16 +40,23 @@ static EventGroupHandle_t g_eventGroup;
  * Note that this address is binary and should not be directly printed.  The value of the map is
  * the BLEDevice object that this device represents.
  */
-static std::map<std::string, BLERemoteDevice> g_devices;
+static std::map<std::string, BLEClient> g_devices;
 
 BLEServer *BLE::m_bleServer = nullptr;
 BLEScan   *BLE::m_pScan     = nullptr;
+BLEClient *BLE::m_pClient   = nullptr;
 
 BLE::BLE() {
 }
 
 
 BLE::~BLE() {
+}
+
+
+BLEClient* BLE::createClient() {
+	m_pClient = new BLEClient();
+	return m_pClient;
 }
 
 
@@ -74,7 +81,7 @@ void BLE::dumpDevices() {
  * @param [in] gatts_if
  * @param [in] param
  */
-void gatt_server_event_handler(
+static void gatt_server_event_handler(
    esp_gatts_cb_event_t      event,
    esp_gatt_if_t             gatts_if,
    esp_ble_gatts_cb_param_t *param
@@ -112,13 +119,15 @@ static void gatt_client_event_handler(
 	BLEUtils::dumpGattClientEvent(event, gattc_if, param);
 
 	switch(event) {
+	/*
 	case ESP_GATTC_OPEN_EVT: {
-		BLERemoteDevice *pDevice = BLEUtils::findByAddress(std::string((char *)param->open.remote_bda, 6));
+		BLEClient *pDevice = BLEUtils::findByAddress(std::string((char *)param->open.remote_bda, 6));
 		BLEUtils::registerByConnId(param->open.conn_id, pDevice);
 		pDevice->dump();
 		pDevice->onConnected(param->open.status);
 		break;
 	}
+	*/
 
 	/*
 	 * The search_res field of the parameter has been populated.  It contains:
@@ -129,17 +138,20 @@ static void gatt_client_event_handler(
 	 *      * uint8_t inst_id
 	 *   * bool is_primary
 	 */
+
+	/*
 	case ESP_GATTC_SEARCH_RES_EVT: {
-		BLERemoteDevice *pDevice = BLEUtils::findByConnId(param->search_res.conn_id);
+		BLEClient *pDevice = BLEUtils::findByConnId(param->search_res.conn_id);
 		pDevice->addService(param->search_res.srvc_id);
 		break;
 	}
 
 	case ESP_GATTC_SEARCH_CMPL_EVT: {
-		BLERemoteDevice *pDevice = BLEUtils::findByConnId(param->search_cmpl.conn_id);
+		BLEClient *pDevice = BLEUtils::findByConnId(param->search_cmpl.conn_id);
 		pDevice->onSearchComplete();
 		break;
 	}
+	*/
 
 	/*
 	 * The `get_char` field of the parameters has been populated.  It contains:
@@ -149,15 +161,17 @@ static void gatt_client_event_handler(
 	 * * esp_gatt_id_t char_id
 	 * * esp_gatt_char_prop_t char_prop
 	 */
+	/*
 	case ESP_GATTC_GET_CHAR_EVT: {
 		if (param->get_char.status == ESP_GATT_OK) {
-			BLERemoteDevice *pDevice = BLEUtils::findByConnId(param->get_char.conn_id);
+			BLEClient *pDevice = BLEUtils::findByConnId(param->get_char.conn_id);
 			BLECharacteristicXXX characteristic(param->get_char.conn_id,
 					param->get_char.srvc_id, param->get_char.char_id, param->get_char.char_prop);
 			pDevice->onCharacteristic(characteristic);
 		}
 		break;
 	}
+	*/
 
 
 	/*
@@ -171,17 +185,25 @@ static void gatt_client_event_handler(
 	 * * uint16_t value_type
 	 * * uint16_t value_len
 	 */
+	/*
 	case ESP_GATTC_READ_CHAR_EVT: {
 		if (param->read.status == ESP_GATT_OK) {
-			BLERemoteDevice *pDevice = BLEUtils::findByConnId(param->read.conn_id);
+			BLEClient *pDevice = BLEUtils::findByConnId(param->read.conn_id);
 			std::string data = std::string((char *)param->read.value, param->read.value_len);
 			pDevice->onRead(data);
 		}
 		break;
 	}
+	*/
 
-	default:
-		break;
+		default: {
+			break;
+		}
+	} // switch
+
+	// If we have a client registered, call it.
+	if (BLE::m_pClient != nullptr) {
+		BLE::m_pClient->gattClientEventHandler(event, gattc_if, param);
 	}
 
 } // gatt_event_handler
@@ -223,7 +245,7 @@ static void gap_event_handler(
 /**
  * @brief Get the current set of known devices.
  */
-std::map<std::string, BLERemoteDevice> getDevices() {
+std::map<std::string, BLEClient> getDevices() {
 	return g_devices;
 } // getDevices
 
@@ -345,5 +367,7 @@ BLEScan* BLE::getScan() {
 	}
 	return m_pScan;
 } // getScan
+
+
 
 #endif // CONFIG_BT_ENABLED

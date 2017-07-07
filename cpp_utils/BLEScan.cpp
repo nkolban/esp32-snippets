@@ -18,7 +18,7 @@ static char LOG_TAG[] = "BLEScan";
 
 
 BLEScan::BLEScan() {
-	m_scan_params.scan_type          = BLE_SCAN_TYPE_PASSIVE;
+	m_scan_params.scan_type          = BLE_SCAN_TYPE_PASSIVE; // Default is a passive scan.
 	m_scan_params.own_addr_type      = BLE_ADDR_TYPE_PUBLIC;
 	m_scan_params.scan_filter_policy = BLE_SCAN_FILTER_ALLOW_ALL;
 	setInterval(100);
@@ -68,6 +68,7 @@ void BLEScan::gapEventHandler(
 					pAdvertisedDevice->setRSSI(param->scan_rst.rssi);
 					pAdvertisedDevice->setAdFlag(param->scan_rst.flag);
 					pAdvertisedDevice->parseAdvertisement((uint8_t *)param->scan_rst.ble_adv);
+					pAdvertisedDevice->setScan(this);
 					if (m_pAdvertisedDeviceCallbacks) {
 						m_pAdvertisedDeviceCallbacks->onResult(pAdvertisedDevice);
 					}
@@ -98,7 +99,7 @@ void BLEScan::onResults() {
 
 /**
  * @brief Should we perform an active or passive scan?
- * The default is a passive scan.
+ * The default is a passive scan.  An active scan means that we will wish a scan response.
  * @param [in] active If true, we perform an active scan otherwise a passive scan.
  * @return N/A.
  */

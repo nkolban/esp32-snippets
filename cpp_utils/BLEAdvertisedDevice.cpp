@@ -18,18 +18,26 @@
 static const char LOG_TAG[]="BLEAdvertisedDevice";
 
 BLEAdvertisedDevice::BLEAdvertisedDevice() {
-	m_rssi                = -9999;
-	m_deviceType          = 0;
-	m_name                = "";
-	m_appearance          = 0;
-	m_txPower             = 0;
-	m_manufacturerType[0] = 0;
-	m_manufacturerType[1] = 0;
-	m_adFlag              = 0;
-}
+	m_adFlag           = 0;
+	m_appearance       = 0;
+	m_deviceType       = 0;
+	m_manufacturerData = "";
+	m_name             = "";
+	m_rssi             = -9999;
+	m_txPower          = 0;
+
+	m_haveAppearance       = false;
+	m_haveManufacturerData = false;
+	m_haveName             = false;
+	m_haveRSSI             = false;
+	m_haveServiceUUID      = false;
+	m_haveTXPower          = false;
+} // BLEAdvertisedDevice
+
 
 BLEAdvertisedDevice::~BLEAdvertisedDevice() {
 }
+
 
 /**
  * @brief Get the address.
@@ -38,6 +46,24 @@ BLEAdvertisedDevice::~BLEAdvertisedDevice() {
 BLEAddress BLEAdvertisedDevice::getAddress() {
 	return m_address;
 } // getAddress
+
+
+/**
+ * @brief Get the appearance.
+ * @return The appearance of the advertised device.
+ */
+uint16_t BLEAdvertisedDevice::getApperance() {
+	return m_appearance;
+}
+
+
+/**
+ * @brief Get the manufacturer data.
+ * @return The manufacturer data of the advertised device.
+ */
+std::string BLEAdvertisedDevice::getManufacturerData() {
+	return m_manufacturerData;
+}
 
 
 /**
@@ -56,6 +82,63 @@ std::string BLEAdvertisedDevice::getName() {
 int BLEAdvertisedDevice::getRSSI() {
 	return m_rssi;
 } // getRSSI
+
+
+/**
+ * @brief Get the scan object that created this advertisement.
+ * @return The scan object.
+ */
+BLEScan* BLEAdvertisedDevice::getScan() {
+	return m_pScan;
+} // getScan
+
+
+/**
+ * @brief Get the Service UUID.
+ * @return The Service UUID of the advertised device.
+ */
+BLEUUID BLEAdvertisedDevice::getServiceUUID() {
+	return m_serviceUUID;
+} // getServiceUUID
+
+
+/**
+ * @brief Get the TX Power.
+ * @return The TX Power of the advertised device.
+ */
+int8_t BLEAdvertisedDevice::getTXPower() {
+	return m_txPower;
+} // getTXPower
+
+
+bool BLEAdvertisedDevice::haveAppearance() {
+	return m_haveAppearance;
+} // haveAppearance
+
+
+bool BLEAdvertisedDevice::haveManufacturerData() {
+	return m_haveManufacturerData;
+} // haveManufacturerData
+
+
+bool BLEAdvertisedDevice::haveName() {
+	return m_haveName;
+} // haveName
+
+
+bool BLEAdvertisedDevice::haveRSSI() {
+	return m_haveRSSI;
+} // haveRSSI
+
+
+bool BLEAdvertisedDevice::haveServiceUUID() {
+	return m_haveServiceUUID;
+} // haveServiceUUID
+
+
+bool BLEAdvertisedDevice::haveTXPower() {
+	return m_haveTXPower;
+} // haveTXPower
 
 
 /**
@@ -111,48 +194,39 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t *payload) {
 				} // ESP_BLE_AD_TYPE_FLAG
 
 				case ESP_BLE_AD_TYPE_16SRV_CMPL: { // Adv Data Type: 0x03
-					BLEUUID uuid(*(uint16_t *)payload);
-					ESP_LOGD(LOG_TAG, "??? %s", uuid.toString().c_str());
+					setServiceUUID(BLEUUID(*(uint16_t *)payload));
 					break;
 				} // ESP_BLE_AD_TYPE_16SRV_CMPL
 
 				case ESP_BLE_AD_TYPE_16SRV_PART: { // Adv Data Type: 0x02
-					BLEUUID uuid(*(uint16_t *)payload);
-					ESP_LOGD(LOG_TAG, "??? %s", uuid.toString().c_str());
+					setServiceUUID(BLEUUID(*(uint16_t *)payload));
 					break;
 				} // ESP_BLE_AD_TYPE_16SRV_PART
 
 				case ESP_BLE_AD_TYPE_32SRV_CMPL: { // Adv Data Type: 0x05
-					BLEUUID uuid(*(uint32_t *)payload);
-					ESP_LOGD(LOG_TAG, "??? %s", uuid.toString().c_str());
+					setServiceUUID(BLEUUID(*(uint32_t *)payload));
 					break;
 				} // ESP_BLE_AD_TYPE_32SRV_CMPL
 
 				case ESP_BLE_AD_TYPE_32SRV_PART: { // Adv Data Type: 0x04
-					BLEUUID uuid(*(uint32_t *)payload);
-					ESP_LOGD(LOG_TAG, "??? %s", uuid.toString().c_str());
+					setServiceUUID(BLEUUID(*(uint32_t *)payload));
 					break;
 				} // ESP_BLE_AD_TYPE_32SRV_PART
 
 				case ESP_BLE_AD_TYPE_128SRV_CMPL: { // Adv Data Type: 0x07
-					BLEUUID uuid(payload, 16);
-					ESP_LOGD(LOG_TAG, "??? %s", uuid.toString().c_str());
+					setServiceUUID(BLEUUID(payload, 16));
 					break;
 				} // ESP_BLE_AD_TYPE_128SRV_CMPL
 
 				case ESP_BLE_AD_TYPE_128SRV_PART: { // Adv Data Type: 0x06
-					BLEUUID uuid(payload, 16);
-					ESP_LOGD(LOG_TAG, "??? %s", uuid.toString().c_str());
+					setServiceUUID(BLEUUID(payload, 16));
 					break;
 				} // ESP_BLE_AD_TYPE_128SRV_PART
 
-				/*
+				// See CSS Part A 1.4 Manufacturer Specific Data
 				case ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE:
-					assert(length >=2);
-					//m_manufacturerType[0] = payload[0];
-					//m_manufacturerType[1] = payload[1];
+					setManufacturerData(std::string((char *)payload, length));
 					break;
-					*/
 
 				default: {
 					ESP_LOGD(LOG_TAG, "Unhandled type");
@@ -179,34 +253,115 @@ void BLEAdvertisedDevice::setAddress(BLEAddress address) {
 } // setAddress
 
 
+/**
+ * @brief Set the adFlag for this device.
+ * @param [in] The discovered adFlag.
+ */
 void BLEAdvertisedDevice::setAdFlag(uint8_t adFlag) {
 	m_adFlag = adFlag;
 } // setAdFlag
 
+
+/**
+ * @brief Set the appearance for this device.
+ * @param [in] The discovered appearance.
+ */
 void BLEAdvertisedDevice::setAppearance(uint16_t appearance) {
-	m_appearance = appearance;
+	m_appearance     = appearance;
+	m_haveAppearance = true;
 	ESP_LOGD(LOG_TAG, "- appearance: %d", m_appearance);
 } // setAppearance
 
+
+/**
+ * @brief Set the manufacturer data for this device.
+ * @param [in] The discovered manufacturer data.
+ */
+void BLEAdvertisedDevice::setManufacturerData(std::string manufacturerData) {
+	m_manufacturerData     = manufacturerData;
+	m_haveManufacturerData = true;
+	char *pHex = BLEUtils::buildHexData(nullptr, (uint8_t *)m_manufacturerData.data(), (uint8_t)m_manufacturerData.length());
+	ESP_LOGD(LOG_TAG, "- manufacturer data: %s", pHex);
+	free(pHex);
+} // setManufacturerData
+
+
+/**
+ * @brief Set the name for this device.
+ * @param [in] name The discovered name.
+ */
 void BLEAdvertisedDevice::setName(std::string name) {
-	m_name = name;
+	m_name     = name;
+	m_haveName = true;
 	ESP_LOGD(LOG_TAG, "- name: %s", m_name.c_str());
 } // setName
 
 
+/**
+ * @brief Set the RSSI for this device.
+ * @param [in] rssi The discovered RSSI.
+ */
 void BLEAdvertisedDevice::setRSSI(int rssi) {
-	m_rssi = rssi;
+	m_rssi     = rssi;
+	m_haveRSSI = true;
 	ESP_LOGD(LOG_TAG, "- rssi: %d", m_rssi);
 } // setRSSI
 
-void BLEAdvertisedDevice::setTXPower(uint8_t txPower) {
-	m_txPower = txPower;
+
+/**
+ * @brief Set the Scan that created this advertised device.
+ * @param pScan The Scan that created this advertised device.
+ */
+void BLEAdvertisedDevice::setScan(BLEScan* pScan) {
+	m_pScan = pScan;
+} // setScan
+
+/**
+ * @brief Set the Service UUID for this device.
+ * @param [in] serviceUUID The discovered serviceUUID
+ */
+void BLEAdvertisedDevice::setServiceUUID(BLEUUID serviceUUID) {
+	m_serviceUUID     = serviceUUID;
+	m_haveServiceUUID = true;
+	ESP_LOGD(LOG_TAG, "- serviceUUID: %s", serviceUUID.toString().c_str());
+} // setRSSI
+
+
+/**
+ * @brief Set the power level for this device.
+ * @param [in] txPower The discovered power level.
+ */
+void BLEAdvertisedDevice::setTXPower(int8_t txPower) {
+	m_txPower     = txPower;
+	m_haveTXPower = true;
 	ESP_LOGD(LOG_TAG, "- txPower: %d", m_txPower);
 } // setTXPower
 
 
+/**
+ * @brief Create a string representation of this device.
+ * @return A string representation of this device.
+ */
 std::string BLEAdvertisedDevice::toString() {
 	std::stringstream ss;
-	ss << "Name: " << getName() << ", Address: " << getAddress().toString() << ", RSSI: " << getRSSI();
+	ss << "Name: " << getName() << ", Address: " << getAddress().toString();
+	if (haveAppearance()) {
+		ss << ", appearance: " << getApperance();
+	}
+	if (haveManufacturerData()) {
+		char *pHex = BLEUtils::buildHexData(nullptr, (uint8_t *)getManufacturerData().data(), getManufacturerData().length());
+		ss << ", manufacturer data: " << pHex;
+		free(pHex);
+	}
+	if (haveServiceUUID()) {
+		ss << ", serviceUUID: " << getServiceUUID().toString();
+	}
+	if (haveTXPower()) {
+		ss << ", txPower: " << (int)getTXPower();
+	}
 	return ss.str();
 } // toString
+
+
+
+

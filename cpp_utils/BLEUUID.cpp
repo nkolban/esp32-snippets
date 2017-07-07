@@ -58,22 +58,22 @@ BLEUUID::BLEUUID(std::string value) {
 		m_uuid.len = ESP_UUID_LEN_128;
 		int vals[16];
 		sscanf(value.c_str(), "%2x%2x%2x%2x-%2x%2x-%2x%2x-%2x%2x-%2x%2x%2x%2x%2x%2x",
-			&vals[15],
-			&vals[14],
-			&vals[13],
-			&vals[12],
-			&vals[11],
-			&vals[10],
-			&vals[9],
-			&vals[8],
-			&vals[7],
-			&vals[6],
-			&vals[5],
-			&vals[4],
-			&vals[3],
-			&vals[2],
+			&vals[0],
 			&vals[1],
-			&vals[0]
+			&vals[2],
+			&vals[3],
+			&vals[4],
+			&vals[5],
+			&vals[6],
+			&vals[7],
+			&vals[8],
+			&vals[9],
+			&vals[10],
+			&vals[11],
+			&vals[12],
+			&vals[13],
+			&vals[14],
+			&vals[15]
 		);
 
 		int i;

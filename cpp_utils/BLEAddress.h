@@ -15,8 +15,9 @@ public:
 	BLEAddress(esp_bd_addr_t address);
 	BLEAddress(std::string stringAddress);
 	virtual ~BLEAddress();
-	std::string toString();
 	esp_bd_addr_t *getNative();
+	std::string toString();
+
 private:
 	esp_bd_addr_t m_address;
 };

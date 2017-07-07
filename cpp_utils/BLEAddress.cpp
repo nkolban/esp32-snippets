@@ -12,13 +12,26 @@
 #include <string.h>
 #include <stdio.h>
 
+
+/**
+ * @brief Create an address from the native representation.
+ * @param [in] address The native representation.
+ */
 BLEAddress::BLEAddress(esp_bd_addr_t address) {
 	memcpy(m_address, address, ESP_BD_ADDR_LEN);
-}
+} // BLEAddress
 
-BLEAddress::~BLEAddress() {
-}
 
+/**
+ * @brief Create an address from a hex string
+ * A hex string is of the format:
+ * ```
+ * 00:00:00:00:00:00
+ * ```
+ * which is 17 characters in length.
+ *
+ * @param [in] stringAddress The hex representation of the address.
+ */
 BLEAddress::BLEAddress(std::string stringAddress) {
 	if (stringAddress.length() != 17) {
 		return;
@@ -31,7 +44,12 @@ BLEAddress::BLEAddress(std::string stringAddress) {
 	m_address[3] = (uint8_t)data[3];
 	m_address[4] = (uint8_t)data[4];
 	m_address[5] = (uint8_t)data[5];
-}
+} // BLEAddress
+
+
+BLEAddress::~BLEAddress() {
+} // ~BLEAddress
+
 
 /**
  * @brief Convert a BLE address to a string.
@@ -49,6 +67,11 @@ std::string BLEAddress::toString() {
 	return stream.str();
 } // toString
 
+
+/**
+ * @brief Return the native representation of the address.
+ * @return The native representation of the address.
+ */
 esp_bd_addr_t *BLEAddress::getNative() {
 	return &m_address;
-}
+} // getNative

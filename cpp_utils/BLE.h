@@ -15,9 +15,10 @@
 #include <string>
 
 #include "BLEServer.h"
-#include "BLERemoteDevice.h"
+#include "BLEClient.h"
 #include "BLEUtils.h"
 #include "BLEScan.h"
+#include "BLEAddress.h"
 /**
  * @brief %BLE functions.
  */
@@ -26,7 +27,8 @@ public:
 	BLE();
 	virtual ~BLE();
 	static void dumpDevices();
-	static std::map<std::string, BLERemoteDevice> getDevices();
+	static std::map<std::string, BLEClient> getDevices();
+	static BLEClient *createClient();
 
 	static void initClient();
 	static void initServer(std::string deviceName);
@@ -35,6 +37,7 @@ public:
 	static esp_gatt_if_t getGattcIF();
 	static BLEServer *m_bleServer;
 	static BLEScan   *m_pScan;
+	static BLEClient *m_pClient;
 }; // class BLE
 
 #endif // CONFIG_BT_ENABLED

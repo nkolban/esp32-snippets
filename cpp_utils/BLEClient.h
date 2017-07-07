@@ -20,8 +20,9 @@
 #include "BLEService.h"
 #include "BLEAddress.h"
 #include "BLEXXXCharacteristic.h"
+#include "BLEClientCallbacks.h"
 
-
+class BLEClientCallbacks;
 /**
  * @brief An operator for comparing items
  */
@@ -49,11 +50,10 @@ struct esp_bt_uuid_t_compare {
 /**
  * @brief A %BLE device.
  */
-class BLERemoteDevice {
+class BLEClient {
 public:
-	BLERemoteDevice();
-	BLERemoteDevice(std::string address);
-	virtual ~BLERemoteDevice();
+	BLEClient();
+	virtual ~BLEClient();
 	void addService(esp_gatt_srvc_id_t srvc_id);
 	void dump();
 
@@ -69,27 +69,32 @@ public:
 	void onConnected(esp_gatt_status_t status);
 	void onSearchComplete();
 	void onRead(std::string data);
-	void open(esp_gatt_if_t gattc_if);
+	void connect(BLEAddress address);
 	void readCharacteristic(esp_gatt_srvc_id_t srvcId, esp_gatt_id_t characteristicId);
 	void readCharacteristic(uint16_t srvcId, uint16_t characteristicId);
 	void searchService();
+	void setClientCallbacks(BLEClientCallbacks *pClientCallbacks);
+	void gattClientEventHandler(
+		esp_gattc_cb_event_t event,
+		esp_gatt_if_t gattc_if,
+		esp_ble_gattc_cb_param_t *param);
 
 
-	void setOnCharacteristic(void (*oncharacteristic)(BLERemoteDevice *pDevice, BLECharacteristicXXX characteristic)) {
+	void setOnCharacteristic(void (*oncharacteristic)(BLEClient *pDevice, BLECharacteristicXXX characteristic)) {
 		m_oncharacteristic = oncharacteristic;
 	}
 	/**
 	 * @brief Set the function to be called when a connection has been established.
 	 */
-	void setOnConnected(void (*onconnected)(BLERemoteDevice *pDevice, esp_gatt_status_t status)) {
+	void setOnConnected(void (*onconnected)(BLEClient *pDevice, esp_gatt_status_t status)) {
 		m_onconnected = onconnected;
 	}
 
-	void setOnRead(	void (*onread)(BLERemoteDevice *pDevice, std::string data)) {
+	void setOnRead(	void (*onread)(BLEClient *pDevice, std::string data)) {
 		m_onread = onread;
 	}
 
-	void setOnSearchComplete(void (*onsearchcomplete)(BLERemoteDevice *pDevice)) {
+	void setOnSearchComplete(void (*onsearchcomplete)(BLEClient *pDevice)) {
 		m_onsearchcomplete = onsearchcomplete;
 	}
 
@@ -105,13 +110,14 @@ private:
 	uint8_t     m_manufacturerType[2];
 	bool        m_haveAdvertizement;
 
-	void (*m_oncharacteristic)(BLERemoteDevice *pDevice, BLECharacteristicXXX characteristic);
+	void (*m_oncharacteristic)(BLEClient *pDevice, BLECharacteristicXXX characteristic);
 	// The function to be called when a connection has been established.
-	void (*m_onconnected)(BLERemoteDevice *pDevice, esp_gatt_status_t status);
-	void (*m_onread)(BLERemoteDevice *pDevice, std::string data);
-	void (*m_onsearchcomplete)(BLERemoteDevice *pDevice);
+	void (*m_onconnected)(BLEClient *pDevice, esp_gatt_status_t status);
+	void (*m_onread)(BLEClient *pDevice, std::string data);
+	void (*m_onsearchcomplete)(BLEClient *pDevice);
 
 	std::unordered_set<std::string> m_services;
+	BLEClientCallbacks *m_pClientCallbacks;
 }; // class BLEDevice
 
 #endif // CONFIG_BT_ENABLED
