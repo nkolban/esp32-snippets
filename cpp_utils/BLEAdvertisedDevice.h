@@ -7,6 +7,8 @@
 
 #ifndef COMPONENTS_CPP_UTILS_BLEADVERTISEDDEVICE_H_
 #define COMPONENTS_CPP_UTILS_BLEADVERTISEDDEVICE_H_
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include "BLEAddress.h"
 #include "BLEScan.h"
 #include "BLEUUID.h"
@@ -69,4 +71,5 @@ private:
 	BLEScan    *m_pScan;
 };
 
+#endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEADVERTISEDDEVICE_H_ */

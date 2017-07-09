@@ -7,6 +7,8 @@
 
 #ifndef COMPONENTS_CPP_UTILS_BLESERVER_H_
 #define COMPONENTS_CPP_UTILS_BLESERVER_H_
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <string>
 #include <string.h>
 #include <esp_gatts_api.h>
@@ -48,5 +50,5 @@ private:
 	BLEServiceMap       m_serviceMap;
 	BLEServerCallbacks *m_pServerCallbacks;
 }; // BLEServer
-
+#endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLESERVER_H_ */

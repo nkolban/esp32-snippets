@@ -7,6 +7,8 @@
 
 #ifndef COMPONENTS_CPP_UTILS_BLEADDRESS_H_
 #define COMPONENTS_CPP_UTILS_BLEADDRESS_H_
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <esp_gap_ble_api.h> // ESP32 BLE
 #include <string>
 
@@ -22,4 +24,5 @@ private:
 	esp_bd_addr_t m_address;
 };
 
+#endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEADDRESS_H_ */

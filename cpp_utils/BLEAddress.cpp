@@ -4,6 +4,8 @@
  *  Created on: Jul 2, 2017
  *      Author: kolban
  */
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 
 #include "BLEAddress.h"
 #include <string>
@@ -75,3 +77,4 @@ std::string BLEAddress::toString() {
 esp_bd_addr_t *BLEAddress::getNative() {
 	return &m_address;
 } // getNative
+#endif

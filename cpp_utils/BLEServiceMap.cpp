@@ -4,7 +4,8 @@
  *  Created on: Jun 22, 2017
  *      Author: kolban
  */
-
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <sstream>
 #include <iomanip>
 #include "BLEServiceMap.h"
@@ -88,3 +89,4 @@ void BLEServiceMap::handleGATTServerEvent(
 		myPair.second->handleGATTServerEvent(event, gatts_if, param);
 	}
 }
+#endif /* CONFIG_BT_ENABLED */

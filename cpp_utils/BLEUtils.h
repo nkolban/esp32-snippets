@@ -30,9 +30,12 @@ public:
 	static char *buildHexData(uint8_t *target, uint8_t *source, uint8_t length);
 	static BLEClient *findByConnId(uint16_t conn_id);
 	static BLEClient *findByAddress(BLEAddress address);
+	static std::string gattClientEventTypeToString(esp_gattc_cb_event_t eventType);
+	static std::string gattServerEventTypeToString(esp_gatts_cb_event_t eventType);
 	static std::string gattServiceIdToString(esp_gatt_srvc_id_t srvcId);
 	static std::string gattStatusToString(esp_gatt_status_t status);
 	static std::string gattServiceToString(uint32_t serviceId);
+	static std::string gattCloseReasonToString(esp_gatt_conn_reason_t reason);
 	static void registerByAddress(BLEAddress address, BLEClient *pDevice);
 	static void registerByConnId(uint16_t conn_id, BLEClient *pDevice);
 	static std::string gattCharacteristicUUIDToString(uint32_t characteristicUUID);
@@ -55,7 +58,5 @@ public:
 };
 
 
-std::string bt_utils_gatt_client_event_type_to_string(esp_gattc_cb_event_t eventType);
-std::string bt_utils_gatt_server_event_type_to_string(esp_gatts_cb_event_t eventType);
 #endif // CONFIG_BT_ENABLED
 #endif /* COMPONENTS_CPP_UTILS_BLEUTILS_H_ */

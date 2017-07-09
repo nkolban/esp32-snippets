@@ -4,6 +4,8 @@
  *  Created on: Jun 22, 2017
  *      Author: kolban
  */
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <sstream>
 #include <iomanip>
 #include "BLECharacteristicMap.h"
@@ -129,3 +131,4 @@ BLECharacteristic* BLECharacteristicMap::getNext() {
 	m_iterator++;
 	return pRet;
 } // getNext
+#endif /* CONFIG_BT_ENABLED */

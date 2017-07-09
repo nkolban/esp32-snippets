@@ -7,6 +7,8 @@
 
 #ifndef COMPONENTS_CPP_UTILS_BLEDESCRIPTORMAP_H_
 #define COMPONENTS_CPP_UTILS_BLEDESCRIPTORMAP_H_
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <map>
 #include "BLEUUID.h"
 #include <esp_gatts_api.h>   // ESP32 BLE
@@ -33,5 +35,5 @@ private:
 	std::map<uint16_t,    BLEDescriptor *> m_handleMap;
 	std::map<std::string, BLEDescriptor *>::iterator m_iterator;
 };
-
+#endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEDESCRIPTORMAP_H_ */

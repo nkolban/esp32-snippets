@@ -9,6 +9,9 @@
  * See also:
  * https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.descriptor.gatt.client_characteristic_configuration.xml
  */
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
+
 #include "BLE2902.h"
 
 BLE2902::BLE2902() : BLEDescriptor(BLEUUID((uint16_t) 0x2902)) {
@@ -45,3 +48,4 @@ void BLE2902::setIndications(bool flag) {
 		pValue[0] &= ~(1<<1);
 	}
 } // setIndications
+#endif

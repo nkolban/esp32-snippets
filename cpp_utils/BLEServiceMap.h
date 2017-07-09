@@ -7,6 +7,8 @@
 
 #ifndef COMPONENTS_CPP_UTILS_BLESERVICEMAP_H_
 #define COMPONENTS_CPP_UTILS_BLESERVICEMAP_H_
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <map>
 #include "BLEUUID.h"
 #include <esp_gatts_api.h>
@@ -30,5 +32,5 @@ public:
 		std::map<std::string, BLEService *> m_uuidMap;
 		std::map<uint16_t, BLEService *> m_handleMap;
 };
-
+#endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLESERVICEMAP_H_ */

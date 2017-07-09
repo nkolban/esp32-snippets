@@ -73,6 +73,7 @@ public:
 	void readCharacteristic(esp_gatt_srvc_id_t srvcId, esp_gatt_id_t characteristicId);
 	void readCharacteristic(uint16_t srvcId, uint16_t characteristicId);
 	void searchService();
+	void getServices();
 	void setClientCallbacks(BLEClientCallbacks *pClientCallbacks);
 	void gattClientEventHandler(
 		esp_gattc_cb_event_t event,
@@ -118,6 +119,9 @@ private:
 
 	std::unordered_set<std::string> m_services;
 	BLEClientCallbacks *m_pClientCallbacks;
+	FreeRTOS::Semaphore m_semaphoreRegEvt = FreeRTOS::Semaphore("RegEvt");
+	FreeRTOS::Semaphore m_semaphoreOpenEvt = FreeRTOS::Semaphore("OpenEvt");
+	FreeRTOS::Semaphore m_semaphoreSearchCmplEvt = FreeRTOS::Semaphore("SearchCmplEvt");
 }; // class BLEDevice
 
 #endif // CONFIG_BT_ENABLED

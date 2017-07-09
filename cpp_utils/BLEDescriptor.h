@@ -7,6 +7,8 @@
 
 #ifndef COMPONENTS_CPP_UTILS_BLEDESCRIPTOR_H_
 #define COMPONENTS_CPP_UTILS_BLEDESCRIPTOR_H_
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <string>
 #include "BLEUUID.h"
 #include "BLECharacteristic.h"
@@ -41,5 +43,5 @@ private:
 	uint16_t getHandle();
 	void setHandle(uint16_t handle);
 };
-
+#endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEDESCRIPTOR_H_ */

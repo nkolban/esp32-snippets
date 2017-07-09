@@ -4,7 +4,8 @@
  *  Created on: Jul 1, 2017
  *      Author: kolban
  */
-
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include "BLEAdvertisedDevice.h"
 #include "BLEScan.h"
 #include "BLEUtils.h"
@@ -24,6 +25,7 @@ BLEScan::BLEScan() {
 	setInterval(100);
 	setWindow(100);
 	m_pAdvertisedDeviceCallbacks = nullptr;
+	m_stopped = true;
 }
 
 
@@ -63,6 +65,9 @@ void BLEScan::gapEventHandler(
 				}
 
 				case ESP_GAP_SEARCH_INQ_RES_EVT: {
+					if (m_stopped) {
+						break;
+					}
 					BLEAdvertisedDevice *pAdvertisedDevice = new BLEAdvertisedDevice();
 					pAdvertisedDevice->setAddress(BLEAddress(param->scan_rst.bda));
 					pAdvertisedDevice->setRSSI(param->scan_rst.rssi);
@@ -145,6 +150,7 @@ void BLEScan::setWindow(uint16_t windowMSecs) {
  * @return N/A.
  */
 void BLEScan::start(uint32_t duration) {
+	ESP_LOGD(LOG_TAG, ">> start(%d)", duration);
 	esp_err_t errRc = ::esp_ble_gap_set_scan_params(&m_scan_params);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_scan_params: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
@@ -155,6 +161,8 @@ void BLEScan::start(uint32_t duration) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_start_scanning: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+	m_stopped = false;
+	ESP_LOGD(LOG_TAG, "<< start()");
 } // start
 
 
@@ -163,9 +171,13 @@ void BLEScan::start(uint32_t duration) {
  * @return N/A.
  */
 void BLEScan::stop() {
+	ESP_LOGD(LOG_TAG, ">> stop()");
+	m_stopped = true;
 	esp_err_t errRc = ::esp_ble_gap_stop_scanning();
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_stop_scanning: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+	ESP_LOGD(LOG_TAG, "<< stop()");
 } // stop
+#endif /* CONFIG_BT_ENABLED */

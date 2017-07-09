@@ -7,6 +7,8 @@
 
 #ifndef COMPONENTS_CPP_UTILS_BLEUUID_H_
 #define COMPONENTS_CPP_UTILS_BLEUUID_H_
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <esp_gatt_defs.h>
 #include <string>
 
@@ -28,5 +30,5 @@ private:
 	esp_bt_uuid_t m_uuid;
 	bool          m_valueSet;
 }; // BLEUUID
-
+#endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEUUID_H_ */

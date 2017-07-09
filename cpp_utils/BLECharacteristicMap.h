@@ -7,6 +7,8 @@
 
 #ifndef COMPONENTS_CPP_UTILS_BLECHARACTERISTICMAP_H_
 #define COMPONENTS_CPP_UTILS_BLECHARACTERISTICMAP_H_
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <map>
 #include "BLECharacteristic.h"
 
@@ -33,4 +35,5 @@ private:
 	std::map<std::string, BLECharacteristic *>::iterator m_iterator;
 };
 
+#endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLECHARACTERISTICMAP_H_ */

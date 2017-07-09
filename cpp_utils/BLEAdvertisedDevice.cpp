@@ -11,6 +11,8 @@
  *  Created on: Jul 3, 2017
  *      Author: kolban
  */
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <esp_log.h>
 #include <sstream>
 #include "BLEAdvertisedDevice.h"
@@ -362,6 +364,5 @@ std::string BLEAdvertisedDevice::toString() {
 	return ss.str();
 } // toString
 
-
-
+#endif /* CONFIG_BT_ENABLED */
 

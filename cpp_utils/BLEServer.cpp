@@ -134,7 +134,7 @@ void BLEServer::handleGATTServerEvent(
 		esp_ble_gatts_cb_param_t *param) {
 
 	ESP_LOGD(LOG_TAG, ">> handleGATTServerEvent: %s",
-			bt_utils_gatt_server_event_type_to_string(event).c_str());
+			BLEUtils::gattServerEventTypeToString(event).c_str());
 
 	// Invoke the handler for every Service we have.
 	m_serviceMap.handleGATTServerEvent(event, gatts_if, param);

@@ -4,7 +4,8 @@
  *  Created on: Jul 2, 2017
  *      Author: kolban
  */
-
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include "BLECharacteristicCallbacks.h"
 #include <esp_log.h>
 static char LOG_TAG[] = "BLECharacteristicCallbacks";
@@ -33,3 +34,4 @@ void BLECharacteristicCallbacks::onWrite(BLECharacteristic *pCharacteristic) {
 	ESP_LOGD(LOG_TAG, ">> onWrite: default");
 	ESP_LOGD(LOG_TAG, "<< onWrite");
 } // onWrite
+#endif /* CONFIG_BT_ENABLED */

@@ -4,7 +4,8 @@
  *  Created on: Jun 22, 2017
  *      Author: kolban
  */
-
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <sstream>
 #include <string.h>
 #include <iomanip>
@@ -260,3 +261,4 @@ std::string BLEDescriptor::toString() {
 	stringstream << "UUID: " << m_bleUUID.toString() + ", handle: 0x" << std::setw(2) << m_handle;
 	return stringstream.str();
 } // toString
+#endif /* CONFIG_BT_ENABLED */

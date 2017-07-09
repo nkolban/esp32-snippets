@@ -4,6 +4,8 @@
  *  Created on: Jun 21, 2017
  *      Author: kolban
  */
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <esp_log.h>
 #include <string.h>
 #include <sstream>
@@ -273,21 +275,22 @@ std::string BLEUUID::toString() {
 
 	std::stringstream ss;
 	ss << std::hex << std::setfill('0') <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[0]  <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[1]  <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[2]  <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[3]  << "-" <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[4]  <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[5]  << "-" <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[6]  <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[7]  << "-" <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[8]  <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[9]  << "-" <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[10] <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[11] <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[12] <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[13] <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[14] <<
-			std::setw(2) << (int)m_uuid.uuid.uuid128[15];
+			std::setw(2) << (int)m_uuid.uuid.uuid128[15]  <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[14]  <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[13]  <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[12]  << "-" <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[11]  <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[10]  << "-" <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[9]  <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[8]  << "-" <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[7]  <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[6]  << "-" <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[5] <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[4] <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[3] <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[2] <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[1] <<
+			std::setw(2) << (int)m_uuid.uuid.uuid128[0];
 	return ss.str();
 } // toString
+#endif /* CONFIG_BT_ENABLED */

@@ -7,6 +7,8 @@
 
 #ifndef COMPONENTS_CPP_UTILS_BLECHARACTERISTIC_H_
 #define COMPONENTS_CPP_UTILS_BLECHARACTERISTIC_H_
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <string>
 #include "BLEUUID.h"
 #include <esp_gatts_api.h>
@@ -74,5 +76,5 @@ private:
 	BLEService          *getService();
 	void                 setHandle(uint16_t handle);
 }; // BLECharacteristic
-
+#endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLECHARACTERISTIC_H_ */

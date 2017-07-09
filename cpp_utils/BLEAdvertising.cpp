@@ -5,7 +5,8 @@
  *  Created on: Jun 21, 2017
  *      Author: kolban
  */
-
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include "BLEAdvertising.h"
 #include <esp_log.h>
 #include <esp_err.h>
@@ -138,3 +139,4 @@ void BLEAdvertising::stop() {
 		return;
 	}
 } // stop
+#endif /* CONFIG_BT_ENABLED */

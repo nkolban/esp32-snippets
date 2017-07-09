@@ -58,43 +58,43 @@ typedef struct {
 /**
  * Definition of the service ids to names that we know about.
  */
-static gattService_t g_gattServices[] = {
-		{"Alert Notification Service", "org.bluetooth.service.alert_notification", 0x1811},
-		{"Automation IO", "org.bluetooth.service.automation_io",	0x1815 },
-		{"Battery Service","org.bluetooth.service.battery_service",	0x180F},
-		{"Blood Pressure", "org.bluetooth.service.blood_pressure", 0x1810},
-		{"Body Composition", "org.bluetooth.service.body_composition", 0x181B},
-		{"Bond Management", "org.bluetooth.service.bond_management", 0x181E},
-		{"Continuous Glucose Monitoring", "org.bluetooth.service.continuous_glucose_monitoring", 0x181F},
-		{"Current Time Service", "org.bluetooth.service.current_time", 0x1805},
-		{"Cycling Power", "org.bluetooth.service.cycling_power", 0x1818},
-		{"Cycling Speed and Cadence", "org.bluetooth.service.cycling_speed_and_cadence", 0x1816},
-		{"Device Information", "org.bluetooth.service.device_information", 0x180A},
-		{"Environmental Sensing", "org.bluetooth.service.environmental_sensing", 0x181A},
-		{"Generic Access", "org.bluetooth.service.generic_access", 0x1800},
-		{"Generic Attribute", "org.bluetooth.service.generic_attribute", 0x1801},
-		{"Glucose", "org.bluetooth.service.glucose", 0x1808},
-		{"Health Thermometer", "org.bluetooth.service.health_thermometer", 0x1809},
-		{"Heart Rate", "org.bluetooth.service.heart_rate", 0x180D},
-		{"HTTP Proxy", "org.bluetooth.service.http_proxy", 0x1823},
-		{"Human Interface Device", "org.bluetooth.service.human_interface_device", 0x1812},
-		{"Immediate Alert", "org.bluetooth.service.immediate_alert", 0x1802},
-		{"Indoor Positioning", "org.bluetooth.service.indoor_positioning", 0x1821},
-		{"Internet Protocol Support", "org.bluetooth.service.internet_protocol_support", 0x1820},
-		{"Link Loss", "org.bluetooth.service.link_loss", 0x1803},
-		{"Location and Navigation", "org.bluetooth.service.location_and_navigation", 0x1819},
-		{"Next DST Change Service", "org.bluetooth.service.next_dst_change", 0x1807},
-		{"Object Transfer", "org.bluetooth.service.object_transfer", 0x1825},
-		{"Phone Alert Status Service", "org.bluetooth.service.phone_alert_status", 0x180E},
-		{"Pulse Oximeter", "org.bluetooth.service.pulse_oximeter", 0x1822},
-		{"Reference Time Update Service", "org.bluetooth.service.reference_time_update", 0x1806},
-		{"Running Speed and Cadence", "org.bluetooth.service.running_speed_and_cadence", 0x1814},
-		{"Scan Parameters", "org.bluetooth.service.scan_parameters", 0x1813},
-		{"Transport Discovery", "org.bluetooth.service.transport_discovery", 0x1824},
-		{"Tx Power", "org.bluetooth.service.tx_power", 0x1804},
-		{"User Data", "org.bluetooth.service.user_data", 0x181C},
-		{"Weight Scale", "org.bluetooth.service.weight_scale", 0x181D},
-		{"", "", 0 }
+static const gattService_t g_gattServices[] = {
+	{"Alert Notification Service", "org.bluetooth.service.alert_notification", 0x1811},
+	{"Automation IO", "org.bluetooth.service.automation_io",	0x1815 },
+	{"Battery Service","org.bluetooth.service.battery_service",	0x180F},
+	{"Blood Pressure", "org.bluetooth.service.blood_pressure", 0x1810},
+	{"Body Composition", "org.bluetooth.service.body_composition", 0x181B},
+	{"Bond Management", "org.bluetooth.service.bond_management", 0x181E},
+	{"Continuous Glucose Monitoring", "org.bluetooth.service.continuous_glucose_monitoring", 0x181F},
+	{"Current Time Service", "org.bluetooth.service.current_time", 0x1805},
+	{"Cycling Power", "org.bluetooth.service.cycling_power", 0x1818},
+	{"Cycling Speed and Cadence", "org.bluetooth.service.cycling_speed_and_cadence", 0x1816},
+	{"Device Information", "org.bluetooth.service.device_information", 0x180A},
+	{"Environmental Sensing", "org.bluetooth.service.environmental_sensing", 0x181A},
+	{"Generic Access", "org.bluetooth.service.generic_access", 0x1800},
+	{"Generic Attribute", "org.bluetooth.service.generic_attribute", 0x1801},
+	{"Glucose", "org.bluetooth.service.glucose", 0x1808},
+	{"Health Thermometer", "org.bluetooth.service.health_thermometer", 0x1809},
+	{"Heart Rate", "org.bluetooth.service.heart_rate", 0x180D},
+	{"HTTP Proxy", "org.bluetooth.service.http_proxy", 0x1823},
+	{"Human Interface Device", "org.bluetooth.service.human_interface_device", 0x1812},
+	{"Immediate Alert", "org.bluetooth.service.immediate_alert", 0x1802},
+	{"Indoor Positioning", "org.bluetooth.service.indoor_positioning", 0x1821},
+	{"Internet Protocol Support", "org.bluetooth.service.internet_protocol_support", 0x1820},
+	{"Link Loss", "org.bluetooth.service.link_loss", 0x1803},
+	{"Location and Navigation", "org.bluetooth.service.location_and_navigation", 0x1819},
+	{"Next DST Change Service", "org.bluetooth.service.next_dst_change", 0x1807},
+	{"Object Transfer", "org.bluetooth.service.object_transfer", 0x1825},
+	{"Phone Alert Status Service", "org.bluetooth.service.phone_alert_status", 0x180E},
+	{"Pulse Oximeter", "org.bluetooth.service.pulse_oximeter", 0x1822},
+	{"Reference Time Update Service", "org.bluetooth.service.reference_time_update", 0x1806},
+	{"Running Speed and Cadence", "org.bluetooth.service.running_speed_and_cadence", 0x1814},
+	{"Scan Parameters", "org.bluetooth.service.scan_parameters", 0x1813},
+	{"Transport Discovery", "org.bluetooth.service.transport_discovery", 0x1824},
+	{"Tx Power", "org.bluetooth.service.tx_power", 0x1804},
+	{"User Data", "org.bluetooth.service.user_data", 0x181C},
+	{"Weight Scale", "org.bluetooth.service.weight_scale", 0x181D},
+	{"", "", 0 }
 };
 
 
@@ -262,7 +262,7 @@ char *BLEUtils::buildHexData(uint8_t *target, uint8_t *source, uint8_t length) {
 	return startOfData;
 } // buildHexData
 
-std::string bt_utils_gatt_close_reason_to_string(esp_gatt_conn_reason_t reason) {
+std::string BLEUtils::gattCloseReasonToString(esp_gatt_conn_reason_t reason) {
 	switch(reason) {
 		case ESP_GATT_CONN_UNKNOWN:
 			return "ESP_GATT_CONN_UNKNOWN";
@@ -285,13 +285,10 @@ std::string bt_utils_gatt_close_reason_to_string(esp_gatt_conn_reason_t reason) 
 		default:
 			return "Unknown";
 	}
-} // bt_utils_gatt_close_reason_to_string
+} // gattCloseReasonToString
 
 
-
-
-
-std::string bt_utils_gatt_client_event_type_to_string(esp_gattc_cb_event_t eventType) {
+std::string BLEUtils::gattClientEventTypeToString(esp_gattc_cb_event_t eventType) {
 	switch(eventType) {
 		case ESP_GATTC_ACL_EVT:
 			return "ESP_GATTC_ACL_EVT";
@@ -319,6 +316,10 @@ std::string bt_utils_gatt_client_event_type_to_string(esp_gattc_cb_event_t event
 			return "ESP_GATTC_CLOSE_EVT";
 		case ESP_GATTC_CONGEST_EVT:
 			return "ESP_GATTC_CONGEST_EVT";
+		case ESP_GATTC_CONNECT_EVT:
+			return "ESP_GATTC_CONNECT_EVT";
+		case ESP_GATTC_DISCONNECT_EVT:
+			return "ESP_GATTC_DISCONNECT_EVT";
 		case ESP_GATTC_ENC_CMPL_CB_EVT:
 			return "ESP_GATTC_ENC_CMPL_CB_EVT";
 		case ESP_GATTC_EXEC_EVT:
@@ -372,9 +373,10 @@ std::string bt_utils_gatt_client_event_type_to_string(esp_gattc_cb_event_t event
 		case ESP_GATTC_WRITE_DESCR_EVT:
 			return "ESP_GATTC_WRITE_DESCR_EVT";
 		default:
+			ESP_LOGW(LOG_TAG, "Unknown GATT Client event type: %d", eventType);
 			return "Unknown";
 	}
-} // bt_utils_gatt_event_type_to_string
+} // gattClientEventTypeToString
 
 
 /**
@@ -382,7 +384,7 @@ std::string bt_utils_gatt_client_event_type_to_string(esp_gattc_cb_event_t event
  * @param [in] eventType A GATT server event code.
  * @return A string representation of the GATT server event code.
  */
-std::string bt_utils_gatt_server_event_type_to_string(esp_gatts_cb_event_t eventType) {
+std::string BLEUtils::gattServerEventTypeToString(esp_gatts_cb_event_t eventType) {
 	switch(eventType) {
 	case ESP_GATTS_REG_EVT:
 		return "ESP_GATTS_REG_EVT";
@@ -434,7 +436,7 @@ std::string bt_utils_gatt_server_event_type_to_string(esp_gatts_cb_event_t event
 		return "ESP_GATTS_SET_ATTR_VAL_EVT";
 	}
 	return "Unknown";
-}
+} // gattServerEventTypeToString
 
 
 esp_bt_uuid_t BLEUtils::buildUUID(uint16_t uuid) {
@@ -495,7 +497,7 @@ const char* BLEUtils::devTypeToString(esp_bt_dev_type_t type) {
 	default:
 		return "Unknown";
 	}
-} // bt_dev_type_to_string
+} // devTypeToString
 
 
 /**
@@ -506,21 +508,36 @@ void BLEUtils::dumpGapEvent(
 	esp_ble_gap_cb_param_t *param) {
 	ESP_LOGD(LOG_TAG, "Received a GAP event: %s", gapEventToString(event));
 	switch(event) {
+		//
+		// ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT
+		//
 		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_rsp_data_cmpl.status);
 			break;
 		} // ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT
 
+
+		//
+		// ESP_GAP_BLE_ADV_START_COMPLETE_EVT
+		//
 		case ESP_GAP_BLE_ADV_START_COMPLETE_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_start_cmpl.status);
 			break;
 		} // ESP_GAP_BLE_ADV_START_COMPLETE_EVT
 
+
+		//
+		// ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT
+		//
 		case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_stop_cmpl.status);
 			break;
 		} // ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT
 
+
+		//
+		// ESP_GAP_BLE_AUTH_CMPL_EVT
+		//
 		case ESP_GAP_BLE_AUTH_CMPL_EVT: {
 			ESP_LOGD(LOG_TAG, "[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
 				BLEAddress(param->ble_security.auth_cmpl.bd_addr).toString().c_str(),
@@ -533,14 +550,26 @@ void BLEUtils::dumpGapEvent(
 			break;
 		} // ESP_GAP_BLE_AUTH_CMPL_EVT
 
+
+		//
+		// ESP_GAP_BLE_LOCAL_IR_EVT
+		//
 		case ESP_GAP_BLE_LOCAL_IR_EVT: {
 			break;
 		} // ESP_GAP_BLE_LOCAL_IR_EVT
 
+
+		//
+		// ESP_GAP_BLE_LOCAL_ER_EVT
+		//
 		case ESP_GAP_BLE_LOCAL_ER_EVT: {
 			break;
 		} // ESP_GAP_BLE_LOCAL_ER_EVT
 
+
+		//
+		// ESP_GAP_BLE_NC_REQ_EVT
+		//
 		case ESP_GAP_BLE_NC_REQ_EVT: {
 			ESP_LOGD(LOG_TAG, "[bd_addr: %s, passkey: %d]",
 				BLEAddress(param->ble_security.key_notif.bd_addr).toString().c_str(),
@@ -548,12 +577,18 @@ void BLEUtils::dumpGapEvent(
 			break;
 		} // ESP_GAP_BLE_NC_REQ_EVT
 
+
+		//
+		// ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT
+		//
 		case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_param_cmpl.status);
 			break;
 		} // ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT
 
+		//
 		// ESP_GAP_BLE_SCAN_RESULT_EVT
+		//
 		// scan_rst:
 		// - search_evt
 		// - bda
@@ -590,16 +625,28 @@ void BLEUtils::dumpGapEvent(
 			break;
 		} // ESP_GAP_BLE_SCAN_RESULT_EVT
 
+
+		//
+		// ESP_GAP_BLE_SCAN_START_COMPLETE_EVT
+		//
 		case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %d]", param->scan_start_cmpl.status);
 			break;
 		} // ESP_GAP_BLE_SCAN_START_COMPLETE_EVT
 
+
+		//
+		// ESP_GAP_BLE_SEC_REQ_EVT
+		//
 		case ESP_GAP_BLE_SEC_REQ_EVT: {
 			ESP_LOGD(LOG_TAG, "[bd_addr: %s]", BLEAddress(param->ble_security.ble_req.bd_addr).toString().c_str());
 			break;
 		} // ESP_GAP_BLE_SEC_REQ_EVT
 
+
+		//
+		// ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT
+		//
 		case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %d]", param->scan_stop_cmpl.status);
 			break;
@@ -625,21 +672,50 @@ void BLEUtils::dumpGattClientEvent(
 	esp_ble_gattc_cb_param_t *evtParam) {
 
 	//esp_ble_gattc_cb_param_t *evtParam = (esp_ble_gattc_cb_param_t *)param;
-	ESP_LOGD(LOG_TAG, "GATT Event: %s", bt_utils_gatt_client_event_type_to_string(event).c_str());
+	ESP_LOGD(LOG_TAG, "GATT Event: %s", BLEUtils::gattClientEventTypeToString(event).c_str());
 	switch(event) {
 		//
 		// ESP_GATTC_CLOSE_EVT
 		//
+		// close:
+		// - esp_gatt_status_t      status
+		// - uint16_t               conn_id
+		// - esp_bd_addr_t          remote_bda
+		// - esp_gatt_conn_reason_t reason
+		//
 		case ESP_GATTC_CLOSE_EVT: {
-			ESP_LOGD(LOG_TAG, "status: %s, reason:%s, conn_id: %d",
+			ESP_LOGD(LOG_TAG, "[status: %s, reason:%s, conn_id: %d]",
 				BLEUtils::gattStatusToString(evtParam->close.status).c_str(),
-				bt_utils_gatt_close_reason_to_string(evtParam->close.reason).c_str(),
+				BLEUtils::gattCloseReasonToString(evtParam->close.reason).c_str(),
 				evtParam->close.conn_id);
 			break;
 		}
 
 		//
+		// ESP_GATTC_CONNECT_EVT
+		//
+		// connect:
+		// - esp_gatt_status_t status
+		// - uint16_t          conn_id
+		// - esp_bd_addr_t     remote_bda
+		case ESP_GATTC_CONNECT_EVT: {
+			ESP_LOGD(LOG_TAG, "[staus: %s, conn_id: %d, remote_bda: %s]",
+				BLEUtils::gattStatusToString(evtParam->connect.status).c_str(),
+				evtParam->connect.conn_id,
+				BLEAddress(evtParam->connect.remote_bda).toString().c_str()
+			);
+			break;
+		}
+
+		//
 		// ESP_GATTC_GET_CHAR_EVT
+		//
+		// get_char:
+		// - esp_gatt_status_t    status
+		// - uin1t6_t             conn_id
+		// - esp_gatt_srvc_id_t   srvc_id
+		// - esp_gatt_id_t        char_id
+		// - esp_gatt_char_prop_t char_prop
 		//
 		case ESP_GATTC_GET_CHAR_EVT: {
 			std::string description = "Unknown";
@@ -657,14 +733,22 @@ void BLEUtils::dumpGattClientEvent(
 			break;
 		}
 
+
 		//
 		// ESP_GATTC_OPEN_EVT
 		//
+		// open:
+		// - esp_gatt_status_t status
+		// - uint16_t          conn_id
+		// - esp_bd_addr_t     remote_bda
+		// - uint16_t          mtu
+		//
 		case ESP_GATTC_OPEN_EVT: {
-			ESP_LOGD(LOG_TAG, "status: %s", BLEUtils::gattStatusToString(evtParam->open.status).c_str());
-			ESP_LOGD(LOG_TAG, "conn_id: %d", evtParam->open.conn_id);
-			ESP_LOGD(LOG_TAG, "device address: %s", BLEAddress(evtParam->open.remote_bda).toString().c_str());
-			ESP_LOGD(LOG_TAG, "MTU: %d", evtParam->open.mtu);
+			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, remote_bda: %s, mtu: %d]",
+				BLEUtils::gattStatusToString(evtParam->open.status).c_str(),
+				evtParam->open.conn_id,
+				BLEAddress(evtParam->open.remote_bda).toString().c_str(),
+				evtParam->open.mtu);
 			break;
 		} // ESP_GATTC_OPEN_EVT
 
@@ -690,30 +774,43 @@ void BLEUtils::dumpGattClientEvent(
 			break;
 		} // ESP_GATTC_READ_CHAR_EVT
 
+
 		//
 		// ESP_GATTC_REG_EVT
 		//
+		// reg:
+		// - esp_gatt_status_t status
+		// - uint16_t          app_id
+		//
 		case ESP_GATTC_REG_EVT: {
-			ESP_LOGD(LOG_TAG, "status: %s, client_if: 0x%x, app_id: 0x%x",
-					BLEUtils::gattStatusToString(evtParam->reg.status).c_str(),
-				//evtParam->reg.gatt_if,
-				gattc_if,
+			ESP_LOGD(LOG_TAG, "[status: %s, app_id: 0x%x]",
+				BLEUtils::gattStatusToString(evtParam->reg.status).c_str(),
 				evtParam->reg.app_id);
 			break;
-		}
+		} // ESP_GATTC_REG_EVT
+
 
 		//
-		// ESP_GATTC_SEARCH_CMP_EVT
+		// ESP_GATTC_SEARCH_CMPL_EVT
+		//
+		// search_cmpl:
+		// - esp_gatt_status_t status
+		// - uint16_t          conn_id
 		//
 		case ESP_GATTC_SEARCH_CMPL_EVT: {
-			ESP_LOGD(LOG_TAG, "status: %s, conn_id: %d",
-					BLEUtils::gattStatusToString(evtParam->search_cmpl.status).c_str(),
+			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d]",
+				BLEUtils::gattStatusToString(evtParam->search_cmpl.status).c_str(),
 				evtParam->search_cmpl.conn_id);
 			break;
-		}
+		} // ESP_GATTC_SEARCH_CMPL_EVT
+
 
 		//
 		// ESP_GATTC_SEARCH_RES_EVT
+		//
+		// search_res:
+		// - uint16_t           conn_id
+		// - esp_gatt_srvc_id_t srvc_id
 		//
 		case ESP_GATTC_SEARCH_RES_EVT: {
 			std::string name = "";
@@ -721,16 +818,16 @@ void BLEUtils::dumpGattClientEvent(
 				name = BLEUtils::gattServiceToString(evtParam->search_res.srvc_id.id.uuid.uuid.uuid16);
 			}
 			if (name.length() == 0) {
-				name = "??";
+				name = "<Unknown Service>";
 			}
 
-			ESP_LOGD(LOG_TAG, "srvc_id: %s [%s], instanceId: 0x%.2x conn_id: %d",
+			ESP_LOGD(LOG_TAG, "[srvc_id: %s [%s], instanceId: 0x%.2x conn_id: %d]",
 				BLEUtils::gattServiceIdToString(evtParam->search_res.srvc_id).c_str(),
 				name.c_str(),
 				evtParam->search_res.srvc_id.id.inst_id,
 				evtParam->search_res.conn_id);
 			break;
-		}
+		} // ESP_GATTC_SEARCH_RES_EVT
 
 
 		default:
@@ -753,7 +850,7 @@ void BLEUtils::dumpGattServerEvent(
 		esp_gatts_cb_event_t event,
 		esp_gatt_if_t gatts_if,
 		esp_ble_gatts_cb_param_t *evtParam) {
-	ESP_LOGD(LOG_TAG, "GATT ServerEvent: %s", bt_utils_gatt_server_event_type_to_string(event).c_str());
+	ESP_LOGD(LOG_TAG, "GATT ServerEvent: %s", BLEUtils::gattServerEventTypeToString(event).c_str());
 	switch(event) {
 
 		case ESP_GATTS_ADD_CHAR_DESCR_EVT: {
@@ -1003,7 +1100,7 @@ std::string BLEUtils::gattCharacteristicUUIDToString(uint32_t characteristicUUID
 		p++;
 	}
 	return "Unknown";
-}
+} // gattCharacteristicUUIDToString
 
 
 /**
@@ -1015,7 +1112,7 @@ std::string BLEUtils::gattServiceIdToString(esp_gatt_srvc_id_t srvcId) {
 
 
 std::string BLEUtils::gattServiceToString(uint32_t serviceId) {
-	gattService_t *p = g_gattServices;
+	gattService_t *p = (gattService_t *)g_gattServices;
 	while (p->name.length() > 0) {
 		if (p->assignedNumber == serviceId) {
 			return p->name;
@@ -1115,7 +1212,7 @@ std::string BLEUtils::gattStatusToString(esp_gatt_status_t status) {
 		default:
 			return "Unknown";
 	}
-} // bt_utils_gatt_status_to_string
+} // gattStatusToString
 
 
 /**
@@ -1128,7 +1225,7 @@ std::string BLEUtils::gattStatusToString(esp_gatt_status_t status) {
 void BLEUtils::registerByAddress(BLEAddress address, BLEClient* pDevice) {
 	ESP_LOGD(LOG_TAG, "registerByAddress(%s)", address.toString().c_str());
 	g_addressMap.insert(std::pair<std::string, BLEClient *>(address.toString(), pDevice));
-}
+} // registerByAddress
 
 
 /**

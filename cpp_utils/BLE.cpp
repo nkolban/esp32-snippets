@@ -88,7 +88,7 @@ static void gatt_server_event_handler(
 ) {
 	ESP_LOGD(LOG_TAG, "gatt_server_event_handler [esp_gatt_if: %d] ... %s",
 		gatts_if,
-		bt_utils_gatt_server_event_type_to_string(event).c_str());
+		BLEUtils::gattServerEventTypeToString(event).c_str());
 	BLEUtils::dumpGattServerEvent(event, gatts_if, param);
 	if (BLE::m_bleServer != nullptr) {
 		BLE::m_bleServer->handleGATTServerEvent(event, gatts_if, param);
@@ -115,7 +115,7 @@ static void gatt_client_event_handler(
 	esp_ble_gattc_cb_param_t *param) {
 
 	ESP_LOGD(LOG_TAG, "gatt_client_event_handler [esp_gatt_if: %d] ... %s",
-		gattc_if, bt_utils_gatt_client_event_type_to_string(event).c_str());
+		gattc_if, BLEUtils::gattClientEventTypeToString(event).c_str());
 	BLEUtils::dumpGattClientEvent(event, gattc_if, param);
 
 	switch(event) {
@@ -352,11 +352,6 @@ void BLE::initClient() {
 		return;
 	}
 
-	errRc = esp_ble_gattc_app_register(0);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gattc_app_register: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
-	}
 	g_eventGroup = xEventGroupCreate();
 	xEventGroupClearBits(g_eventGroup, 0xff);
 } // init
