@@ -23,10 +23,7 @@ public:
 	static esp_gatt_id_t buildGattId(esp_bt_uuid_t uuid, uint8_t inst_id=0);
 
 	static esp_gatt_srvc_id_t buildGattSrvcId(esp_gatt_id_t gattId, bool is_primary=true);
-
-	static esp_bt_uuid_t buildUUID(std::string uuid);
-	static esp_bt_uuid_t buildUUID(uint16_t uuid);
-	static esp_bt_uuid_t buildUUID(uint32_t uuid);
+	static std::string characteristicPropertiesToString(esp_gatt_char_prop_t prop);
 	static char *buildHexData(uint8_t *target, uint8_t *source, uint8_t length);
 	static BLEClient *findByConnId(uint16_t conn_id);
 	static BLEClient *findByAddress(BLEAddress address);
@@ -39,6 +36,7 @@ public:
 	static void registerByAddress(BLEAddress address, BLEClient *pDevice);
 	static void registerByConnId(uint16_t conn_id, BLEClient *pDevice);
 	static std::string gattCharacteristicUUIDToString(uint32_t characteristicUUID);
+	static std::string buildPrintData(uint8_t *source, size_t length);
 	static void dumpGattClientEvent(
 		esp_gattc_cb_event_t event,
 		esp_gatt_if_t gattc_if,

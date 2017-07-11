@@ -27,17 +27,30 @@ public:
 	BLE();
 	virtual ~BLE();
 	static void dumpDevices();
-	static std::map<std::string, BLEClient> getDevices();
 	static BLEClient *createClient();
 
 	static void initClient();
 	static void initServer(std::string deviceName);
 	//static void scan(int duration, esp_ble_scan_type_t scan_type = BLE_SCAN_TYPE_PASSIVE);
-	static BLEScan *getScan();
-	static esp_gatt_if_t getGattcIF();
+	static BLEScan   *getScan();
 	static BLEServer *m_bleServer;
 	static BLEScan   *m_pScan;
 	static BLEClient *m_pClient;
+
+private:
+	static esp_gatt_if_t getGattcIF();
+
+	static void gattClientEventHandler(
+		esp_gattc_cb_event_t event,
+		esp_gatt_if_t gattc_if,
+		esp_ble_gattc_cb_param_t *param);
+	static void gattServerEventHandler(
+	   esp_gatts_cb_event_t      event,
+	   esp_gatt_if_t             gatts_if,
+	   esp_ble_gatts_cb_param_t *param);
+	static void gapEventHandler(
+		esp_gap_ble_cb_event_t event,
+		esp_ble_gap_cb_param_t *param);
 }; // class BLE
 
 #endif // CONFIG_BT_ENABLED

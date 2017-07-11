@@ -27,6 +27,7 @@ BLEAdvertisedDevice::BLEAdvertisedDevice() {
 	m_name             = "";
 	m_rssi             = -9999;
 	m_txPower          = 0;
+	m_pScan            = nullptr;
 
 	m_haveAppearance       = false;
 	m_haveManufacturerData = false;
@@ -34,6 +35,7 @@ BLEAdvertisedDevice::BLEAdvertisedDevice() {
 	m_haveRSSI             = false;
 	m_haveServiceUUID      = false;
 	m_haveTXPower          = false;
+
 } // BLEAdvertisedDevice
 
 
@@ -169,10 +171,14 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t *payload) {
 		if (length != 0) { // A length of 0 indicate that we have reached the end.
 			ad_type = *payload;
 			payload++;
-
-			ESP_LOGD(LOG_TAG, "Type: 0x%.2x (%s), length: %d", ad_type, BLEUtils::advTypeToString(ad_type), length);
-
 			length--;
+
+			char *pHex = BLEUtils::buildHexData(nullptr, payload, length);
+			ESP_LOGD(LOG_TAG, "Type: 0x%.2x (%s), length: %d, data: %s",
+					ad_type, BLEUtils::advTypeToString(ad_type), length, pHex);
+			free(pHex);
+
+
 
 			switch(ad_type) {
 				case ESP_BLE_AD_TYPE_NAME_CMPL: { // Adv Data Type: 0x09
@@ -216,12 +222,12 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t *payload) {
 				} // ESP_BLE_AD_TYPE_32SRV_PART
 
 				case ESP_BLE_AD_TYPE_128SRV_CMPL: { // Adv Data Type: 0x07
-					setServiceUUID(BLEUUID(payload, 16));
+					setServiceUUID(BLEUUID(payload, 16, false));
 					break;
 				} // ESP_BLE_AD_TYPE_128SRV_CMPL
 
 				case ESP_BLE_AD_TYPE_128SRV_PART: { // Adv Data Type: 0x06
-					setServiceUUID(BLEUUID(payload, 16));
+					setServiceUUID(BLEUUID(payload, 16, false));
 					break;
 				} // ESP_BLE_AD_TYPE_128SRV_PART
 

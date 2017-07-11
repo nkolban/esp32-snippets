@@ -12,7 +12,7 @@
 #include <bt.h>              // ESP32 BLE
 #include <esp_bt_main.h>     // ESP32 BLE
 #include <esp_gap_ble_api.h> // ESP32 BLE
-#include <esp_gattc_api.h>   // ESP32 BLE
+// ESP32 BLE
 #include <esp_gatts_api.h>   // ESP32 BLE
 #include <esp_err.h>         // ESP32 ESP-IDF
 #include <esp_log.h>         // ESP32 ESP-IDF
@@ -23,28 +23,15 @@
 #include "BLE.h"
 #include "BLEClient.h"
 #include "BLEUtils.h"
-#include "BLEXXXCharacteristic.h"
 #include "GeneralUtils.h"
 
 static char LOG_TAG[] = "BLE";
 
-
-static EventGroupHandle_t g_eventGroup;
-#define EVENT_GROUP_SCAN_COMPLETE (1<<0)
-
-
-//static esp_gatt_if_t g_gattc_if;
-
-/*
- * We maintain a map of found devices.  The map is keyed off the 6 byte address value of the device.
- * Note that this address is binary and should not be directly printed.  The value of the map is
- * the BLEDevice object that this device represents.
- */
-static std::map<std::string, BLEClient> g_devices;
-
 BLEServer *BLE::m_bleServer = nullptr;
 BLEScan   *BLE::m_pScan     = nullptr;
 BLEClient *BLE::m_pClient   = nullptr;
+
+#include <esp_gattc_api.h>
 
 BLE::BLE() {
 }
@@ -57,21 +44,7 @@ BLE::~BLE() {
 BLEClient* BLE::createClient() {
 	m_pClient = new BLEClient();
 	return m_pClient;
-}
-
-
-/**
- * @brief Dump all the devices.
- *
- * During scanning, a map is built containing all the unique devices found.  Calling this function
- * will dump the details of all the devices.
- */
-void BLE::dumpDevices() {
-	ESP_LOGD(LOG_TAG, "Number of devices: %d", g_devices.size());
-    for (auto &myPair : g_devices ) {
-    	myPair.second.dump();
-    }
-} // dumpDevices
+} // createClient
 
 
 /**
@@ -81,19 +54,19 @@ void BLE::dumpDevices() {
  * @param [in] gatts_if
  * @param [in] param
  */
-static void gatt_server_event_handler(
+void BLE::gattServerEventHandler(
    esp_gatts_cb_event_t      event,
    esp_gatt_if_t             gatts_if,
    esp_ble_gatts_cb_param_t *param
 ) {
-	ESP_LOGD(LOG_TAG, "gatt_server_event_handler [esp_gatt_if: %d] ... %s",
+	ESP_LOGD(LOG_TAG, "gattServerEventHandler [esp_gatt_if: %d] ... %s",
 		gatts_if,
 		BLEUtils::gattServerEventTypeToString(event).c_str());
 	BLEUtils::dumpGattServerEvent(event, gatts_if, param);
 	if (BLE::m_bleServer != nullptr) {
 		BLE::m_bleServer->handleGATTServerEvent(event, gatts_if, param);
 	}
-} // gatt_server_event_handler
+} // gattServerEventHandler
 
 
 /**
@@ -109,93 +82,16 @@ static void gatt_server_event_handler(
  * @param [in] gattc_if
  * @param [in] param
  */
-static void gatt_client_event_handler(
+void BLE::gattClientEventHandler(
 	esp_gattc_cb_event_t event,
 	esp_gatt_if_t gattc_if,
 	esp_ble_gattc_cb_param_t *param) {
 
-	ESP_LOGD(LOG_TAG, "gatt_client_event_handler [esp_gatt_if: %d] ... %s",
+	ESP_LOGD(LOG_TAG, "gattClientEventHandler [esp_gatt_if: %d] ... %s",
 		gattc_if, BLEUtils::gattClientEventTypeToString(event).c_str());
 	BLEUtils::dumpGattClientEvent(event, gattc_if, param);
 
 	switch(event) {
-	/*
-	case ESP_GATTC_OPEN_EVT: {
-		BLEClient *pDevice = BLEUtils::findByAddress(std::string((char *)param->open.remote_bda, 6));
-		BLEUtils::registerByConnId(param->open.conn_id, pDevice);
-		pDevice->dump();
-		pDevice->onConnected(param->open.status);
-		break;
-	}
-	*/
-
-	/*
-	 * The search_res field of the parameter has been populated.  It contains:
-	 * * uint16_t conn_id - Can this be used to find the device?
-	 * * esp_gatt_srvc_id_t srvc_id
-	 *   * esp_gatt_id_t id
-	 *      * esp_bt_uuid_t uuid
-	 *      * uint8_t inst_id
-	 *   * bool is_primary
-	 */
-
-	/*
-	case ESP_GATTC_SEARCH_RES_EVT: {
-		BLEClient *pDevice = BLEUtils::findByConnId(param->search_res.conn_id);
-		pDevice->addService(param->search_res.srvc_id);
-		break;
-	}
-
-	case ESP_GATTC_SEARCH_CMPL_EVT: {
-		BLEClient *pDevice = BLEUtils::findByConnId(param->search_cmpl.conn_id);
-		pDevice->onSearchComplete();
-		break;
-	}
-	*/
-
-	/*
-	 * The `get_char` field of the parameters has been populated.  It contains:
-	 * * esp_gatt_status_t status
-	 * * uint16_t conn_id
-	 * * esp_gatt_srvc_id_t srvc_id
-	 * * esp_gatt_id_t char_id
-	 * * esp_gatt_char_prop_t char_prop
-	 */
-	/*
-	case ESP_GATTC_GET_CHAR_EVT: {
-		if (param->get_char.status == ESP_GATT_OK) {
-			BLEClient *pDevice = BLEUtils::findByConnId(param->get_char.conn_id);
-			BLECharacteristicXXX characteristic(param->get_char.conn_id,
-					param->get_char.srvc_id, param->get_char.char_id, param->get_char.char_prop);
-			pDevice->onCharacteristic(characteristic);
-		}
-		break;
-	}
-	*/
-
-
-	/*
-	 * The `read` field of the parameters has been populated.  It contains:
-	 * * esp_gatt_status_t status
-	 * * uint16_t conn_id
-	 * * esp_gatt_srvc_id_t srvc_id
-	 * * esp_gatt_id_t char_id
-	 * * esp_gatt_id_t descr_id
-	 * * uint8_t *value
-	 * * uint16_t value_type
-	 * * uint16_t value_len
-	 */
-	/*
-	case ESP_GATTC_READ_CHAR_EVT: {
-		if (param->read.status == ESP_GATT_OK) {
-			BLEClient *pDevice = BLEUtils::findByConnId(param->read.conn_id);
-			std::string data = std::string((char *)param->read.value, param->read.value_len);
-			pDevice->onRead(data);
-		}
-		break;
-	}
-	*/
-
 		default: {
 			break;
 		}
@@ -206,13 +102,13 @@ static void gatt_client_event_handler(
 		BLE::m_pClient->gattClientEventHandler(event, gattc_if, param);
 	}
 
-} // gatt_event_handler
+} // gattClientEventHandler
 
 
 /**
  * @brief Handle GAP events.
  */
-static void gap_event_handler(
+void BLE::gapEventHandler(
 	esp_gap_ble_cb_event_t event,
 	esp_ble_gap_cb_param_t *param) {
 
@@ -236,18 +132,10 @@ static void gap_event_handler(
 		BLE::m_bleServer->handleGAPEvent(event, param);
 	}
 
-	if (BLE::getScan() != nullptr) {
+	if (BLE::m_pScan != nullptr) {
 		BLE::getScan()->gapEventHandler(event, param);
 	}
-} // gap_event_handler
-
-
-/**
- * @brief Get the current set of known devices.
- */
-std::map<std::string, BLEClient> getDevices() {
-	return g_devices;
-} // getDevices
+} // gapEventHandler
 
 
 /**
@@ -281,13 +169,13 @@ std::map<std::string, BLEClient> getDevices() {
 		return;
 	}
 
-	errRc = esp_ble_gap_register_callback(gap_event_handler);
+	errRc = esp_ble_gap_register_callback(BLE::gapEventHandler);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
-	errRc = esp_ble_gatts_register_callback(gatt_server_event_handler);
+	errRc = esp_ble_gatts_register_callback(BLE::gattServerEventHandler);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gatts_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
@@ -307,7 +195,7 @@ std::map<std::string, BLEClient> getDevices() {
 	};
 
 	return;
-}
+} // initServer
 
 
 /**
@@ -320,7 +208,6 @@ void BLE::initClient() {
 		ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
-
 
 	errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
 	if (errRc != ESP_OK) {
@@ -340,22 +227,25 @@ void BLE::initClient() {
 		return;
 	}
 
-	errRc = esp_ble_gap_register_callback(gap_event_handler);
+	errRc = esp_ble_gap_register_callback(BLE::gapEventHandler);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
-	errRc = esp_ble_gattc_register_callback(gatt_client_event_handler);
+	errRc = esp_ble_gattc_register_callback(BLE::gattClientEventHandler);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
-	g_eventGroup = xEventGroupCreate();
-	xEventGroupClearBits(g_eventGroup, 0xff);
-} // init
+} // initClient
 
+
+/**
+ * @brief Retrieve the Scan object that we use for scanning.
+ * @return The scanning object reference.
+ */
 BLEScan* BLE::getScan() {
 	if (m_pScan == nullptr) {
 		m_pScan = new BLEScan();

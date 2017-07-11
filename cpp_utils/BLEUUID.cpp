@@ -39,6 +39,7 @@ static void memrcpy(uint8_t *target, uint8_t *source, uint32_t size) {
  * For the hex encoding, here is an example:
  * "beb5483e-36e1-4688-b7f5-ea07361b26a8"
  *  0 1 2 3  4 5  6 7  8 9  0 1 2 3 4 5
+ *  12345678-90ab-cdef-1234-567890abcdef
  * This has a length of 36 characters.  We need to parse this into 16 bytes.
  *
  * @param [in] value The string to build a UUID from.
@@ -60,22 +61,22 @@ BLEUUID::BLEUUID(std::string value) {
 		m_uuid.len = ESP_UUID_LEN_128;
 		int vals[16];
 		sscanf(value.c_str(), "%2x%2x%2x%2x-%2x%2x-%2x%2x-%2x%2x-%2x%2x%2x%2x%2x%2x",
-			&vals[0],
-			&vals[1],
-			&vals[2],
-			&vals[3],
-			&vals[4],
-			&vals[5],
-			&vals[6],
-			&vals[7],
-			&vals[8],
-			&vals[9],
-			&vals[10],
-			&vals[11],
-			&vals[12],
-			&vals[13],
+			&vals[15],
 			&vals[14],
-			&vals[15]
+			&vals[13],
+			&vals[12],
+			&vals[11],
+			&vals[10],
+			&vals[9],
+			&vals[8],
+			&vals[7],
+			&vals[6],
+			&vals[5],
+			&vals[4],
+			&vals[3],
+			&vals[2],
+			&vals[1],
+			&vals[0]
 		);
 
 		int i;
@@ -94,14 +95,19 @@ BLEUUID::BLEUUID(std::string value) {
  * @brief Create a UUID from 16 bytes of memory.
  * @param [in] pData The pointer to the start of the UUID.
  * @param [in] size The size of the data.
+ * @param [in] msbFirst Is the MSB first in pData memory?
  */
-BLEUUID::BLEUUID(uint8_t *pData, size_t size) {
+BLEUUID::BLEUUID(uint8_t *pData, size_t size, bool msbFirst) {
 	if (size != 16) {
 		ESP_LOGE(LOG_TAG, "ERROR: UUID length not 16 bytes");
 		return;
 	}
 	m_uuid.len         = ESP_UUID_LEN_128;
-	memrcpy(m_uuid.uuid.uuid128, pData, 16);
+	if (msbFirst) {
+		memrcpy(m_uuid.uuid.uuid128, pData, 16);
+	} else {
+		memcpy(m_uuid.uuid.uuid128, pData, 16);
+	}
 	m_valueSet         = true;
 } // BLEUUID
 
@@ -135,6 +141,10 @@ BLEUUID::BLEUUID(esp_bt_uuid_t uuid) {
 	m_uuid     = uuid;
 	m_valueSet = true;
 } // BLEUUID
+
+
+BLEUUID::BLEUUID(esp_gatt_srvc_id_t srcvId) : BLEUUID(srcvId.id.uuid) {
+}
 
 
 BLEUUID::BLEUUID() {

@@ -97,8 +97,12 @@ static const gattService_t g_gattServices[] = {
 	{"", "", 0 }
 };
 
-
-static std::string characteristic_properties_to_string(esp_gatt_char_prop_t prop) {
+/**
+ * @brief Convert characteristic properties into a string representation.
+ * @param [in] prop Characteristic properties.
+ * @return A string representation of characteristic properties.
+ */
+std::string BLEUtils::characteristicPropertiesToString(esp_gatt_char_prop_t prop) {
 	std::stringstream stream;
 	stream <<
 			"broadcast: "  << ((prop & ESP_GATT_CHAR_PROP_BIT_BROADCAST)?"1":"0") <<
@@ -109,7 +113,7 @@ static std::string characteristic_properties_to_string(esp_gatt_char_prop_t prop
 			", indicate: " << ((prop & ESP_GATT_CHAR_PROP_BIT_INDICATE)?"1":"0") <<
 			", auth: "     << ((prop & ESP_GATT_CHAR_PROP_BIT_AUTH)?"1":"0");
 	return stream.str();
-} // characteristic_properties_to_string
+} // characteristicPropertiesToString
 
 /**
  * @brief Convert an esp_gatt_id_t to a string.
@@ -261,6 +265,30 @@ char *BLEUtils::buildHexData(uint8_t *target, uint8_t *source, uint8_t length) {
 
 	return startOfData;
 } // buildHexData
+
+
+/**
+ * @brief Build a printable string of memory range.
+ * Create a string representation of a piece of memory. Only printable characters will be included
+ * while those that are not printable will be replaced with '.'.
+ * @param [in] source Start of memory.
+ * @param [in] length Length of memory.
+ * @return A string representation of a piece of memory.
+ */
+std::string BLEUtils::buildPrintData(uint8_t* source, size_t length) {
+	std::ostringstream ss;
+	for (int i=0; i<length; i++) {
+		char c = *source;
+		if (isprint(c)) {
+			ss << c;
+		} else {
+			ss << '.';
+		}
+		source++;
+	}
+	return ss.str();
+} // buildPrintData
+
 
 std::string BLEUtils::gattCloseReasonToString(esp_gatt_conn_reason_t reason) {
 	switch(reason) {
@@ -439,52 +467,10 @@ std::string BLEUtils::gattServerEventTypeToString(esp_gatts_cb_event_t eventType
 } // gattServerEventTypeToString
 
 
-esp_bt_uuid_t BLEUtils::buildUUID(uint16_t uuid) {
-	esp_bt_uuid_t retUUID;
-	retUUID.len = ESP_UUID_LEN_16;
-	retUUID.uuid.uuid16 = uuid;
-	return retUUID;
-}
-
-esp_bt_uuid_t BLEUtils::buildUUID(uint32_t uuid) {
-	esp_bt_uuid_t retUUID;
-	retUUID.len = ESP_UUID_LEN_32;
-	retUUID.uuid.uuid32 = uuid;
-	return retUUID;
-}
-
-/**
- * @brief Build a UUID.
- *
- * There are times when we wish to parse a string representation of a UUID into a more natural
- * form.  This function parses such a string and returns the ESP32 type called `esp_bt_uuid_t`.
- *
- * The format of string UUIDs is:
- * * 16bit  - XXXX
- * * 32bit  - XXXXXXXXX
- * * 128bit - Not yet implemented
- */
-esp_bt_uuid_t BLEUtils::buildUUID(std::string uuid) {
-	esp_bt_uuid_t retUUID;
-	retUUID.len = 0;
-	int charcterCount = uuid.length();
-	if (charcterCount != 4 && charcterCount != 8) {
-		ESP_LOGE(LOG_TAG, "BLEUtils::parseUUID: Malformed UUID string: %s", uuid.c_str());
-		return retUUID;
-	}
-	if (charcterCount == 4) {
-		retUUID.len = ESP_UUID_LEN_16;
-		sscanf(uuid.c_str(), "%hx", &retUUID.uuid.uuid16);
-	} else if (charcterCount == 8) {
-		retUUID.len = ESP_UUID_LEN_32;
-		sscanf(uuid.c_str(), "%x", &retUUID.uuid.uuid32);
-	}
-	return retUUID;
-} // buildUUID
-
 
 /**
  * @brief Convert a BLE device type to a string.
+ * @param [in] type The device type.
  */
 const char* BLEUtils::devTypeToString(esp_bt_dev_type_t type) {
 	switch(type) {
@@ -708,6 +694,22 @@ void BLEUtils::dumpGattClientEvent(
 		}
 
 		//
+		// ESP_GATTC_DISCONNECT_EVT
+		//
+		// disconnect:
+		// - esp_gatt_status_t status
+		// - uint16_t          conn_id
+		// - esp_bd_addr_t     remote_bda
+		case ESP_GATTC_DISCONNECT_EVT: {
+			ESP_LOGD(LOG_TAG, "[staus: %s, conn_id: %d, remote_bda: %s]",
+				BLEUtils::gattStatusToString(evtParam->disconnect.status).c_str(),
+				evtParam->disconnect.conn_id,
+				BLEAddress(evtParam->disconnect.remote_bda).toString().c_str()
+			);
+			break;
+		} // ESP_GATTC_DISCONNECT_EVT
+
+		//
 		// ESP_GATTC_GET_CHAR_EVT
 		//
 		// get_char:
@@ -718,18 +720,29 @@ void BLEUtils::dumpGattClientEvent(
 		// - esp_gatt_char_prop_t char_prop
 		//
 		case ESP_GATTC_GET_CHAR_EVT: {
-			std::string description = "Unknown";
-			if (evtParam->get_char.char_id.uuid.len == ESP_UUID_LEN_16) {
-				description = BLEUtils::gattCharacteristicUUIDToString(evtParam->get_char.char_id.uuid.uuid.uuid16);
-			}
-			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, srvc_id: %s, char_id: %s [description: %s]\nchar_prop: %s]",
+
+			// If the status of the event shows that we have a value other than ESP_GATT_OK then the
+			// characteristic fields are not set to a usable value .. so don't try and log them.
+			if (evtParam->get_char.status == ESP_GATT_OK) {
+				std::string description = "Unknown";
+				if (evtParam->get_char.char_id.uuid.len == ESP_UUID_LEN_16) {
+					description = BLEUtils::gattCharacteristicUUIDToString(evtParam->get_char.char_id.uuid.uuid.uuid16);
+				}
+				ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, srvc_id: %s, char_id: %s [description: %s]\nchar_prop: %s]",
 					BLEUtils::gattStatusToString(evtParam->get_char.status).c_str(),
-				evtParam->get_char.conn_id,
-				BLEUtils::gattServiceIdToString(evtParam->get_char.srvc_id).c_str(),
-				gattIdToString(evtParam->get_char.char_id).c_str(),
-				description.c_str(),
-				characteristic_properties_to_string(evtParam->get_char.char_prop).c_str()
-			);
+					evtParam->get_char.conn_id,
+					BLEUtils::gattServiceIdToString(evtParam->get_char.srvc_id).c_str(),
+					gattIdToString(evtParam->get_char.char_id).c_str(),
+					description.c_str(),
+					BLEUtils::characteristicPropertiesToString(evtParam->get_char.char_prop).c_str()
+				);
+			} else {
+				ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, srvc_id: %s]",
+					BLEUtils::gattStatusToString(evtParam->get_char.status).c_str(),
+					evtParam->get_char.conn_id,
+					BLEUtils::gattServiceIdToString(evtParam->get_char.srvc_id).c_str()
+				);
+			}
 			break;
 		}
 
@@ -756,6 +769,15 @@ void BLEUtils::dumpGattClientEvent(
 		//
 		// ESP_GATTC_READ_CHAR_EVT
 		//
+		// read:
+		// esp_gatt_status_t  status
+		// uint16_t           conn_id
+		// esp_gatt_srvc_id_t srvc_id
+		// esp_gatt_id_t      char_id
+		// esp_gatt_id_t      descr_id
+		// uint8_t*           value
+		// uint16_t           value_type
+		// uint16_t           value_len
 		case ESP_GATTC_READ_CHAR_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, srvc_id: <%s>, char_id: <%s>, descr_id: <%s>, value_type: 0x%x, value_len: %d]",
 				BLEUtils::gattStatusToString(evtParam->read.status).c_str(),
@@ -768,7 +790,7 @@ void BLEUtils::dumpGattClientEvent(
 			);
 			if (evtParam->read.status == ESP_GATT_OK) {
 				char *pHexData = BLEUtils::buildHexData(nullptr, evtParam->read.value, evtParam->read.value_len);
-				ESP_LOGD(LOG_TAG, "value: %s", pHexData);
+				ESP_LOGD(LOG_TAG, "value: %s \"%s\"", pHexData, BLEUtils::buildPrintData(evtParam->read.value, evtParam->read.value_len).c_str());
 				free(pHexData);
 			}
 			break;
@@ -788,6 +810,22 @@ void BLEUtils::dumpGattClientEvent(
 				evtParam->reg.app_id);
 			break;
 		} // ESP_GATTC_REG_EVT
+
+
+		//
+		// ESP_GATTC_REG_FOR_NOTIFY_EVT
+		//
+		// reg_for_notify:
+		// - esp_gatt_status_t status
+		// - esp_gatt_srvc_id_t srvc_id
+		// - esp_gatt_id_t char_id
+		case ESP_GATTC_REG_FOR_NOTIFY_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %s, srvc_id: <%s>, char_id: <%s>]",
+				BLEUtils::gattStatusToString(evtParam->reg_for_notify.status).c_str(),
+				BLEUtils::gattServiceIdToString(evtParam->reg_for_notify.srvc_id).c_str(),
+				gattIdToString(evtParam->reg_for_notify.char_id).c_str());
+			break;
+		} // ESP_GATTC_REG_FOR_NOTIFY_EVT
 
 
 		//
@@ -829,6 +867,26 @@ void BLEUtils::dumpGattClientEvent(
 			break;
 		} // ESP_GATTC_SEARCH_RES_EVT
 
+
+		//
+		// ESP_GATTC_WRITE_CHAR_EVT
+		//
+		// write:
+		// esp_gatt_status_t  status
+		// uint16_t           conn_id
+		// esp_gatt_srvc_id_t srvc_id
+		// esp_gatt_id_t      char_id
+		// esp_gatt_id_t      descr_id
+		case ESP_GATTC_WRITE_CHAR_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, srvc_id: <%s>, char_id: <%s>, descr_id: <%s>]",
+				BLEUtils::gattStatusToString(evtParam->write.status).c_str(),
+				evtParam->write.conn_id,
+				BLEUtils::gattServiceIdToString(evtParam->write.srvc_id).c_str(),
+				gattIdToString(evtParam->write.char_id).c_str(),
+				gattIdToString(evtParam->write.descr_id).c_str()
+			);
+			break;
+		}
 
 		default:
 			break;

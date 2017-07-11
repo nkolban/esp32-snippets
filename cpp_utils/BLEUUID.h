@@ -18,7 +18,8 @@ public:
 	BLEUUID(uint16_t uuid);
 	BLEUUID(uint32_t uuid);
 	BLEUUID(esp_bt_uuid_t uuid);
-	BLEUUID(uint8_t *pData, size_t size);
+	BLEUUID(uint8_t *pData, size_t size, bool msbFirst);
+	BLEUUID(esp_gatt_srvc_id_t srcvId);
 	BLEUUID();
 	virtual ~BLEUUID();
 	bool           equals(BLEUUID uuid);
