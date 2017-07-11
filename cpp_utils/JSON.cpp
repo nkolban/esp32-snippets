@@ -175,6 +175,27 @@ std::string JsonArray::getString(int item) {
 } // getString
 
 
+/**
+ * @brief Convert the JSON array to a string.
+ * @return A JSON string representation of the array.
+ */
+std::string JsonArray::toString() {
+	char *data = cJSON_Print(m_node);
+	std::string ret(data);
+	free(data);
+	return ret;
+} // toString
+
+
+/**
+ * @brief Get the number of elements from the array.
+ * @return The int value that represents the number of elements.
+ */
+std::size_t JsonArray::size() {
+	return cJSON_GetArraySize(m_node);
+} // size
+
+
 JsonObject::JsonObject(cJSON* node) {
 	m_node = node;
 }

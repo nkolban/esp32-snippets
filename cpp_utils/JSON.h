@@ -44,6 +44,8 @@ public:
 	void addInt(int value);
 	void addObject(JsonObject value);
 	void addString(std::string value);
+	std::string toString();
+	std::size_t size();
 	/**
 	 * @brief The underlying cJSON node.
 	 */
