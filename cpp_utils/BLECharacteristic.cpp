@@ -29,7 +29,7 @@ static char LOG_TAG[] = "BLECharacteristic";
  */
 BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
 	m_bleUUID            = uuid;
-	m_value.attr_value   = (uint8_t *)malloc(ESP_GATT_MAX_ATTR_LEN); // Allocate storage for the value
+	m_value.attr_value   = static_cast<uint8_t*>(malloc(ESP_GATT_MAX_ATTR_LEN)); // Allocate storage for the value
 	m_value.attr_len     = 0; // Initial length of actual data is none.
 	m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN; // Maximum length of data.
 	m_handle             = NULL_HANDLE;
@@ -90,7 +90,7 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 	esp_err_t errRc = ::esp_ble_gatts_add_char(
 		m_pService->getHandle(),
 		getUUID().getNative(),
-		(esp_gatt_perm_t)(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE),
+		static_cast<esp_gatt_perm_t>(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE),
 		getProperties(),
 		&m_value,
 		&control); // Whether to autorespond or not.
@@ -166,7 +166,7 @@ uint8_t* BLECharacteristic::getValue() {
 void BLECharacteristic::handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
 		esp_gatt_if_t             gatts_if,
-		esp_ble_gatts_cb_param_t *param) {
+		esp_ble_gatts_cb_param_t* param) {
 	switch(event) {
 
 		// ESP_GATTS_WRITE_EVT - A request to write the value of a characteristic has arrived.
@@ -419,7 +419,7 @@ void BLECharacteristic::setValue(uint8_t* data, size_t length) {
  * @return N/A.
  */
 void BLECharacteristic::setValue(std::string value) {
-	setValue((uint8_t *)value.data(), value.length());
+	setValue((uint8_t*)(value.data()), value.length());
 } // setValue
 
 

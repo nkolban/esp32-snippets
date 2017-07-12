@@ -73,17 +73,17 @@ void BLEAdvertising::setServiceUUID(BLEUUID uuid) {
 	switch(espUUID.len) {
 		case ESP_UUID_LEN_16: {
 			m_advData.service_uuid_len = 2;
-			m_advData.p_service_uuid = (uint8_t *)&espUUID.uuid.uuid16;
+			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID.uuid.uuid16);
 			break;
 		}
 		case ESP_UUID_LEN_32: {
 			m_advData.service_uuid_len = 4;
-			m_advData.p_service_uuid = (uint8_t *)&espUUID.uuid.uuid32;
+			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID.uuid.uuid32);
 			break;
 		}
 		case ESP_UUID_LEN_128: {
 			m_advData.service_uuid_len = 16;
-			m_advData.p_service_uuid = (uint8_t *)&espUUID.uuid.uuid128;
+			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID.uuid.uuid128);
 			break;
 		}
 	} // switch

@@ -157,7 +157,7 @@ bool BLEAdvertisedDevice::haveTXPower() {
  *
  * https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile
  */
-void BLEAdvertisedDevice::parseAdvertisement(uint8_t *payload) {
+void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 	uint8_t length;
 	uint8_t ad_type;
 	uint8_t sizeConsumed = 0;
@@ -173,7 +173,7 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t *payload) {
 			payload++;
 			length--;
 
-			char *pHex = BLEUtils::buildHexData(nullptr, payload, length);
+			char* pHex = BLEUtils::buildHexData(nullptr, payload, length);
 			ESP_LOGD(LOG_TAG, "Type: 0x%.2x (%s), length: %d, data: %s",
 					ad_type, BLEUtils::advTypeToString(ad_type), length, pHex);
 			free(pHex);
@@ -182,7 +182,7 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t *payload) {
 
 			switch(ad_type) {
 				case ESP_BLE_AD_TYPE_NAME_CMPL: { // Adv Data Type: 0x09
-					setName(std::string((char *)payload, length));
+					setName(std::string(reinterpret_cast<char*>(payload), length));
 					break;
 				} // ESP_BLE_AD_TYPE_NAME_CMPL
 
@@ -192,32 +192,32 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t *payload) {
 				} // ESP_BLE_AD_TYPE_TX_PWR
 
 				case ESP_BLE_AD_TYPE_APPEARANCE: { // Adv Data Type: 0x19
-					setAppearance(*(uint16_t *)payload);
+					setAppearance(*reinterpret_cast<uint16_t*>(payload));
 					break;
 				} // ESP_BLE_AD_TYPE_APPEARANCE
 
 				case ESP_BLE_AD_TYPE_FLAG: { // Adv Data Type: 0x01
-					setAdFlag((uint8_t)*payload);
+					setAdFlag(*payload);
 					break;
 				} // ESP_BLE_AD_TYPE_FLAG
 
 				case ESP_BLE_AD_TYPE_16SRV_CMPL: { // Adv Data Type: 0x03
-					setServiceUUID(BLEUUID(*(uint16_t *)payload));
+					setServiceUUID(BLEUUID(*reinterpret_cast<uint16_t*>(payload)));
 					break;
 				} // ESP_BLE_AD_TYPE_16SRV_CMPL
 
 				case ESP_BLE_AD_TYPE_16SRV_PART: { // Adv Data Type: 0x02
-					setServiceUUID(BLEUUID(*(uint16_t *)payload));
+					setServiceUUID(BLEUUID(*reinterpret_cast<uint16_t*>(payload)));
 					break;
 				} // ESP_BLE_AD_TYPE_16SRV_PART
 
 				case ESP_BLE_AD_TYPE_32SRV_CMPL: { // Adv Data Type: 0x05
-					setServiceUUID(BLEUUID(*(uint32_t *)payload));
+					setServiceUUID(BLEUUID(*reinterpret_cast<uint32_t*>(payload)));
 					break;
 				} // ESP_BLE_AD_TYPE_32SRV_CMPL
 
 				case ESP_BLE_AD_TYPE_32SRV_PART: { // Adv Data Type: 0x04
-					setServiceUUID(BLEUUID(*(uint32_t *)payload));
+					setServiceUUID(BLEUUID(*reinterpret_cast<uint32_t*>(payload)));
 					break;
 				} // ESP_BLE_AD_TYPE_32SRV_PART
 
@@ -232,9 +232,10 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t *payload) {
 				} // ESP_BLE_AD_TYPE_128SRV_PART
 
 				// See CSS Part A 1.4 Manufacturer Specific Data
-				case ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE:
-					setManufacturerData(std::string((char *)payload, length));
+				case ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE: {
+					setManufacturerData(std::string(reinterpret_cast<char*>(payload), length));
 					break;
+				} // ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE
 
 				default: {
 					ESP_LOGD(LOG_TAG, "Unhandled type");
@@ -288,7 +289,7 @@ void BLEAdvertisedDevice::setAppearance(uint16_t appearance) {
 void BLEAdvertisedDevice::setManufacturerData(std::string manufacturerData) {
 	m_manufacturerData     = manufacturerData;
 	m_haveManufacturerData = true;
-	char *pHex = BLEUtils::buildHexData(nullptr, (uint8_t *)m_manufacturerData.data(), (uint8_t)m_manufacturerData.length());
+	char* pHex = BLEUtils::buildHexData(nullptr, (uint8_t*)m_manufacturerData.data(), (uint8_t)m_manufacturerData.length());
 	ESP_LOGD(LOG_TAG, "- manufacturer data: %s", pHex);
 	free(pHex);
 } // setManufacturerData
@@ -357,7 +358,7 @@ std::string BLEAdvertisedDevice::toString() {
 		ss << ", appearance: " << getApperance();
 	}
 	if (haveManufacturerData()) {
-		char *pHex = BLEUtils::buildHexData(nullptr, (uint8_t *)getManufacturerData().data(), getManufacturerData().length());
+		char *pHex = BLEUtils::buildHexData(nullptr, (uint8_t*)getManufacturerData().data(), getManufacturerData().length());
 		ss << ", manufacturer data: " << pHex;
 		free(pHex);
 	}

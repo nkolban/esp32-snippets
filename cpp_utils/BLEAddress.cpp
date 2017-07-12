@@ -52,6 +52,24 @@ BLEAddress::BLEAddress(std::string stringAddress) {
 BLEAddress::~BLEAddress() {
 } // ~BLEAddress
 
+/**
+ * @brief Determine if this address equals another.
+ * @param [in] otherAddress The other address to compare against.
+ * @return True if the addresses are equal.
+ */
+bool BLEAddress::equals(BLEAddress otherAddress) {
+	return memcmp(otherAddress.getNative(), m_address, 6) == 0;
+} // equals
+
+
+/**
+ * @brief Return the native representation of the address.
+ * @return The native representation of the address.
+ */
+esp_bd_addr_t *BLEAddress::getNative() {
+	return &m_address;
+} // getNative
+
 
 /**
  * @brief Convert a BLE address to a string.
@@ -68,13 +86,4 @@ std::string BLEAddress::toString() {
 	stream << std::setfill('0') << std::setw(2) << std::hex << (int)((uint8_t *)(m_address))[5];
 	return stream.str();
 } // toString
-
-
-/**
- * @brief Return the native representation of the address.
- * @return The native representation of the address.
- */
-esp_bd_addr_t *BLEAddress::getNative() {
-	return &m_address;
-} // getNative
 #endif

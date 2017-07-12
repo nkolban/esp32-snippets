@@ -107,7 +107,7 @@ void BLEClient::disconnect() {
 void BLEClient::gattClientEventHandler(
 	esp_gattc_cb_event_t      event,
 	esp_gatt_if_t             gattc_if,
-	esp_ble_gattc_cb_param_t *evtParam) {
+	esp_ble_gattc_cb_param_t* evtParam) {
 
 	// Execute handler code based on the type of event received.
 	switch(event) {
@@ -165,7 +165,7 @@ void BLEClient::gattClientEventHandler(
 		//
 		case ESP_GATTC_SEARCH_RES_EVT: {
 			BLEUUID uuid = BLEUUID(evtParam->search_res.srvc_id);
-			BLERemoteService *pRemoteService = new BLERemoteService(evtParam->search_res.srvc_id, this);
+			BLERemoteService* pRemoteService = new BLERemoteService(evtParam->search_res.srvc_id, this);
 			m_servicesMap.insert(std::pair<std::string, BLERemoteService *>(uuid.toString(), pRemoteService));
 			break;
 		} // ESP_GATTC_SEARCH_RES_EVT
@@ -227,7 +227,7 @@ BLERemoteService* BLEClient::getService(BLEUUID uuid) {
  * services and wait until we have received them all.
  * @return N/A
  */
-std::map<std::string, BLERemoteService *> * BLEClient::getServices() {
+std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
 /*
  * Design
  * ------
@@ -278,9 +278,5 @@ std::string BLEClient::toString() {
 	}
 	return ss.str();
 } // toString
-
-
-
-
 
 #endif // CONFIG_BT_ENABLED

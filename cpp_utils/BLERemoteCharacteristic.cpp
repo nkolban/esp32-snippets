@@ -8,21 +8,28 @@
 #include "BLERemoteCharacteristic.h"
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
-#include "BLEUtils.h"
-#include "GeneralUtils.h"
-#include <sstream>
+
 #include <esp_gattc_api.h>
 #include <esp_log.h>
 #include <esp_err.h>
 
+#include <sstream>
+
+#include "BLEUtils.h"
+#include "GeneralUtils.h"
+
+
 static const char LOG_TAG[] = "BLERemoteCharacteristic";
 
-BLERemoteCharacteristic::BLERemoteCharacteristic(esp_gatt_id_t charId,
-		esp_gatt_char_prop_t charProp, BLERemoteService* pRemoteService) {
+BLERemoteCharacteristic::BLERemoteCharacteristic(
+		esp_gatt_id_t        charId,
+		esp_gatt_char_prop_t charProp,
+		BLERemoteService*    pRemoteService) {
 	m_charId         = charId;
 	m_charProp       = charProp;
 	m_pRemoteService = pRemoteService;
-}
+} // BLERemoteCharacteristic
+
 
 static bool compareSrvcId(esp_gatt_srvc_id_t id1, esp_gatt_srvc_id_t id2) {
 	if (id1.id.inst_id != id2.id.inst_id) {
@@ -48,6 +55,7 @@ static bool compareGattId(esp_gatt_id_t id1, esp_gatt_id_t id2) {
 
 BLERemoteCharacteristic::~BLERemoteCharacteristic() {
 }
+
 
 /**
  * @brief Handle GATT Client events
@@ -79,7 +87,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 			if (compareGattId(evtParam->read.char_id, m_charId) == false) {
 				break;
 			}
-			m_value = std::string((char *)evtParam->read.value, evtParam->read.value_len);
+			m_value = std::string((char*)evtParam->read.value, evtParam->read.value_len);
 			m_semaphoreReadCharEvt.give();
 			break;
 		} // ESP_GATTC_READ_CHAR_EVT
@@ -133,6 +141,49 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 	}
 }; // gattClientEventHandler
 
+
+/**
+ * @brief Read an unsigned 16 bit value
+ * @return The unsigned 16 bit value.
+ */
+uint16_t BLERemoteCharacteristic::readUInt16(void) {
+	std::string value = readValue();
+	if (value.length() >= 2) {
+		return *(uint16_t*)(value.data());
+	}
+	return 0;
+} // readUInt16
+
+
+/**
+ * @brief Read an unsigned 32 bit value.
+ * @return the unsigned 32 bit value.
+ */
+uint32_t BLERemoteCharacteristic::readUInt32(void) {
+	std::string value = readValue();
+	if (value.length() >= 4) {
+		return *(uint32_t*)(value.data());
+	}
+	return 0;
+} // readUInt32
+
+
+/**
+ * @brief Read a byte value
+ * @return The value as a byte
+ */
+uint8_t BLERemoteCharacteristic::readUInt8(void) {
+	std::string value = readValue();
+	if (value.length() >= 1) {
+		return (uint8_t)value[0];
+	}
+	return 0;
+} // readUInt8
+
+/**
+ * @brief Read the value of the remote characteristic.
+ * @return The value of the remote characteristic.
+ */
 std::string BLERemoteCharacteristic::readValue() {
 	ESP_LOGD(LOG_TAG, ">> readValue()");
 	m_semaphoreReadCharEvt.take("readValue");
@@ -150,7 +201,7 @@ std::string BLERemoteCharacteristic::readValue() {
 	m_semaphoreReadCharEvt.give();
 	ESP_LOGD(LOG_TAG, "<< readValue()");
 	return m_value;
-}
+} // readValue
 
 
 /**
@@ -202,9 +253,10 @@ void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
 		m_pRemoteService->getSrvcId(),
 		&m_charId,
 		newValue.length(),
-		(uint8_t *)newValue.data(),
+		(uint8_t*)newValue.data(),
 		response?ESP_GATT_WRITE_TYPE_RSP:ESP_GATT_WRITE_TYPE_NO_RSP,
-		ESP_GATT_AUTH_REQ_NONE);
+		ESP_GATT_AUTH_REQ_NONE
+	);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_write_char: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
@@ -221,7 +273,7 @@ void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
  * @return N/A.
  */
 void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
-	writeValue(std::string((char *)&newValue, 1), response);
+	writeValue(std::string(reinterpret_cast<char*>(&newValue), 1), response);
 } // writeValue
 
 

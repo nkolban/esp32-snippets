@@ -26,6 +26,9 @@ public:
 
 	// Public member functions
 	std::string readValue(void);
+	uint8_t     readUInt8(void);
+	uint16_t    readUInt16(void);
+	uint32_t    readUInt32(void);
 	void        registerForNotify(void);
 	void        writeValue(std::string newValue, bool response = false);
 	void        writeValue(uint8_t newValue, bool response = false);

@@ -6,13 +6,17 @@
  */
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
+
+
+#include <esp_log.h>
+#include <esp_err.h>
+
+#include <map>
+
 #include "BLEAdvertisedDevice.h"
 #include "BLEScan.h"
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
-
-#include <esp_log.h>
-#include <esp_err.h>
 
 static char LOG_TAG[] = "BLEScan";
 
@@ -30,6 +34,14 @@ BLEScan::BLEScan() {
 
 
 BLEScan::~BLEScan() {
+	clearAdvertisedDevices();
+}
+
+void BLEScan::clearAdvertisedDevices() {
+	for (int i=0; i<m_vectorAvdertisedDevices.size(); i++) {
+		delete m_vectorAvdertisedDevices[i];
+	}
+	m_vectorAvdertisedDevices.clear();
 }
 
 
@@ -61,23 +73,42 @@ void BLEScan::gapEventHandler(
 
 			switch(param->scan_rst.search_evt) {
 				case ESP_GAP_SEARCH_INQ_CMPL_EVT: {
+					m_stopped = true;
+					m_semaphoreScanEnd.give();
 					break;
 				}
 
 				case ESP_GAP_SEARCH_INQ_RES_EVT: {
-					if (m_stopped) {
+					if (m_stopped) { // If we are not scanning, nothing to do with the extra results.
 						break;
 					}
-					BLEAdvertisedDevice *pAdvertisedDevice = new BLEAdvertisedDevice();
-					pAdvertisedDevice->setAddress(BLEAddress(param->scan_rst.bda));
+
+// Examine our list of previously scanned addresses and, if we found this one already,
+// ignore it.
+					BLEAddress advertisedAddress(param->scan_rst.bda);
+					bool found = false;
+					for (int i=0; i<m_vectorAvdertisedDevices.size(); i++) {
+						if (m_vectorAvdertisedDevices[i]->getAddress().equals(advertisedAddress)) {
+							found = true;
+							break;
+						}
+					}
+					if (found) {
+						ESP_LOGD(LOG_TAG, "Ignoring %s, already seen it.", advertisedAddress.toString().c_str());
+						break;
+					}
+
+					BLEAdvertisedDevice* pAdvertisedDevice = new BLEAdvertisedDevice();
+					pAdvertisedDevice->setAddress(advertisedAddress);
 					pAdvertisedDevice->setRSSI(param->scan_rst.rssi);
 					pAdvertisedDevice->setAdFlag(param->scan_rst.flag);
 					pAdvertisedDevice->parseAdvertisement((uint8_t *)param->scan_rst.ble_adv);
 					pAdvertisedDevice->setScan(this);
+					m_vectorAvdertisedDevices.push_back(pAdvertisedDevice);
 					if (m_pAdvertisedDeviceCallbacks) {
 						m_pAdvertisedDeviceCallbacks->onResult(pAdvertisedDevice);
 					}
-					delete pAdvertisedDevice;
+
 					break;
 				}
 
@@ -149,20 +180,27 @@ void BLEScan::setWindow(uint16_t windowMSecs) {
  * @param [in] duration The duration in seconds for which to scan.
  * @return N/A.
  */
-void BLEScan::start(uint32_t duration) {
+std::vector<BLEAdvertisedDevice*> BLEScan::start(uint32_t duration) {
 	ESP_LOGD(LOG_TAG, ">> start(%d)", duration);
+	m_semaphoreScanEnd.take("start");
+	clearAdvertisedDevices();
 	esp_err_t errRc = ::esp_ble_gap_set_scan_params(&m_scan_params);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_scan_params: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
+		m_semaphoreScanEnd.give();
+		return m_vectorAvdertisedDevices;
 	}
 	errRc = ::esp_ble_gap_start_scanning(duration);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_start_scanning: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
+		m_semaphoreScanEnd.give();
+		return m_vectorAvdertisedDevices;
 	}
 	m_stopped = false;
+	m_semaphoreScanEnd.take("start");
+	m_semaphoreScanEnd.give();
 	ESP_LOGD(LOG_TAG, "<< start()");
+	return m_vectorAvdertisedDevices;
 } // start
 
 
@@ -178,6 +216,10 @@ void BLEScan::stop() {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_stop_scanning: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+	m_semaphoreScanEnd.give();
 	ESP_LOGD(LOG_TAG, "<< stop()");
 } // stop
+
+
+
 #endif /* CONFIG_BT_ENABLED */
