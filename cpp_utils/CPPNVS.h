@@ -5,8 +5,8 @@
  *      Author: kolban
  */
 
-#ifndef COMPONENTS_CPP_UTILS_NVS_H_
-#define COMPONENTS_CPP_UTILS_NVS_H_
+#ifndef COMPONENTS_CPP_UTILS_CPPNVS_H_
+#define COMPONENTS_CPP_UTILS_CPPNVS_H_
 #include <nvs.h>
 #include <string>
 
@@ -28,4 +28,4 @@ private:
 	nvs_handle m_handle;
 };
 
-#endif /* COMPONENTS_CPP_UTILS_NVS_H_ */
+#endif /* COMPONENTS_CPP_UTILS_CPPNVS_H_ */

@@ -5,8 +5,9 @@
  *      Author: kolban
  */
 
+#include "CPPNVS.h"
+
 #include <stdlib.h>
-#include "NVS.h"
 
 /**
  * @brief Constructor.
