@@ -24,8 +24,6 @@
  */
 class BLE {
 public:
-	BLE();
-	virtual ~BLE();
 	static void dumpDevices();
 	static BLEClient *createClient();
 

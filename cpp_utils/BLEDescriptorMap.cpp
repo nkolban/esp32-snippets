@@ -12,13 +12,6 @@
 #include "BLEDescriptor.h"
 #include <esp_gatts_api.h>   // ESP32 BLE
 
-BLEDescriptorMap::BLEDescriptorMap() {
-}
-
-BLEDescriptorMap::~BLEDescriptorMap() {
-}
-
-
 /**
  * @brief Return the descriptor by UUID.
  * @param [in] UUID The UUID to look up the descriptor.

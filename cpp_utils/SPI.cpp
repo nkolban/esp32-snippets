@@ -19,7 +19,8 @@ static char tag[] = "SPI";
  * @return N/A.
  */
 SPI::SPI() {
-	handle = nullptr;
+	m_handle = nullptr;
+	m_host   = HSPI_HOST;
 }
 
 /**
@@ -27,10 +28,10 @@ SPI::SPI() {
  */
 SPI::~SPI() {
   ESP_LOGI(tag, "... Removing device.");
-  ESP_ERROR_CHECK(spi_bus_remove_device(handle));
+  ESP_ERROR_CHECK(::spi_bus_remove_device(m_handle));
 
   ESP_LOGI(tag, "... Freeing bus.");
-  ESP_ERROR_CHECK(spi_bus_free(HSPI_HOST));
+  ESP_ERROR_CHECK(::spi_bus_free(m_host));
 }
 
 /**
@@ -44,14 +45,27 @@ SPI::~SPI() {
  */
 void SPI::init(int mosiPin, int misoPin, int clkPin, int csPin) {
 	ESP_LOGD(tag, "init: mosi=%d, miso=%d, clk=%d, cs=%d", mosiPin, misoPin, clkPin, csPin);
+
 	spi_bus_config_t bus_config;
-	bus_config.sclk_io_num   = clkPin; // CLK
-	bus_config.mosi_io_num   = mosiPin; // MOSI
-	bus_config.miso_io_num   = misoPin; // MISO
-	bus_config.quadwp_io_num = -1; // Not used
-	bus_config.quadhd_io_num = -1; // Not used
-	ESP_LOGI(tag, "... Initializing bus.");
-	ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &bus_config, 1));
+	bus_config.sclk_io_num     = clkPin;  // CLK
+	bus_config.mosi_io_num     = mosiPin; // MOSI
+	bus_config.miso_io_num     = misoPin; // MISO
+	bus_config.quadwp_io_num   = -1;      // Not used
+	bus_config.quadhd_io_num   = -1;      // Not used
+	bus_config.max_transfer_sz = 0;       // 0 means use default.
+
+	ESP_LOGI(tag, "... Initializing bus; host=%d", m_host);
+
+	esp_err_t errRc = ::spi_bus_initialize(
+			m_host,
+			&bus_config,
+			1 // DMA Channel
+	);
+
+	if (errRc != ESP_OK) {
+		ESP_LOGE(tag, "spi_bus_initialize(): rc=%d", errRc);
+		abort();
+	}
 
 	spi_device_interface_config_t dev_config;
 	dev_config.address_bits     = 0;
@@ -68,17 +82,30 @@ void SPI::init(int mosiPin, int misoPin, int clkPin, int csPin) {
 	dev_config.pre_cb           = NULL;
 	dev_config.post_cb          = NULL;
 	ESP_LOGI(tag, "... Adding device bus.");
-	ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &dev_config, &handle));
-}
+	errRc = ::spi_bus_add_device(m_host, &dev_config, &m_handle);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(tag, "spi_bus_add_device(): rc=%d", errRc);
+		abort();
+	}
+} // init
 
 
 /**
- * @brief send and receive data through %SPI.
+ * @brief Set the SPI host to use.
+ * Call this prior to init().
+ * @param [in] host The SPI host to use.  Either HSPI_HOST (default) or VSPI_HOST.
+ */
+void SPI::setHost(spi_host_device_t host) {
+	m_host = host;
+} // setHost
+
+/**
+ * @brief Send and receive data through %SPI.  This is a blocking call.
  *
  * @param [in] data A data buffer used to send and receive.
  * @param [in] dataLen The number of bytes to transmit and receive.
  */
-void SPI::transfer(uint8_t *data, size_t dataLen) {
+void SPI::transfer(uint8_t* data, size_t dataLen) {
 	assert(data != nullptr);
 	assert(dataLen > 0);
 #ifdef DEBUG
@@ -96,8 +123,21 @@ void SPI::transfer(uint8_t *data, size_t dataLen) {
 	trans_desc.rx_buffer = data;
 
 	//ESP_LOGI(tag, "... Transferring");
-	esp_err_t rc = spi_device_transmit(handle, &trans_desc);
+	esp_err_t rc = ::spi_device_transmit(m_handle, &trans_desc);
 	if (rc != ESP_OK) {
 		ESP_LOGE(tag, "transfer:spi_device_transmit: %d", rc);
 	}
 } // transmit
+
+
+/**
+ * @brief Send and receive a single byte.
+ * @param [in] value The byte to send.
+ * @return The byte value received.
+ */
+uint8_t SPI::transferByte(uint8_t value) {
+	transfer(&value, 1);
+	return value;
+} // transferByte
+
+

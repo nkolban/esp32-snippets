@@ -21,7 +21,6 @@
 static char LOG_TAG[] = "BLEScan";
 
 
-
 BLEScan::BLEScan() {
 	m_scan_params.scan_type          = BLE_SCAN_TYPE_PASSIVE; // Default is a passive scan.
 	m_scan_params.own_addr_type      = BLE_ADDR_TYPE_PUBLIC;
@@ -37,6 +36,11 @@ BLEScan::~BLEScan() {
 	clearAdvertisedDevices();
 }
 
+
+/**
+ * @brief Clear the history of previously detected advertised devices.
+ * @return N/A
+ */
 void BLEScan::clearAdvertisedDevices() {
 	for (int i=0; i<m_vectorAvdertisedDevices.size(); i++) {
 		delete m_vectorAvdertisedDevices[i];
@@ -51,8 +55,8 @@ void BLEScan::clearAdvertisedDevices() {
  * @param [in] param Parameter data for this event.
  */
 void BLEScan::gapEventHandler(
-	esp_gap_ble_cb_event_t event,
-	esp_ble_gap_cb_param_t *param) {
+	esp_gap_ble_cb_event_t  event,
+	esp_ble_gap_cb_param_t* param) {
 	switch(event) {
 
 	// ESP_GAP_BLE_SCAN_RESULT_EVT
@@ -76,7 +80,7 @@ void BLEScan::gapEventHandler(
 					m_stopped = true;
 					m_semaphoreScanEnd.give();
 					break;
-				}
+				} // ESP_GAP_SEARCH_INQ_CMPL_EVT
 
 				case ESP_GAP_SEARCH_INQ_RES_EVT: {
 					if (m_stopped) { // If we are not scanning, nothing to do with the extra results.
@@ -110,7 +114,7 @@ void BLEScan::gapEventHandler(
 					}
 
 					break;
-				}
+				} // ESP_GAP_SEARCH_INQ_RES_EVT
 
 				default: {
 					break;
@@ -182,23 +186,32 @@ void BLEScan::setWindow(uint16_t windowMSecs) {
  */
 std::vector<BLEAdvertisedDevice*> BLEScan::start(uint32_t duration) {
 	ESP_LOGD(LOG_TAG, ">> start(%d)", duration);
+
 	m_semaphoreScanEnd.take("start");
+
 	clearAdvertisedDevices();
+
 	esp_err_t errRc = ::esp_ble_gap_set_scan_params(&m_scan_params);
+
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_scan_params: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
 		m_semaphoreScanEnd.give();
 		return m_vectorAvdertisedDevices;
 	}
+
 	errRc = ::esp_ble_gap_start_scanning(duration);
+
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_start_scanning: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
 		m_semaphoreScanEnd.give();
 		return m_vectorAvdertisedDevices;
 	}
+
 	m_stopped = false;
+
 	m_semaphoreScanEnd.take("start");
 	m_semaphoreScanEnd.give();
+
 	ESP_LOGD(LOG_TAG, "<< start()");
 	return m_vectorAvdertisedDevices;
 } // start
@@ -210,16 +223,19 @@ std::vector<BLEAdvertisedDevice*> BLEScan::start(uint32_t duration) {
  */
 void BLEScan::stop() {
 	ESP_LOGD(LOG_TAG, ">> stop()");
-	m_stopped = true;
+
 	esp_err_t errRc = ::esp_ble_gap_stop_scanning();
+
+	m_stopped = true;
+
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_stop_scanning: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+
 	m_semaphoreScanEnd.give();
+
 	ESP_LOGD(LOG_TAG, "<< stop()");
 } // stop
-
-
 
 #endif /* CONFIG_BT_ENABLED */

@@ -10,15 +10,6 @@
 #include <esp_log.h>
 static const char LOG_TAG[] = "BLEServerCallbacks";
 
-BLEServerCallbacks::BLEServerCallbacks() {
-	// TODO Auto-generated constructor stub
-
-}
-
-BLEServerCallbacks::~BLEServerCallbacks() {
-	// TODO Auto-generated destructor stub
-}
-
 void BLEServerCallbacks::onConnect(BLEServer* pServer) {
 	ESP_LOGD(LOG_TAG, ">> onConnect(): Default");
 	ESP_LOGD(LOG_TAG, "<< onConnect()");

@@ -10,12 +10,6 @@
 #include <iomanip>
 #include "BLECharacteristicMap.h"
 
-BLECharacteristicMap::BLECharacteristicMap() {
-}
-
-BLECharacteristicMap::~BLECharacteristicMap() {
-}
-
 
 /**
  * @brief Return the characteristic by UUID.

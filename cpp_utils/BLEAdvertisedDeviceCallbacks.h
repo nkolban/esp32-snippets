@@ -14,8 +14,7 @@ class BLEAdvertisedDevice;
 
 class BLEAdvertisedDeviceCallbacks {
 public:
-	BLEAdvertisedDeviceCallbacks();
-	virtual ~BLEAdvertisedDeviceCallbacks();
+	virtual ~BLEAdvertisedDeviceCallbacks() {}
 	virtual void onResult(BLEAdvertisedDevice *pAdvertisedDevice) = 0;
 };
 #endif /* CONFIG_BT_ENABLED */

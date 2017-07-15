@@ -19,13 +19,6 @@
 
 static char tag[] = "FileSystem";
 
-FileSystem::FileSystem() {
-}
-
-FileSystem::~FileSystem() {
-}
-
-
 /**
  * @brief Dump a given directory to the log.
  * @param [in] path The path to the directory to dump.

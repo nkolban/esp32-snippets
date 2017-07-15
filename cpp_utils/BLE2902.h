@@ -24,7 +24,6 @@
 class BLE2902: public BLEDescriptor {
 public:
 	BLE2902();
-	virtual ~BLE2902();
 	void setNotifications(bool flag);
 	void setIndications(bool flag);
 }; // BLE2902

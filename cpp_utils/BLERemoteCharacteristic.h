@@ -21,8 +21,7 @@ class BLERemoteService;
 
 class BLERemoteCharacteristic {
 public:
-	BLERemoteCharacteristic(esp_gatt_id_t charId, esp_gatt_char_prop_t charProp, BLERemoteService *pRemoteService);
-	virtual ~BLERemoteCharacteristic();
+	BLERemoteCharacteristic(esp_gatt_id_t charId, esp_gatt_char_prop_t charProp, BLERemoteService* pRemoteService);
 
 	// Public member functions
 	std::string readValue(void);

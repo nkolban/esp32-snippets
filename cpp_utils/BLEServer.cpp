@@ -38,9 +38,6 @@ BLEServer::BLEServer() {
 } // BLEServer
 
 
-BLEServer::~BLEServer() {
-} // ~BLEServer
-
 void BLEServer::createApp(uint16_t appId) {
 	m_appId = appId;
 	registerApp();
@@ -274,7 +271,6 @@ void BLEServer::setCallbacks(BLEServerCallbacks* pCallbacks) {
  */
 void BLEServer::startAdvertising() {
 	ESP_LOGD(LOG_TAG, ">> startAdvertising()");
-	m_bleAdvertising.setAppearance(3);
 	m_bleAdvertising.start();
 	ESP_LOGD(LOG_TAG, "<< startAdvertising()");
 } // startAdvertising

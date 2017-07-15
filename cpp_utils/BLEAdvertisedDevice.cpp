@@ -39,10 +39,6 @@ BLEAdvertisedDevice::BLEAdvertisedDevice() {
 } // BLEAdvertisedDevice
 
 
-BLEAdvertisedDevice::~BLEAdvertisedDevice() {
-}
-
-
 /**
  * @brief Get the address.
  * @return The address of the advertised device.

@@ -23,7 +23,6 @@ class BLEServer;
 class BLEService {
 public:
 	BLEService(BLEUUID uuid);
-	virtual ~BLEService();
 
 	void               addCharacteristic(BLECharacteristic *pCharacteristic);
 	BLECharacteristic* createCharacteristic(BLEUUID uuid, uint32_t properties);

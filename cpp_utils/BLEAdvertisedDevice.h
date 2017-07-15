@@ -22,7 +22,6 @@ class BLEScan;
 class BLEAdvertisedDevice {
 public:
 	BLEAdvertisedDevice();
-	virtual ~BLEAdvertisedDevice();
 
 	BLEAddress  getAddress();
 	uint16_t    getApperance();

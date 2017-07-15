@@ -14,8 +14,7 @@
 class BLEClient;
 class BLEClientCallbacks {
 public:
-	BLEClientCallbacks();
-	virtual ~BLEClientCallbacks();
+	virtual ~BLEClientCallbacks() {};
 	virtual void onConnect(BLEClient *pClient);
 };
 #endif /* CONFIG_BT_ENABLED */

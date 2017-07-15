@@ -14,7 +14,6 @@ class BLECharacteristic;
 
 class BLECharacteristicCallbacks {
 public:
-	BLECharacteristicCallbacks();
 	virtual ~BLECharacteristicCallbacks();
 	virtual void onRead(BLECharacteristic *pCharacteristic);
 	virtual void onWrite(BLECharacteristic *pCharacteristic);

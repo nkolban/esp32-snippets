@@ -11,14 +11,18 @@
 #include <esp_log.h>
 
 static char tag[] = "GPIO";
-
 /**
- * @brief Class instance constructor.
+ * @brief Set the pin high.
+ *
+ * Ensure that the pin is set to be output prior to calling this method.
+ *
+ * @param [in] pin The pin to be set high.
+ * @return N/A.
  */
-/*
-GPIO::GPIO() {
-}
-*/
+void ESP32CPP::GPIO::high(gpio_num_t pin) {
+	write(pin, true);
+} // high
+
 
 /**
  * @brief Determine if the pin is a valid pin for an ESP32 (i.e. is it in range).
@@ -61,6 +65,19 @@ void ESP32CPP::GPIO::interruptEnable(gpio_num_t pin) {
 
 
 /**
+ * @brief Set the pin low.
+ *
+ * Ensure that the pin is set to be output prior to calling this method.
+ *
+ * @param [in] pin The pin to be set low.
+ * @return N/A.
+ */
+void ESP32CPP::GPIO::low(gpio_num_t pin) {
+	write(pin, false);
+} // low
+
+
+/**
  * @brief Read a value from the given pin.
  *
  * Ensure the pin is set as input before calling this method.
@@ -70,6 +87,7 @@ void ESP32CPP::GPIO::interruptEnable(gpio_num_t pin) {
 bool ESP32CPP::GPIO::read(gpio_num_t pin) {
 	return ::gpio_get_level(pin);
 } // read
+
 
 /**
  * @brief Set the pin as input.
@@ -133,5 +151,7 @@ void ESP32CPP::GPIO::setOutput(gpio_num_t pin) {
 void ESP32CPP::GPIO::write(gpio_num_t pin, bool value) {
 	::gpio_set_level(pin, value);
 } // write
+
+
 
 

@@ -8,13 +8,4 @@
 #if defined(CONFIG_BT_ENABLED)
 #include "BLERemoteDescriptor.h"
 
-BLERemoteDescriptor::BLERemoteDescriptor() {
-	// TODO Auto-generated constructor stub
-
-}
-
-BLERemoteDescriptor::~BLERemoteDescriptor() {
-	// TODO Auto-generated destructor stub
-}
-
 #endif /* CONFIG_BT_ENABLED */

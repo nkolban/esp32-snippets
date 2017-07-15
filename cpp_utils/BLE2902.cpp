@@ -19,9 +19,6 @@ BLE2902::BLE2902() : BLEDescriptor(BLEUUID((uint16_t) 0x2902)) {
 	setValue(data, 2);
 }
 
-BLE2902::~BLE2902() {
-}
-
 /**
  * @brief Set the notifications flag.
  * @param [in] flag The notifications flag.

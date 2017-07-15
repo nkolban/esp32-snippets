@@ -33,13 +33,6 @@ BLEClient *BLE::m_pClient   = nullptr;
 
 #include <esp_gattc_api.h>
 
-BLE::BLE() {
-}
-
-
-BLE::~BLE() {
-}
-
 
 BLEClient* BLE::createClient() {
 	m_pClient = new BLEClient();

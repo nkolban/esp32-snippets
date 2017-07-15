@@ -11,12 +11,6 @@
 #include "BLEServiceMap.h"
 #include "BLEService.h"
 
-BLEServiceMap::BLEServiceMap() {
-}
-
-BLEServiceMap::~BLEServiceMap() {
-}
-
 /**
  * @brief Return the service by UUID.
  * @param [in] UUID The UUID to look up the service.

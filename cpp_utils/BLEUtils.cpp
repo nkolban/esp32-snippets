@@ -25,14 +25,10 @@
 
 static char LOG_TAG[] = "BLEUtils";
 
+/*
 static std::map<std::string, BLEClient *> g_addressMap;
 static std::map<uint16_t, BLEClient *> g_connIdMap;
-
-BLEUtils::BLEUtils() {
-}
-
-BLEUtils::~BLEUtils() {
-}
+*/
 
 typedef struct {
 	uint32_t assignedNumber;
@@ -1061,43 +1057,6 @@ const char* BLEUtils::eventTypeToString(esp_ble_evt_type_t eventType) {
 
 
 /**
- * @brief Find a %BLEDevice by a address.
- *
- * We keep can keep a record of BLEDevices by their address.  We can use this method
- * to retrieve the %BLEDevice that was previously saved by its address.
- *
- * @param [in] address The address of the device we want to locate.
- * @return A pointer to the %BLEDevice associated with this address.
- */
-BLEClient* BLEUtils::findByAddress(BLEAddress address) {
-	ESP_LOGD(LOG_TAG, "findByAddress(%s)", address.toString().c_str());
-	return g_addressMap.at(address.toString());
-} // findByAddress
-
-
-/**
- * @brief Find a %BLEDevice by a conn_id.
- *
- * We keep can keep a record of BLEDevices by their conn_id.  We can use this method
- * to retrieve the %BLEDevice that was previously saved by its conn_id.
- *
- * @param [in] conn_id The conn_id of the device we want to locate.
- * @return A pointer to the %BLEDevice associated with this conn_id.
- */
-BLEClient* BLEUtils::findByConnId(uint16_t conn_id) {
-	//try {
-	ESP_LOGD(LOG_TAG, "findByConnId(%d)", conn_id);
-	return g_connIdMap.at(conn_id);
-	/*
-	} catch(std::out_of_range &e) {
-		ESP_LOGD(tag, "findByConnId: Not found %d", conn_id);
-		return nullptr;
-	}
-	*/
-} // findByConnId
-
-
-/**
  * @brief Convert a BT GAP event type to a string representation.
  * @param [in] eventType The type of event.
  * @return A string representation of the event type.
@@ -1170,7 +1129,7 @@ std::string BLEUtils::gattServiceIdToString(esp_gatt_srvc_id_t srvcId) {
 
 
 std::string BLEUtils::gattServiceToString(uint32_t serviceId) {
-	gattService_t *p = (gattService_t *)g_gattServices;
+	gattService_t* p = (gattService_t *)g_gattServices;
 	while (p->name.length() > 0) {
 		if (p->assignedNumber == serviceId) {
 			return p->name;
@@ -1274,33 +1233,9 @@ std::string BLEUtils::gattStatusToString(esp_gatt_status_t status) {
 
 
 /**
- * @brief Register a %BLEDevice by its address.
- *
- * Register a %BLEDevice by its address for subsequent lookup/retrieval.
- * @param [in] address The address of the device.
- * @param [in] pDevice A pointer to a %BLEDevice instance.
- */
-void BLEUtils::registerByAddress(BLEAddress address, BLEClient* pDevice) {
-	ESP_LOGD(LOG_TAG, "registerByAddress(%s)", address.toString().c_str());
-	g_addressMap.insert(std::pair<std::string, BLEClient *>(address.toString(), pDevice));
-} // registerByAddress
-
-
-/**
- * @brief Register a %BLEDevice by its conn_id.
- *
- * Register a %BLEDevice by its conn_id for subsequent lookup/retrieval.
- * @param [in] address The conn_id of the device.
- * @param [in] pDevice A pointer to a %BLEDevice instance.
- */
-void BLEUtils::registerByConnId(uint16_t conn_id, BLEClient* pDevice) {
-	ESP_LOGD(LOG_TAG, "registerByConnId(%d)", conn_id);
-	g_connIdMap.insert(std::pair<uint16_t, BLEClient *>(conn_id, pDevice));
-} // registerByConnId
-
-
-/**
  * @brief convert a GAP search event to a string.
+ * @param [in] searchEvt
+ * @return The search event type as a string.
  */
 const char* BLEUtils::searchEventTypeToString(esp_gap_search_evt_t searchEvt) {
 	switch(searchEvt) {

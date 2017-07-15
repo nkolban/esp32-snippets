@@ -14,8 +14,7 @@ class BLEServer;
 
 class BLEServerCallbacks {
 public:
-	BLEServerCallbacks();
-	virtual ~BLEServerCallbacks();
+	virtual ~BLEServerCallbacks() {};
 	virtual void onConnect(BLEServer *pServer);
 	virtual void onDisconnect(BLEServer *pServer);
 };

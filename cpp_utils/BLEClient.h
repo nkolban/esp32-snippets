@@ -29,9 +29,6 @@ class BLEClientCallbacks;
 class BLEClient {
 public:
 	BLEClient();
-	virtual ~BLEClient();
-
-
 	void                                       connect(BLEAddress address);
 	void                                       disconnect();
 

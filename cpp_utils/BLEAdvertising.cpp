@@ -44,11 +44,6 @@ BLEAdvertising::BLEAdvertising() {
 } // BLEAdvertising
 
 
-BLEAdvertising::~BLEAdvertising() {
-} // ~BLEAdvertising
-
-
-
 /**
  * @brief Set the device appearance in the advertising data.
  * The appearance attribute is of type 0x19.  The codes for distinct appearances can be found here:

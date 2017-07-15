@@ -113,7 +113,7 @@ static esp_err_t camera_enable_out_clock(camera_config_t* config)
     return ESP_OK;
 } // camera_enable_out_clock
 
-
+/*
 static void i2s_init() {
 	// Enable and configure I2S peripheral
 	periph_module_enable(PERIPH_I2S0_MODULE);
@@ -156,6 +156,7 @@ static void i2s_init() {
 	I2S0.timing.val          = 0;
 
 }
+*/
 
 /**
  * @brief Dump the settings.

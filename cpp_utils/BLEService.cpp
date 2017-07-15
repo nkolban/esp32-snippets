@@ -39,10 +39,6 @@ BLEService::BLEService(BLEUUID uuid) {
 } // BLEService
 
 
-BLEService::~BLEService() {
-}
-
-
 /**
  * @brief Create the service.
  * Create the service.
@@ -51,17 +47,21 @@ BLEService::~BLEService() {
  */
 void BLEService::executeCreate(BLEServer *pServer) {
 	ESP_LOGD(LOG_TAG, ">> executeCreate() - Creating service (esp_ble_gatts_create_service)");
-	m_pServer            = pServer;
+
+	m_pServer          = pServer;
 	esp_gatt_srvc_id_t srvc_id;
 	srvc_id.id.inst_id = 0;
 	srvc_id.id.uuid    = *m_uuid.getNative();
 
 	m_serializeMutex.take("executeCreate"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
+
 	esp_err_t errRc = ::esp_ble_gatts_create_service(getServer()->getGattsIf(), &srvc_id, 10);
+
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gatts_create_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+
 	ESP_LOGD(LOG_TAG, "<< executeCreate()");
 } // executeCreate
 
@@ -107,12 +107,16 @@ void BLEService::start() {
 // We ask the BLE runtime to start the service and then create each of the characteristics.
 //
 	ESP_LOGD(LOG_TAG, ">> start(): Starting service (esp_ble_gatts_start_service): %s", toString().c_str());
+
 	esp_err_t errRc = ::esp_ble_gatts_start_service(m_handle);
+
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_start_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+
 	BLECharacteristic *pCharacteristic = m_characteristicMap.getFirst();
+
 	while(pCharacteristic != nullptr) {
 		m_lastCreatedCharacteristic = pCharacteristic;
 		pCharacteristic->executeCreate(this);
@@ -264,6 +268,7 @@ BLECharacteristic* BLEService::getCharacteristic(BLEUUID uuid) {
 	return m_characteristicMap.getByUUID(uuid);
 }
 
+
 /**
  * @brief Return a string representation of this service.
  * A service is defined by:
@@ -278,14 +283,25 @@ std::string BLEService::toString() {
 	return stringStream.str();
 } // toString
 
+
+/**
+ * @brief Get the last created characteristic.
+ * It is lamentable that this function has to exist.  It returns the last created characteristic.
+ * We need this because the descriptor API is built around the notion that a new descriptor, when created,
+ * is associated with the last characteristics created and we need that information.
+ * @return The last created characteristic.
+ */
 BLECharacteristic* BLEService::getLastCreatedCharacteristic() {
 	return m_lastCreatedCharacteristic;
-}
+} // getLastCreatedCharacteristic
 
+
+/**
+ * @brief Get the BLE server associated with this service.
+ * @return The BLEServer associated with this service.
+ */
 BLEServer* BLEService::getServer() {
 	return m_pServer;
-}
-
-
+} // getServer
 
 #endif // CONFIG_BT_ENABLED

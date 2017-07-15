@@ -49,9 +49,6 @@ BLEAddress::BLEAddress(std::string stringAddress) {
 } // BLEAddress
 
 
-BLEAddress::~BLEAddress() {
-} // ~BLEAddress
-
 /**
  * @brief Determine if this address equals another.
  * @param [in] otherAddress The other address to compare against.

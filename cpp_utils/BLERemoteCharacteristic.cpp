@@ -53,12 +53,14 @@ static bool compareGattId(esp_gatt_id_t id1, esp_gatt_id_t id2) {
 } // compareCharId
 
 
-BLERemoteCharacteristic::~BLERemoteCharacteristic() {
-}
-
-
 /**
- * @brief Handle GATT Client events
+ * @brief Handle GATT Client events.
+ * When an event arrives for a GATT client we give this characteristic the opportunity to
+ * take a look at it to see if there is interest in it.
+ * @param [in] event The type of event.
+ * @param [in] gattc_if The interface on which the event was received.
+ * @param [in] evtParam Payload data for the event.
+ * @returns N/A
  */
 void BLERemoteCharacteristic::gattClientEventHandler(
 	esp_gattc_cb_event_t      event,
@@ -67,6 +69,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 	switch(event) {
 		//
 		// ESP_GATTC_READ_CHAR_EVT
+		// This event indicates that the server has responded to the read request.
 		//
 		// read:
 		// esp_gatt_status_t  status
@@ -81,13 +84,18 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 			if (compareSrvcId(evtParam->read.srvc_id, *m_pRemoteService->getSrvcId()) == false) {
 				break;
 			}
+
 			if (evtParam->read.conn_id != m_pRemoteService->getClient()->getConnId()) {
 				break;
 			}
+
 			if (compareGattId(evtParam->read.char_id, m_charId) == false) {
 				break;
 			}
-			m_value = std::string((char*)evtParam->read.value, evtParam->read.value_len);
+
+			if (evtParam->read.status == ESP_GATT_OK) {
+				m_value = std::string((char*)evtParam->read.value, evtParam->read.value_len);
+			}
 			m_semaphoreReadCharEvt.give();
 			break;
 		} // ESP_GATTC_READ_CHAR_EVT
@@ -186,19 +194,24 @@ uint8_t BLERemoteCharacteristic::readUInt8(void) {
  */
 std::string BLERemoteCharacteristic::readValue() {
 	ESP_LOGD(LOG_TAG, ">> readValue()");
+
 	m_semaphoreReadCharEvt.take("readValue");
+
 	esp_err_t errRc = ::esp_ble_gattc_read_char(
 		m_pRemoteService->getClient()->getGattcIf(),
 		m_pRemoteService->getClient()->getConnId(),
 		m_pRemoteService->getSrvcId(),
 		&m_charId,
 		ESP_GATT_AUTH_REQ_NONE);
+
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_read_char: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return "";
 	}
+
 	m_semaphoreReadCharEvt.take("readValue");
 	m_semaphoreReadCharEvt.give();
+
 	ESP_LOGD(LOG_TAG, "<< readValue()");
 	return m_value;
 } // readValue
@@ -210,18 +223,23 @@ std::string BLERemoteCharacteristic::readValue() {
  */
 void BLERemoteCharacteristic::registerForNotify() {
 	ESP_LOGD(LOG_TAG, ">> registerForNotify()");
+
 	m_semaphoreRegForNotifyEvt.take("registerForNotify");
+
 	esp_err_t errRc = ::esp_ble_gattc_register_for_notify(
 		m_pRemoteService->getClient()->getGattcIf(),
 		*m_pRemoteService->getClient()->getAddress().getNative(),
 		m_pRemoteService->getSrvcId(),
 		&m_charId);
+
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_for_notify: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+
 	m_semaphoreRegForNotifyEvt.take("registerForNotify");
 	m_semaphoreRegForNotifyEvt.give();
+
 	ESP_LOGD(LOG_TAG, "<< registerForNotify()");
 } // registerForNotify
 
@@ -246,7 +264,9 @@ std::string BLERemoteCharacteristic::toString() {
  */
 void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
 	ESP_LOGD(LOG_TAG, ">> writeValue(), length: %d", newValue.length());
+
 	m_semaphoreWriteCharEvt.take("writeValue");
+
 	esp_err_t errRc = ::esp_ble_gattc_write_char(
 		m_pRemoteService->getClient()->getGattcIf(),
 		m_pRemoteService->getClient()->getConnId(),
@@ -257,12 +277,15 @@ void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
 		response?ESP_GATT_WRITE_TYPE_RSP:ESP_GATT_WRITE_TYPE_NO_RSP,
 		ESP_GATT_AUTH_REQ_NONE
 	);
+
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_write_char: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+
 	m_semaphoreWriteCharEvt.take("writeValue");
 	m_semaphoreWriteCharEvt.give();
+
 	ESP_LOGD(LOG_TAG, "<< writeValue()");
 } // writeValue
 

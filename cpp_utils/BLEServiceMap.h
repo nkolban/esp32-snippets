@@ -17,8 +17,6 @@ class BLEService;
 
 class BLEServiceMap {
 public:
-	BLEServiceMap();
-	virtual ~BLEServiceMap();
 	void setByUUID(BLEUUID uuid, BLEService *service);
 		void setByHandle(uint16_t handle, BLEService *service);
 	BLEService *getByUUID(BLEUUID uuid);

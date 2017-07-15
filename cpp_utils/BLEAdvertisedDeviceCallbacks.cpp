@@ -8,10 +8,4 @@
 #if defined(CONFIG_BT_ENABLED)
 
 #include "BLEAdvertisedDeviceCallbacks.h"
-
-BLEAdvertisedDeviceCallbacks::BLEAdvertisedDeviceCallbacks() {
-}
-
-BLEAdvertisedDeviceCallbacks::~BLEAdvertisedDeviceCallbacks() {
-}
 #endif /* CONFIG_BT_ENABLED */

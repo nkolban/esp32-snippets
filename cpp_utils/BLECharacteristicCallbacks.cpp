@@ -10,11 +10,8 @@
 #include <esp_log.h>
 static char LOG_TAG[] = "BLECharacteristicCallbacks";
 
-BLECharacteristicCallbacks::BLECharacteristicCallbacks() {
-}
 
-BLECharacteristicCallbacks::~BLECharacteristicCallbacks() {
-}
+BLECharacteristicCallbacks::~BLECharacteristicCallbacks() {}
 
 /**
  * @brief Callback function to support a read request.

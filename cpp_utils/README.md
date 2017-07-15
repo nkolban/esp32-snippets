@@ -14,6 +14,24 @@ steps:
 
 The C++ classes will be compiled and available to be used in your own code.
 
+# Adding a main function
+When working with C++, your calling function should also be written in C++.  Consider replacing your `main.c` with the following
+`main.cpp` file:
+
+```
+extern "C" {
+   void app_main();
+}
+
+void app_main() {
+   // Your code goes here
+}
+```
+
+The way to read the above is that we are defining a global function called `app_main` but we are saying that its external
+linkage (i.e. how it is found and called) is using the C language convention.  However, since the source file is `main.cpp` and
+hence compiled by the C++ compiler, you can utilize C++ classes and language features within and, since it has C linkage, it will
+satisfy the ESP-IDF environment as the entry point into your own code.
 
 ## BLE Functions
 The Bluetooth BLE functions are only compiled if Bluetooth is enabled in `make menuconfig`.  This is primarily because

@@ -25,11 +25,10 @@ class BLEServerCallbacks;
 class BLEServer {
 public:
 	BLEServer();
-	virtual ~BLEServer();
 
 	void            createApp(uint16_t appId);
-	BLEService     *createService(BLEUUID uuid);
-	BLEAdvertising *getAdvertising();
+	BLEService*     createService(BLEUUID uuid);
+	BLEAdvertising* getAdvertising();
 	uint16_t        getConnId();
 	uint16_t        getGattsIf();
 	void            handleGAPEvent(esp_gap_ble_cb_event_t event,	esp_ble_gap_cb_param_t *param);

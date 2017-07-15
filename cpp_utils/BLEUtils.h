@@ -17,8 +17,6 @@
 
 class BLEUtils {
 public:
-	BLEUtils();
-	virtual ~BLEUtils();
 	static const char *advTypeToString(uint8_t advType);
 	static esp_gatt_id_t buildGattId(esp_bt_uuid_t uuid, uint8_t inst_id=0);
 

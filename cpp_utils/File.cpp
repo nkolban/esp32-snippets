@@ -22,10 +22,7 @@ static const char tag[] = "File";
 File::File(std::string name, uint8_t type) {
 	m_name = name;
 	m_type = type;
-}
-
-File::~File() {
-}
+} // File
 
 
 /**
@@ -83,7 +80,7 @@ std::string File::getContent(uint32_t offset, uint32_t readSize) {
 	std::string ret((char *)pData, bytesRead);
 	free(pData);
 	return ret;
-}
+} // getContent
 
 
 /**
@@ -134,5 +131,3 @@ bool File::isDirectory() {
 	}
 	return false;
 } // isDirectory
-
-

@@ -48,10 +48,6 @@ BLEClient::BLEClient() {
 	m_haveServices     = false;
 } // BLEClient
 
-BLEClient::~BLEClient() {
-	ESP_LOGD(LOG_TAG, "BLEClient object destroyed");
-} // ~BLEClient
-
 /**
  * @brief Connect to the partner.
  * @param [in] address The address of the partner.
@@ -143,6 +139,7 @@ void BLEClient::gattClientEventHandler(
 			break;
 		} // ESP_GATTC_REG_EVT
 
+
 		//
 		// ESP_GATTC_SEARCH_CMPL_EVT
 		//
@@ -169,6 +166,7 @@ void BLEClient::gattClientEventHandler(
 			m_servicesMap.insert(std::pair<std::string, BLERemoteService *>(uuid.toString(), pRemoteService));
 			break;
 		} // ESP_GATTC_SEARCH_RES_EVT
+
 
 		default: {
 			break;
@@ -220,6 +218,7 @@ BLERemoteService* BLEClient::getService(BLEUUID uuid) {
 	}
 	return nullptr;
 } // getService
+
 
 /**
  * @brief Ask the remote BLE server for its services.

@@ -21,7 +21,6 @@ public:
 	BLEUUID(uint8_t *pData, size_t size, bool msbFirst);
 	BLEUUID(esp_gatt_srvc_id_t srcvId);
 	BLEUUID();
-	virtual ~BLEUUID();
 	bool           equals(BLEUUID uuid);
 	esp_bt_uuid_t *getNative();
 	void           to128();

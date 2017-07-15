@@ -14,7 +14,6 @@
 class BLEAdvertising {
 public:
 	BLEAdvertising();
-	virtual ~BLEAdvertising();
 	void start();
 	void stop();
 	void setAppearance(uint16_t appearance);

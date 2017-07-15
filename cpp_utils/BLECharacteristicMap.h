@@ -14,8 +14,6 @@
 
 class BLECharacteristicMap {
 public:
-	BLECharacteristicMap();
-	virtual ~BLECharacteristicMap();
 	void setByUUID(BLEUUID uuid, BLECharacteristic *characteristic);
 	void setByHandle(uint16_t handle, BLECharacteristic *characteristic);
 	BLECharacteristic *getByUUID(BLEUUID uuid);

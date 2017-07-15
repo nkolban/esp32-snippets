@@ -152,10 +152,6 @@ BLEUUID::BLEUUID() {
 } // BLEUUID
 
 
-BLEUUID::~BLEUUID() {
-} // ~BLEUUID
-
-
 /**
  * @brief Compare a UUID against this UUID.
  * @param [in] uuid The UUID to compare against.
@@ -163,21 +159,22 @@ BLEUUID::~BLEUUID() {
  */
 bool BLEUUID::equals(BLEUUID uuid) {
 	//ESP_LOGD(TAG, "Comparing: %s to %s", toString().c_str(), uuid.toString().c_str());
-	if (m_valueSet == false) {
+	if (m_valueSet == false || uuid.m_valueSet == false) {
 		return false;
 	}
-	if (uuid.m_valueSet == false) {
-		return false;
-	}
+
 	if (uuid.m_uuid.len != m_uuid.len) {
 		return uuid.toString() == toString();
 	}
+
 	if (uuid.m_uuid.len == ESP_UUID_LEN_16) {
 		return uuid.m_uuid.uuid.uuid16 == m_uuid.uuid.uuid16;
 	}
+
 	if (uuid.m_uuid.len == ESP_UUID_LEN_32) {
 		return uuid.m_uuid.uuid.uuid32 == m_uuid.uuid.uuid32;
 	}
+
 	return memcmp(uuid.m_uuid.uuid.uuid128, m_uuid.uuid.uuid128, 16) == 0;
 } // equals
 
