@@ -76,6 +76,19 @@ uint32_t FreeRTOS::getTimeSinceStart() {
  *
  */
 
+/**
+ * @brief Wait for a semaphore to be released by trying to take it and
+ * then releasing it again.
+ * @param [in] owner A debug tag.
+ */
+void FreeRTOS::Semaphore::wait(std::string owner) {
+	ESP_LOGV(TAG, "Semaphore waiting: %s for %s", toString().c_str(), owner.c_str());
+	xSemaphoreTake(m_semaphore, portMAX_DELAY);
+	m_owner = owner;
+	xSemaphoreGive(m_semaphore);
+	ESP_LOGV(TAG, "Semaphore released: %s", toString().c_str());
+	m_owner = "<N/A>";
+} // wait
 
 FreeRTOS::Semaphore::Semaphore(std::string name) {
 	m_semaphore = xSemaphoreCreateMutex();
@@ -94,7 +107,7 @@ FreeRTOS::Semaphore::~Semaphore() {
  */
 void FreeRTOS::Semaphore::give() {
 	xSemaphoreGive(m_semaphore);
-	ESP_LOGD(TAG, "Semaphore giving: %s", toString().c_str());
+	ESP_LOGV(TAG, "Semaphore giving: %s", toString().c_str());
 	m_owner = "<N/A>";
 } // Semaphore::give
 
@@ -106,10 +119,10 @@ void FreeRTOS::Semaphore::give() {
 void FreeRTOS::Semaphore::take(std::string owner)
 {
 
-	ESP_LOGD(TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
+	ESP_LOGV(TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
 	xSemaphoreTake(m_semaphore, portMAX_DELAY);
 	m_owner = owner;
-	ESP_LOGD(TAG, "Semaphore taken:  %s", toString().c_str());
+	ESP_LOGV(TAG, "Semaphore taken:  %s", toString().c_str());
 } // Semaphore::take
 
 
@@ -119,8 +132,10 @@ void FreeRTOS::Semaphore::take(std::string owner)
  * @param [in] timeoutMs Timeout in milliseconds.
  */
 void FreeRTOS::Semaphore::take(uint32_t timeoutMs, std::string owner) {
+	ESP_LOGV(TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
 	m_owner = owner;
 	xSemaphoreTake(m_semaphore, timeoutMs/portTICK_PERIOD_MS);
+	ESP_LOGV(TAG, "Semaphore taken:  %s", toString().c_str());
 } // Semaphore::take
 
 std::string FreeRTOS::Semaphore::toString() {
@@ -132,3 +147,4 @@ std::string FreeRTOS::Semaphore::toString() {
 void FreeRTOS::Semaphore::setName(std::string name) {
 	m_name = name;
 }
+

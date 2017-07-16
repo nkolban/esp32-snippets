@@ -34,7 +34,7 @@ BLEService::BLEService(BLEUUID uuid) {
 	m_uuid     = uuid;
 	m_handle   = NULL_HANDLE;
 	m_pServer  = nullptr;
-	m_serializeMutex.setName("BLEService");
+	//m_serializeMutex.setName("BLEService");
 	m_lastCreatedCharacteristic = nullptr;
 } // BLEService
 
@@ -46,14 +46,14 @@ BLEService::BLEService(BLEUUID uuid) {
  * @return N/A.
  */
 void BLEService::executeCreate(BLEServer *pServer) {
-	ESP_LOGD(LOG_TAG, ">> executeCreate() - Creating service (esp_ble_gatts_create_service)");
+	ESP_LOGD(LOG_TAG, ">> executeCreate() - Creating service (esp_ble_gatts_create_service) service uuid: %s", getUUID().toString().c_str());
 
 	m_pServer          = pServer;
 	esp_gatt_srvc_id_t srvc_id;
 	srvc_id.id.inst_id = 0;
 	srvc_id.id.uuid    = *m_uuid.getNative();
 
-	m_serializeMutex.take("executeCreate"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
+	m_semaphoreCreateEvt.take("executeCreate"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
 
 	esp_err_t errRc = ::esp_ble_gatts_create_service(getServer()->getGattsIf(), &srvc_id, 10);
 
@@ -62,7 +62,9 @@ void BLEService::executeCreate(BLEServer *pServer) {
 		return;
 	}
 
-	ESP_LOGD(LOG_TAG, "<< executeCreate()");
+	m_semaphoreCreateEvt.wait("executeCreate");
+
+	ESP_LOGD(LOG_TAG, "<< executeCreate");
 } // executeCreate
 
 
@@ -101,19 +103,29 @@ BLEUUID BLEService::getUUID() {
 
 /**
  * @brief Start the service.
+ * Here we wish to start the service which means that we will respond to partner requests about it.
+ * Starting a service also means that we can create the corresponding characteristics.
  * @return Start the service.
  */
 void BLEService::start() {
 // We ask the BLE runtime to start the service and then create each of the characteristics.
+// We start the service through its local handle which was returned in the ESP_GATTS_CREATE_EVT event
+// obtained as a result of calling esp_ble_gatts_create_service().
 //
 	ESP_LOGD(LOG_TAG, ">> start(): Starting service (esp_ble_gatts_start_service): %s", toString().c_str());
+	if (m_handle == NULL_HANDLE) {
+		ESP_LOGE(LOG_TAG, "<< !!! We attempted to start a service but don't know its handle!");
+		return;
+	}
 
+	m_semaphoreStartEvt.take("start");
 	esp_err_t errRc = ::esp_ble_gatts_start_service(m_handle);
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_start_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+	m_semaphoreStartEvt.wait("start");
 
 	BLECharacteristic *pCharacteristic = m_characteristicMap.getFirst();
 
@@ -134,13 +146,13 @@ void BLEService::start() {
  * @param [in] handle The handle associated with the service.
  */
 void BLEService::setHandle(uint16_t handle) {
-	ESP_LOGD(LOG_TAG, ">> setHandle(0x%.2x)", handle);
+	ESP_LOGD(LOG_TAG, ">> setHandle - Handle=0x%.2x, service UUID=%s)", handle, getUUID().toString().c_str());
 	if (m_handle != NULL_HANDLE) {
-		ESP_LOGE(LOG_TAG, "Handle is already set %.2x", m_handle);
+		ESP_LOGE(LOG_TAG, "!!! Handle is already set %.2x", m_handle);
 		return;
 	}
 	m_handle = handle;
-	ESP_LOGD(LOG_TAG, "<< setHandle()");
+	ESP_LOGD(LOG_TAG, "<< setHandle");
 } // setHandle
 
 
@@ -222,17 +234,29 @@ void BLEService::handleGATTServerEvent(
 					ESP_LOGE(LOG_TAG, "Expected to find characteristic with UUID: %s, but didnt!",
 							BLEUUID(param->add_char.char_uuid).toString().c_str());
 					dump();
-					m_serializeMutex.give();
+					m_semaphoreAddCharEvt.give();
 					break;
 				}
 				pCharacteristic->setHandle(param->add_char.attr_handle);
 				m_characteristicMap.setByHandle(param->add_char.attr_handle, pCharacteristic);
 				//ESP_LOGD(tag, "Characteristic map: %s", m_characteristicMap.toString().c_str());
-				m_serializeMutex.give();
+				m_semaphoreAddCharEvt.give();
 				break;
 			} // Reached the correct service.
 			break;
 		} // ESP_GATTS_ADD_CHAR_EVT
+
+		// ESP_GATTS_START_EVT
+		//
+		// start:
+		// esp_gatt_status_t status
+		// uint16_t service_handle
+		case ESP_GATTS_START_EVT: {
+			if (param->start.service_handle == getHandle()) {
+				m_semaphoreStartEvt.give();
+			}
+			break;
+		} // ESP_GATTS_START_EVT
 
 
 		// ESP_GATTS_CREATE_EVT
@@ -250,7 +274,7 @@ void BLEService::handleGATTServerEvent(
 		case ESP_GATTS_CREATE_EVT: {
 			if (getUUID().equals(BLEUUID(param->create.service_id.id.uuid))) {
 				setHandle(param->create.service_handle);
-				m_serializeMutex.give();
+				m_semaphoreCreateEvt.give();
 			}
 			break;
 		} // ESP_GATTS_CREATE_EVT

@@ -17,7 +17,7 @@ public:
 	void start();
 	void stop();
 	void setAppearance(uint16_t appearance);
-	void setServiceUUID(BLEUUID uuid);
+	void setServiceUUID(BLEUUID serviceUUID);
 private:
 	esp_ble_adv_data_t   m_advData;
 	esp_ble_adv_params_t m_advParams;

@@ -58,31 +58,35 @@ void BLEAdvertising::setAppearance(uint16_t appearance) {
 
 /**
  * @brief Set the service UUID.
+ * We maintain a class member called m_advData (esp_ble_adv_data_t) that is passed to the
+ * ESP-IDF advertising functions.  In this method, we see two fields within that structure
+ * namely service_uuid_len and p_service_uuid to be the information supplied in the passed
+ * in service uuid.
  * @param [in] uuid The UUID of the service.
  * @return N/A.
  */
-void BLEAdvertising::setServiceUUID(BLEUUID uuid) {
-	ESP_LOGD(LOG_TAG, ">> setServiceUUID(%s)", uuid.toString().c_str());
-	m_serviceUUID = uuid; // Save the new service UUID
-	esp_bt_uuid_t espUUID = *m_serviceUUID.getNative();
-	switch(espUUID.len) {
+void BLEAdvertising::setServiceUUID(BLEUUID serviceUUID) {
+	ESP_LOGD(LOG_TAG, ">> setServiceUUID - %s", serviceUUID.toString().c_str());
+	m_serviceUUID = serviceUUID; // Save the new service UUID
+	esp_bt_uuid_t* espUUID = m_serviceUUID.getNative();
+	switch(espUUID->len) {
 		case ESP_UUID_LEN_16: {
 			m_advData.service_uuid_len = 2;
-			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID.uuid.uuid16);
+			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid16);
 			break;
 		}
 		case ESP_UUID_LEN_32: {
 			m_advData.service_uuid_len = 4;
-			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID.uuid.uuid32);
+			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid32);
 			break;
 		}
 		case ESP_UUID_LEN_128: {
 			m_advData.service_uuid_len = 16;
-			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID.uuid.uuid128);
+			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid128);
 			break;
 		}
 	} // switch
-	ESP_LOGD(LOG_TAG, "<< setServiceUUID()");
+	ESP_LOGD(LOG_TAG, "<< setServiceUUID");
 } // setServiceUUID
 
 
@@ -92,7 +96,7 @@ void BLEAdvertising::setServiceUUID(BLEUUID uuid) {
  * @return N/A.
  */
 void BLEAdvertising::start() {
-	ESP_LOGD(LOG_TAG, ">> start()");
+	ESP_LOGD(LOG_TAG, ">> start");
 
 	if (m_advData.service_uuid_len > 0) {
 		uint8_t hexData[16*2+1];
@@ -118,7 +122,7 @@ void BLEAdvertising::start() {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_start_advertising: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
-	ESP_LOGD(LOG_TAG, "<< start();")
+	ESP_LOGD(LOG_TAG, "<< start")
 } // start
 
 
@@ -128,10 +132,12 @@ void BLEAdvertising::start() {
  * @return N/A.
  */
 void BLEAdvertising::stop() {
+	ESP_LOGD(LOG_TAG, ">> stop");
 	esp_err_t errRc = ::esp_ble_gap_stop_advertising();
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_stop_advertising: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+	ESP_LOGD(LOG_TAG, "<< stop");
 } // stop
 #endif /* CONFIG_BT_ENABLED */

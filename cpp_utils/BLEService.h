@@ -45,7 +45,10 @@ private:
 	uint16_t             m_handle;
 	BLECharacteristic*   m_lastCreatedCharacteristic;
 	BLEServer*           m_pServer;
-	FreeRTOS::Semaphore  m_serializeMutex;
+	//FreeRTOS::Semaphore  m_serializeMutex;
+	FreeRTOS::Semaphore m_semaphoreAddCharEvt = FreeRTOS::Semaphore("AddCharEvt");
+	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
+	FreeRTOS::Semaphore m_semaphoreStartEvt = FreeRTOS::Semaphore("StartEvt");
 	BLEUUID              m_uuid;
 
 	uint16_t           getHandle();

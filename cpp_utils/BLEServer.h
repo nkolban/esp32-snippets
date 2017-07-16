@@ -45,7 +45,8 @@ private:
 	BLEAdvertising      m_bleAdvertising;
   uint16_t            m_gatts_if;
   uint16_t						m_connId;
-	FreeRTOS::Semaphore m_serializeMutex;
+	FreeRTOS::Semaphore m_semaphoreRegisterAppEvt = FreeRTOS::Semaphore("RegisterAppEvt");
+	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
 	BLEServiceMap       m_serviceMap;
 	BLEServerCallbacks *m_pServerCallbacks;
 }; // BLEServer

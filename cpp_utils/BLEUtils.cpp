@@ -1004,6 +1004,11 @@ void BLEUtils::dumpGattServerEvent(
 			break;
 		} // ESP_GATTS_REG_EVT
 
+		// ESP_GATTS_START_EVT
+		//
+		// start:
+		// esp_gatt_status_t status
+		// uint16_t service_handle
 		case ESP_GATTS_START_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %s, service_handle: 0x%.2x]",
 				gattStatusToString(evtParam->start.status).c_str(),

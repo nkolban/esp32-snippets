@@ -201,26 +201,14 @@ esp_bt_uuid_t *BLEUUID::getNative() {
  */
 void BLEUUID::to128() {
 	//ESP_LOGD(LOG_TAG, ">> toFull() - %s", toString().c_str());
-	if (m_valueSet == false) {
-		return;
-	}
-	if (m_uuid.len == ESP_UUID_LEN_128) {
+
+	// If we either don't have a value or are already a 128 bit UUID, nothing further to do.
+	if (m_valueSet == false || m_uuid.len == ESP_UUID_LEN_128) {
 		return;
 	}
 
-	m_uuid.len = ESP_UUID_LEN_128;
-	/*
-	if (value.length() == 2) {
-		m_uuid.len = ESP_UUID_LEN_16;
-		m_uuid.uuid.uuid16 = value[0] | (value[1] << 8);
-		m_valueSet = true;
-	} else if (value.length() == 4) {
-		m_uuid.len = ESP_UUID_LEN_32;
-		m_uuid.uuid.uuid32 = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
-		m_valueSet = true;
-	*/
+	// If we are 16 bit or 32 bit, then set the 4 bytes of the variable part of the UUID.
 	if (m_uuid.len == ESP_UUID_LEN_16) {
-
 		uint16_t temp = m_uuid.uuid.uuid16;
 		m_uuid.uuid.uuid128[15] = 0;
 		m_uuid.uuid.uuid128[14] = 0;
@@ -236,6 +224,7 @@ void BLEUUID::to128() {
 		m_uuid.uuid.uuid128[12] = temp & 0xff;
 	}
 
+	// Set the fixed parts of the UUID.
 	m_uuid.uuid.uuid128[11] = 0x00;
 	m_uuid.uuid.uuid128[10] = 0x00;
 
@@ -251,6 +240,8 @@ void BLEUUID::to128() {
 	m_uuid.uuid.uuid128[2]  = 0x9b;
 	m_uuid.uuid.uuid128[1]  = 0x34;
 	m_uuid.uuid.uuid128[0]  = 0xfb;
+
+	m_uuid.len = ESP_UUID_LEN_128;
 	//ESP_LOGD(TAG, "<< toFull <-  %s", toString().c_str());
 } // to128
 

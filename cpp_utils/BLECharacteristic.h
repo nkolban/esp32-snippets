@@ -15,6 +15,7 @@
 #include "BLEDescriptor.h"
 #include "BLEDescriptorMap.h"
 #include "BLECharacteristicCallbacks.h"
+#include "FreeRTOS.h"
 
 class BLEService;
 class BLEDescriptor;
@@ -75,6 +76,7 @@ private:
 	esp_gatt_char_prop_t getProperties();
 	BLEService          *getService();
 	void                 setHandle(uint16_t handle);
+	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
 }; // BLECharacteristic
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLECHARACTERISTIC_H_ */

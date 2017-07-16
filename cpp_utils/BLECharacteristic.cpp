@@ -87,18 +87,21 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 	esp_attr_control_t control;
 	control.auto_rsp = ESP_GATT_RSP_BY_APP;
 
+	m_semaphoreCreateEvt.take("executeCreate");
 	esp_err_t errRc = ::esp_ble_gatts_add_char(
 		m_pService->getHandle(),
 		getUUID().getNative(),
 		static_cast<esp_gatt_perm_t>(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE),
 		getProperties(),
 		&m_value,
-		&control); // Whether to autorespond or not.
+		&control); // Whether to auto respond or not.
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_add_char: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+
+	m_semaphoreCreateEvt.wait("executeCreate");
 
 	// Now that we have registered the characteristic, we must also register all the descriptors associated with this
 	// characteristic.  We iterate through each of those and invoke the registration call to register them with the
@@ -111,7 +114,7 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 		pDescriptor = m_descriptorMap.getNext();
 	} // End while
 
-	ESP_LOGD(LOG_TAG, "<< executeCreate()");
+	ESP_LOGD(LOG_TAG, "<< executeCreate");
 } // executeCreate
 
 
@@ -168,6 +171,19 @@ void BLECharacteristic::handleGATTServerEvent(
 		esp_gatt_if_t             gatts_if,
 		esp_ble_gatts_cb_param_t* param) {
 	switch(event) {
+		// ESP_GATTS_ADD_CHAR_EVT - Indicate that a characteristic was added to the service.
+		// add_char:
+		// - esp_gatt_status_t status
+		// - uint16_t attr_handle
+		// - uint16_t service_handle
+		// - esp_bt_uuid_t char_uuid
+		case ESP_GATTS_ADD_CHAR_EVT: {
+			if (getUUID().equals(BLEUUID(param->add_char.char_uuid)) &&
+					getService()->getHandle()==param->add_char.service_handle) {
+				m_semaphoreCreateEvt.give();
+			}
+			break;
+		} // ESP_GATTS_ADD_CHAR_EVT
 
 		// ESP_GATTS_WRITE_EVT - A request to write the value of a characteristic has arrived.
 		//
@@ -357,9 +373,9 @@ void BLECharacteristic::setCallbacks(BLECharacteristicCallbacks* pCallbacks) {
 
 
 void BLECharacteristic::setHandle(uint16_t handle) {
-	ESP_LOGD(LOG_TAG, ">> setHandle(0x%.2x): Setting handle to be 0x%.2x", handle, handle);
+	ESP_LOGD(LOG_TAG, ">> setHandle: handle=0x%.2x, characteristic uuid=%s", handle, getUUID().toString().c_str());
 	m_handle = handle;
-	ESP_LOGD(LOG_TAG, "<< setHandle()");
+	ESP_LOGD(LOG_TAG, "<< setHandle");
 } // setHandle
 
 
@@ -400,7 +416,7 @@ void BLECharacteristic::setReadProperty(bool value) {
  */
 void BLECharacteristic::setValue(uint8_t* data, size_t length) {
 	char *pHex = BLEUtils::buildHexData(nullptr, data, length);
-	ESP_LOGD(LOG_TAG, ">> setValue(length: %d, %s)", length, pHex);
+	ESP_LOGD(LOG_TAG, ">> setValue: length=%d, data=%s, characteristic UUID=%s", length, pHex, getUUID().toString().c_str());
 	free(pHex);
 	if (length > ESP_GATT_MAX_ATTR_LEN) {
 		ESP_LOGE(LOG_TAG, "Size %d too large, must be no bigger than %d", length, ESP_GATT_MAX_ATTR_LEN);
@@ -408,6 +424,7 @@ void BLECharacteristic::setValue(uint8_t* data, size_t length) {
 	}
 	m_value.attr_len = length;
 	memcpy(m_value.attr_value, data, length);
+	ESP_LOGD(LOG_TAG, "<< setValue");
 } // setValue
 
 

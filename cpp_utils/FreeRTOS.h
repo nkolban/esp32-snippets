@@ -36,6 +36,7 @@ public:
 		void setName(std::string name);
 		void take(std::string owner="<Unknown>");
 		void take(uint32_t timeoutMs, std::string owner="<Unknown>");
+		void wait(std::string owner="<Unknown>");
 		std::string toString();
 	private:
 		SemaphoreHandle_t m_semaphore;

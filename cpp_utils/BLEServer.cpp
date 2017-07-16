@@ -31,7 +31,6 @@ BLEServer::BLEServer() {
 	m_appId    = -1;
 	m_gatts_if = -1;
 	m_connId   = -1;
-	m_serializeMutex.setName("BLEServer");
 	BLE::m_bleServer = this;
 	m_pServerCallbacks = nullptr;
 	createApp(0);
@@ -51,20 +50,22 @@ void BLEServer::createApp(uint16_t appId) {
  * @return A reference to the new service object.
  */
 BLEService *BLEServer::createService(BLEUUID uuid) {
-	ESP_LOGD(LOG_TAG, ">> createService(%s)", uuid.toString().c_str());
-	m_serializeMutex.take("createService");
+	ESP_LOGD(LOG_TAG, ">> createService - %s", uuid.toString().c_str());
+	m_semaphoreCreateEvt.take("createService");
 
 	// Check that a service with the supplied UUID does not already exist.
 	if (m_serviceMap.getByUUID(uuid) != nullptr) {
 		ESP_LOGE(LOG_TAG, "<< Attempt to create a new service with uuid %s but a service with that UUID already exists.",
 			uuid.toString().c_str());
-		m_serializeMutex.give();
+		m_semaphoreCreateEvt.give();
 		return nullptr;
 	}
 
 	BLEService *pService = new BLEService(uuid);
 	m_serviceMap.setByUUID(uuid, pService); // Save a reference to this service being on this server.
 	pService->executeCreate(this);          // Perform the API calls to actually create the service.
+
+	m_semaphoreCreateEvt.wait("createService");
 
 	ESP_LOGD(LOG_TAG, "<< createService");
 	return pService;
@@ -160,7 +161,7 @@ void BLEServer::handleGATTServerEvent(
 		case ESP_GATTS_REG_EVT: {
 			m_gatts_if = gatts_if;
 
-			m_serializeMutex.give();
+			m_semaphoreRegisterAppEvt.give();
 			break;
 		} // ESP_GATTS_REG_EVT
 
@@ -176,8 +177,8 @@ void BLEServer::handleGATTServerEvent(
 		case ESP_GATTS_CREATE_EVT: {
 			BLEService *pService = m_serviceMap.getByUUID(param->create.service_id.id.uuid);
 			m_serviceMap.setByHandle(param->create.service_handle, pService);
-			pService->setHandle(param->create.service_handle);
-			m_serializeMutex.give();
+			//pService->setHandle(param->create.service_handle);
+			m_semaphoreCreateEvt.give();
 			break;
 		} // ESP_GATTS_CREATE_EVT
 
@@ -249,10 +250,11 @@ void BLEServer::handleGATTServerEvent(
  * @return N/A
  */
 void BLEServer::registerApp() {
-	ESP_LOGD(LOG_TAG, ">> registerApp(%d)", m_appId);
-	m_serializeMutex.take("registerApp"); // Take the mutex, will be released by ESP_GATTS_REG_EVT event.
+	ESP_LOGD(LOG_TAG, ">> registerApp - %d", m_appId);
+	m_semaphoreRegisterAppEvt.take("registerApp"); // Take the mutex, will be released by ESP_GATTS_REG_EVT event.
 	::esp_ble_gatts_app_register(m_appId);
-	ESP_LOGD(LOG_TAG, "<< registerApp()");
+	m_semaphoreRegisterAppEvt.wait("registerApp");
+	ESP_LOGD(LOG_TAG, "<< registerApp");
 } // registerApp
 
 
@@ -270,9 +272,9 @@ void BLEServer::setCallbacks(BLEServerCallbacks* pCallbacks) {
  * Start the server advertising its existence.
  */
 void BLEServer::startAdvertising() {
-	ESP_LOGD(LOG_TAG, ">> startAdvertising()");
+	ESP_LOGD(LOG_TAG, ">> startAdvertising");
 	m_bleAdvertising.start();
-	ESP_LOGD(LOG_TAG, "<< startAdvertising()");
+	ESP_LOGD(LOG_TAG, "<< startAdvertising");
 } // startAdvertising
 
 

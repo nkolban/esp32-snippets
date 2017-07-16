@@ -286,7 +286,7 @@ void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
 	m_semaphoreWriteCharEvt.take("writeValue");
 	m_semaphoreWriteCharEvt.give();
 
-	ESP_LOGD(LOG_TAG, "<< writeValue()");
+	ESP_LOGD(LOG_TAG, "<< writeValue");
 } // writeValue
 
 

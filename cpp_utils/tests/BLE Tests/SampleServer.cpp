@@ -44,7 +44,7 @@ class MainBLEServer: public Task {
 		ESP_LOGD(LOG_TAG, "Starting BLE work!");
 		BLE::initServer("MYDEVICE");
 		BLEServer* pServer = new MyServer();
-		pServer->createApp(0);
+		//pServer->createApp(0);
 
 		BLEUUID serviceUUID((uint16_t)0x1234);
 		BLEService *pService = pServer->createService(serviceUUID);
