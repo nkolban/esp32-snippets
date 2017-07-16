@@ -17,8 +17,6 @@ class BLEDescriptor;
 
 class BLEDescriptorMap {
 public:
-	BLEDescriptorMap();
-	virtual ~BLEDescriptorMap();
 	void setByUUID(BLEUUID uuid,      BLEDescriptor *pDescriptor);
 	void setByHandle(uint16_t handle, BLEDescriptor *pDescriptor);
 	BLEDescriptor *getByUUID(BLEUUID uuid);
