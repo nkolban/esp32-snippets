@@ -199,12 +199,12 @@ esp_bt_uuid_t *BLEUUID::getNative() {
  * A UUID can be internally represented as 16bit, 32bit or the full 128bit.  This method
  * will convert 16 or 32 bit representations to the full 128bit.
  */
-void BLEUUID::to128() {
+BLEUUID BLEUUID::to128() {
 	//ESP_LOGD(LOG_TAG, ">> toFull() - %s", toString().c_str());
 
 	// If we either don't have a value or are already a 128 bit UUID, nothing further to do.
 	if (m_valueSet == false || m_uuid.len == ESP_UUID_LEN_128) {
-		return;
+		return *this;
 	}
 
 	// If we are 16 bit or 32 bit, then set the 4 bytes of the variable part of the UUID.
@@ -243,6 +243,7 @@ void BLEUUID::to128() {
 
 	m_uuid.len = ESP_UUID_LEN_128;
 	//ESP_LOGD(TAG, "<< toFull <-  %s", toString().c_str());
+	return *this;
 } // to128
 
 

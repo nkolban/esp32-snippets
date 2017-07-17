@@ -19,18 +19,23 @@ BLE2902::BLE2902() : BLEDescriptor(BLEUUID((uint16_t) 0x2902)) {
 	setValue(data, 2);
 }
 
+
 /**
- * @brief Set the notifications flag.
- * @param [in] flag The notifications flag.
+ * @brief Get the notifications value.
+ * @return The notifications value.
  */
-void BLE2902::setNotifications(bool flag) {
-	uint8_t *pValue = getValue();
-	if (flag) {
-		pValue[0] |= 1<<0;
-	} else {
-		pValue[0] &= ~(1<<0);
-	}
-} // setNotifications
+bool BLE2902::getNotifications() {
+	return (getValue()[0] & (1 << 0)) != 0;
+} // getNotifications
+
+
+/**
+ * @brief Get the indications value.
+ * @return The indications value.
+ */
+bool BLE2902::getIndications() {
+	return (getValue()[0] & (1 << 1)) != 0;
+} // getIndications
 
 
 /**
@@ -45,4 +50,20 @@ void BLE2902::setIndications(bool flag) {
 		pValue[0] &= ~(1<<1);
 	}
 } // setIndications
+
+
+/**
+ * @brief Set the notifications flag.
+ * @param [in] flag The notifications flag.
+ */
+void BLE2902::setNotifications(bool flag) {
+	uint8_t *pValue = getValue();
+	if (flag) {
+		pValue[0] |= 1<<0;
+	} else {
+		pValue[0] &= ~(1<<0);
+	}
+} // setNotifications
+
+
 #endif

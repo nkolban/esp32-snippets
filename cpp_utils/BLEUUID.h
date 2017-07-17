@@ -23,7 +23,7 @@ public:
 	BLEUUID();
 	bool           equals(BLEUUID uuid);
 	esp_bt_uuid_t *getNative();
-	void           to128();
+	BLEUUID        to128();
 	std::string    toString();
 
 private:

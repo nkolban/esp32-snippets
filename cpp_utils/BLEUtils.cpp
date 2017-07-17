@@ -963,14 +963,41 @@ void BLEUtils::dumpGattServerEvent(
 			break;
 		} // ESP_GATTS_DISCONNECT_EVT
 
+
+		// ESP_GATTS_EXEC_WRITE_EVT
+		// exec_write:
+		// - uint16_t conn_id
+		// - uint32_t trans_id
+		// - esp_bd_addr_t bda
+		// - uint8_t exec_write_flag
+		//
 		case ESP_GATTS_EXEC_WRITE_EVT: {
-			ESP_LOGD(LOG_TAG, "[conn_id: %d, trans_id: %d, bda: %s, exec_write_flag: 0x%.2x]",
+			char* pWriteFlagText;
+			switch(evtParam->exec_write.exec_write_flag) {
+				case ESP_GATT_PREP_WRITE_EXEC: {
+					pWriteFlagText = (char*)"WRITE";
+					break;
+				}
+
+				case ESP_GATT_PREP_WRITE_CANCEL: {
+					pWriteFlagText = (char*)"CANCEL";
+					break;
+				}
+
+				default:
+					pWriteFlagText = (char*)"<Unknown>";
+					break;
+			}
+
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, trans_id: %d, bda: %s, exec_write_flag: 0x%.2x=%s]",
 				evtParam->exec_write.conn_id,
 				evtParam->exec_write.trans_id,
 				BLEAddress(evtParam->exec_write.bda).toString().c_str(),
-				evtParam->exec_write.exec_write_flag);
+				evtParam->exec_write.exec_write_flag,
+				pWriteFlagText);
 			break;
 		} // ESP_GATTS_DISCONNECT_EVT
+
 
 		case ESP_GATTS_MTU_EVT: {
 			ESP_LOGD(LOG_TAG, "[conn_id: %d, mtu: %d]",

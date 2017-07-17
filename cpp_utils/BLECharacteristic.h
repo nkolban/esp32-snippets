@@ -26,10 +26,11 @@ public:
 	BLECharacteristic(BLEUUID uuid, uint32_t properties = 0);
 	virtual ~BLECharacteristic();
 
-	void     addDescriptor(BLEDescriptor *pDescriptor);
-	size_t   getLength();
-	BLEUUID  getUUID();
-	uint8_t *getValue();
+	void           addDescriptor(BLEDescriptor *pDescriptor);
+	BLEDescriptor* getDescriptorByUUID(BLEUUID descriptorUUID);
+	size_t         getLength();
+	BLEUUID        getUUID();
+	uint8_t*       getValue();
 
 	void indicate();
 	void notify();

@@ -15,7 +15,7 @@
 /**
  * @brief Return the descriptor by UUID.
  * @param [in] UUID The UUID to look up the descriptor.
- * @return The descriptor.
+ * @return The descriptor.  If not present, then nullptr is returned.
  */
 BLEDescriptor* BLEDescriptorMap::getByUUID(BLEUUID uuid) {
 	for (auto &myPair : m_uuidMap) {

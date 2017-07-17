@@ -16,6 +16,7 @@
 #include "BLECharacteristic.h"
 #include "BLEService.h"
 #include "BLEUtils.h"
+#include "BLE2902.h"
 #include "GeneralUtils.h"
 
 static char LOG_TAG[] = "BLECharacteristic";
@@ -119,6 +120,16 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 
 
 /**
+ * @brief Return the BLE Descriptor for the given UUID if associated with this characteristic.
+ * @param [in] descriptorUUID The UUID of the descriptor that we wish to retrieve.
+ * @return The BLE Descriptor.  If no such descriptor is associated with the characteristic, nullptr is returned.
+ */
+BLEDescriptor* BLECharacteristic::getDescriptorByUUID(BLEUUID descriptorUUID) {
+	return m_descriptorMap.getByUUID(descriptorUUID);
+} // getDescriptorByUUID
+
+
+/**
  * @brief Get the handle of the characteristic.
  * @return The handle of the characteristic.
  */
@@ -171,6 +182,11 @@ void BLECharacteristic::handleGATTServerEvent(
 		esp_gatt_if_t             gatts_if,
 		esp_ble_gatts_cb_param_t* param) {
 	switch(event) {
+	// Events handled:
+	// ESP_GATTS_ADD_CHAR_EVT
+	// ESP_GATTS_WRITE_EVT
+	// ESP_GATTS_READ_EVT
+	//
 		// ESP_GATTS_ADD_CHAR_EVT - Indicate that a characteristic was added to the service.
 		// add_char:
 		// - esp_gatt_status_t status
@@ -184,6 +200,7 @@ void BLECharacteristic::handleGATTServerEvent(
 			}
 			break;
 		} // ESP_GATTS_ADD_CHAR_EVT
+
 
 		// ESP_GATTS_WRITE_EVT - A request to write the value of a characteristic has arrived.
 		//
@@ -312,6 +329,17 @@ void BLECharacteristic::indicate() {
 
 	assert(getService() != nullptr);
 	assert(getService()->getServer() != nullptr);
+
+	// Test to see if we have a 0x2902 descriptor.  If we do, then check to see if indications are enabled
+	// and, if not, prevent the indication.
+
+	BLE2902 *p2902 = (BLE2902*)getDescriptorByUUID((uint16_t)0x2902);
+	if (p2902 != nullptr && !p2902->getIndications()) {
+		ESP_LOGD(LOG_TAG, "<< indications disabled; ignoring");
+		return;
+	}
+
+
 	esp_err_t errRc = ::esp_ble_gatts_send_indicate(
 			getService()->getServer()->getGattsIf(),
 			getService()->getServer()->getConnId(),
@@ -337,6 +365,16 @@ void BLECharacteristic::notify() {
 
 	assert(getService() != nullptr);
 	assert(getService()->getServer() != nullptr);
+
+	// Test to see if we have a 0x2902 descriptor.  If we do, then check to see if notification is enabled
+	// and, if not, prevent the notification.
+
+	BLE2902 *p2902 = (BLE2902*)getDescriptorByUUID((uint16_t)0x2902);
+	if (p2902 != nullptr && !p2902->getNotifications()) {
+		ESP_LOGD(LOG_TAG, "<< notifications disabled; ignoring");
+		return;
+	}
+
 	esp_err_t errRc = ::esp_ble_gatts_send_indicate(
 			getService()->getServer()->getGattsIf(),
 			getService()->getServer()->getConnId(),
@@ -364,6 +402,7 @@ void BLECharacteristic::setBroadcastProperty(bool value) {
 	}
 } // setBroadcastProperty
 
+
 /**
  * @brief Set the callback handlers for this characteristic.
  */
@@ -372,6 +411,16 @@ void BLECharacteristic::setCallbacks(BLECharacteristicCallbacks* pCallbacks) {
 } // setCallbacks
 
 
+/**
+ * @brief Set the BLE handle associated with this characteristic.
+ * A user program will request that a characteristic be created against a service.  When the characteristic has been
+ * registered, the service will be given a "handle" that it knows the characteristic as.  This handle is unique to the
+ * server/service but it is told to the service, not the characteristic associated with the service.  This internally
+ * exposed function can be invoked by the service against this model of the characteristic to allow the characteristic
+ * to learn its own handle.  Once the characteristic knows its own handle, it will be able to see incoming GATT events
+ * that will be propagated down to it which contain a handle value and now know that the event is destined for it.
+ * @param [in] handle The handle associated with this characteristic.
+ */
 void BLECharacteristic::setHandle(uint16_t handle) {
 	ESP_LOGD(LOG_TAG, ">> setHandle: handle=0x%.2x, characteristic uuid=%s", handle, getUUID().toString().c_str());
 	m_handle = handle;
@@ -379,6 +428,10 @@ void BLECharacteristic::setHandle(uint16_t handle) {
 } // setHandle
 
 
+/**
+ * @brief Set the Indicate property value.
+ * @param [in] value Set to true if we are to allow indicate messages.
+ */
 void BLECharacteristic::setIndicateProperty(bool value) {
 	//ESP_LOGD(LOG_TAG, "setIndicateProperty(%d)", value);
 	if (value) {
@@ -389,6 +442,10 @@ void BLECharacteristic::setIndicateProperty(bool value) {
 } // setIndicateProperty
 
 
+/**
+ * @brief Set the Notify property value.
+ * @param [in] value Set to true if we are to allow notification messages.
+ */
 void BLECharacteristic::setNotifyProperty(bool value) {
 	//ESP_LOGD(LOG_TAG, "setNotifyProperty(%d)", value);
 	if (value) {
@@ -399,6 +456,10 @@ void BLECharacteristic::setNotifyProperty(bool value) {
 } // setNotifyProperty
 
 
+/**
+ * @brief Set the Read property value.
+ * @param [in] value Set to true if we are to allow reads.
+ */
 void BLECharacteristic::setReadProperty(bool value) {
 	//ESP_LOGD(LOG_TAG, "setReadProperty(%d)", value);
 	if (value) {
@@ -440,6 +501,10 @@ void BLECharacteristic::setValue(std::string value) {
 } // setValue
 
 
+/**
+ * @brief Set the Write No Response property value.
+ * @param [in] value Set to true if we are to allow writes with no response.
+ */
 void BLECharacteristic::setWriteNoResponseProperty(bool value) {
 	//ESP_LOGD(LOG_TAG, "setWriteNoResponseProperty(%d)", value);
 	if (value) {
@@ -450,6 +515,10 @@ void BLECharacteristic::setWriteNoResponseProperty(bool value) {
 } // setWriteNoResponseProperty
 
 
+/**
+ * @brief Set the Write property value.
+ * @param [in] value Set to true if we are to allow writes.
+ */
 void BLECharacteristic::setWriteProperty(bool value) {
 	//ESP_LOGD(LOG_TAG, "setWriteProperty(%d)", value);
 	if (value) {

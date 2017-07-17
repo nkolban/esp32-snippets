@@ -10,46 +10,16 @@
 
 static char LOG_TAG[] = "SampleServer";
 
-BLECharacteristic* pCharacteristic;
-
-class MyNotifyTask: public Task {
-	void run(void *data) {
-		while(1) {
-			ESP_LOGD(LOG_TAG, "Notify!");
-			delay(2000);
-			pCharacteristic->indicate(); // Perform the actual indication of a notification to the peer.
-		}
-	}
-};
-
-class MyServer: public BLEServer {
-	MyNotifyTask *pMyNotifyTask;
-	void onConnect() {
-		ESP_LOGD(LOG_TAG, "My onConnect");
-		/*
-		pMyNotifyTask = new MyNotifyTask();
-		pMyNotifyTask->setStackSize(18000);
-		pMyNotifyTask->start();
-		*/
-	}
-
-	void onDisconnect() {
-		ESP_LOGD(LOG_TAG, "My onDisconnect");
-		pMyNotifyTask->stop();
-	}
-};
-
 class MainBLEServer: public Task {
 	void run(void *data) {
 		ESP_LOGD(LOG_TAG, "Starting BLE work!");
+
 		BLE::initServer("MYDEVICE");
-		BLEServer* pServer = new MyServer();
-		//pServer->createApp(0);
+		BLEServer* pServer = new BLEServer();
 
-		BLEUUID serviceUUID((uint16_t)0x1234);
-		BLEService *pService = pServer->createService(serviceUUID);
+		BLEService *pService = pServer->createService(BLEUUID((uint16_t)0x1234));
 
-		pCharacteristic = pService->createCharacteristic(
+		BLECharacteristic* pCharacteristic = pService->createCharacteristic(
 			BLEUUID((uint16_t)0x99AA),
 			BLECharacteristic::PROPERTY_BROADCAST | BLECharacteristic::PROPERTY_READ  |
 			BLECharacteristic::PROPERTY_NOTIFY    | BLECharacteristic::PROPERTY_WRITE |
@@ -57,7 +27,7 @@ class MainBLEServer: public Task {
 		);
 
 
-		pCharacteristic->setValue("hello steph");
+		pCharacteristic->setValue("Hello World!");
 
 		BLE2902* p2902Descriptor = new BLE2902();
 		p2902Descriptor->setNotifications(true);
@@ -65,19 +35,19 @@ class MainBLEServer: public Task {
 
 		pService->start();
 
-		//pServer->startAdvertising();
-		BLEUUID serviceUUIDFull((uint16_t)0x1234);
-		serviceUUIDFull.to128();
-
 		BLEAdvertising* pAdvertising = pServer->getAdvertising();
-		pAdvertising->setServiceUUID(serviceUUIDFull);
+		pAdvertising->setServiceUUID(pService->getUUID().to128());
 		pAdvertising->start();
+
+		ESP_LOGD(LOG_TAG, "Advertising started!");
 		delay(1000000);
 	}
 };
 
+
 void SampleServer(void)
 {
+	esp_log_level_set("*", ESP_LOG_DEBUG);
 	MainBLEServer* pMainBleServer = new MainBLEServer();
 	pMainBleServer->setStackSize(20000);
 	pMainBleServer->start();
