@@ -49,6 +49,7 @@ class MyNotifyTask: public Task {
 			ESP_LOGD(LOG_TAG, "*** NOTIFY: %d ***", value);
 			pCharacteristic->setValue(&value, 1);
 			pCharacteristic->notify();
+			//pCharacteristic->indicate();
 			value++;
 		} // While 1
 	} // run
@@ -85,7 +86,8 @@ static void run() {
 		BLEUUID(CHARACTERISTIC_UUID),
 		BLECharacteristic::PROPERTY_READ   |
 		BLECharacteristic::PROPERTY_WRITE  |
-		BLECharacteristic::PROPERTY_NOTIFY
+		BLECharacteristic::PROPERTY_NOTIFY |
+		BLECharacteristic::PROPERTY_INDICATE
 	);
 
 	// https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.descriptor.gatt.client_characteristic_configuration.xml

@@ -59,6 +59,7 @@ void BLEDescriptor::executeCreate(BLECharacteristic* pCharacteristic) {
 
 	esp_attr_control_t control;
 	control.auto_rsp = ESP_GATT_RSP_BY_APP;
+	m_semaphoreCreateEvt.take("executeCreate");
 	esp_err_t errRc = ::esp_ble_gatts_add_char_descr(
 			pCharacteristic->getService()->getHandle(),
 			getUUID().getNative(),
@@ -69,6 +70,8 @@ void BLEDescriptor::executeCreate(BLECharacteristic* pCharacteristic) {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_add_char_descr: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+
+	m_semaphoreCreateEvt.wait("executeCreate");
 	ESP_LOGD(LOG_TAG, "<< executeCreate");
 } // executeCreate
 
@@ -124,10 +127,11 @@ void BLEDescriptor::handleGATTServerEvent(
 		//
 		// add_char_descr:
 		// - esp_gatt_status_t status
-		// - uint16_t attr_handle
-		// - uint16_t service_handle
-		// - esp_bt_uuid_t char_uuid
+		// - uint16_t          attr_handle
+		// - uint16_t          service_handle
+		// - esp_bt_uuid_t     char_uuid
 		case ESP_GATTS_ADD_CHAR_DESCR_EVT: {
+			/*
 			ESP_LOGD(LOG_TAG, "DEBUG: m_pCharacteristic: %x", (uint32_t)m_pCharacteristic);
 			ESP_LOGD(LOG_TAG, "DEBUG: m_bleUUID: %s, add_char_descr.char_uuid: %s, equals: %d",
 				m_bleUUID.toString().c_str(),
@@ -137,11 +141,13 @@ void BLEDescriptor::handleGATTServerEvent(
 					m_pCharacteristic->getService()->getHandle(), param->add_char_descr.service_handle);
 			ESP_LOGD(LOG_TAG, "DEBUG: service->lastCharacteristic: %x",
 					(uint32_t)m_pCharacteristic->getService()->getLastCreatedCharacteristic());
+					*/
 			if (m_pCharacteristic != nullptr &&
 					m_bleUUID.equals(BLEUUID(param->add_char_descr.char_uuid)) &&
 					m_pCharacteristic->getService()->getHandle() == param->add_char_descr.service_handle &&
 					m_pCharacteristic == m_pCharacteristic->getService()->getLastCreatedCharacteristic()) {
 				setHandle(param->add_char_descr.attr_handle);
+				m_semaphoreCreateEvt.give();
 			}
 			break;
 		} // ESP_GATTS_ADD_CHAR_DESCR_EVT

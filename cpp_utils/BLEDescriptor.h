@@ -13,6 +13,8 @@
 #include "BLEUUID.h"
 #include "BLECharacteristic.h"
 #include <esp_gatts_api.h>
+#include "FreeRTOS.h"
+
 class BLEService;
 class BLECharacteristic;
 
@@ -42,6 +44,7 @@ private:
 	void executeCreate(BLECharacteristic *pCharacteristic);
 	uint16_t getHandle();
 	void setHandle(uint16_t handle);
+	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
 };
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEDESCRIPTOR_H_ */

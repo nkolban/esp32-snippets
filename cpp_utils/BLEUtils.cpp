@@ -925,12 +925,20 @@ void BLEUtils::dumpGattServerEvent(
 			break;
 		} // ESP_GATTS_ADD_CHAR_EVT
 
+
+		// ESP_GATTS_CONF_EVT
+		//
+		// conf:
+		// - esp_gatt_status_t status  – The status code.
+		// - uint16_t          conn_id – The connection used.
+		//
 		case ESP_GATTS_CONF_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: 0x%.2x]",
 				gattStatusToString(evtParam->conf.status).c_str(),
 				evtParam->conf.conn_id);
 			break;
 		} // ESP_GATTS_CONF_EVT
+
 
 		case ESP_GATTS_CONGEST_EVT: {
 			ESP_LOGD(LOG_TAG, "[conn_id: %d, congested: %d]",
@@ -1031,11 +1039,13 @@ void BLEUtils::dumpGattServerEvent(
 			break;
 		} // ESP_GATTS_REG_EVT
 
+
 		// ESP_GATTS_START_EVT
 		//
 		// start:
-		// esp_gatt_status_t status
-		// uint16_t service_handle
+		// - esp_gatt_status_t status
+		// - uint16_t          service_handle
+		//
 		case ESP_GATTS_START_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %s, service_handle: 0x%.2x]",
 				gattStatusToString(evtParam->start.status).c_str(),
@@ -1043,6 +1053,20 @@ void BLEUtils::dumpGattServerEvent(
 			break;
 		} // ESP_GATTS_START_EVT
 
+
+		// ESP_GATTS_WRITE_EVT
+		//
+		// write:
+		// - uint16_t      conn_id  – The connection id.
+		// - uint16_t      trans_id – The transfer id.
+		// - esp_bd_addr_t bda      – The address of the partner.
+		// - uint16_t      handle   – The attribute handle.
+		// - uint16_t      offset   – The offset of the currently received within the whole value.
+		// - bool          need_rsp – Do we need a response?
+		// - bool          is_prep  – Is this a write prepare?  If set, then this is to be considered part of the received value and not the whole value.  A subsequent ESP_GATTS_EXEC_WRITE will mark the total.
+		// - uint16_t      len      – The length of the incoming value part.
+		// - uint8_t*      value    – The data for this value part.
+		//
 		case ESP_GATTS_WRITE_EVT: {
 			ESP_LOGD(LOG_TAG, "[conn_id: %d, trans_id: %d, bda: %s, handle: 0x%.2x, offset: %d, need_rsp: %d, is_prep: %d, len: %d]",
 					evtParam->write.conn_id,
@@ -1053,6 +1077,9 @@ void BLEUtils::dumpGattServerEvent(
 					evtParam->write.need_rsp,
 					evtParam->write.is_prep,
 					evtParam->write.len);
+			char *pHex = buildHexData(nullptr, evtParam->write.value, evtParam->write.len);
+			ESP_LOGD(LOG_TAG, "[Data: %s]", pHex);
+			free(pHex);
 			break;
 		} // ESP_GATTS_WRITE_EVT
 

@@ -17,7 +17,7 @@ class MainBLEServer: public Task {
 		BLE::initServer("MYDEVICE");
 		BLEServer* pServer = new BLEServer();
 
-		BLEService *pService = pServer->createService(BLEUUID((uint16_t)0x1234));
+		BLEService* pService = pServer->createService(BLEUUID((uint16_t)0x1234));
 
 		BLECharacteristic* pCharacteristic = pService->createCharacteristic(
 			BLEUUID((uint16_t)0x99AA),

@@ -30,9 +30,9 @@ static char LOG_TAG[] = "BLECharacteristic";
  */
 BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
 	m_bleUUID            = uuid;
-	m_value.attr_value   = static_cast<uint8_t*>(malloc(ESP_GATT_MAX_ATTR_LEN)); // Allocate storage for the value
-	m_value.attr_len     = 0; // Initial length of actual data is none.
-	m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN; // Maximum length of data.
+	//m_value.attr_value   = static_cast<uint8_t*>(malloc(ESP_GATT_MAX_ATTR_LEN)); // Allocate storage for the value
+	//m_value.attr_len     = 0; // Initial length of actual data is none.
+	//m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN; // Maximum length of data.
 	m_handle             = NULL_HANDLE;
 	m_properties         = 0;
 	m_pCallbacks         = nullptr;
@@ -49,7 +49,7 @@ BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
  * @brief Destructor.
  */
 BLECharacteristic::~BLECharacteristic() {
-	free(m_value.attr_value); // Release the storage for the value.
+	//free(m_value.attr_value); // Release the storage for the value.
 } // ~BLECharacteristic
 
 
@@ -77,24 +77,27 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 		return;
 	}
 
-	m_pService = pService; // Save the service for this characteristic.
+	m_pService = pService; // Save the service for to which this characteristic belongs.
 
 	ESP_LOGD(LOG_TAG, "Registering characteristic (esp_ble_gatts_add_char): uuid: %s, service: %s",
 		getUUID().toString().c_str(),
 		m_pService->toString().c_str());
 
-	//m_serializeMutex.take("addCharacteristic"); // Take the mutex, released by event ESP_GATTS_ADD_CHAR_EVT
-
 	esp_attr_control_t control;
 	control.auto_rsp = ESP_GATT_RSP_BY_APP;
 
 	m_semaphoreCreateEvt.take("executeCreate");
+	esp_attr_value_t value;
+	std::string strValue = m_value.getValue();
+	value.attr_len = strValue.length();
+	value.attr_max_len = ESP_GATT_MAX_ATTR_LEN;
+	value.attr_value = (uint8_t*)strValue.data();
 	esp_err_t errRc = ::esp_ble_gatts_add_char(
 		m_pService->getHandle(),
 		getUUID().getNative(),
 		static_cast<esp_gatt_perm_t>(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE),
 		getProperties(),
-		&m_value,
+		&value,
 		&control); // Whether to auto respond or not.
 
 	if (errRc != ESP_OK) {
@@ -108,7 +111,7 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 	// characteristic.  We iterate through each of those and invoke the registration call to register them with the
 	// ESP environment.
 
-	BLEDescriptor *pDescriptor = m_descriptorMap.getFirst();
+	BLEDescriptor* pDescriptor = m_descriptorMap.getFirst();
 
 	while (pDescriptor != nullptr) {
 		pDescriptor->executeCreate(this);
@@ -141,10 +144,11 @@ uint16_t BLECharacteristic::getHandle() {
 /**
  * @brief Get the length of the value.
  */
+/*
 size_t BLECharacteristic::getLength() {
 	return m_value.attr_len;
 } // getLength
-
+*/
 
 esp_gatt_char_prop_t BLECharacteristic::getProperties() {
 	return m_properties;
@@ -172,8 +176,8 @@ BLEUUID BLECharacteristic::getUUID() {
  * @brief Retrieve the current value of the characteristic.
  * @return A pointer to storage containing the current characteristic value.
  */
-uint8_t* BLECharacteristic::getValue() {
-	return m_value.attr_value;
+std::string BLECharacteristic::getValue() {
+	return m_value.getValue();
 } // getValue
 
 
@@ -187,6 +191,37 @@ void BLECharacteristic::handleGATTServerEvent(
 	// ESP_GATTS_WRITE_EVT
 	// ESP_GATTS_READ_EVT
 	//
+
+		// ESP_GATTS_EXEC_WRITE_EVT
+		// When we receive this event it is an indication that a previous write long needs to be committed.
+		//
+		// exec_write:
+		// - uint16_t conn_id
+		// - uint32_t trans_id
+		// - esp_bd_addr_t bda
+		// - uint8_t exec_write_flag
+		//
+		case ESP_GATTS_EXEC_WRITE_EVT: {
+			if (param->exec_write.exec_write_flag == ESP_GATT_PREP_WRITE_EXEC) {
+				m_value.commit();
+				if (m_pCallbacks != nullptr) {
+					m_pCallbacks->onWrite(this); // Invoke the onWrite callback handler.
+				}
+			} else {
+				m_value.cancel();
+			}
+
+			esp_err_t errRc = ::esp_ble_gatts_send_response(
+					gatts_if,
+					param->write.conn_id,
+					param->write.trans_id, ESP_GATT_OK, nullptr);
+			if (errRc != ESP_OK) {
+				ESP_LOGE(LOG_TAG, "esp_ble_gatts_send_response: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+			}
+			break;
+		} // ESP_GATTS_EXEC_WRITE_EVT
+
+
 		// ESP_GATTS_ADD_CHAR_EVT - Indicate that a characteristic was added to the service.
 		// add_char:
 		// - esp_gatt_status_t status
@@ -220,7 +255,11 @@ void BLECharacteristic::handleGATTServerEvent(
 // we save the new value.  Next we look at the need_rsp flag which indicates whether or not we need
 // to send a response.  If we do, then we formulate a response and send it.
 			if (param->write.handle == m_handle) {
-				setValue(param->write.value, param->write.len);
+				if (param->write.is_prep) {
+					m_value.addPart(param->write.value, param->write.len);
+				} else {
+					setValue(param->write.value, param->write.len);
+				}
 
 				ESP_LOGD(LOG_TAG, " - Response to write event: New value: handle: %.2x, uuid: %s",
 						getHandle(), getUUID().toString().c_str());
@@ -231,11 +270,13 @@ void BLECharacteristic::handleGATTServerEvent(
 
 				if (param->write.need_rsp) {
 					esp_gatt_rsp_t rsp;
-					rsp.attr_value.len      = getLength();
+
+					rsp.attr_value.len      = param->write.len;
 					rsp.attr_value.handle   = m_handle;
-					rsp.attr_value.offset   = 0;
+					rsp.attr_value.offset   = param->write.offset;
 					rsp.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
-					memcpy(rsp.attr_value.value, getValue(), rsp.attr_value.len);
+					memcpy(rsp.attr_value.value, param->write.value, param->write.len);
+
 					esp_err_t errRc = ::esp_ble_gatts_send_response(
 							gatts_if,
 							param->write.conn_id,
@@ -245,7 +286,7 @@ void BLECharacteristic::handleGATTServerEvent(
 					}
 				} // Response needed
 
-				if (m_pCallbacks != nullptr) {
+				if (m_pCallbacks != nullptr && param->write.is_prep != true) {
 					m_pCallbacks->onWrite(this); // Invoke the onWrite callback handler.
 				}
 			} // Match on handles.
@@ -275,17 +316,60 @@ void BLECharacteristic::handleGATTServerEvent(
 // Here's an interesting thing.  The read request has the option of saying whether we need a response
 // or not.  What would it "mean" to receive a read request and NOT send a response back?  That feels like
 // a very strange read.
+//
+// We have to handle the case where the data we wish to send back to the client is greater than the maximum
+// packet size of 22 bytes.  In this case, we become responsible for chunking the data into uints of 22 bytes.
+// The apparent algorithm is as follows.
+// If the is_long flag is set then this is a follow on from an original read and we will already have sent at least 22 bytes.
+// If the is_long flag is not set then we need to check how much data we are going to send.  If we are sending LESS than
+// 22 bytes, then we "just" send it and thats the end of the story.
+// If we are sending 22 bytes exactly, we just send it BUT we will get a follow on request.
+// If we are sending more than 22 bytes, we send the first 22 bytes and we will get a follow on request.
+// Because of follow on request processing, we need to maintain an offset of how much data we have already sent
+// so that when a follow on request arrives, we know where to start in the data to send the next sequence.
+// Note that the indication that the client will send a follow on request is that we sent exactly 22 bytes as a response.
+// If our payload is divisible by 22 then the last response will be a response of 0 bytes in length.
+//
+// The following code has deliberately not been factored to make it fewer statements because this would cloud the
+// the logic flow comprehension.
+//
 				if (param->read.need_rsp) {
 					ESP_LOGD(LOG_TAG, "Sending a response (esp_ble_gatts_send_response)");
 					esp_gatt_rsp_t rsp;
-					rsp.attr_value.len      = getLength();
+					std::string value = m_value.getValue();
+					if (param->read.is_long) {
+						if (value.length() - m_value.getReadOffset() < 22) {
+							// This is the last in the chain
+							rsp.attr_value.len    = value.length() - m_value.getReadOffset();
+							rsp.attr_value.offset = m_value.getReadOffset();
+							memcpy(rsp.attr_value.value, value.data() + rsp.attr_value.offset, rsp.attr_value.len);
+							m_value.setReadOffset(0);
+						} else {
+							// There will be more to come.
+							rsp.attr_value.len    = 22;
+							rsp.attr_value.offset = m_value.getReadOffset();
+							memcpy(rsp.attr_value.value, value.data() + rsp.attr_value.offset, rsp.attr_value.len);
+							m_value.setReadOffset(rsp.attr_value.offset + 22);
+						}
+					} else {
+						if (value.length() > 21) {
+							// Too big for a single shot entry.
+							m_value.setReadOffset(22);
+							rsp.attr_value.len    = 22;
+							rsp.attr_value.offset = 0;
+							memcpy(rsp.attr_value.value, value.data(), rsp.attr_value.len);
+						} else {
+							// Will fit in a single packet with no callbacks required.
+							rsp.attr_value.len    = value.length();
+							rsp.attr_value.offset = 0;
+							memcpy(rsp.attr_value.value, value.data(), rsp.attr_value.len);
+						}
+					}
 					rsp.attr_value.handle   = param->read.handle;
-					rsp.attr_value.offset   = 0;
 					rsp.attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
-					memcpy(rsp.attr_value.value, getValue(), rsp.attr_value.len);
 
 					char *pHexData = BLEUtils::buildHexData(nullptr, rsp.attr_value.value, rsp.attr_value.len);
-					ESP_LOGD(LOG_TAG, " - Data: length: %d, data: %s", rsp.attr_value.len, pHexData);
+					ESP_LOGD(LOG_TAG, " - Data: length=%d, data=%s, offset=%d", rsp.attr_value.len, pHexData, rsp.attr_value.offset);
 					free(pHexData);
 
 					esp_err_t errRc = ::esp_ble_gatts_send_response(
@@ -300,6 +384,17 @@ void BLECharacteristic::handleGATTServerEvent(
 			} // Handle matches this characteristic.
 			break;
 		} // ESP_GATTS_READ_EVT
+
+		// ESP_GATTS_CONF_EVT
+		//
+		// conf:
+		// - esp_gatt_status_t status  – The status code.
+		// - uint16_t          conn_id – The connection used.
+		//
+		case ESP_GATTS_CONF_EVT: {
+			m_semaphoreConfEvt.give();
+			break;
+		}
 
 		default: {
 			break;
@@ -323,8 +418,8 @@ void BLECharacteristic::handleGATTServerEvent(
  */
 void BLECharacteristic::indicate() {
 
-	char *pHexData = BLEUtils::buildHexData(nullptr, getValue(), getLength());
-	ESP_LOGD(LOG_TAG, ">> indicate: length: %d, data: [%s]", getLength(), pHexData );
+	char *pHexData = BLEUtils::buildHexData(nullptr, (uint8_t*)m_value.getValue().data(), m_value.getValue().length());
+	ESP_LOGD(LOG_TAG, ">> indicate: length: %d, data: [%s]", m_value.getValue().length(), pHexData );
 	free(pHexData);
 
 	assert(getService() != nullptr);
@@ -339,16 +434,28 @@ void BLECharacteristic::indicate() {
 		return;
 	}
 
+	if (m_value.getValue().length() > 20) {
+		ESP_LOGD(LOG_TAG, "- Truncating to 20 bytes (maximum notify size)");
+	}
+
+	size_t length = m_value.getValue().length();
+	if (length > 20) {
+		length = 20;
+	}
+
+	m_semaphoreConfEvt.take("indicate");
 
 	esp_err_t errRc = ::esp_ble_gatts_send_indicate(
 			getService()->getServer()->getGattsIf(),
 			getService()->getServer()->getConnId(),
-			getHandle(), getLength(), getValue(), true); // The need_confirm = true makes this an indication.
+			getHandle(), length, (uint8_t*)m_value.getValue().data(), true); // The need_confirm = true makes this an indication.
+
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_send_indicate: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
+	m_semaphoreConfEvt.wait("indicate");
 	ESP_LOGD(LOG_TAG, "<< indicate");
 } // indicate
 
@@ -359,9 +466,10 @@ void BLECharacteristic::indicate() {
  */
 void BLECharacteristic::notify() {
 
-	char *pHexData = BLEUtils::buildHexData(nullptr, getValue(), getLength());
-	ESP_LOGD(LOG_TAG, ">> notify: length: %d, data: [%s]", getLength(), pHexData );
+	char *pHexData = BLEUtils::buildHexData(nullptr, (uint8_t*)m_value.getValue().data(), m_value.getValue().length());
+	ESP_LOGD(LOG_TAG, ">> notify: length: %d, data: [%s]", m_value.getValue().length(), pHexData );
 	free(pHexData);
+
 
 	assert(getService() != nullptr);
 	assert(getService()->getServer() != nullptr);
@@ -375,10 +483,19 @@ void BLECharacteristic::notify() {
 		return;
 	}
 
+	if (m_value.getValue().length() > 20) {
+		ESP_LOGD(LOG_TAG, "- Truncating to 20 bytes (maximum notify size)");
+	}
+
+	size_t length = m_value.getValue().length();
+	if (length > 20) {
+		length = 20;
+	}
+
 	esp_err_t errRc = ::esp_ble_gatts_send_indicate(
 			getService()->getServer()->getGattsIf(),
 			getService()->getServer()->getConnId(),
-			getHandle(), getLength(), getValue(), false); // The need_confirm = false makes this a notify.
+			getHandle(), length, (uint8_t*)m_value.getValue().data(), false); // The need_confirm = false makes this a notify.
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_send_indicate: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
@@ -483,8 +600,7 @@ void BLECharacteristic::setValue(uint8_t* data, size_t length) {
 		ESP_LOGE(LOG_TAG, "Size %d too large, must be no bigger than %d", length, ESP_GATT_MAX_ATTR_LEN);
 		return;
 	}
-	m_value.attr_len = length;
-	memcpy(m_value.attr_value, data, length);
+	m_value.setValue(data, length);
 	ESP_LOGD(LOG_TAG, "<< setValue");
 } // setValue
 

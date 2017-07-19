@@ -18,9 +18,10 @@ static char LOG_TAG[] = "SampleWrite";
 
 class MyCallbacks: public BLECharacteristicCallbacks {
 	void onWrite(BLECharacteristic *pCharacteristic) {
-		if (pCharacteristic->getLength() > 0) {
+		std::string value = pCharacteristic->getValue();
+		if (value.length() > 0) {
 				ESP_LOGD(LOG_TAG, "*********");
-				ESP_LOGD(LOG_TAG, "New value: %.2x", pCharacteristic->getValue()[0]);
+				ESP_LOGD(LOG_TAG, "New value: %.2x", value[0]);
 				ESP_LOGD(LOG_TAG, "*********");
 			}
 		}

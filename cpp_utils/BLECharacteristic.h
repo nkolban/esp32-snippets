@@ -15,6 +15,7 @@
 #include "BLEDescriptor.h"
 #include "BLEDescriptorMap.h"
 #include "BLECharacteristicCallbacks.h"
+#include "BLEValue.h"
 #include "FreeRTOS.h"
 
 class BLEService;
@@ -28,9 +29,9 @@ public:
 
 	void           addDescriptor(BLEDescriptor *pDescriptor);
 	BLEDescriptor* getDescriptorByUUID(BLEUUID descriptorUUID);
-	size_t         getLength();
+	//size_t         getLength();
 	BLEUUID        getUUID();
-	uint8_t*       getValue();
+	std::string    getValue();
 
 	void indicate();
 	void notify();
@@ -61,7 +62,7 @@ private:
 
 	BLEUUID              m_bleUUID;
 	esp_gatt_char_prop_t m_properties;
-	esp_attr_value_t     m_value;
+	BLEValue             m_value;
 	uint16_t             m_handle;
 	BLEService          *m_pService;
 	BLEDescriptorMap     m_descriptorMap;
@@ -78,6 +79,7 @@ private:
 	BLEService          *getService();
 	void                 setHandle(uint16_t handle);
 	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
+	FreeRTOS::Semaphore m_semaphoreConfEvt   = FreeRTOS::Semaphore("ConfEvt");
 }; // BLECharacteristic
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLECHARACTERISTIC_H_ */
