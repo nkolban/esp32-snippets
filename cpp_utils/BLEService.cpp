@@ -24,7 +24,7 @@
 
 #define NULL_HANDLE (0xffff)
 
-static char LOG_TAG[] = "BLEService"; // Tag for logging.
+static const char* LOG_TAG = "BLEService"; // Tag for logging.
 
 /**
  * @brief Construct an instance of the BLEService

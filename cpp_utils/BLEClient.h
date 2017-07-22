@@ -18,7 +18,6 @@
 #include <BLERemoteService.h>
 #include "BLEService.h"
 #include "BLEAddress.h"
-#include "BLEClientCallbacks.h"
 
 class BLERemoteService;
 class BLEClientCallbacks;
@@ -29,7 +28,7 @@ class BLEClientCallbacks;
 class BLEClient {
 public:
 	BLEClient();
-	void                                       connect(BLEAddress address);
+	bool                                       connect(BLEAddress address);
 	void                                       disconnect();
 
 	BLEAddress                                 getAddress();
@@ -63,6 +62,12 @@ private:
 	std::map<std::string, BLERemoteService *> m_servicesMap;
 	bool m_haveServices;
 }; // class BLEDevice
+
+class BLEClientCallbacks {
+public:
+	virtual ~BLEClientCallbacks() {};
+	virtual void onConnect(BLEClient *pClient);
+};
 
 #endif // CONFIG_BT_ENABLED
 #endif /* MAIN_BLEDEVICE_H_ */

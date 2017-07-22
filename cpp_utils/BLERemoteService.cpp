@@ -14,7 +14,7 @@
 #include <esp_log.h>
 #include <esp_err.h>
 
-static const char LOG_TAG[] = "BLERemoteService";
+static const char* LOG_TAG = "BLERemoteService";
 
 BLERemoteService::BLERemoteService(
 	esp_gatt_srvc_id_t srvcId,

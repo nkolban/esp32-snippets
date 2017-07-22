@@ -20,8 +20,6 @@
  */
 class FreeRTOS {
 public:
-	FreeRTOS();
-	virtual ~FreeRTOS();
 	static void sleep(uint32_t ms);
 	static void startTask(void task(void *), std::string taskName, void *param=nullptr, int stackSize = 2048);
 	static void deleteTask(TaskHandle_t pTask = nullptr);
@@ -33,15 +31,17 @@ public:
 		Semaphore(std::string owner = "<Unknown>");
 		~Semaphore();
 		void give();
+		void give(uint32_t value);
 		void setName(std::string name);
 		void take(std::string owner="<Unknown>");
 		void take(uint32_t timeoutMs, std::string owner="<Unknown>");
-		void wait(std::string owner="<Unknown>");
+		uint32_t wait(std::string owner="<Unknown>");
 		std::string toString();
 	private:
 		SemaphoreHandle_t m_semaphore;
 		std::string m_name;
 		std::string m_owner;
+		uint32_t    m_value;
 	};
 };
 

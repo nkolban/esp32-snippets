@@ -10,7 +10,7 @@
 #include "sdkconfig.h"
 #include <esp_log.h>
 
-static char tag[] = "GPIO";
+static const char* LOG_TAG = "GPIO";
 /**
  * @brief Set the pin high.
  *
@@ -46,7 +46,7 @@ bool ESP32CPP::GPIO::inRange(gpio_num_t pin) {
 void ESP32CPP::GPIO::interruptDisable(gpio_num_t pin) {
 	esp_err_t rc = ::gpio_intr_disable(pin);
 	if (rc != ESP_OK) {
-		ESP_LOGE(tag, "interruptDisable: %d", rc);
+		ESP_LOGE(LOG_TAG, "interruptDisable: %d", rc);
 	}
 } // interruptDisable
 
@@ -59,7 +59,7 @@ void ESP32CPP::GPIO::interruptDisable(gpio_num_t pin) {
 void ESP32CPP::GPIO::interruptEnable(gpio_num_t pin) {
 	esp_err_t rc = ::gpio_intr_enable(pin);
 	if (rc != ESP_OK) {
-		ESP_LOGE(tag, "interruptEnable: %d", rc);
+		ESP_LOGE(LOG_TAG, "interruptEnable: %d", rc);
 	}
 } // interruptEnable
 
@@ -121,7 +121,7 @@ void ESP32CPP::GPIO::setInterruptType(
 		gpio_int_type_t intrType) {
 	esp_err_t rc = ::gpio_set_intr_type(pin, intrType);
 	if (rc != ESP_OK) {
-		ESP_LOGE(tag, "setInterruptType: %d", rc);
+		ESP_LOGE(LOG_TAG, "setInterruptType: %d", rc);
 	}
 
 } // setInterruptType

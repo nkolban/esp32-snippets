@@ -12,7 +12,7 @@
 #include <iomanip>
 #include <stdio.h>
 #include "BLEUUID.h"
-static const char LOG_TAG[] = "BLEUUID";
+static const char* LOG_TAG = "BLEUUID";
 
 
 /**

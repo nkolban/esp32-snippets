@@ -13,7 +13,7 @@
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
 
-static char LOG_TAG[] = "BLEAdvertising";
+static const char* LOG_TAG = "BLEAdvertising";
 
 
 /**

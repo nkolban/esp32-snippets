@@ -17,11 +17,25 @@
 #include "BLEAdvertising.h"
 #include "BLECharacteristic.h"
 #include "BLEService.h"
-#include "BLECharacteristicMap.h"
-#include "BLEServiceMap.h"
-#include "BLEServerCallbacks.h"
 
 class BLEServerCallbacks;
+
+class BLEServiceMap {
+public:
+	void setByUUID(BLEUUID uuid, BLEService *service);
+		void setByHandle(uint16_t handle, BLEService *service);
+	BLEService *getByUUID(BLEUUID uuid);
+	BLEService *getByHandle(uint16_t handle);
+	std::string toString();
+	void handleGATTServerEvent(
+		esp_gatts_cb_event_t      event,
+		esp_gatt_if_t             gatts_if,
+		esp_ble_gatts_cb_param_t *param);
+	private:
+		std::map<std::string, BLEService *> m_uuidMap;
+		std::map<uint16_t, BLEService *> m_handleMap;
+};
+
 class BLEServer {
 public:
 	BLEServer();
@@ -48,7 +62,17 @@ private:
 	FreeRTOS::Semaphore m_semaphoreRegisterAppEvt = FreeRTOS::Semaphore("RegisterAppEvt");
 	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
 	BLEServiceMap       m_serviceMap;
-	BLEServerCallbacks *m_pServerCallbacks;
+	BLEServerCallbacks* m_pServerCallbacks;
 }; // BLEServer
+
+class BLEServerCallbacks {
+public:
+	virtual ~BLEServerCallbacks() {};
+	virtual void onConnect(BLEServer* pServer);
+	virtual void onDisconnect(BLEServer* pServer);
+}; // BLEServerCallbacks
+
+
+
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLESERVER_H_ */

@@ -13,7 +13,6 @@
 
 #include <vector>
 #include "BLEAdvertisedDevice.h"
-#include "BLEAdvertisedDeviceCallbacks.h"
 #include "BLEClient.h"
 #include "FreeRTOS.h"
 

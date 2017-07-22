@@ -8,7 +8,6 @@
 #if defined(CONFIG_BT_ENABLED)
 #include <sstream>
 #include <iomanip>
-#include "BLEServiceMap.h"
 #include "BLEService.h"
 
 /**

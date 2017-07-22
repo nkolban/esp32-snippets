@@ -6,9 +6,9 @@
  */
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
-#include "BLEServerCallbacks.h"
+#include "BLEServer.h"
 #include <esp_log.h>
-static const char LOG_TAG[] = "BLEServerCallbacks";
+static const char* LOG_TAG = "BLEServerCallbacks";
 
 void BLEServerCallbacks::onConnect(BLEServer* pServer) {
 	ESP_LOGD(LOG_TAG, ">> onConnect(): Default");

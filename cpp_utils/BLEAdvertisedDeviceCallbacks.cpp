@@ -7,5 +7,5 @@
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 
-#include "BLEAdvertisedDeviceCallbacks.h"
+#include "BLEAdvertisedDevice.h"
 #endif /* CONFIG_BT_ENABLED */

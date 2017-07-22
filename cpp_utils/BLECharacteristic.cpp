@@ -19,7 +19,7 @@
 #include "BLE2902.h"
 #include "GeneralUtils.h"
 
-static char LOG_TAG[] = "BLECharacteristic";
+static const char* LOG_TAG = "BLECharacteristic";
 
 #define NULL_HANDLE (0xffff)
 
@@ -29,13 +29,10 @@ static char LOG_TAG[] = "BLECharacteristic";
  * @param [in] properties - Properties for the characteristic.
  */
 BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
-	m_bleUUID            = uuid;
-	//m_value.attr_value   = static_cast<uint8_t*>(malloc(ESP_GATT_MAX_ATTR_LEN)); // Allocate storage for the value
-	//m_value.attr_len     = 0; // Initial length of actual data is none.
-	//m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN; // Maximum length of data.
-	m_handle             = NULL_HANDLE;
-	m_properties         = 0;
-	m_pCallbacks         = nullptr;
+	m_bleUUID    = uuid;
+	m_handle     = NULL_HANDLE;
+	m_properties = 0;
+	m_pCallbacks = nullptr;
 
 	setBroadcastProperty((properties & PROPERTY_BROADCAST) !=0);
 	setReadProperty((properties & PROPERTY_READ) !=0);
@@ -87,11 +84,14 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 	control.auto_rsp = ESP_GATT_RSP_BY_APP;
 
 	m_semaphoreCreateEvt.take("executeCreate");
-	esp_attr_value_t value;
+
 	std::string strValue = m_value.getValue();
-	value.attr_len = strValue.length();
+
+	esp_attr_value_t value;
+	value.attr_len     = strValue.length();
 	value.attr_max_len = ESP_GATT_MAX_ATTR_LEN;
-	value.attr_value = (uint8_t*)strValue.data();
+	value.attr_value   = (uint8_t*)strValue.data();
+
 	esp_err_t errRc = ::esp_ble_gatts_add_char(
 		m_pService->getHandle(),
 		getUUID().getNative(),
@@ -140,15 +140,6 @@ uint16_t BLECharacteristic::getHandle() {
 	return m_handle;
 } // getHandle
 
-
-/**
- * @brief Get the length of the value.
- */
-/*
-size_t BLECharacteristic::getLength() {
-	return m_value.attr_len;
-} // getLength
-*/
 
 esp_gatt_char_prop_t BLECharacteristic::getProperties() {
 	return m_properties;
@@ -414,6 +405,8 @@ void BLECharacteristic::handleGATTServerEvent(
 
 /**
  * @brief Send an indication.
+ * An indication is a transmission of up to the first 20 bytes of the characteristic value.  An indication
+ * will block waiting a positive confirmation from the client.
  * @return N/A
  */
 void BLECharacteristic::indicate() {
@@ -462,6 +455,8 @@ void BLECharacteristic::indicate() {
 
 /**
  * @brief Send a notify.
+ * A notification is a transmission of up to the first 20 bytes of the characteristic value.  An notification
+ * will not block; it is a fire and forget.
  * @return N/A.
  */
 void BLECharacteristic::notify() {
@@ -507,7 +502,9 @@ void BLECharacteristic::notify() {
 
 /**
  * @brief Set the permission to broadcast.
- * @param [in] value The value of the property.
+ * A characteristics has properties associated with it which define what it is capable of doing.
+ * One of these is the broadcast flag.
+ * @param [in] value The flag value of the property.
  * @return N/A
  */
 void BLECharacteristic::setBroadcastProperty(bool value) {
@@ -522,6 +519,7 @@ void BLECharacteristic::setBroadcastProperty(bool value) {
 
 /**
  * @brief Set the callback handlers for this characteristic.
+ * @param [in] pCallbacks An instance of a callbacks structure used to define any callbacks for the characteristic.
  */
 void BLECharacteristic::setCallbacks(BLECharacteristicCallbacks* pCallbacks) {
 	m_pCallbacks = pCallbacks;

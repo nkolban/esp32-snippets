@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <GeneralUtils.h>
 
-static const char tag[] = "File";
+static const char* LOG_TAG = "File";
 /**
  * @brief Construct a file.
  * @param [in] name The name of the file.
@@ -32,13 +32,13 @@ File::File(std::string name, uint8_t type) {
  */
 std::string File::getContent(bool base64Encode) {
 	uint32_t size = length();
-	ESP_LOGD(tag, "File:: getContent(), name=%s, length=%d", m_name.c_str(), size);
+	ESP_LOGD(LOG_TAG, "File:: getContent(), name=%s, length=%d", m_name.c_str(), size);
 	if (size == 0) {
 		return "";
 	}
 	uint8_t *pData = (uint8_t *)malloc(size);
 	if (pData == nullptr) {
-		ESP_LOGE(tag, "getContent: Failed to allocate memory");
+		ESP_LOGE(LOG_TAG, "getContent: Failed to allocate memory");
 		return "";
 	}
 	FILE *file = fopen(m_name.c_str(), "r");
@@ -63,14 +63,14 @@ std::string File::getContent(bool base64Encode) {
  */
 std::string File::getContent(uint32_t offset, uint32_t readSize) {
 	uint32_t fileSize = length();
-	ESP_LOGD(tag, "File:: getContent(), name=%s, fileSize=%d, offset=%d, readSize=%d",
+	ESP_LOGD(LOG_TAG, "File:: getContent(), name=%s, fileSize=%d, offset=%d, readSize=%d",
 		m_name.c_str(), fileSize, offset, readSize);
 	if (fileSize == 0 || offset > fileSize) {
 		return "";
 	}
 	uint8_t *pData = (uint8_t *)malloc(readSize);
 	if (pData == nullptr) {
-		ESP_LOGE(tag, "getContent: Failed to allocate memory");
+		ESP_LOGE(LOG_TAG, "getContent: Failed to allocate memory");
 		return "";
 	}
 	FILE *file = fopen(m_name.c_str(), "r");

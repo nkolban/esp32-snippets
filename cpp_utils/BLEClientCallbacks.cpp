@@ -6,9 +6,9 @@
  */
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
-#include "BLEClientCallbacks.h"
+#include "BLEClient.h"
 #include <esp_log.h>
-static const char LOG_TAG[] = "BLEClientCallbacks";
+static const char* LOG_TAG = "BLEClientCallbacks";
 
 void BLEClientCallbacks::onConnect(BLEClient* pClient) {
 	ESP_LOGD(LOG_TAG, ">> onConnect(): Default");

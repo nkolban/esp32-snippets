@@ -17,7 +17,7 @@
 BLE2902::BLE2902() : BLEDescriptor(BLEUUID((uint16_t) 0x2902)) {
 	uint8_t data[2] = {0,0};
 	setValue(data, 2);
-}
+} // BLE2902
 
 
 /**

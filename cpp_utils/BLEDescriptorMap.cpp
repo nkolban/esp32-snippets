@@ -8,7 +8,7 @@
 #if defined(CONFIG_BT_ENABLED)
 #include <sstream>
 #include <iomanip>
-#include "BLEDescriptorMap.h"
+#include "BLECharacteristic.h"
 #include "BLEDescriptor.h"
 #include <esp_gatts_api.h>   // ESP32 BLE
 

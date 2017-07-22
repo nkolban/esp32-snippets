@@ -4,20 +4,22 @@
  *  Created on: Jul 17, 2017
  *      Author: kolban
  */
-
-#include "BLEValue.h"
 #include <esp_log.h>
 
-const char* LOG_TAG="BLEValue";
+#include "BLEValue.h"
+
+static const char* LOG_TAG="BLEValue";
 
 BLEValue::BLEValue() {
 	m_accumulation = "";
 	m_value        = "";
+	m_readOffset   = 0;
 } // BLEValue
 
 
 /**
  * @brief Add a message part to the accumulation.
+ * The accumulation is a growing set of data that is added to until a commit or cancel.
  * @param [in] part A message part being added.
  */
 void BLEValue::addPart(std::string part) {
@@ -28,6 +30,7 @@ void BLEValue::addPart(std::string part) {
 
 /**
  * @brief Add a message part to the accumulation.
+ * The accumulation is a growing set of data that is added to until a commit or cancel.
  * @param [in] pData A message part being added.
  * @param [in] length The number of bytes being added.
  */
@@ -43,6 +46,7 @@ void BLEValue::addPart(uint8_t* pData, size_t length) {
 void BLEValue::cancel() {
 	ESP_LOGD(LOG_TAG, ">> cancel");
 	m_accumulation = "";
+	m_readOffset   = 0;
 } // cancel
 
 
@@ -60,6 +64,7 @@ void BLEValue::commit() {
 	}
 	setValue(m_accumulation);
 	m_accumulation = "";
+	m_readOffset   = 0;
 } // commit
 
 
@@ -69,7 +74,7 @@ void BLEValue::commit() {
  */
 uint16_t BLEValue::getReadOffset() {
 	return m_readOffset;
-}
+} // getReadOffset
 
 
 /**
@@ -97,14 +102,11 @@ void BLEValue::setValue(std::string value) {
 } // setValue
 
 
-
-
-
 /**
  * @brief Set the current value.
  * @param [in] pData The data for the current value.
  * @param [in] The length of the new current value.
  */
 void BLEValue::setValue(uint8_t* pData, size_t length) {
-	m_value = std::string((char *)pData, length);
+	m_value = std::string((char*)pData, length);
 } // setValue

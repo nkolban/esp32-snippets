@@ -17,7 +17,7 @@
 #include <nvs.h>
 #include <esp_wifi.h>
 
-static char tag[] = "GeneralUtils";
+static const char* LOG_TAG = "GeneralUtils";
 
 static const char kBase64Alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
@@ -279,7 +279,7 @@ void GeneralUtils::hexDump(uint8_t* pData, uint32_t length) {
 		strcat(ascii, tempBuf);
 		index++;
 		if (index % 16 == 0) {
-			ESP_LOGD(tag, "%s %s", hex, ascii);
+			ESP_LOGD(LOG_TAG, "%s %s", hex, ascii);
 			strcpy(ascii, "");
 			strcpy(hex, "");
 		}
@@ -289,7 +289,7 @@ void GeneralUtils::hexDump(uint8_t* pData, uint32_t length) {
 			strcat(hex, "   ");
 			index++;
 		}
-		ESP_LOGD(tag, "%s %s", hex, ascii);
+		ESP_LOGD(LOG_TAG, "%s %s", hex, ascii);
 	}
 } // hexDump
 

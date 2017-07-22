@@ -8,7 +8,7 @@
 #if defined(CONFIG_BT_ENABLED)
 #include <sstream>
 #include <iomanip>
-#include "BLECharacteristicMap.h"
+#include "BLEService.h"
 
 
 /**

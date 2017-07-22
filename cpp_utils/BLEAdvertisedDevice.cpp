@@ -17,7 +17,7 @@
 #include <sstream>
 #include "BLEAdvertisedDevice.h"
 #include "BLEUtils.h"
-static const char LOG_TAG[]="BLEAdvertisedDevice";
+static const char* LOG_TAG="BLEAdvertisedDevice";
 
 BLEAdvertisedDevice::BLEAdvertisedDevice() {
 	m_adFlag           = 0;

@@ -76,5 +76,11 @@ private:
 	int8_t      m_txPower;
 };
 
+class BLEAdvertisedDeviceCallbacks {
+public:
+	virtual ~BLEAdvertisedDeviceCallbacks() {}
+	virtual void onResult(BLEAdvertisedDevice* pAdvertisedDevice) = 0;
+};
+
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEADVERTISEDDEVICE_H_ */

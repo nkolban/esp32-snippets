@@ -6,9 +6,9 @@
  */
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
-#include "BLECharacteristicCallbacks.h"
+#include "BLECharacteristic.h"
 #include <esp_log.h>
-static char LOG_TAG[] = "BLECharacteristicCallbacks";
+static const char* LOG_TAG = "BLECharacteristicCallbacks";
 
 
 BLECharacteristicCallbacks::~BLECharacteristicCallbacks() {}

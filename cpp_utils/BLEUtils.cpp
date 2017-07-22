@@ -23,7 +23,7 @@
 #include <sstream>
 #include <iomanip>
 
-static char LOG_TAG[] = "BLEUtils";
+static const char* LOG_TAG = "BLEUtils";
 
 /*
 static std::map<std::string, BLEClient *> g_addressMap;

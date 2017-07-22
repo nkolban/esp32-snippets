@@ -19,7 +19,7 @@
 #include "GeneralUtils.h"
 
 
-static const char LOG_TAG[] = "BLERemoteCharacteristic";
+static const char* LOG_TAG = "BLERemoteCharacteristic";
 
 BLERemoteCharacteristic::BLERemoteCharacteristic(
 		esp_gatt_id_t        charId,
@@ -119,6 +119,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 			break;
 		} // ESP_GATTC_REG_FOR_NOTIFY_EVT
 
+
 		//
 		// ESP_GATTC_WRITE_CHAR_EVT
 		//
@@ -187,6 +188,7 @@ uint8_t BLERemoteCharacteristic::readUInt8(void) {
 	}
 	return 0;
 } // readUInt8
+
 
 /**
  * @brief Read the value of the remote characteristic.

@@ -13,12 +13,32 @@
 #include <esp_gatts_api.h>
 
 #include "BLECharacteristic.h"
-#include "BLECharacteristicMap.h"
 #include "BLEServer.h"
 #include "BLEUUID.h"
 #include "FreeRTOS.h"
 
 class BLEServer;
+
+class BLECharacteristicMap {
+public:
+	void setByUUID(BLEUUID uuid, BLECharacteristic *characteristic);
+	void setByHandle(uint16_t handle, BLECharacteristic *characteristic);
+	BLECharacteristic *getByUUID(BLEUUID uuid);
+	BLECharacteristic *getByHandle(uint16_t handle);
+	BLECharacteristic *getFirst();
+	BLECharacteristic *getNext();
+	std::string toString();
+	void handleGATTServerEvent(
+			esp_gatts_cb_event_t      event,
+			esp_gatt_if_t             gatts_if,
+			esp_ble_gatts_cb_param_t *param);
+
+
+private:
+	std::map<std::string, BLECharacteristic *> m_uuidMap;
+	std::map<uint16_t, BLECharacteristic *> m_handleMap;
+	std::map<std::string, BLECharacteristic *>::iterator m_iterator;
+};
 
 class BLEService {
 public:
@@ -60,6 +80,7 @@ private:
 	void               setHandle(uint16_t handle);
 	//void               setService(esp_gatt_srvc_id_t srvc_id);
 }; // BLEService
+
 
 #endif // CONFIG_BT_ENABLED
 #endif /* COMPONENTS_CPP_UTILS_BLESERVICE_H_ */

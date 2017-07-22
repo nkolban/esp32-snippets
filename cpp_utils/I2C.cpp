@@ -13,7 +13,7 @@
 #include "sdkconfig.h"
 #include <esp_log.h>
 
-static char tag[] = "I2C";
+static const char* LOG_TAG = "I2C";
 
 static bool driverInstalled = false;
 static bool debug = false;
@@ -38,7 +38,7 @@ I2C::I2C() {
  */
 void I2C::beginTransaction() {
 	if (debug) {
-		ESP_LOGD(tag, "beginTransaction()");
+		ESP_LOGD(LOG_TAG, "beginTransaction()");
 	}
 	cmd = ::i2c_cmd_link_create();
 	ESP_ERROR_CHECK(::i2c_master_start(cmd));
@@ -55,7 +55,7 @@ void I2C::beginTransaction() {
  */
 void I2C::endTransaction() {
 	if (debug) {
-		ESP_LOGD(tag, "endTransaction()");
+		ESP_LOGD(LOG_TAG, "endTransaction()");
 	}
 	ESP_ERROR_CHECK(::i2c_master_stop(cmd));
 	ESP_ERROR_CHECK(::i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000/portTICK_PERIOD_MS));
@@ -73,7 +73,7 @@ void I2C::endTransaction() {
  * @return N/A.
  */
 void I2C::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin) {
-	ESP_LOGD(tag, ">> I2c::init.  address=%d, sda=%d, scl=%d", address, sdaPin, sclPin);
+	ESP_LOGD(LOG_TAG, ">> I2c::init.  address=%d, sda=%d, scl=%d", address, sdaPin, sclPin);
 	this->sdaPin = sdaPin;
 	this->sclPin = sclPin;
 	this->address = address;
@@ -102,7 +102,7 @@ void I2C::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin) {
  */
 void I2C::read(uint8_t* bytes, size_t length, bool ack) {
 	if (debug) {
-		ESP_LOGD(tag, "read(size=%d, ack=%d)", length, ack);
+		ESP_LOGD(LOG_TAG, "read(size=%d, ack=%d)", length, ack);
 	}
 	if (directionKnown == false) {
 		directionKnown = true;
@@ -121,7 +121,7 @@ void I2C::read(uint8_t* bytes, size_t length, bool ack) {
  */
 void I2C::read(uint8_t *byte, bool ack) {
 	if (debug) {
-		ESP_LOGD(tag, "read(size=1, ack=%d)", ack);
+		ESP_LOGD(LOG_TAG, "read(size=1, ack=%d)", ack);
 	}
 	if (directionKnown == false) {
 		directionKnown = true;
@@ -182,7 +182,7 @@ void I2C::setDebug(bool enabled) {
  */
 void I2C::start() {
 	if (debug) {
-		ESP_LOGD(tag, "start()");
+		ESP_LOGD(LOG_TAG, "start()");
 	}
 	ESP_ERROR_CHECK(::i2c_master_start(cmd));
 } // start
@@ -194,7 +194,7 @@ void I2C::start() {
  */
 void I2C::stop() {
 	if (debug) {
-		ESP_LOGD(tag, "stop()");
+		ESP_LOGD(LOG_TAG, "stop()");
 	}
 	ESP_ERROR_CHECK(::i2c_master_stop(cmd));
 	directionKnown = false;
@@ -210,7 +210,7 @@ void I2C::stop() {
  */
 void I2C::write(uint8_t byte, bool ack) {
 	if (debug) {
-		ESP_LOGD(tag, "write(val=0x%.2x, ack=%d)", byte, ack);
+		ESP_LOGD(LOG_TAG, "write(val=0x%.2x, ack=%d)", byte, ack);
 	}
 	if (directionKnown == false) {
 		directionKnown = true;
@@ -230,7 +230,7 @@ void I2C::write(uint8_t byte, bool ack) {
  */
 void I2C::write(uint8_t *bytes, size_t length, bool ack) {
 	if (debug) {
-		ESP_LOGD(tag, "write(length=%d, ack=%d)", length, ack);
+		ESP_LOGD(LOG_TAG, "write(length=%d, ack=%d)", length, ack);
 	}
 	if (directionKnown == false) {
 		directionKnown = true;

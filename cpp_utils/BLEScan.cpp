@@ -18,7 +18,7 @@
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
 
-static char LOG_TAG[] = "BLEScan";
+static const char* LOG_TAG = "BLEScan";
 
 
 BLEScan::BLEScan() {
@@ -29,12 +29,12 @@ BLEScan::BLEScan() {
 	setWindow(100);
 	m_pAdvertisedDeviceCallbacks = nullptr;
 	m_stopped = true;
-}
+} // BLEScan
 
 
 BLEScan::~BLEScan() {
 	clearAdvertisedDevices();
-}
+} // ~BLEScan
 
 
 /**
@@ -46,7 +46,7 @@ void BLEScan::clearAdvertisedDevices() {
 		delete m_vectorAvdertisedDevices[i];
 	}
 	m_vectorAvdertisedDevices.clear();
-}
+} // clearAdvertisedDevices
 
 
 /**
@@ -57,6 +57,7 @@ void BLEScan::clearAdvertisedDevices() {
 void BLEScan::gapEventHandler(
 	esp_gap_ble_cb_event_t  event,
 	esp_ble_gap_cb_param_t* param) {
+
 	switch(event) {
 
 	// ESP_GAP_BLE_SCAN_RESULT_EVT
@@ -102,12 +103,15 @@ void BLEScan::gapEventHandler(
 						break;
 					}
 
+					// We now construct a model of the advertised device that we have just found for the first
+					// time.
 					BLEAdvertisedDevice* pAdvertisedDevice = new BLEAdvertisedDevice();
 					pAdvertisedDevice->setAddress(advertisedAddress);
 					pAdvertisedDevice->setRSSI(param->scan_rst.rssi);
 					pAdvertisedDevice->setAdFlag(param->scan_rst.flag);
-					pAdvertisedDevice->parseAdvertisement((uint8_t *)param->scan_rst.ble_adv);
+					pAdvertisedDevice->parseAdvertisement((uint8_t*)param->scan_rst.ble_adv);
 					pAdvertisedDevice->setScan(this);
+
 					m_vectorAvdertisedDevices.push_back(pAdvertisedDevice);
 					if (m_pAdvertisedDeviceCallbacks) {
 						m_pAdvertisedDeviceCallbacks->onResult(pAdvertisedDevice);
@@ -130,6 +134,7 @@ void BLEScan::gapEventHandler(
 		} // default
 	} // End switch
 } // gapEventHandler
+
 
 void BLEScan::onResults() {
 	ESP_LOGD(LOG_TAG, ">> onResults: default");

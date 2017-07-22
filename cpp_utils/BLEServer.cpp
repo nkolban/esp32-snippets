@@ -21,7 +21,7 @@
 #include <gatt_api.h>
 #include <unordered_set>
 
-static char LOG_TAG[] = "BLEServer";
+static const char* LOG_TAG = "BLEServer";
 
 
 /**

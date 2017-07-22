@@ -13,15 +13,7 @@
 #include <esp_log.h>
 #include "sdkconfig.h"
 
-static char TAG[] = "FreeRTOS";
-
-FreeRTOS::FreeRTOS() {
-}
-
-
-FreeRTOS::~FreeRTOS() {
-}
-
+static const char* LOG_TAG = "FreeRTOS";
 
 /**
  * Sleep for the specified number of milliseconds.
@@ -80,20 +72,23 @@ uint32_t FreeRTOS::getTimeSinceStart() {
  * @brief Wait for a semaphore to be released by trying to take it and
  * then releasing it again.
  * @param [in] owner A debug tag.
+ * @return The value associated with the semaphore.
  */
-void FreeRTOS::Semaphore::wait(std::string owner) {
-	ESP_LOGV(TAG, "Semaphore waiting: %s for %s", toString().c_str(), owner.c_str());
+uint32_t FreeRTOS::Semaphore::wait(std::string owner) {
+	ESP_LOGV(LOG_TAG, "Semaphore waiting: %s for %s", toString().c_str(), owner.c_str());
 	xSemaphoreTake(m_semaphore, portMAX_DELAY);
 	m_owner = owner;
 	xSemaphoreGive(m_semaphore);
-	ESP_LOGV(TAG, "Semaphore released: %s", toString().c_str());
+	ESP_LOGV(LOG_TAG, "Semaphore released: %s", toString().c_str());
 	m_owner = "<N/A>";
+	return m_value;
 } // wait
 
 FreeRTOS::Semaphore::Semaphore(std::string name) {
 	m_semaphore = xSemaphoreCreateMutex();
 	m_name      = name;
 	m_owner     = "<N/A>";
+	m_value     = 0;
 }
 
 FreeRTOS::Semaphore::~Semaphore() {
@@ -107,9 +102,20 @@ FreeRTOS::Semaphore::~Semaphore() {
  */
 void FreeRTOS::Semaphore::give() {
 	xSemaphoreGive(m_semaphore);
-	ESP_LOGV(TAG, "Semaphore giving: %s", toString().c_str());
+	ESP_LOGV(LOG_TAG, "Semaphore giving: %s", toString().c_str());
 	m_owner = "<N/A>";
 } // Semaphore::give
+
+
+/**
+ * @brief Give a semaphore.
+ * The Semaphore is given with an associated value.
+ * @param [in] value The value to associate with the semaphore.
+ */
+void FreeRTOS::Semaphore::give(uint32_t value) {
+	m_value = value;
+	give();
+}
 
 
 /**
@@ -119,10 +125,10 @@ void FreeRTOS::Semaphore::give() {
 void FreeRTOS::Semaphore::take(std::string owner)
 {
 
-	ESP_LOGV(TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
+	ESP_LOGV(LOG_TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
 	xSemaphoreTake(m_semaphore, portMAX_DELAY);
 	m_owner = owner;
-	ESP_LOGV(TAG, "Semaphore taken:  %s", toString().c_str());
+	ESP_LOGV(LOG_TAG, "Semaphore taken:  %s", toString().c_str());
 } // Semaphore::take
 
 
@@ -132,10 +138,10 @@ void FreeRTOS::Semaphore::take(std::string owner)
  * @param [in] timeoutMs Timeout in milliseconds.
  */
 void FreeRTOS::Semaphore::take(uint32_t timeoutMs, std::string owner) {
-	ESP_LOGV(TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
+	ESP_LOGV(LOG_TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
 	m_owner = owner;
 	xSemaphoreTake(m_semaphore, timeoutMs/portTICK_PERIOD_MS);
-	ESP_LOGV(TAG, "Semaphore taken:  %s", toString().c_str());
+	ESP_LOGV(LOG_TAG, "Semaphore taken:  %s", toString().c_str());
 } // Semaphore::take
 
 std::string FreeRTOS::Semaphore::toString() {

@@ -17,7 +17,7 @@
 #include "BLEDescriptor.h"
 #include "GeneralUtils.h"
 
-static char LOG_TAG[] = "BLEDescriptor";
+static const char* LOG_TAG = "BLEDescriptor";
 
 
 #define NULL_HANDLE (0xffff)

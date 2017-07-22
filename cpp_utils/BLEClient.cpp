@@ -39,7 +39,7 @@
  *
  *
  */
-static char LOG_TAG[] = "BLEClient";
+static const char* LOG_TAG = "BLEClient";
 
 BLEClient::BLEClient() {
 	m_pClientCallbacks = nullptr;
@@ -52,7 +52,7 @@ BLEClient::BLEClient() {
  * @brief Connect to the partner.
  * @param [in] address The address of the partner.
  */
-void BLEClient::connect(BLEAddress address) {
+bool BLEClient::connect(BLEAddress address) {
 	ESP_LOGD(LOG_TAG, ">> connect(%s)", address.toString().c_str());
 // We need the connection handle that we get from registering the application.  We register the app
 // and then block on its completion.  When the event has arrived, we will have the handle.
@@ -60,10 +60,9 @@ void BLEClient::connect(BLEAddress address) {
 	esp_err_t errRc = esp_ble_gattc_app_register(0);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_app_register: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
+		return false;
 	}
-	m_semaphoreRegEvt.take("connect");
-	m_semaphoreRegEvt.give();
+	m_semaphoreRegEvt.wait("connect");
 
 
 	m_address = address;
@@ -75,11 +74,12 @@ void BLEClient::connect(BLEAddress address) {
 	);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_open: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
+		return false;
 	}
-	m_semaphoreOpenEvt.take("connect");
-	m_semaphoreOpenEvt.give();
-	ESP_LOGD(LOG_TAG, "<< connect()");
+
+	uint32_t rc = m_semaphoreOpenEvt.wait("connect");
+	ESP_LOGD(LOG_TAG, "<< connect(), rc=%d", rc==ESP_GATT_OK);
+	return rc == ESP_GATT_OK;
 } // connect
 
 
