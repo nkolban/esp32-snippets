@@ -21,6 +21,9 @@ class BLEService;
 class BLEDescriptor;
 class BLECharacteristicCallbacks;
 
+/**
+ * @brief A management structure for %BLE descriptors.
+ */
 class BLEDescriptorMap {
 public:
 	void setByUUID(BLEUUID uuid,      BLEDescriptor *pDescriptor);
@@ -40,12 +43,19 @@ private:
 	std::map<std::string, BLEDescriptor *>::iterator m_iterator;
 };
 
+
+/**
+ * @brief The model of a %BLE Characteristic.
+ *
+ * A %BLE Characteristic is an identified value container that manages a value.  It is exposed by a %BLE server and
+ * can be read and written to by a %BLE client.
+ */
 class BLECharacteristic {
 public:
 	BLECharacteristic(BLEUUID uuid, uint32_t properties = 0);
 	virtual ~BLECharacteristic();
 
-	void           addDescriptor(BLEDescriptor *pDescriptor);
+	void           addDescriptor(BLEDescriptor* pDescriptor);
 	BLEDescriptor* getDescriptorByUUID(BLEUUID descriptorUUID);
 	//size_t         getLength();
 	BLEUUID        getUUID();
@@ -54,11 +64,11 @@ public:
 	void indicate();
 	void notify();
 	void setBroadcastProperty(bool value);
-	void setCallbacks(BLECharacteristicCallbacks *pCallbacks);
+	void setCallbacks(BLECharacteristicCallbacks* pCallbacks);
 	void setIndicateProperty(bool value);
 	void setNotifyProperty(bool value);
 	void setReadProperty(bool value);
-	void setValue(uint8_t *data, size_t size);
+	void setValue(uint8_t* data, size_t size);
 	void setValue(std::string value);
 	void setWriteProperty(bool value);
 	void setWriteNoResponseProperty(bool value);
@@ -78,28 +88,36 @@ private:
 	friend class BLEDescriptor;
 	friend class BLECharacteristicMap;
 
-	BLEUUID              m_bleUUID;
-	esp_gatt_char_prop_t m_properties;
-	BLEValue             m_value;
-	uint16_t             m_handle;
-	BLEService          *m_pService;
-	BLEDescriptorMap     m_descriptorMap;
-	BLECharacteristicCallbacks *m_pCallbacks;
+	BLEUUID                     m_bleUUID;
+	BLEDescriptorMap            m_descriptorMap;
+	uint16_t                    m_handle;
+	esp_gatt_char_prop_t        m_properties;
+	BLECharacteristicCallbacks* m_pCallbacks;
+	BLEService*                 m_pService;
+	BLEValue                    m_value;
 
 	void handleGATTServerEvent(
 			esp_gatts_cb_event_t      event,
 			esp_gatt_if_t             gatts_if,
-			esp_ble_gatts_cb_param_t *param);
+			esp_ble_gatts_cb_param_t* param);
 
-	void                 executeCreate(BLEService *pService);
+	void                 executeCreate(BLEService* pService);
 	uint16_t             getHandle();
 	esp_gatt_char_prop_t getProperties();
-	BLEService          *getService();
+	BLEService*          getService();
 	void                 setHandle(uint16_t handle);
 	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
 	FreeRTOS::Semaphore m_semaphoreConfEvt   = FreeRTOS::Semaphore("ConfEvt");
 }; // BLECharacteristic
 
+
+/**
+ * @brief Callbacks that can be associated with a %BLE characteristic to inform of events.
+ *
+ * When a server application creates a %BLE characteristic, we may wish to be informed when there is either
+ * a read or write request to the characteristic's value.  An application can register a
+ * sub-classed instance of this class and will be notified when such an event happens.
+ */
 class BLECharacteristicCallbacks {
 public:
 	virtual ~BLECharacteristicCallbacks();

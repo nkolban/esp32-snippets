@@ -22,7 +22,7 @@ BLE2902::BLE2902() : BLEDescriptor(BLEUUID((uint16_t) 0x2902)) {
 
 /**
  * @brief Get the notifications value.
- * @return The notifications value.
+ * @return The notifications value.  True if notifications are enabled and false if not.
  */
 bool BLE2902::getNotifications() {
 	return (getValue()[0] & (1 << 0)) != 0;
@@ -31,7 +31,7 @@ bool BLE2902::getNotifications() {
 
 /**
  * @brief Get the indications value.
- * @return The indications value.
+ * @return The indications value.  True if indications are enabled and false if not.
  */
 bool BLE2902::getIndications() {
 	return (getValue()[0] & (1 << 1)) != 0;

@@ -41,6 +41,10 @@ BLEAdvertisedDevice::BLEAdvertisedDevice() {
 
 /**
  * @brief Get the address.
+ *
+ * Every %BLE device exposes an address that is used to identify it and subsequently connect to it.
+ * Call this function to obtain the address of the advertised device.
+ *
  * @return The address of the advertised device.
  */
 BLEAddress BLEAdvertisedDevice::getAddress() {
@@ -50,6 +54,10 @@ BLEAddress BLEAdvertisedDevice::getAddress() {
 
 /**
  * @brief Get the appearance.
+ *
+ * A %BLE device can declare its own appearance.  The appearance is how it would like to be shown to an end user
+ * typcially in the form of an icon.
+ *
  * @return The appearance of the advertised device.
  */
 uint16_t BLEAdvertisedDevice::getApperance() {
@@ -110,32 +118,55 @@ int8_t BLEAdvertisedDevice::getTXPower() {
 	return m_txPower;
 } // getTXPower
 
-
+/**
+ * @brief Does this advertisement have an appearance value?
+ * @return True if there is an appearance value present.
+ */
 bool BLEAdvertisedDevice::haveAppearance() {
 	return m_haveAppearance;
 } // haveAppearance
 
 
+/**
+ * @brief Does this advertisement have manufacturer data?
+ * @return True if there is manufacturer data present.
+ */
 bool BLEAdvertisedDevice::haveManufacturerData() {
 	return m_haveManufacturerData;
 } // haveManufacturerData
 
 
+/**
+ * @brief Does this advertisement have a name value?
+ * @return True if there is a name value present.
+ */
 bool BLEAdvertisedDevice::haveName() {
 	return m_haveName;
 } // haveName
 
 
+/**
+ * @brief Does this advertisement have a signal strength value?
+ * @return True if there is a signal strength value present.
+ */
 bool BLEAdvertisedDevice::haveRSSI() {
 	return m_haveRSSI;
 } // haveRSSI
 
 
+/**
+ * @brief Does this advertisement have a service UUID value?
+ * @return True if there is a service UUID value present.
+ */
 bool BLEAdvertisedDevice::haveServiceUUID() {
 	return m_haveServiceUUID;
 } // haveServiceUUID
 
 
+/**
+ * @brief Does this advertisement have a transmission power value?
+ * @return True if there is a transmission power value present.
+ */
 bool BLEAdvertisedDevice::haveTXPower() {
 	return m_haveTXPower;
 } // haveTXPower

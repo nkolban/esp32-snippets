@@ -31,6 +31,7 @@ namespace ESP32CPP
 	 */
 	class GPIO {
 	public:
+		static void addISRHandler(gpio_num_t pin, gpio_isr_t handler, void* pArgs);
 		static void high(gpio_num_t pin);
 		static void interruptDisable(gpio_num_t pin);
 		static void interruptEnable(gpio_num_t pin);
@@ -41,6 +42,7 @@ namespace ESP32CPP
 		static void setInterruptType(gpio_num_t pin, gpio_int_type_t intrType);
 		static void setOutput(gpio_num_t pin);
 		static void write(gpio_num_t pin, bool value);
+		static void writeByte(gpio_num_t pins[], uint8_t value, int bits);
 	}; // End GPIO
 } // End ESP32CPP namespace
 #endif /* COMPONENTS_CPP_UTILS_GPIO_H_ */

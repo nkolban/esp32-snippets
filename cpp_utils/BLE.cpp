@@ -6,7 +6,7 @@
  */
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
-
+#include <nvs_flash.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
 #include <bt.h>              // ESP32 BLE
@@ -131,18 +131,19 @@ void BLE::gapEventHandler(
 } // gapEventHandler
 
 
-/**
- * @brief Initialize the server %BLE environment.
- *
- */
- void BLE::initServer(std::string deviceName) {
-	esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-	esp_err_t errRc = esp_bt_controller_init(&bt_cfg);
+static void commonInit() {
+	esp_err_t errRc = ::nvs_flash_init();
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "nvs_flash_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		return;
+	}
+
+  esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+  errRc = esp_bt_controller_init(&bt_cfg);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
-
 
 	errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
 	if (errRc != ESP_OK) {
@@ -161,8 +162,16 @@ void BLE::gapEventHandler(
 		ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+} // commonInit
 
-	errRc = esp_ble_gap_register_callback(BLE::gapEventHandler);
+/**
+ * @brief Initialize the server %BLE environment.
+ *
+ */
+void BLE::initServer(std::string deviceName) {
+	commonInit();
+
+	esp_err_t errRc = esp_ble_gap_register_callback(BLE::gapEventHandler);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
@@ -195,32 +204,9 @@ void BLE::gapEventHandler(
  * @brief Initialize the client %BLE environment.
  */
 void BLE::initClient() {
-  esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-  esp_err_t errRc = esp_bt_controller_init(&bt_cfg);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
-	}
+	commonInit();
 
-	errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
-	}
-
-	errRc = esp_bluedroid_init();
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
-	}
-
-	errRc = esp_bluedroid_enable();
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
-	}
-
-	errRc = esp_ble_gap_register_callback(BLE::gapEventHandler);
+	esp_err_t errRc = esp_ble_gap_register_callback(BLE::gapEventHandler);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;

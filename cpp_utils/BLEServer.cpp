@@ -25,14 +25,18 @@ static const char* LOG_TAG = "BLEServer";
 
 
 /**
- * Construct a BLE Server
+ * @brief Construct a %BLE Server
+ *
+ * This class is not designed to be individually instantiated.  Instead one should create a server by asking
+ * the BLE device class.
  */
 BLEServer::BLEServer() {
-	m_appId    = -1;
-	m_gatts_if = -1;
-	m_connId   = -1;
-	BLE::m_bleServer = this;
+	m_appId            = -1;
+	m_gatts_if         = -1;
+	m_connId           = -1;
+	BLE::m_bleServer   = this;
 	m_pServerCallbacks = nullptr;
+
 	createApp(0);
 } // BLEServer
 
@@ -43,13 +47,14 @@ void BLEServer::createApp(uint16_t appId) {
 }
 
 /**
- * @brief Create a BLE Service.
- * With a BLE server, we can host one or more services.  Invoking this function causes the creation of a definition
+ * @brief Create a %BLE Service.
+ *
+ * With a %BLE server, we can host one or more services.  Invoking this function causes the creation of a definition
  * of a new service.  Every service must have a unique UUID.
  * @param [in] uuid The UUID of the new service.
  * @return A reference to the new service object.
  */
-BLEService *BLEServer::createService(BLEUUID uuid) {
+BLEService* BLEServer::createService(BLEUUID uuid) {
 	ESP_LOGD(LOG_TAG, ">> createService - %s", uuid.toString().c_str());
 	m_semaphoreCreateEvt.take("createService");
 
@@ -61,7 +66,7 @@ BLEService *BLEServer::createService(BLEUUID uuid) {
 		return nullptr;
 	}
 
-	BLEService *pService = new BLEService(uuid);
+	BLEService* pService = new BLEService(uuid);
 	m_serviceMap.setByUUID(uuid, pService); // Save a reference to this service being on this server.
 	pService->executeCreate(this);          // Perform the API calls to actually create the service.
 
@@ -72,6 +77,11 @@ BLEService *BLEServer::createService(BLEUUID uuid) {
 } // createService
 
 
+/**
+ * @brief Retrieve the advertising object that can be used to advertise the existence of the server.
+ *
+ * @return An advertising object.
+ */
 BLEAdvertising* BLEServer::getAdvertising() {
 	return &m_bleAdvertising;
 }
@@ -86,12 +96,13 @@ uint16_t BLEServer::getGattsIf() {
 
 /**
  * @brief Handle a receiver GAP event.
+ *
  * @param [in] event
  * @param [in] param
  */
 void BLEServer::handleGAPEvent(
-		esp_gap_ble_cb_event_t event,
-		esp_ble_gap_cb_param_t *param) {
+		esp_gap_ble_cb_event_t  event,
+		esp_ble_gap_cb_param_t* param) {
 	ESP_LOGD(LOG_TAG, "BLEServer ... handling GAP event!");
 	switch(event) {
 		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT: {
@@ -121,6 +132,7 @@ void BLEServer::handleGAPEvent(
 
 /**
  * @brief Handle a GATT Server Event.
+ *
  * @param [in] event
  * @param [in] gatts_if
  * @param [in] param
@@ -129,7 +141,7 @@ void BLEServer::handleGAPEvent(
 void BLEServer::handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
 		esp_gatt_if_t             gatts_if,
-		esp_ble_gatts_cb_param_t *param) {
+		esp_ble_gatts_cb_param_t* param) {
 
 	ESP_LOGD(LOG_TAG, ">> handleGATTServerEvent: %s",
 			BLEUtils::gattServerEventTypeToString(event).c_str());
@@ -175,7 +187,7 @@ void BLEServer::handleGATTServerEvent(
 		// * esp_gatt_srvc_id_t service_id
 		//
 		case ESP_GATTS_CREATE_EVT: {
-			BLEService *pService = m_serviceMap.getByUUID(param->create.service_id.id.uuid);
+			BLEService* pService = m_serviceMap.getByUUID(param->create.service_id.id.uuid);
 			m_serviceMap.setByHandle(param->create.service_handle, pService);
 			//pService->setHandle(param->create.service_handle);
 			m_semaphoreCreateEvt.give();
@@ -217,6 +229,8 @@ void BLEServer::handleGATTServerEvent(
 		}
 
 		// ESP_GATTS_DISCONNECT_EVT
+		// If we receive a disconnect event then invoke the callback for disconnects (if one is present).
+		// we also want to start advertising again.
 		case ESP_GATTS_DISCONNECT_EVT: {
 			if (m_pServerCallbacks != nullptr) {
 				m_pServerCallbacks->onDisconnect(this);
@@ -247,6 +261,7 @@ void BLEServer::handleGATTServerEvent(
 
 /**
  * @brief Register the app.
+ *
  * @return N/A
  */
 void BLEServer::registerApp() {
@@ -260,6 +275,11 @@ void BLEServer::registerApp() {
 
 /**
  * @brief Set the callbacks.
+ *
+ * As a %BLE server operates, it will generate server level events such as a new client connecting or a previous client
+ * disconnecting.  This function can be called to register a callback handler that will be invoked when these
+ * events are detected.
+ *
  * @param [in] pCallbacks The callbacks to be invoked.
  */
 void BLEServer::setCallbacks(BLEServerCallbacks* pCallbacks) {
@@ -269,7 +289,9 @@ void BLEServer::setCallbacks(BLEServerCallbacks* pCallbacks) {
 
 /**
  * @brief Start advertising.
- * Start the server advertising its existence.
+ *
+ * Start the server advertising its existence.  This is a convenience function and is equivalent to
+ * retrieving the advertising object and invoking start upon it.
  */
 void BLEServer::startAdvertising() {
 	ESP_LOGD(LOG_TAG, ">> startAdvertising");

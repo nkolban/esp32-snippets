@@ -20,14 +20,17 @@ class BLEAdvertisedDevice;
 class BLEAdvertisedDeviceCallbacks;
 class BLEClient;
 
+/**
+ * @brief Perform and manage %BLE scans.
+ *
+ * Scanning is associated with a %BLE client that is attempting to locate BLE servers.
+ */
 class BLEScan {
 public:
 	BLEScan();
 	virtual ~BLEScan();
-	void         gapEventHandler(
-		esp_gap_ble_cb_event_t  event,
-		esp_ble_gap_cb_param_t* param);
-	virtual void onResults();
+
+	//virtual void onResults();
 	void         setActiveScan(bool active);
 	void         setAdvertisedDeviceCallbacks(BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks);
 	void         setInterval(uint16_t intervalMSecs);
@@ -37,7 +40,9 @@ public:
 
 private:
 	friend class BLE;
-
+	void         gapEventHandler(
+		esp_gap_ble_cb_event_t  event,
+		esp_ble_gap_cb_param_t* param);
 	void clearAdvertisedDevices();
 	void parseAdvertisement(BLEClient* pRemoteDevice, uint8_t *payload);
 

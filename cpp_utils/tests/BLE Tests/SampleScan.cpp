@@ -4,7 +4,7 @@
 #include <esp_log.h>
 #include <string>
 
-#include "BLEAdvertisedDeviceCallbacks.h"
+#include "BLEAdvertisedDevice.h"
 #include "sdkconfig.h"
 
 static const char LOG_TAG[] = "SampleScan";

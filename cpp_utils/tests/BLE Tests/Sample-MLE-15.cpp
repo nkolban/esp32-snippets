@@ -4,7 +4,7 @@
 #include <esp_log.h>
 #include <string>
 
-#include "BLEAdvertisedDeviceCallbacks.h"
+#include "BLEAdvertisedDevice.h"
 #include "BLEClient.h"
 #include "sdkconfig.h"
 #include "Task.h"

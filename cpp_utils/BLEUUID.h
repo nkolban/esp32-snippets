@@ -12,17 +12,20 @@
 #include <esp_gatt_defs.h>
 #include <string>
 
+/**
+ * @brief A model of a %BLE UUID.
+ */
 class BLEUUID {
 public:
 	BLEUUID(std::string uuid);
 	BLEUUID(uint16_t uuid);
 	BLEUUID(uint32_t uuid);
 	BLEUUID(esp_bt_uuid_t uuid);
-	BLEUUID(uint8_t *pData, size_t size, bool msbFirst);
+	BLEUUID(uint8_t* pData, size_t size, bool msbFirst);
 	BLEUUID(esp_gatt_srvc_id_t srcvId);
 	BLEUUID();
 	bool           equals(BLEUUID uuid);
-	esp_bt_uuid_t *getNative();
+	esp_bt_uuid_t* getNative();
 	BLEUUID        to128();
 	std::string    toString();
 

@@ -10,6 +10,7 @@
 #include "BLEUUID.h"
 #include "BLEClient.h"
 #include "BLEAddress.h"
+#include "GeneralUtils.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
@@ -740,7 +741,7 @@ void BLEUtils::dumpGattClientEvent(
 				);
 			}
 			break;
-		}
+		} // ESP_GATTC_GET_CHAR_EVT
 
 
 		//
@@ -765,6 +766,8 @@ void BLEUtils::dumpGattClientEvent(
 		//
 		// ESP_GATTC_READ_CHAR_EVT
 		//
+		// Callback to indicate that requested data that we wanted to read is now available.
+		//
 		// read:
 		// esp_gatt_status_t  status
 		// uint16_t           conn_id
@@ -785,9 +788,12 @@ void BLEUtils::dumpGattClientEvent(
 				evtParam->read.value_len
 			);
 			if (evtParam->read.status == ESP_GATT_OK) {
+				GeneralUtils::hexDump(evtParam->read.value, evtParam->read.value_len);
+				/*
 				char *pHexData = BLEUtils::buildHexData(nullptr, evtParam->read.value, evtParam->read.value_len);
 				ESP_LOGD(LOG_TAG, "value: %s \"%s\"", pHexData, BLEUtils::buildPrintData(evtParam->read.value, evtParam->read.value_len).c_str());
 				free(pHexData);
+				*/
 			}
 			break;
 		} // ESP_GATTC_READ_CHAR_EVT

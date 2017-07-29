@@ -25,9 +25,9 @@ static char tag[] = "Task";
  * @return N/A.
  */
 Task::Task(std::string taskName, uint16_t stackSize) {
-	this->stackSize = stackSize;
-	taskData = nullptr;
-	handle   = nullptr;
+	m_stackSize = stackSize;
+	m_taskData  = nullptr;
+	m_handle    = nullptr;
 } // Task
 
 Task::~Task() {
@@ -50,10 +50,10 @@ void Task::delay(int ms) {
  * The code here will run on the task thread.
  * @param [in] pTaskInstance The task to run.
  */
-void Task::runTask(void *pTaskInstance) {
+void Task::runTask(void* pTaskInstance) {
 	ESP_LOGD(tag, ">> runTask");
-	Task *pTask = (Task *)pTaskInstance;
-	pTask->run(pTask->taskData);
+	Task* pTask = (Task*)pTaskInstance;
+	pTask->run(pTask->m_taskData);
 	pTask->stop();
 } // runTask
 
@@ -63,12 +63,12 @@ void Task::runTask(void *pTaskInstance) {
  * @param [in] taskData Data to be passed into the task.
  * @return N/A.
  */
-void Task::start(void *taskData) {
-	if (handle != nullptr) {
+void Task::start(void* taskData) {
+	if (m_handle != nullptr) {
 		ESP_LOGW(tag, "Task::start - There might be a task already running!");
 	}
-	this->taskData = taskData;
-	::xTaskCreate(&runTask, taskName.c_str(), stackSize, this, 5, &handle);
+	m_taskData = taskData;
+	::xTaskCreate(&runTask, m_taskName.c_str(), m_stackSize, this, 5, &m_handle);
 } // start
 
 
@@ -78,11 +78,11 @@ void Task::start(void *taskData) {
  * @return N/A.
  */
 void Task::stop() {
-	if (handle == nullptr) {
+	if (m_handle == nullptr) {
 		return;
 	}
-	xTaskHandle temp = handle;
-	handle = nullptr;
+	xTaskHandle temp = m_handle;
+	m_handle = nullptr;
 	::vTaskDelete(temp);
 } // stop
 
@@ -93,5 +93,5 @@ void Task::stop() {
  * @return N/A.
  */
 void Task::setStackSize(uint16_t stackSize) {
-	this->stackSize = stackSize;
+	m_stackSize = stackSize;
 } // setStackSize

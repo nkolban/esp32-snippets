@@ -136,10 +136,12 @@ void BLEScan::gapEventHandler(
 } // gapEventHandler
 
 
+/*
 void BLEScan::onResults() {
 	ESP_LOGD(LOG_TAG, ">> onResults: default");
 	ESP_LOGD(LOG_TAG, "<< onResults");
 } // onResults
+*/
 
 
 /**

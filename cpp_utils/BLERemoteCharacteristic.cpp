@@ -95,7 +95,10 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 
 			if (evtParam->read.status == ESP_GATT_OK) {
 				m_value = std::string((char*)evtParam->read.value, evtParam->read.value_len);
+			} else {
+				m_value = "";
 			}
+
 			m_semaphoreReadCharEvt.give();
 			break;
 		} // ESP_GATTC_READ_CHAR_EVT
@@ -199,6 +202,7 @@ std::string BLERemoteCharacteristic::readValue() {
 
 	m_semaphoreReadCharEvt.take("readValue");
 
+	// Ask the BLE subsystem to retrieve the value for the remote hosted characteristic.
 	esp_err_t errRc = ::esp_ble_gattc_read_char(
 		m_pRemoteService->getClient()->getGattcIf(),
 		m_pRemoteService->getClient()->getConnId(),
@@ -211,8 +215,9 @@ std::string BLERemoteCharacteristic::readValue() {
 		return "";
 	}
 
-	m_semaphoreReadCharEvt.take("readValue");
-	m_semaphoreReadCharEvt.give();
+	// Block waiting for the event that indicates that the read has completed.  When it has, the std::string found
+	// in m_value will contain our data.
+	m_semaphoreReadCharEvt.wait("readValue");
 
 	ESP_LOGD(LOG_TAG, "<< readValue()");
 	return m_value;
@@ -230,7 +235,7 @@ void BLERemoteCharacteristic::registerForNotify() {
 
 	esp_err_t errRc = ::esp_ble_gattc_register_for_notify(
 		m_pRemoteService->getClient()->getGattcIf(),
-		*m_pRemoteService->getClient()->getAddress().getNative(),
+		*m_pRemoteService->getClient()->getPeerAddress().getNative(),
 		m_pRemoteService->getSrvcId(),
 		&m_charId);
 
@@ -239,8 +244,7 @@ void BLERemoteCharacteristic::registerForNotify() {
 		return;
 	}
 
-	m_semaphoreRegForNotifyEvt.take("registerForNotify");
-	m_semaphoreRegForNotifyEvt.give();
+	m_semaphoreRegForNotifyEvt.wait("registerForNotify");
 
 	ESP_LOGD(LOG_TAG, "<< registerForNotify()");
 } // registerForNotify
@@ -285,8 +289,7 @@ void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
 		return;
 	}
 
-	m_semaphoreWriteCharEvt.take("writeValue");
-	m_semaphoreWriteCharEvt.give();
+	m_semaphoreWriteCharEvt.wait("writeValue");
 
 	ESP_LOGD(LOG_TAG, "<< writeValue");
 } // writeValue

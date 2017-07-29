@@ -20,6 +20,10 @@
 class BLEClient;
 class BLERemoteCharacteristic;
 
+
+/**
+ * @brief A model of a remote %BLE service.
+ */
 class BLERemoteService {
 public:
 	BLERemoteService(esp_gatt_srvc_id_t srvcId, BLEClient* pClient);
@@ -47,7 +51,7 @@ private:
 
 	// Properties
 	std::map<std::string, BLERemoteCharacteristic *> m_characteristicMap;
-	bool                m_haveCharacteristics;
+	bool                m_haveCharacteristics; // Have we previously obtained the characteristics.
 	BLEClient*          m_pClient;
 	FreeRTOS::Semaphore m_semaphoreGetCharEvt = FreeRTOS::Semaphore("GetCharEvt");
 	esp_gatt_srvc_id_t  m_srvcId;

@@ -23,17 +23,15 @@ class BLERemoteService;
 class BLEClientCallbacks;
 
 /**
- * @brief A %BLE device.
+ * @brief A model of a %BLE client.
  */
 class BLEClient {
 public:
 	BLEClient();
 	bool                                       connect(BLEAddress address);
 	void                                       disconnect();
-
-	BLEAddress                                 getAddress();
-
-	std::map<std::string, BLERemoteService *> *getServices();
+	BLEAddress                                 getPeerAddress();
+	std::map<std::string, BLERemoteService*>*  getServices();
 	BLERemoteService*                          getService(BLEUUID uuid);
 	void                                       setClientCallbacks(BLEClientCallbacks *pClientCallbacks);
 	std::string                                toString();
@@ -46,23 +44,27 @@ private:
 	void                                       gattClientEventHandler(
 		esp_gattc_cb_event_t event,
 		esp_gatt_if_t gattc_if,
-		esp_ble_gattc_cb_param_t *param);
+		esp_ble_gattc_cb_param_t* param);
 
 	uint16_t                                   getConnId();
 	esp_gatt_if_t                              getGattcIf();
-	BLEAddress    m_address = BLEAddress((uint8_t *)"\0\0\0\0\0\0");
+	BLEAddress    m_peerAddress = BLEAddress((uint8_t*)"\0\0\0\0\0\0");
 	uint16_t      m_conn_id;
 //	int           m_deviceType;
 	esp_gatt_if_t m_gattc_if;
 
-	BLEClientCallbacks *m_pClientCallbacks;
+	BLEClientCallbacks* m_pClientCallbacks;
 	FreeRTOS::Semaphore m_semaphoreRegEvt = FreeRTOS::Semaphore("RegEvt");
 	FreeRTOS::Semaphore m_semaphoreOpenEvt = FreeRTOS::Semaphore("OpenEvt");
 	FreeRTOS::Semaphore m_semaphoreSearchCmplEvt = FreeRTOS::Semaphore("SearchCmplEvt");
-	std::map<std::string, BLERemoteService *> m_servicesMap;
-	bool m_haveServices;
+	std::map<std::string, BLERemoteService*> m_servicesMap;
+	bool m_haveServices; // Have we previously obtain the set of services.
 }; // class BLEDevice
 
+
+/**
+ * @brief Callbacks associated with a %BLE client.
+ */
 class BLEClientCallbacks {
 public:
 	virtual ~BLEClientCallbacks() {};

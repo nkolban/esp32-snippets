@@ -33,10 +33,10 @@
  */
 class Task {
 public:
-	Task(std::string taskName="Task", uint16_t stackSize=2048);
+	Task(std::string taskName="Task", uint16_t stackSize=10000);
 	virtual ~Task();
 	void setStackSize(uint16_t stackSize);
-	void start(void *taskData=nullptr);
+	void start(void* taskData=nullptr);
 	void stop();
 	/**
 	 * @brief Body of the task to execute.
@@ -51,11 +51,11 @@ public:
 	void delay(int ms);
 
 private:
-	xTaskHandle handle;
-	void *taskData;
+	xTaskHandle m_handle;
+	void*       m_taskData;
 	static void runTask(void *data);
-	std::string taskName;
-	uint16_t stackSize;
+	std::string m_taskName;
+	uint16_t    m_stackSize;
 };
 
 #endif /* COMPONENTS_CPP_UTILS_TASK_H_ */

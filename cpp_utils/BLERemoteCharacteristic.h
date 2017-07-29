@@ -19,6 +19,9 @@
 
 class BLERemoteService;
 
+/**
+ * @brief A model of a remote %BLE characteristic.
+ */
 class BLERemoteCharacteristic {
 public:
 	BLERemoteCharacteristic(esp_gatt_id_t charId, esp_gatt_char_prop_t charProp, BLERemoteService* pRemoteService);

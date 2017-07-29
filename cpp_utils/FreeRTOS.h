@@ -31,6 +31,7 @@ public:
 		Semaphore(std::string owner = "<Unknown>");
 		~Semaphore();
 		void give();
+		void giveFromISR();
 		void give(uint32_t value);
 		void setName(std::string name);
 		void take(std::string owner="<Unknown>");

@@ -19,35 +19,43 @@
 
 class BLEServer;
 
+/**
+ * @brief A data mapping used to manage the set of %BLE characteristics known to the server.
+ */
 class BLECharacteristicMap {
 public:
-	void setByUUID(BLEUUID uuid, BLECharacteristic *characteristic);
-	void setByHandle(uint16_t handle, BLECharacteristic *characteristic);
-	BLECharacteristic *getByUUID(BLEUUID uuid);
-	BLECharacteristic *getByHandle(uint16_t handle);
-	BLECharacteristic *getFirst();
-	BLECharacteristic *getNext();
+	void setByUUID(BLEUUID uuid, BLECharacteristic* pCharacteristic);
+	void setByHandle(uint16_t handle, BLECharacteristic* pCharacteristic);
+	BLECharacteristic* getByUUID(BLEUUID uuid);
+	BLECharacteristic* getByHandle(uint16_t handle);
+	BLECharacteristic* getFirst();
+	BLECharacteristic* getNext();
 	std::string toString();
 	void handleGATTServerEvent(
 			esp_gatts_cb_event_t      event,
 			esp_gatt_if_t             gatts_if,
-			esp_ble_gatts_cb_param_t *param);
+			esp_ble_gatts_cb_param_t* param);
 
 
 private:
-	std::map<std::string, BLECharacteristic *> m_uuidMap;
-	std::map<uint16_t, BLECharacteristic *> m_handleMap;
-	std::map<std::string, BLECharacteristic *>::iterator m_iterator;
+	std::map<std::string, BLECharacteristic*> m_uuidMap;
+	std::map<uint16_t, BLECharacteristic*> m_handleMap;
+	std::map<std::string, BLECharacteristic*>::iterator m_iterator;
 };
 
+
+/**
+ * @brief The model of a %BLE service.
+ *
+ */
 class BLEService {
 public:
 	BLEService(BLEUUID uuid);
 
-	void               addCharacteristic(BLECharacteristic *pCharacteristic);
+	void               addCharacteristic(BLECharacteristic* pCharacteristic);
 	BLECharacteristic* createCharacteristic(BLEUUID uuid, uint32_t properties);
 	void               dump();
-	void               executeCreate(BLEServer *pServer);
+	void               executeCreate(BLEServer* pServer);
 	BLECharacteristic* getCharacteristic(BLEUUID uuid);
 	BLEUUID            getUUID();
 	BLEServer*         getServer();
@@ -72,11 +80,11 @@ private:
 	BLEUUID              m_uuid;
 
 	uint16_t           getHandle();
-	BLECharacteristic *getLastCreatedCharacteristic();
+	BLECharacteristic* getLastCreatedCharacteristic();
 	void               handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
 		esp_gatt_if_t             gatts_if,
-		esp_ble_gatts_cb_param_t *param);
+		esp_ble_gatts_cb_param_t* param);
 	void               setHandle(uint16_t handle);
 	//void               setService(esp_gatt_srvc_id_t srvc_id);
 }; // BLEService

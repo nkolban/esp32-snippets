@@ -119,6 +119,15 @@ void FreeRTOS::Semaphore::give(uint32_t value) {
 
 
 /**
+ * @brief Give a semaphore from an ISR.
+ */
+void FreeRTOS::Semaphore::giveFromISR() {
+	BaseType_t higherPriorityTaskWoken;
+	xSemaphoreGiveFromISR(m_semaphore, &higherPriorityTaskWoken);
+} // giveFromISR
+
+
+/**
  * @brief Take a semaphore.
  * Take a semaphore and wait indefinitely.
  */

@@ -151,6 +151,20 @@
 #define OV7670_REG_AD_CHGr (0xC1)
 #define OV7670_REG_SATCTR  (0xC9)
 
+// COM7[2] and COM7[0]
+#define OV7670_FORMAT_YUV (0b00)
+#define OV7670_FORMAT_RGB (0b10)
+
+#define OV7670_FORMAT_RGB_RGB_NORMAL (0b00)
+#define OV7670_FORMAT_RGB_RGB_565    (0b01)
+#define OV7670_FORMAT_RGB_RGB_555    (0b11)
+
+// SCALING_XSC[7] and SCALINT_YSC[7]
+#define OV7670_TESTPATTERN_NONE      (0b00)
+#define OV7670_TESTPATTERN_SHIFT_1   (0b01)
+#define OV7670_TESTPATTERN_BAR_8     (0b10)
+#define OV7670_TESTPATTERN_GRAY_FADE (0b11)
+
 typedef struct {
     gpio_num_t pin_reset;          /*!< GPIO pin for camera reset line - OUT */
     gpio_num_t pin_xclk;           /*!< GPIO pin for camera XCLK line  - IN  */
@@ -180,6 +194,10 @@ public:
 	void init(camera_config_t cameraConfig);
 	void dump();
 	void reset();
+	void setFormat(uint8_t value);
+	void setRGBFormat(uint8_t value);
+	void setTestPattern(uint8_t value);
+	void resetCamera();
 private:
 	uint8_t readRegister(uint8_t reg);
 	void writeRegister(uint8_t reg, uint8_t value);

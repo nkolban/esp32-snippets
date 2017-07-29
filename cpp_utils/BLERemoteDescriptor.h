@@ -9,6 +9,10 @@
 #define COMPONENTS_CPP_UTILS_BLEREMOTEDESCRIPTOR_H_
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
+
+/**
+ * @brief A model of remote %BLE descriptor.
+ */
 class BLERemoteDescriptor {
 public:
 };

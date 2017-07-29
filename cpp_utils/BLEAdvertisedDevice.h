@@ -19,6 +19,12 @@
 
 
 class BLEScan;
+/**
+ * @brief A representation of a %BLE advertised device found by a scan.
+ *
+ * When we perform a %BLE scan, the result will be a set of devices that are advertising.  This
+ * class provides a model of a detected device.
+ */
 class BLEAdvertisedDevice {
 public:
 	BLEAdvertisedDevice();
@@ -76,9 +82,22 @@ private:
 	int8_t      m_txPower;
 };
 
+/**
+ * @brief A callback handler for callbacks associated device scanning.
+ *
+ * When we are performing a scan as a %BLE client, we may wish to know when a new device that is advertising
+ * has been found.  This class can be sub-classed and registered such that when a scan is performed and
+ * a new advertised device has been found, we will be called back to be notified.
+ */
 class BLEAdvertisedDeviceCallbacks {
 public:
 	virtual ~BLEAdvertisedDeviceCallbacks() {}
+	/**
+	 * @brief Called when a new scan result is detected.
+	 *
+	 * As we are scanning, we will find new devices.  When found, this call back is invoked with a reference to the
+	 * device that was found.  During any individual scan, a device will only be detected one time.
+	 */
 	virtual void onResult(BLEAdvertisedDevice* pAdvertisedDevice) = 0;
 };
 

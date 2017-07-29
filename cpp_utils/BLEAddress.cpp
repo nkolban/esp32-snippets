@@ -16,7 +16,7 @@
 
 
 /**
- * @brief Create an address from the native representation.
+ * @brief Create an address from the native ESP32 representation.
  * @param [in] address The native representation.
  */
 BLEAddress::BLEAddress(esp_bd_addr_t address) {
@@ -26,6 +26,7 @@ BLEAddress::BLEAddress(esp_bd_addr_t address) {
 
 /**
  * @brief Create an address from a hex string
+ *
  * A hex string is of the format:
  * ```
  * 00:00:00:00:00:00
@@ -70,6 +71,12 @@ esp_bd_addr_t *BLEAddress::getNative() {
 
 /**
  * @brief Convert a BLE address to a string.
+ *
+ * A string representation of an address is in the format:
+ *
+ * ```
+ * xx:xx:xx:xx:xx:xx
+ * ```
  *
  * @return The string representation of the address.
  */

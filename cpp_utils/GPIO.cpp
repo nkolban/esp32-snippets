@@ -9,8 +9,46 @@
 #include <driver/gpio.h>
 #include "sdkconfig.h"
 #include <esp_log.h>
+#include "GeneralUtils.h"
 
 static const char* LOG_TAG = "GPIO";
+
+static bool g_isrServiceInstalled = false;
+
+/**
+ * @brief Add an ISR handler to the pin.
+ * @param [in] pin The pin to have the ISR associated with it.
+ * @param [in] handler The function to be invoked when the interrupt is detected.
+ * @param [in] pArgs Optional arguments to pass to the handler.
+ */
+void ESP32CPP::GPIO::addISRHandler(
+	gpio_num_t pin,
+	gpio_isr_t handler,
+	void*      pArgs) {
+
+	ESP_LOGD(LOG_TAG, ">> addISRHandler:  pin=%d", pin);
+
+	// If we have not yet installed the ISR service handler, install it now.
+	if (g_isrServiceInstalled == false) {
+		ESP_LOGD(LOG_TAG, "Installing the global ISR service");
+		esp_err_t errRc = ::gpio_install_isr_service(0);
+		if (errRc != ESP_OK) {
+			ESP_LOGE(LOG_TAG, "<< gpio_install_isr_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+			return;
+		}
+		g_isrServiceInstalled = true;
+	}
+
+	esp_err_t errRc = ::gpio_isr_handler_add(pin, handler, pArgs);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "<< gpio_isr_handler_add: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		return;
+	}
+
+	ESP_LOGD(LOG_TAG, "<< addISRHandler");
+} // addISRHandler
+
+
 /**
  * @brief Set the pin high.
  *
@@ -149,9 +187,25 @@ void ESP32CPP::GPIO::setOutput(gpio_num_t pin) {
  * @return N/A.
  */
 void ESP32CPP::GPIO::write(gpio_num_t pin, bool value) {
-	::gpio_set_level(pin, value);
+	//ESP_LOGD(LOG_TAG, ">> write: pin: %d, value: %d", pin, value);
+	esp_err_t errRc = ::gpio_set_level(pin, value);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "<< gpio_set_level: pin=%d, rc=%d %s", pin, errRc, GeneralUtils::errorToString(errRc));
+	}
 } // write
 
 
-
-
+/**
+ * @brief Write up to 8 bits of data to a set of pins.
+ * @param [in] pins An array of pins to set their values.
+ * @param [in] value The data value to write.
+ * @param [in] bits The number of bits to write.
+ */
+void ESP32CPP::GPIO::writeByte(gpio_num_t pins[], uint8_t value, int bits) {
+	ESP_LOGD(LOG_TAG, ">> writeByte: value: %.2x, bits: %d", value, bits);
+	for (int i=0; i<bits; i++) {
+		//ESP_LOGD(LOG_TAG, "i=%d, bits=%d", i, bits);
+		write(pins[i], (value & (1<<i)) != 0);
+	}
+	ESP_LOGD(LOG_TAG, "<< writeByte");
+} // writeByte

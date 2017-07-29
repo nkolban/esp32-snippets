@@ -72,14 +72,20 @@ void BLERemoteService::gattClientEventHandler(
 				break;
 			}
 
-			m_characteristicMap.insert(std::pair<std::string, BLERemoteCharacteristic *>(
+			// This is an indication that we now have the characteristic details for a characteristic owned
+			// by this service so remember it.
+			m_characteristicMap.insert(std::pair<std::string, BLERemoteCharacteristic*>(
 					BLEUUID(evtParam->get_char.char_id.uuid).toString(),
 					new BLERemoteCharacteristic(evtParam->get_char.char_id, evtParam->get_char.char_prop, this)	));
+
+			/*
 			::esp_ble_gattc_get_characteristic(
 					m_pClient->getGattcIf(),
 					m_pClient->getConnId(),
 					&m_srvcId,
 					&evtParam->get_char.char_id);
+					*/
+			m_semaphoreGetCharEvt.give();
 			break;
 		} // ESP_GATTC_GET_CHAR_EVT
 
@@ -88,6 +94,7 @@ void BLERemoteService::gattClientEventHandler(
 		}
 	} // switch
 
+	// Send the event to each of the characteristics owned by this service.
 	for (auto &myPair : m_characteristicMap) {
 	   myPair.second->gattClientEventHandler(event, gattc_if, evtParam);
 	}
@@ -126,20 +133,25 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
 void BLERemoteService::getCharacteristics() {
 
 	ESP_LOGD(LOG_TAG, ">> getCharacteristics() for service: %s", getUUID().toString().c_str());
-	removeCharacteristics();
+
+	removeCharacteristics(); // Forget any previous characteristics.
+
 	m_semaphoreGetCharEvt.take("getCharacteristics");
+
 	esp_err_t errRc = ::esp_ble_gattc_get_characteristic(
 		m_pClient->getGattcIf(),
 		m_pClient->getConnId(),
 		&m_srvcId,
 		nullptr);
+
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_get_characteristic: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
-	m_semaphoreGetCharEvt.take("getCharacteristics");
-	m_semaphoreGetCharEvt.give();
-	m_haveCharacteristics = true;
+
+	m_semaphoreGetCharEvt.wait("getCharacteristics"); // Wait for the characteristics to become available.
+
+	m_haveCharacteristics = true; // Remember that we have received the characteristics.
 	ESP_LOGD(LOG_TAG, "<< getCharacteristics()");
 } // getCharacteristics
 

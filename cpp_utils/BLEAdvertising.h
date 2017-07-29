@@ -11,6 +11,12 @@
 #if defined(CONFIG_BT_ENABLED)
 #include <esp_gap_ble_api.h>
 #include "BLEUUID.h"
+
+/**
+ * @brief Perform and manage %BLE advertising.
+ *
+ * A %BLE server will want to perform advertising in order to make itself known to %BLE clients.
+ */
 class BLEAdvertising {
 public:
 	BLEAdvertising();

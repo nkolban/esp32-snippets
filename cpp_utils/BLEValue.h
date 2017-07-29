@@ -7,8 +7,13 @@
 
 #ifndef COMPONENTS_CPP_UTILS_BLEVALUE_H_
 #define COMPONENTS_CPP_UTILS_BLEVALUE_H_
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
 #include <string>
 
+/**
+ * @brief The model of a %BLE value.
+ */
 class BLEValue {
 public:
 	BLEValue();
@@ -27,5 +32,5 @@ private:
 	uint16_t    m_readOffset;
 	std::string m_value;
 };
-
+#endif // CONFIG_BT_ENABLED
 #endif /* COMPONENTS_CPP_UTILS_BLEVALUE_H_ */

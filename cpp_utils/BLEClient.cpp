@@ -64,13 +64,13 @@ bool BLEClient::connect(BLEAddress address) {
 	}
 	m_semaphoreRegEvt.wait("connect");
 
+	m_peerAddress = address;
 
-	m_address = address;
 	m_semaphoreOpenEvt.take("connect");
 	errRc = ::esp_ble_gattc_open(
 		getGattcIf(),
-		*getAddress().getNative(), // address
-		1                          // direct connection
+		*getPeerAddress().getNative(), // address
+		1                              // direct connection
 	);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_open: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -94,8 +94,10 @@ void BLEClient::disconnect() {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_close: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+	m_peerAddress = BLEAddress("00:00:00:00:00:00");
 	ESP_LOGD(LOG_TAG, "<< disconnect()");
 } // disconnect
+
 
 /**
  * @brief Handle GATT Client events
@@ -180,8 +182,13 @@ void BLEClient::gattClientEventHandler(
 } // gattClientEventHandler
 
 
-BLEAddress BLEClient::getAddress() {
-	return m_address;
+/**
+ * @brief Retrieve the address of the peer.
+ *
+ * Returns the address of the %BLE peer to which this client is connected.
+ */
+BLEAddress BLEClient::getPeerAddress() {
+	return m_peerAddress;
 } // getAddress
 
 
@@ -221,8 +228,8 @@ BLERemoteService* BLEClient::getService(BLEUUID uuid) {
 
 
 /**
- * @brief Ask the remote BLE server for its services.
- * A BLE Server exposes a set of services for its partners.  Here we ask the server for its set of
+ * @brief Ask the remote %BLE server for its services.
+ * A %BLE Server exposes a set of services for its partners.  Here we ask the server for its set of
  * services and wait until we have received them all.
  * @return N/A
  */
@@ -246,9 +253,8 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_search_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return &m_servicesMap;
 	}
-	m_semaphoreSearchCmplEvt.take("getServices");
-	m_semaphoreSearchCmplEvt.give();
-	m_haveServices = true;
+	m_semaphoreSearchCmplEvt.wait("getServices");
+	m_haveServices = true; // Remember that we now have services.
 	ESP_LOGD(LOG_TAG, "<< getServices");
 	return &m_servicesMap;
 } // getServices
@@ -269,7 +275,7 @@ void BLEClient::setClientCallbacks(BLEClientCallbacks* pClientCallbacks) {
  */
 std::string BLEClient::toString() {
 	std::ostringstream ss;
-	ss << "address: " << m_address.toString();
+	ss << "peer address: " << m_peerAddress.toString();
 	ss << "\nServices:\n";
 	for (auto &myPair : m_servicesMap) {
 		ss << myPair.second->toString() << "\n";

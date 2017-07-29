@@ -4,6 +4,9 @@
  *  Created on: Jul 17, 2017
  *      Author: kolban
  */
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
+
 #include <esp_log.h>
 
 #include "BLEValue.h"
@@ -110,3 +113,4 @@ void BLEValue::setValue(std::string value) {
 void BLEValue::setValue(uint8_t* pData, size_t length) {
 	m_value = std::string((char*)pData, length);
 } // setValue
+#endif // CONFIG_BT_ENABLED
