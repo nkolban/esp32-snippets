@@ -636,7 +636,7 @@ void BLEUtils::dumpGapEvent(
 		} // ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT
 
 		default: {
-			ESP_LOGD(LOG_TAG, "*** dumpGapEvent: Logger not coded ***")
+			ESP_LOGD(LOG_TAG, "*** dumpGapEvent: Logger not coded ***");
 			break;
 		} // default
 	} // switch
