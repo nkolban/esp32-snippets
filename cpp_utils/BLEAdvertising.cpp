@@ -122,7 +122,7 @@ void BLEAdvertising::start() {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_start_advertising: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
-	ESP_LOGD(LOG_TAG, "<< start")
+	ESP_LOGD(LOG_TAG, "<< start");
 } // start
 
 
