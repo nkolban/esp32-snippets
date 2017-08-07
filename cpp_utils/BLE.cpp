@@ -6,6 +6,7 @@
  */
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
+#include <esp_err.h>
 #include <nvs_flash.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>

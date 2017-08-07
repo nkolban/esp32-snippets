@@ -33,6 +33,7 @@ static const char* LOG_TAG = "BLEServer";
 BLEServer::BLEServer() {
 	m_appId            = -1;
 	m_gatts_if         = -1;
+	m_connectedCount   = 0;
 	m_connId           = -1;
 	BLE::m_bleServer   = this;
 	m_pServerCallbacks = nullptr;
@@ -89,6 +90,16 @@ BLEAdvertising* BLEServer::getAdvertising() {
 uint16_t BLEServer::getConnId() {
 	return m_connId;
 }
+
+
+/**
+ * @brief Return the number of connected clients.
+ * @return The number of connected clients.
+ */
+uint32_t BLEServer::getConnectedCount() {
+	return m_connectedCount;
+} // getConnectedCount
+
 
 uint16_t BLEServer::getGattsIf() {
 	return m_gatts_if;
@@ -162,6 +173,7 @@ void BLEServer::handleGATTServerEvent(
 			if (m_pServerCallbacks != nullptr) {
 				m_pServerCallbacks->onConnect(this);
 			}
+			m_connectedCount++;
 			break;
 		} // ESP_GATTS_CONNECT_EVT
 
@@ -232,6 +244,7 @@ void BLEServer::handleGATTServerEvent(
 		// If we receive a disconnect event then invoke the callback for disconnects (if one is present).
 		// we also want to start advertising again.
 		case ESP_GATTS_DISCONNECT_EVT: {
+			m_connectedCount--;
 			if (m_pServerCallbacks != nullptr) {
 				m_pServerCallbacks->onDisconnect(this);
 			}

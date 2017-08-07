@@ -265,6 +265,9 @@ void GeneralUtils::hexDump(uint8_t* pData, uint32_t length) {
 	char ascii[80];
 	char hex[80];
 	char tempBuf[80];
+	uint32_t lineNumber = 0;
+
+	ESP_LOGD(LOG_TAG, "     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f  ----------------");
 	strcpy(ascii, "");
 	strcpy(hex, "");
 	uint32_t index=0;
@@ -279,9 +282,10 @@ void GeneralUtils::hexDump(uint8_t* pData, uint32_t length) {
 		strcat(ascii, tempBuf);
 		index++;
 		if (index % 16 == 0) {
-			ESP_LOGD(LOG_TAG, "%s %s", hex, ascii);
+			ESP_LOGD(LOG_TAG, "%.4x %s %s", lineNumber*16, hex, ascii);
 			strcpy(ascii, "");
 			strcpy(hex, "");
+			lineNumber++;
 		}
 	}
 	if (index %16 != 0) {
@@ -289,7 +293,7 @@ void GeneralUtils::hexDump(uint8_t* pData, uint32_t length) {
 			strcat(hex, "   ");
 			index++;
 		}
-		ESP_LOGD(LOG_TAG, "%s %s", hex, ascii);
+		ESP_LOGD(LOG_TAG, "%.4x %s %s", lineNumber*16, hex, ascii);
 	}
 } // hexDump
 

@@ -118,14 +118,6 @@ void BLEService::start() {
 		return;
 	}
 
-	m_semaphoreStartEvt.take("start");
-	esp_err_t errRc = ::esp_ble_gatts_start_service(m_handle);
-
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_start_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
-	}
-	m_semaphoreStartEvt.wait("start");
 
 	BLECharacteristic *pCharacteristic = m_characteristicMap.getFirst();
 
@@ -136,6 +128,15 @@ void BLEService::start() {
 		pCharacteristic = m_characteristicMap.getNext();
 	}
 	// Start each of the characteristics ... these are found in the m_characteristicMap.
+
+	m_semaphoreStartEvt.take("start");
+	esp_err_t errRc = ::esp_ble_gatts_start_service(m_handle);
+
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_start_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		return;
+	}
+	m_semaphoreStartEvt.wait("start");
 
 	ESP_LOGD(LOG_TAG, "<< start()");
 } // start

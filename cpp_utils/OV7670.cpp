@@ -121,31 +121,38 @@ void OV7670::setTestPattern(uint8_t value) {
  */
 
 #define OV7670_I2C_ADDR (0x21)
-
+/*
 static void IRAM_ATTR isr_vsync(void* arg) {
 	ESP_EARLY_LOGD(LOG_TAG, "VSYNC");
 }
+*/
 
 static uint32_t vsyncCounter = 0;
-static uint32_t hrefCounter = 0;
+//static uint32_t hrefCounter = 0;
 static uint32_t lastHref = 0;
 static uint32_t pclkCounter = 0;
-static uint32_t lastPclk = 0;
+//static uint32_t lastPclk = 0;
 
+/*
 static void IRAM_ATTR vsyncHandler(void* arg) {
 	vsyncCounter++;
 	lastHref = hrefCounter;
 	hrefCounter = 0;
 }
+*/
 
+/*
 static void IRAM_ATTR hrefHandler(void* arg) {
 	hrefCounter++;
 }
+*/
 
+/*
 static void IRAM_ATTR pclckHandler(void* arg) {
 	pclkCounter++;
 	portYIELD_FROM_ISR();
 }
+*/
 
 /*
 static inline void i2s_conf_reset()

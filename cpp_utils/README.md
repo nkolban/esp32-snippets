@@ -40,3 +40,14 @@ the ESP-IDF build system has chosen to only compile the underlying BLE functions
 ## Building the Documentation
 The code is commented using the Doxygen tags.  As such we can run Doxygen to generate the data.  I use `doxywizard` using
 the `Doxyfile` located in this directory.
+
+## Building the Arduino libraries
+Some of the classes in this package also have applicability in an Arduino environment.  A `Makefile` called `Makefile.arduino` is provided to build the libraries.  For example:
+
+```
+$ make -f Makefile.arduino
+```
+
+The results of this will be ZIP files found in the `Arduino` directory relative to this one.  Targets include:
+
+* `build_ble` - Build the BLE libraries.

@@ -9,14 +9,16 @@
 #define COMPONENTS_CPP_UTILS_BLESERVER_H_
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
+#include <esp_gatts_api.h>
+
 #include <string>
 #include <string.h>
-#include <esp_gatts_api.h>
-#include "FreeRTOS.h"
+
 #include "BLEUUID.h"
 #include "BLEAdvertising.h"
 #include "BLECharacteristic.h"
 #include "BLEService.h"
+#include "FreeRTOS.h"
 
 class BLEServerCallbacks;
 
@@ -26,18 +28,19 @@ class BLEServerCallbacks;
  */
 class BLEServiceMap {
 public:
-	void setByUUID(BLEUUID uuid, BLEService* service);
-	void setByHandle(uint16_t handle, BLEService* service);
-	BLEService* getByUUID(BLEUUID uuid);
 	BLEService* getByHandle(uint16_t handle);
-	std::string toString();
-	void handleGATTServerEvent(
+	BLEService* getByUUID(BLEUUID uuid);
+	void        handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
 		esp_gatt_if_t             gatts_if,
-		esp_ble_gatts_cb_param_t *param);
-	private:
-		std::map<std::string, BLEService*> m_uuidMap;
-		std::map<uint16_t, BLEService*>    m_handleMap;
+		esp_ble_gatts_cb_param_t* param);
+	void        setByHandle(uint16_t handle, BLEService* service);
+	void        setByUUID(BLEUUID uuid, BLEService* service);
+	std::string toString();
+
+private:
+	std::map<std::string, BLEService*> m_uuidMap;
+	std::map<uint16_t, BLEService*>    m_handleMap;
 };
 
 
@@ -49,6 +52,7 @@ public:
 	BLEServer();
 
 
+	uint32_t        getConnectedCount();
 	BLEService*     createService(BLEUUID uuid);
 	BLEAdvertising* getAdvertising();
 	void            setCallbacks(BLEServerCallbacks *pCallbacks);
@@ -62,8 +66,9 @@ private:
 	esp_ble_adv_data_t  m_adv_data;
 	uint16_t            m_appId;
 	BLEAdvertising      m_bleAdvertising;
-  uint16_t            m_gatts_if;
   uint16_t						m_connId;
+  uint32_t            m_connectedCount;
+  uint16_t            m_gatts_if;
 	FreeRTOS::Semaphore m_semaphoreRegisterAppEvt = FreeRTOS::Semaphore("RegisterAppEvt");
 	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
 	BLEServiceMap       m_serviceMap;

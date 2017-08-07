@@ -198,7 +198,7 @@ static void i2s_conf_reset()
     }
 }
 
-
+/*
 static void IRAM_ATTR logI2SIntr() {
 	std::ostringstream ss;
 	ss << "IN_DONE: "         << I2S0.int_raw.in_done;
@@ -208,7 +208,9 @@ static void IRAM_ATTR logI2SIntr() {
 	ss << ", IN_SUC_EOF: "    << I2S0.int_raw.in_suc_eof;
 	ESP_EARLY_LOGV(LOG_TAG, "I2S Intr: %s", ss.str().c_str());
 }
+*/
 
+/*
 static void IRAM_ATTR logDesc(lldesc_t* pDesc) {
 	std::ostringstream ss;
 	ss << "size: "     << pDesc->size;
@@ -219,8 +221,8 @@ static void IRAM_ATTR logDesc(lldesc_t* pDesc) {
 	ss << ", eof: "    << pDesc->eof;
 	ss << ", owner: "  << pDesc->owner;
 	ESP_EARLY_LOGV(LOG_TAG, "Desc: %s", ss.str().c_str());
-
 }
+*/
 
 
 /**

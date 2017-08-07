@@ -31,7 +31,7 @@ static const char* LOG_TAG = "BLECharacteristic";
 BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
 	m_bleUUID    = uuid;
 	m_handle     = NULL_HANDLE;
-	m_properties = 0;
+	m_properties = (esp_gatt_char_prop_t)0;
 	m_pCallbacks = nullptr;
 
 	setBroadcastProperty((properties & PROPERTY_BROADCAST) !=0);
@@ -411,12 +411,17 @@ void BLECharacteristic::handleGATTServerEvent(
  */
 void BLECharacteristic::indicate() {
 
-	char *pHexData = BLEUtils::buildHexData(nullptr, (uint8_t*)m_value.getValue().data(), m_value.getValue().length());
-	ESP_LOGD(LOG_TAG, ">> indicate: length: %d, data: [%s]", m_value.getValue().length(), pHexData );
-	free(pHexData);
+	ESP_LOGD(LOG_TAG, ">> indicate: length: %d", m_value.getValue().length());
 
 	assert(getService() != nullptr);
 	assert(getService()->getServer() != nullptr);
+
+	GeneralUtils::hexDump((uint8_t*)m_value.getValue().data(), m_value.getValue().length());
+
+	if (getService()->getServer()->getConnectedCount() == 0) {
+		ESP_LOGD(LOG_TAG, "<< indicate: No connected clients.");
+		return;
+	}
 
 	// Test to see if we have a 0x2902 descriptor.  If we do, then check to see if indications are enabled
 	// and, if not, prevent the indication.
@@ -460,14 +465,19 @@ void BLECharacteristic::indicate() {
  * @return N/A.
  */
 void BLECharacteristic::notify() {
-
-	char *pHexData = BLEUtils::buildHexData(nullptr, (uint8_t*)m_value.getValue().data(), m_value.getValue().length());
-	ESP_LOGD(LOG_TAG, ">> notify: length: %d, data: [%s]", m_value.getValue().length(), pHexData );
-	free(pHexData);
+	ESP_LOGD(LOG_TAG, ">> notify: length: %d", m_value.getValue().length());
 
 
 	assert(getService() != nullptr);
 	assert(getService()->getServer() != nullptr);
+
+
+	GeneralUtils::hexDump((uint8_t*)m_value.getValue().data(), m_value.getValue().length());
+
+	if (getService()->getServer()->getConnectedCount() == 0) {
+		ESP_LOGD(LOG_TAG, "<< notify: No connected clients.");
+		return;
+	}
 
 	// Test to see if we have a 0x2902 descriptor.  If we do, then check to see if notification is enabled
 	// and, if not, prevent the notification.
@@ -510,9 +520,9 @@ void BLECharacteristic::notify() {
 void BLECharacteristic::setBroadcastProperty(bool value) {
 	//ESP_LOGD(LOG_TAG, "setBroadcastProperty(%d)", value);
 	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_BROADCAST;
+		m_properties = (esp_gatt_char_prop_t)(m_properties | ESP_GATT_CHAR_PROP_BIT_BROADCAST);
 	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_BROADCAST;
+		m_properties = (esp_gatt_char_prop_t)(m_properties & ~ESP_GATT_CHAR_PROP_BIT_BROADCAST);
 	}
 } // setBroadcastProperty
 
@@ -550,9 +560,9 @@ void BLECharacteristic::setHandle(uint16_t handle) {
 void BLECharacteristic::setIndicateProperty(bool value) {
 	//ESP_LOGD(LOG_TAG, "setIndicateProperty(%d)", value);
 	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_INDICATE;
+		m_properties = (esp_gatt_char_prop_t)(m_properties | ESP_GATT_CHAR_PROP_BIT_INDICATE);
 	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_INDICATE;
+		m_properties = (esp_gatt_char_prop_t)(m_properties & ~ESP_GATT_CHAR_PROP_BIT_INDICATE);
 	}
 } // setIndicateProperty
 
@@ -564,9 +574,9 @@ void BLECharacteristic::setIndicateProperty(bool value) {
 void BLECharacteristic::setNotifyProperty(bool value) {
 	//ESP_LOGD(LOG_TAG, "setNotifyProperty(%d)", value);
 	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_NOTIFY;
+		m_properties = (esp_gatt_char_prop_t)(m_properties | ESP_GATT_CHAR_PROP_BIT_NOTIFY);
 	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_NOTIFY;
+		m_properties = (esp_gatt_char_prop_t)(m_properties & ~ESP_GATT_CHAR_PROP_BIT_NOTIFY);
 	}
 } // setNotifyProperty
 
@@ -578,9 +588,9 @@ void BLECharacteristic::setNotifyProperty(bool value) {
 void BLECharacteristic::setReadProperty(bool value) {
 	//ESP_LOGD(LOG_TAG, "setReadProperty(%d)", value);
 	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_READ;
+		m_properties = (esp_gatt_char_prop_t)(m_properties | ESP_GATT_CHAR_PROP_BIT_READ);
 	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_READ;
+		m_properties = (esp_gatt_char_prop_t)(m_properties & ~ESP_GATT_CHAR_PROP_BIT_READ);
 	}
 } // setReadProperty
 
@@ -622,9 +632,9 @@ void BLECharacteristic::setValue(std::string value) {
 void BLECharacteristic::setWriteNoResponseProperty(bool value) {
 	//ESP_LOGD(LOG_TAG, "setWriteNoResponseProperty(%d)", value);
 	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_WRITE_NR;
+		m_properties = (esp_gatt_char_prop_t)(m_properties | ESP_GATT_CHAR_PROP_BIT_WRITE_NR);
 	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_WRITE_NR;
+		m_properties = (esp_gatt_char_prop_t)(m_properties & ~ESP_GATT_CHAR_PROP_BIT_WRITE_NR);
 	}
 } // setWriteNoResponseProperty
 
@@ -636,9 +646,9 @@ void BLECharacteristic::setWriteNoResponseProperty(bool value) {
 void BLECharacteristic::setWriteProperty(bool value) {
 	//ESP_LOGD(LOG_TAG, "setWriteProperty(%d)", value);
 	if (value) {
-		m_properties |= ESP_GATT_CHAR_PROP_BIT_WRITE;
+		m_properties = (esp_gatt_char_prop_t)(m_properties | ESP_GATT_CHAR_PROP_BIT_WRITE);
 	} else {
-		m_properties &= ~ESP_GATT_CHAR_PROP_BIT_WRITE;
+		m_properties = (esp_gatt_char_prop_t)(m_properties & ~ESP_GATT_CHAR_PROP_BIT_WRITE);
 	}
 } // setWriteProperty
 

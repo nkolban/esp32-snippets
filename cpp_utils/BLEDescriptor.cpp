@@ -63,7 +63,7 @@ void BLEDescriptor::executeCreate(BLECharacteristic* pCharacteristic) {
 	esp_err_t errRc = ::esp_ble_gatts_add_char_descr(
 			pCharacteristic->getService()->getHandle(),
 			getUUID().getNative(),
-			ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+			(esp_gatt_perm_t)(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE),
 			&m_value,
 			&control);
 	if (errRc != ESP_OK) {

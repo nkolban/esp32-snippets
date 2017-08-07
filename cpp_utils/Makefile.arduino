@@ -1,0 +1,65 @@
+# A Makefile that will build the Arduino libraries
+#
+# Targets
+# build_ble - Build the Arduino BLE library.  This will result in a ZIP that can be found at Arduino/ESP32_BLE.zip
+#
+
+#
+# The source file for BLE
+#
+BLE_FILES= \
+	BLE.cpp \
+	BLE.h \
+	BLE2902.cpp \
+	BLE2902.h \
+	BLEAddress.cpp \
+	BLEAddress.h \
+	BLEAdvertisedDevice.cpp \
+	BLEAdvertisedDevice.h \
+	BLEAdvertisedDeviceCallbacks.cpp \
+	BLEAdvertising.cpp \
+	BLEAdvertising.h \
+	BLECharacteristic.cpp \
+	BLECharacteristic.h \
+	BLECharacteristicCallbacks.cpp \
+	BLECharacteristicMap.cpp \
+	BLEClient.cpp \
+	BLEClient.h \
+	BLEClientCallbacks.cpp \
+	BLEDescriptor.cpp \
+	BLEDescriptor.h \
+	BLEDescriptorMap.cpp \
+	BLERemoteCharacteristic.cpp \
+	BLERemoteCharacteristic.h \
+	BLERemoteDescriptor.cpp \
+	BLERemoteDescriptor.h \
+	BLERemoteService.cpp \
+	BLERemoteService.h \
+	BLEScan.cpp \
+	BLEScan.h \
+	BLEServerCallbacks.cpp \
+	BLEServer.cpp \
+	BLEServer.h \
+	BLEService.cpp \
+	BLEService.h \
+	BLEServiceMap.cpp \
+	BLEUtils.cpp \
+	BLEUtils.h \
+	BLEUUID.cpp \
+	BLEUUID.h \
+	BLEValue.cpp \
+	BLEValue.h \
+	FreeRTOS.h \
+	FreeRTOS.cpp \
+	GeneralUtils.h \
+	GeneralUtils.cpp 
+
+
+build_ble:
+	rm -rf Arduino/ESP32_BLE
+	mkdir -p Arduino/ESP32_BLE/src
+	cp $(BLE_FILES) Arduino/ESP32_BLE/src
+	cp Arduino_ESP32_BLE.library.properties Arduino/ESP32_BLE/library.properties
+	rm -f Arduino/ESP32_BLE.zip
+	cd Arduino; zip -r ESP32_BLE.zip ESP32_BLE
+	rm -rf Arduino/ESP32_BLE
