@@ -17,6 +17,16 @@
  * @param [in] UUID The UUID to look up the descriptor.
  * @return The descriptor.  If not present, then nullptr is returned.
  */
+BLEDescriptor* BLEDescriptorMap::getByUUID(const char* uuid) {
+    return getByUUID(BLEUUID(uuid));
+}
+
+
+/**
+ * @brief Return the descriptor by UUID.
+ * @param [in] UUID The UUID to look up the descriptor.
+ * @return The descriptor.  If not present, then nullptr is returned.
+ */
 BLEDescriptor* BLEDescriptorMap::getByUUID(BLEUUID uuid) {
 	for (auto &myPair : m_uuidMap) {
 		if (myPair.second->getUUID().equals(uuid)) {
@@ -44,9 +54,19 @@ BLEDescriptor* BLEDescriptorMap::getByHandle(uint16_t handle) {
  * @param [in] characteristic The descriptor to cache.
  * @return N/A.
  */
-void BLEDescriptorMap::setByUUID(
-		BLEUUID            uuid,
-		BLEDescriptor *pDescriptor) {
+void BLEDescriptorMap::setByUUID(const char* uuid, BLEDescriptor *pDescriptor){
+	m_uuidMap.insert(std::pair<std::string, BLEDescriptor *>(uuid, pDescriptor));
+} // setByUUID
+
+
+
+/**
+ * @brief Set the descriptor by UUID.
+ * @param [in] uuid The uuid of the descriptor.
+ * @param [in] characteristic The descriptor to cache.
+ * @return N/A.
+ */
+void BLEDescriptorMap::setByUUID(BLEUUID uuid, BLEDescriptor *pDescriptor) {
 	m_uuidMap.insert(std::pair<std::string, BLEDescriptor *>(uuid.toString(), pDescriptor));
 } // setByUUID
 

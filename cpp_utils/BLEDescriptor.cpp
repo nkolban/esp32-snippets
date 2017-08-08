@@ -21,6 +21,14 @@ static const char* LOG_TAG = "BLEDescriptor";
 
 
 #define NULL_HANDLE (0xffff)
+
+
+/**
+ * @brief BLEDescriptor constructor.
+ */
+BLEDescriptor::BLEDescriptor(const char* uuid) {
+	BLEDescriptor(BLEUUID(uuid));
+}	
 /**
  * @brief BLEDescriptor constructor.
  */

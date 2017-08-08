@@ -23,6 +23,7 @@ class BLECharacteristic;
  */
 class BLEDescriptor {
 public:
+	BLEDescriptor(const char* uuid);
 	BLEDescriptor(BLEUUID uuid);
 	virtual ~BLEDescriptor();
 

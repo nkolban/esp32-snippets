@@ -30,6 +30,15 @@ static const char* LOG_TAG = "BLEService"; // Tag for logging.
  * @brief Construct an instance of the BLEService
  * @param [in] uuid The UUID of the service.
  */
+BLEService::BLEService(const char* uuid) {
+	BLEService(BLEUUID(uuid));
+}
+
+
+/**
+ * @brief Construct an instance of the BLEService
+ * @param [in] uuid The UUID of the service.
+ */
 BLEService::BLEService(BLEUUID uuid) {
 	m_uuid     = uuid;
 	m_handle   = NULL_HANDLE;
@@ -200,9 +209,17 @@ void BLEService::addCharacteristic(BLECharacteristic* pCharacteristic) {
  * @param [in] properties - The properties of the characteristic.
  * @return The new BLE characteristic.
  */
-BLECharacteristic* BLEService::createCharacteristic(
-		BLEUUID uuid,
-		uint32_t properties) {
+BLECharacteristic* BLEService::createCharacteristic(const char* uuid, uint32_t properties) {
+	return createCharacteristic(BLEUUID(uuid), properties);
+}
+	
+/**
+ * @brief Create a new BLE Characteristic associated with this service.
+ * @param [in] uuid - The UUID of the characteristic.
+ * @param [in] properties - The properties of the characteristic.
+ * @return The new BLE characteristic.
+ */
+BLECharacteristic* BLEService::createCharacteristic(BLEUUID uuid, uint32_t properties) {
 	BLECharacteristic *pCharacteristic = new BLECharacteristic(uuid, properties);
 	addCharacteristic(pCharacteristic);
 	return pCharacteristic;
@@ -287,6 +304,11 @@ void BLEService::handleGATTServerEvent(
 
 	m_characteristicMap.handleGATTServerEvent(event, gatts_if, param);
 } // handleGATTServerEvent
+
+
+BLECharacteristic* BLEService::getCharacteristic(const char* uuid) {
+	return getCharacteristic(BLEUUID(uuid));
+}
 
 
 BLECharacteristic* BLEService::getCharacteristic(BLEUUID uuid) {

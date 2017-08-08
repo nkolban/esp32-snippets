@@ -32,6 +32,7 @@ public:
 	void                                       disconnect();
 	BLEAddress                                 getPeerAddress();
 	std::map<std::string, BLERemoteService*>*  getServices();
+	BLERemoteService*                          getService(const char* uuid);
 	BLERemoteService*                          getService(BLEUUID uuid);
 	void                                       setClientCallbacks(BLEClientCallbacks *pClientCallbacks);
 	std::string                                toString();

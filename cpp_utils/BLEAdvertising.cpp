@@ -65,6 +65,18 @@ void BLEAdvertising::setAppearance(uint16_t appearance) {
  * @param [in] uuid The UUID of the service.
  * @return N/A.
  */
+void BLEAdvertising::setServiceUUID(const char* serviceUUID) {
+	return setServiceUUID(BLEUUID(serviceUUID)); 
+}
+/**
+ * @brief Set the service UUID.
+ * We maintain a class member called m_advData (esp_ble_adv_data_t) that is passed to the
+ * ESP-IDF advertising functions.  In this method, we see two fields within that structure
+ * namely service_uuid_len and p_service_uuid to be the information supplied in the passed
+ * in service uuid.
+ * @param [in] uuid The UUID of the service.
+ * @return N/A.
+ */
 void BLEAdvertising::setServiceUUID(BLEUUID serviceUUID) {
 	ESP_LOGD(LOG_TAG, ">> setServiceUUID - %s", serviceUUID.toString().c_str());
 	m_serviceUUID = serviceUUID; // Save the new service UUID

@@ -106,6 +106,16 @@ void BLERemoteService::gattClientEventHandler(
  * @param [in] uuid Characteristic uuid.
  * @return Reference to the characteristic object.
  */
+BLERemoteCharacteristic* BLERemoteService::getCharacteristic(const char* uuid) {
+    return getCharacteristic(BLEUUID(uuid));
+}
+	
+	
+/**
+ * @brief Get the characteristic object for the UUID.
+ * @param [in] uuid Characteristic uuid.
+ * @return Reference to the characteristic object.
+ */
 BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
 // Design
 // ------

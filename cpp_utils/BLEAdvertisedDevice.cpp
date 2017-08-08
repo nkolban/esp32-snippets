@@ -356,6 +356,14 @@ void BLEAdvertisedDevice::setScan(BLEScan* pScan) {
  * @brief Set the Service UUID for this device.
  * @param [in] serviceUUID The discovered serviceUUID
  */
+void BLEAdvertisedDevice::setServiceUUID(const char* serviceUUID) {
+	return setServiceUUID(BLEUUID(serviceUUID));
+} // setRSSI
+
+/**
+ * @brief Set the Service UUID for this device.
+ * @param [in] serviceUUID The discovered serviceUUID
+ */
 void BLEAdvertisedDevice::setServiceUUID(BLEUUID serviceUUID) {
 	m_serviceUUID     = serviceUUID;
 	m_haveServiceUUID = true;

@@ -26,8 +26,10 @@ class BLECharacteristicCallbacks;
  */
 class BLEDescriptorMap {
 public:
+	void setByUUID(const char* uuid,  BLEDescriptor *pDescriptor);
 	void setByUUID(BLEUUID uuid,      BLEDescriptor *pDescriptor);
 	void setByHandle(uint16_t handle, BLEDescriptor *pDescriptor);
+	BLEDescriptor *getByUUID(const char* uuid);
 	BLEDescriptor *getByUUID(BLEUUID uuid);
 	BLEDescriptor *getByHandle(uint16_t handle);
 	std::string toString();
@@ -52,10 +54,12 @@ private:
  */
 class BLECharacteristic {
 public:
+	BLECharacteristic(const char* uuid, uint32_t properties = 0);
 	BLECharacteristic(BLEUUID uuid, uint32_t properties = 0);
 	virtual ~BLECharacteristic();
 
 	void           addDescriptor(BLEDescriptor* pDescriptor);
+	BLEDescriptor* getDescriptorByUUID(const char* descriptorUUID);
 	BLEDescriptor* getDescriptorByUUID(BLEUUID descriptorUUID);
 	//size_t         getLength();
 	BLEUUID        getUUID();
