@@ -23,6 +23,16 @@ static const char* LOG_TAG = "BLECharacteristic";
 
 #define NULL_HANDLE (0xffff)
 
+
+/**
+ * @brief Construct a characteristic
+ * @param [in] uuid - UUID (const char*) for the characteristic.
+ * @param [in] properties - Properties for the characteristic.
+ */
+BLECharacteristic::BLECharacteristic(const char* uuid, uint32_t properties) {
+	BLECharacteristic(BLEUUID(uuid), properties);
+}
+
 /**
  * @brief Construct a characteristic
  * @param [in] uuid - UUID for the characteristic.
@@ -121,6 +131,16 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 	ESP_LOGD(LOG_TAG, "<< executeCreate");
 } // executeCreate
 
+
+
+/**
+ * @brief Return the BLE Descriptor for the given UUID if associated with this characteristic.
+ * @param [in] descriptorUUID The UUID of the descriptor that we wish to retrieve.
+ * @return The BLE Descriptor.  If no such descriptor is associated with the characteristic, nullptr is returned.
+ */
+BLEDescriptor* BLECharacteristic::getDescriptorByUUID(const char* descriptorUUID) {
+	return m_descriptorMap.getByUUID(BLEUUID(descriptorUUID));
+} // getDescriptorByUUID
 
 /**
  * @brief Return the BLE Descriptor for the given UUID if associated with this characteristic.

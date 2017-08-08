@@ -24,8 +24,10 @@ class BLEServer;
  */
 class BLECharacteristicMap {
 public:
+	void setByUUID(const char* uuid, BLECharacteristic* pCharacteristic);
 	void setByUUID(BLEUUID uuid, BLECharacteristic* pCharacteristic);
 	void setByHandle(uint16_t handle, BLECharacteristic* pCharacteristic);
+	BLECharacteristic* getByUUID(const char* uuid);	
 	BLECharacteristic* getByUUID(BLEUUID uuid);
 	BLECharacteristic* getByHandle(uint16_t handle);
 	BLECharacteristic* getFirst();
@@ -50,12 +52,15 @@ private:
  */
 class BLEService {
 public:
+	BLEService(const char* uuid);
 	BLEService(BLEUUID uuid);
 
 	void               addCharacteristic(BLECharacteristic* pCharacteristic);
+	BLECharacteristic* createCharacteristic(const char* uuid, uint32_t properties);
 	BLECharacteristic* createCharacteristic(BLEUUID uuid, uint32_t properties);
 	void               dump();
 	void               executeCreate(BLEServer* pServer);
+	BLECharacteristic* getCharacteristic(const char* uuid);
 	BLECharacteristic* getCharacteristic(BLEUUID uuid);
 	BLEUUID            getUUID();
 	BLEServer*         getServer();

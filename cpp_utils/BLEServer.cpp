@@ -47,6 +47,20 @@ void BLEServer::createApp(uint16_t appId) {
 	registerApp();
 }
 
+
+/**
+ * @brief Create a %BLE Service.
+ *
+ * With a %BLE server, we can host one or more services.  Invoking this function causes the creation of a definition
+ * of a new service.  Every service must have a unique UUID.
+ * @param [in] uuid The UUID of the new service.
+ * @return A reference to the new service object.
+ */
+BLEService* BLEServer::createService(const char* uuid) {
+	return createService(BLEUUID(uuid));
+}
+
+
 /**
  * @brief Create a %BLE Service.
  *

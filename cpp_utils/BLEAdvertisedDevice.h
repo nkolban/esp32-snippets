@@ -59,6 +59,7 @@ private:
 	void setName(std::string name);
 	void setRSSI(int rssi);
 	void setScan(BLEScan* pScan);
+	void setServiceUUID(const char* serviceUUID);
 	void setServiceUUID(BLEUUID serviceUUID);
 	void setTXPower(int8_t txPower);
 

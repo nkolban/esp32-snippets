@@ -202,6 +202,16 @@ esp_gatt_if_t BLEClient::getGattcIf() {
 } // getGattcIf
 
 
+
+/**
+ * @brief Get the service object corresponding to the uuid.
+ * @param [in] uuid The UUID of the service being sought.
+ * @return A reference to the Service or nullptr if don't know about it.
+ */
+BLERemoteService* BLEClient::getService(const char* uuid) {
+    return getService(BLEUUID(uuid));
+}
+
 /**
  * @brief Get the service object corresponding to the uuid.
  * @param [in] uuid The UUID of the service being sought.

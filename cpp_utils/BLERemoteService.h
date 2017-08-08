@@ -30,6 +30,7 @@ public:
 	virtual ~BLERemoteService();
 
 	// Public methods
+	BLERemoteCharacteristic* getCharacteristic(const char* uuid);	
 	BLERemoteCharacteristic* getCharacteristic(BLEUUID uuid);
 	void                     getCharacteristics(void);
 	BLEClient*               getClient(void);

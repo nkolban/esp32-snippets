@@ -10,6 +10,14 @@
 #include <iomanip>
 #include "BLEService.h"
 
+/**
+ * @brief Return the characteristic by UUID.
+ * @param [in] UUID The UUID to look up the characteristic.
+ * @return The characteristic.
+ */
+BLECharacteristic* BLECharacteristicMap::getByUUID(const char* uuid) {
+    return getByUUID(BLEUUID(uuid));
+}
 
 /**
  * @brief Return the characteristic by UUID.
