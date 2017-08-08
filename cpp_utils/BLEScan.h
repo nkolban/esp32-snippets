@@ -19,6 +19,16 @@
 class BLEAdvertisedDevice;
 class BLEAdvertisedDeviceCallbacks;
 class BLEClient;
+class BLEScan;
+
+class BLEScanResults {
+public:
+	int getCount();
+	BLEAdvertisedDevice getDevice(uint32_t i);
+private:
+	friend BLEScan;
+	std::vector<BLEAdvertisedDevice> m_vectorAdvertisedDevices;
+};
 
 /**
  * @brief Perform and manage %BLE scans.
@@ -28,22 +38,20 @@ class BLEClient;
 class BLEScan {
 public:
 	BLEScan();
-	virtual ~BLEScan();
 
 	//virtual void onResults();
-	void         setActiveScan(bool active);
-	void         setAdvertisedDeviceCallbacks(BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks);
-	void         setInterval(uint16_t intervalMSecs);
-	void         setWindow(uint16_t windowMSecs);
-	std::vector<BLEAdvertisedDevice*> start(uint32_t duration);
-	void         stop();
+	void           setActiveScan(bool active);
+	void           setAdvertisedDeviceCallbacks(BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks);
+	void           setInterval(uint16_t intervalMSecs);
+	void           setWindow(uint16_t windowMSecs);
+	BLEScanResults start(uint32_t duration);
+	void           stop();
 
 private:
 	friend class BLE;
 	void         gapEventHandler(
 		esp_gap_ble_cb_event_t  event,
 		esp_ble_gap_cb_param_t* param);
-	void clearAdvertisedDevices();
 	void parseAdvertisement(BLEClient* pRemoteDevice, uint8_t *payload);
 
 
@@ -51,7 +59,8 @@ private:
 	BLEAdvertisedDeviceCallbacks* m_pAdvertisedDeviceCallbacks;
 	bool                          m_stopped;
 	FreeRTOS::Semaphore m_semaphoreScanEnd = FreeRTOS::Semaphore("ScanEnd");
-	std::vector<BLEAdvertisedDevice*> m_vectorAvdertisedDevices;
+	//std::vector<BLEAdvertisedDevice*> m_vectorAvdertisedDevices;
+	BLEScanResults m_scanResults;
 }; // BLEScan
 
 #endif /* CONFIG_BT_ENABLED */

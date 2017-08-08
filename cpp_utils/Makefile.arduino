@@ -16,7 +16,6 @@ BLE_FILES= \
 	BLEAddress.h \
 	BLEAdvertisedDevice.cpp \
 	BLEAdvertisedDevice.h \
-	BLEAdvertisedDeviceCallbacks.cpp \
 	BLEAdvertising.cpp \
 	BLEAdvertising.h \
 	BLECharacteristic.cpp \

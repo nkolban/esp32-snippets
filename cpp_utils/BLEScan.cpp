@@ -32,21 +32,19 @@ BLEScan::BLEScan() {
 } // BLEScan
 
 
-BLEScan::~BLEScan() {
-	clearAdvertisedDevices();
-} // ~BLEScan
-
 
 /**
  * @brief Clear the history of previously detected advertised devices.
  * @return N/A
  */
+/*
 void BLEScan::clearAdvertisedDevices() {
 	for (int i=0; i<m_vectorAvdertisedDevices.size(); i++) {
 		delete m_vectorAvdertisedDevices[i];
 	}
 	m_vectorAvdertisedDevices.clear();
 } // clearAdvertisedDevices
+*/
 
 
 /**
@@ -92,8 +90,16 @@ void BLEScan::gapEventHandler(
 // ignore it.
 					BLEAddress advertisedAddress(param->scan_rst.bda);
 					bool found = false;
+					/*
 					for (int i=0; i<m_vectorAvdertisedDevices.size(); i++) {
 						if (m_vectorAvdertisedDevices[i]->getAddress().equals(advertisedAddress)) {
+							found = true;
+							break;
+						}
+					}
+					*/
+					for (int i=0; i<m_scanResults.getCount(); i++) {
+						if (m_scanResults.getDevice(i).getAddress().equals(advertisedAddress)) {
 							found = true;
 							break;
 						}
@@ -105,17 +111,19 @@ void BLEScan::gapEventHandler(
 
 					// We now construct a model of the advertised device that we have just found for the first
 					// time.
-					BLEAdvertisedDevice* pAdvertisedDevice = new BLEAdvertisedDevice();
-					pAdvertisedDevice->setAddress(advertisedAddress);
-					pAdvertisedDevice->setRSSI(param->scan_rst.rssi);
-					pAdvertisedDevice->setAdFlag(param->scan_rst.flag);
-					pAdvertisedDevice->parseAdvertisement((uint8_t*)param->scan_rst.ble_adv);
-					pAdvertisedDevice->setScan(this);
+					BLEAdvertisedDevice advertisedDevice;
+					advertisedDevice.setAddress(advertisedAddress);
+					advertisedDevice.setRSSI(param->scan_rst.rssi);
+					advertisedDevice.setAdFlag(param->scan_rst.flag);
+					advertisedDevice.parseAdvertisement((uint8_t*)param->scan_rst.ble_adv);
+					advertisedDevice.setScan(this);
 
-					m_vectorAvdertisedDevices.push_back(pAdvertisedDevice);
+					//m_vectorAvdertisedDevices.push_back(pAdvertisedDevice);
 					if (m_pAdvertisedDeviceCallbacks) {
-						m_pAdvertisedDeviceCallbacks->onResult(pAdvertisedDevice);
+						m_pAdvertisedDeviceCallbacks->onResult(advertisedDevice);
 					}
+
+					m_scanResults.m_vectorAdvertisedDevices.push_back(advertisedDevice);
 
 					break;
 				} // ESP_GAP_SEARCH_INQ_RES_EVT
@@ -160,8 +168,8 @@ void BLEScan::setActiveScan(bool active) {
 
 
 /**
- * @brief Set the callbacks to be invoked.
- * @param [in] pAdvertisedDeviceCallbacks Callbacks to be invoked.
+ * @brief Set the call backs to be invoked.
+ * @param [in] pAdvertisedDeviceCallbacks Call backs to be invoked.
  */
 void BLEScan::setAdvertisedDeviceCallbacks(BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks) {
 	m_pAdvertisedDeviceCallbacks = pAdvertisedDeviceCallbacks;
@@ -191,19 +199,19 @@ void BLEScan::setWindow(uint16_t windowMSecs) {
  * @param [in] duration The duration in seconds for which to scan.
  * @return N/A.
  */
-std::vector<BLEAdvertisedDevice*> BLEScan::start(uint32_t duration) {
+BLEScanResults BLEScan::start(uint32_t duration) {
 	ESP_LOGD(LOG_TAG, ">> start(%d)", duration);
 
 	m_semaphoreScanEnd.take("start");
 
-	clearAdvertisedDevices();
+	m_scanResults.m_vectorAdvertisedDevices.empty();
 
 	esp_err_t errRc = ::esp_ble_gap_set_scan_params(&m_scan_params);
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_scan_params: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
 		m_semaphoreScanEnd.give();
-		return m_vectorAvdertisedDevices;
+		return m_scanResults;
 	}
 
 	errRc = ::esp_ble_gap_start_scanning(duration);
@@ -211,7 +219,7 @@ std::vector<BLEAdvertisedDevice*> BLEScan::start(uint32_t duration) {
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_start_scanning: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
 		m_semaphoreScanEnd.give();
-		return m_vectorAvdertisedDevices;
+		return m_scanResults;
 	}
 
 	m_stopped = false;
@@ -220,7 +228,7 @@ std::vector<BLEAdvertisedDevice*> BLEScan::start(uint32_t duration) {
 	m_semaphoreScanEnd.give();
 
 	ESP_LOGD(LOG_TAG, "<< start()");
-	return m_vectorAvdertisedDevices;
+	return m_scanResults;
 } // start
 
 
@@ -244,5 +252,25 @@ void BLEScan::stop() {
 
 	ESP_LOGD(LOG_TAG, "<< stop()");
 } // stop
+
+
+/**
+ * @brief Return the count of devices found in the last scan.
+ * @return The number of devices found in the last scan.
+ */
+int BLEScanResults::getCount() {
+	return m_vectorAdvertisedDevices.size();
+} // getCount
+
+
+/**
+ * @brief Return the specified device at the given index.
+ * The index should be between 0 and getCount()-1.
+ * @param [in] i The index of the device.
+ * @return The device at the specified index.
+ */
+BLEAdvertisedDevice BLEScanResults::getDevice(uint32_t i) {
+	return m_vectorAdvertisedDevices.at(i);
+}
 
 #endif /* CONFIG_BT_ENABLED */

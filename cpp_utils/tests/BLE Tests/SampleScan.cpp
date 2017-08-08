@@ -10,8 +10,8 @@
 static const char LOG_TAG[] = "SampleScan";
 
 class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
-	void onResult(BLEAdvertisedDevice *pAdvertisedDevice) {
-		ESP_LOGD(LOG_TAG, "Advertised Device: %s", pAdvertisedDevice->toString().c_str());
+	void onResult(BLEAdvertisedDevice advertisedDevice) {
+		ESP_LOGD(LOG_TAG, "Advertised Device: %s", advertisedDevice.toString().c_str());
 	}
 };
 
@@ -21,8 +21,8 @@ static void run() {
 	BLEScan* pBLEScan = BLE::getScan();
 	pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
 	pBLEScan->setActiveScan(true);
-	std::vector<BLEAdvertisedDevice*> foundDevices = pBLEScan->start(30);
-	ESP_LOGD(LOG_TAG, "We found %d devices", foundDevices.size());
+	BLEScanResults scanResults = pBLEScan->start(30);
+	ESP_LOGD(LOG_TAG, "We found %d devices", scanResults.getCount());
 	ESP_LOGD(LOG_TAG, "Scanning sample ended");
 }
 

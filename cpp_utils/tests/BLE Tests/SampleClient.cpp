@@ -80,16 +80,16 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
 	/**
 	 * Called for each advertising BLE server.
 	 */
-	void onResult(BLEAdvertisedDevice *pAdvertisedDevice) {
-		ESP_LOGD(LOG_TAG, "Advertised Device: %s", pAdvertisedDevice->toString().c_str());
+	void onResult(BLEAdvertisedDevice advertisedDevice) {
+		ESP_LOGD(LOG_TAG, "Advertised Device: %s", advertisedDevice.toString().c_str());
 
-		if (pAdvertisedDevice->haveServiceUUID() && pAdvertisedDevice->getServiceUUID().equals(serviceUUID)) {
-			pAdvertisedDevice->getScan()->stop();
+		if (advertisedDevice.haveServiceUUID() && advertisedDevice.getServiceUUID().equals(serviceUUID)) {
+			advertisedDevice.getScan()->stop();
 
-			ESP_LOGD(LOG_TAG, "Found our device!  address: %s", pAdvertisedDevice->getAddress().toString().c_str());
+			ESP_LOGD(LOG_TAG, "Found our device!  address: %s", advertisedDevice.getAddress().toString().c_str());
 			MyClient* pMyClient = new MyClient();
 			pMyClient->setStackSize(18000);
-			pMyClient->start(new BLEAddress(*pAdvertisedDevice->getAddress().getNative()));
+			pMyClient->start(new BLEAddress(*advertisedDevice.getAddress().getNative()));
 		} // Found our server
 	} // onResult
 }; // MyAdvertisedDeviceCallbacks
