@@ -50,4 +50,4 @@ $ make -f Makefile.arduino
 
 The results of this will be ZIP files found in the `Arduino` directory relative to this one.  Targets include:
 
-* `build_ble` - Build the BLE libraries.
+* `build_ble` - Build the BLE libraries. See also: [Arduino BLE Support](ArduinoBLE.md) .
