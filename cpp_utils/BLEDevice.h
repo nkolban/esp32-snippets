@@ -1,12 +1,12 @@
 /*
- * BLE.h
+ * BLEDevice.h
  *
  *  Created on: Mar 16, 2017
  *      Author: kolban
  */
 
-#ifndef MAIN_BLE_H_
-#define MAIN_BLE_H_
+#ifndef MAIN_BLEDevice_H_
+#define MAIN_BLEDevice_H_
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 #include <esp_gap_ble_api.h> // ESP32 BLE
@@ -22,13 +22,12 @@
 /**
  * @brief %BLE functions.
  */
-class BLE {
+class BLEDevice {
 public:
 	static void dumpDevices();
 	static BLEClient *createClient();
 
-	static void initClient();
-	static void initServer(std::string deviceName);
+	static void init(std::string deviceName);
 	//static void scan(int duration, esp_ble_scan_type_t scan_type = BLE_SCAN_TYPE_PASSIVE);
 	static BLEScan   *getScan();
 	static BLEServer *m_bleServer;
@@ -52,4 +51,4 @@ private:
 }; // class BLE
 
 #endif // CONFIG_BT_ENABLED
-#endif /* MAIN_BLE_H_ */
+#endif /* MAIN_BLEDevice_H_ */

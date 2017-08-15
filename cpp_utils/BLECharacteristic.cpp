@@ -29,8 +29,7 @@ static const char* LOG_TAG = "BLECharacteristic";
  * @param [in] uuid - UUID (const char*) for the characteristic.
  * @param [in] properties - Properties for the characteristic.
  */
-BLECharacteristic::BLECharacteristic(const char* uuid, uint32_t properties) {
-	BLECharacteristic(BLEUUID(uuid), properties);
+BLECharacteristic::BLECharacteristic(const char* uuid, uint32_t properties) : BLECharacteristic(BLEUUID(uuid), properties) {
 }
 
 /**

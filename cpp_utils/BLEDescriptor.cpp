@@ -26,9 +26,9 @@ static const char* LOG_TAG = "BLEDescriptor";
 /**
  * @brief BLEDescriptor constructor.
  */
-BLEDescriptor::BLEDescriptor(const char* uuid) {
-	BLEDescriptor(BLEUUID(uuid));
+BLEDescriptor::BLEDescriptor(const char* uuid) : BLEDescriptor(BLEUUID(uuid)) {
 }	
+
 /**
  * @brief BLEDescriptor constructor.
  */

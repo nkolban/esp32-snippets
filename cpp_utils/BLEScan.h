@@ -48,7 +48,7 @@ public:
 	void           stop();
 
 private:
-	friend class BLE;
+	friend class BLEDevice;
 	void         gapEventHandler(
 		esp_gap_ble_cb_event_t  event,
 		esp_ble_gap_cb_param_t* param);

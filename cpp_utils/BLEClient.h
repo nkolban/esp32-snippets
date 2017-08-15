@@ -38,7 +38,7 @@ public:
 	std::string                                toString();
 
 private:
-	friend class BLE;
+	friend class BLEDevice;
 	friend class BLERemoteCharacteristic;
 	friend class BLERemoteService;
 

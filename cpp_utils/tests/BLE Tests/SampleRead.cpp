@@ -1,10 +1,10 @@
-#include "BLE.h"
 #include "BLEUtils.h"
 #include "BLEServer.h"
 #include <esp_log.h>
 #include <string>
 #include <sys/time.h>
 #include <sstream>
+#include "../../BLEDevice.h"
 
 #include "sdkconfig.h"
 

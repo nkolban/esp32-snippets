@@ -30,8 +30,7 @@ static const char* LOG_TAG = "BLEService"; // Tag for logging.
  * @brief Construct an instance of the BLEService
  * @param [in] uuid The UUID of the service.
  */
-BLEService::BLEService(const char* uuid) {
-	BLEService(BLEUUID(uuid));
+BLEService::BLEService(const char* uuid) : BLEService(BLEUUID(uuid)) {
 }
 
 

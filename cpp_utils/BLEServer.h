@@ -65,7 +65,7 @@ public:
 private:
 	friend class BLEService;
 	friend class BLECharacteristic;
-	friend class BLE;
+	friend class BLEDevice;
 	esp_ble_adv_data_t  m_adv_data;
 	uint16_t            m_appId;
 	BLEAdvertising      m_bleAdvertising;

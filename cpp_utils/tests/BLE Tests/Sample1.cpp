@@ -1,9 +1,9 @@
-#include "BLE.h"
 #include "BLEUtils.h"
 #include "BLEServer.h"
 #include <esp_log.h>
 #include <string>
 
+#include "../../BLEDevice.h"
 #include "sdkconfig.h"
 
 // See the following for generating UUIDs:

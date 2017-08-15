@@ -1,9 +1,9 @@
-#include "BLE.h"
 #include "BLEUtils.h"
 #include "BLEScan.h"
 #include <esp_log.h>
 #include <string>
 
+#include "../../BLEDevice.h"
 #include "BLEAdvertisedDevice.h"
 #include "sdkconfig.h"
 

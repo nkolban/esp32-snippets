@@ -12,7 +12,7 @@
 #include <esp_bt_main.h>
 #include <esp_gap_ble_api.h>
 #include <esp_gatts_api.h>
-#include "BLE.h"
+#include "BLEDevice.h"
 #include "BLEServer.h"
 #include "BLEService.h"
 #include "BLEUtils.h"
@@ -35,7 +35,7 @@ BLEServer::BLEServer() {
 	m_gatts_if         = -1;
 	m_connectedCount   = 0;
 	m_connId           = -1;
-	BLE::m_bleServer   = this;
+	BLEDevice::m_bleServer   = this;
 	m_pServerCallbacks = nullptr;
 
 	createApp(0);

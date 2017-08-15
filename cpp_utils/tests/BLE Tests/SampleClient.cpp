@@ -2,8 +2,8 @@
 #include <string>
 #include <sstream>
 #include <sys/time.h>
+#include "../../BLEDevice.h"
 
-#include "BLE.h"
 #include "BLEAdvertisedDevice.h"
 #include "BLEClient.h"
 #include "BLEScan.h"

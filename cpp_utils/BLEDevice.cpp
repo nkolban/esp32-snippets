@@ -21,21 +21,21 @@
 #include <sstream>
 #include <iomanip>
 
-#include "BLE.h"
+#include "BLEDevice.h"
 #include "BLEClient.h"
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
 
 static const char* LOG_TAG = "BLE";
 
-BLEServer *BLE::m_bleServer = nullptr;
-BLEScan   *BLE::m_pScan     = nullptr;
-BLEClient *BLE::m_pClient   = nullptr;
+BLEServer *BLEDevice::m_bleServer = nullptr;
+BLEScan   *BLEDevice::m_pScan     = nullptr;
+BLEClient *BLEDevice::m_pClient   = nullptr;
 
 #include <esp_gattc_api.h>
 
 
-BLEClient* BLE::createClient() {
+BLEClient* BLEDevice::createClient() {
 	m_pClient = new BLEClient();
 	return m_pClient;
 } // createClient
@@ -48,7 +48,7 @@ BLEClient* BLE::createClient() {
  * @param [in] gatts_if
  * @param [in] param
  */
-void BLE::gattServerEventHandler(
+void BLEDevice::gattServerEventHandler(
    esp_gatts_cb_event_t      event,
    esp_gatt_if_t             gatts_if,
    esp_ble_gatts_cb_param_t *param
@@ -57,8 +57,8 @@ void BLE::gattServerEventHandler(
 		gatts_if,
 		BLEUtils::gattServerEventTypeToString(event).c_str());
 	BLEUtils::dumpGattServerEvent(event, gatts_if, param);
-	if (BLE::m_bleServer != nullptr) {
-		BLE::m_bleServer->handleGATTServerEvent(event, gatts_if, param);
+	if (BLEDevice::m_bleServer != nullptr) {
+		BLEDevice::m_bleServer->handleGATTServerEvent(event, gatts_if, param);
 	}
 } // gattServerEventHandler
 
@@ -76,7 +76,7 @@ void BLE::gattServerEventHandler(
  * @param [in] gattc_if
  * @param [in] param
  */
-void BLE::gattClientEventHandler(
+void BLEDevice::gattClientEventHandler(
 	esp_gattc_cb_event_t event,
 	esp_gatt_if_t gattc_if,
 	esp_ble_gattc_cb_param_t *param) {
@@ -92,8 +92,8 @@ void BLE::gattClientEventHandler(
 	} // switch
 
 	// If we have a client registered, call it.
-	if (BLE::m_pClient != nullptr) {
-		BLE::m_pClient->gattClientEventHandler(event, gattc_if, param);
+	if (BLEDevice::m_pClient != nullptr) {
+		BLEDevice::m_pClient->gattClientEventHandler(event, gattc_if, param);
 	}
 
 } // gattClientEventHandler
@@ -102,7 +102,7 @@ void BLE::gattClientEventHandler(
 /**
  * @brief Handle GAP events.
  */
-void BLE::gapEventHandler(
+void BLEDevice::gapEventHandler(
 	esp_gap_ble_cb_event_t event,
 	esp_ble_gap_cb_param_t *param) {
 
@@ -122,17 +122,21 @@ void BLE::gapEventHandler(
 		}
 	} // switch
 
-	if (BLE::m_bleServer != nullptr) {
-		BLE::m_bleServer->handleGAPEvent(event, param);
+	if (BLEDevice::m_bleServer != nullptr) {
+		BLEDevice::m_bleServer->handleGAPEvent(event, param);
 	}
 
-	if (BLE::m_pScan != nullptr) {
-		BLE::getScan()->gapEventHandler(event, param);
+	if (BLEDevice::m_pScan != nullptr) {
+		BLEDevice::getScan()->gapEventHandler(event, param);
 	}
 } // gapEventHandler
 
 
-static void commonInit() {
+/**
+ * @brief Initialize the %BLE environment.
+ * @param deviceName The device name of the device.
+ */
+void BLEDevice::init(std::string deviceName) {
 	esp_err_t errRc = ::nvs_flash_init();
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "nvs_flash_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -163,22 +167,20 @@ static void commonInit() {
 		ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
-} // commonInit
 
-/**
- * @brief Initialize the server %BLE environment.
- *
- */
-void BLE::initServer(std::string deviceName) {
-	commonInit();
-
-	esp_err_t errRc = esp_ble_gap_register_callback(BLE::gapEventHandler);
+	errRc = esp_ble_gap_register_callback(BLEDevice::gapEventHandler);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 
-	errRc = esp_ble_gatts_register_callback(BLE::gattServerEventHandler);
+	errRc = esp_ble_gattc_register_callback(BLEDevice::gattClientEventHandler);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		return;
+	}
+
+	errRc = esp_ble_gatts_register_callback(BLEDevice::gattServerEventHandler);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gatts_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
@@ -197,36 +199,15 @@ void BLE::initServer(std::string deviceName) {
 		return;
 	};
 
-	return;
-} // initServer
+} // init
 
-
-/**
- * @brief Initialize the client %BLE environment.
- */
-void BLE::initClient() {
-	commonInit();
-
-	esp_err_t errRc = esp_ble_gap_register_callback(BLE::gapEventHandler);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gap_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
-	}
-
-	errRc = esp_ble_gattc_register_callback(BLE::gattClientEventHandler);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		return;
-	}
-
-} // initClient
 
 
 /**
  * @brief Retrieve the Scan object that we use for scanning.
  * @return The scanning object reference.
  */
-BLEScan* BLE::getScan() {
+BLEScan* BLEDevice::getScan() {
 	if (m_pScan == nullptr) {
 		m_pScan = new BLEScan();
 	}
