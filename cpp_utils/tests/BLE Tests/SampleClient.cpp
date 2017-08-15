@@ -2,7 +2,7 @@
 #include <string>
 #include <sstream>
 #include <sys/time.h>
-#include "../../BLEDevice.h"
+#include "../components/cpp_utils/BLEDevice.h"
 
 #include "BLEAdvertisedDevice.h"
 #include "BLEClient.h"
@@ -29,7 +29,7 @@ static BLEUUID    charUUID("0d563a58-196a-48ce-ace2-dfec78acc814");
 class MyClient: public Task {
 	void run(void* data) {
 		BLEAddress* pAddress = (BLEAddress*)data;
-		BLEClient*  pClient  = BLE::createClient();
+		BLEClient*  pClient  = BLEDevice::createClient();
 
 		// Connect to the remove BLE Server.
 		pClient->connect(*pAddress);
@@ -100,8 +100,8 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
  */
 void SampleClient(void) {
 	ESP_LOGD(LOG_TAG, "Scanning sample starting");
-	BLE::initClient();
-	BLEScan *pBLEScan = BLE::getScan();
+	BLEDevice::init("");
+	BLEScan *pBLEScan = BLEDevice::getScan();
 	pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
 	pBLEScan->setActiveScan(true);
 	pBLEScan->start(30);

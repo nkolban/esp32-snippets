@@ -3,7 +3,7 @@
 #include <esp_log.h>
 #include <string>
 
-#include "../../BLEDevice.h"
+#include "../components/cpp_utils/BLEDevice.h"
 #include "BLEAdvertisedDevice.h"
 #include "sdkconfig.h"
 
@@ -17,8 +17,8 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
 
 static void run() {
 	ESP_LOGD(LOG_TAG, "Scanning sample starting");
-	BLE::initClient();
-	BLEScan* pBLEScan = BLE::getScan();
+	BLEDevice::init("");
+	BLEScan* pBLEScan = BLEDevice::getScan();
 	pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
 	pBLEScan->setActiveScan(true);
 	BLEScanResults scanResults = pBLEScan->start(30);

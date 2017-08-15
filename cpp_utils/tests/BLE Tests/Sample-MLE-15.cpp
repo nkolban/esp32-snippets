@@ -3,7 +3,7 @@
 #include <esp_log.h>
 #include <string>
 
-#include "../../BLEDevice.h"
+#include "../components/cpp_utils/BLEDevice.h"
 #include "BLEAdvertisedDevice.h"
 #include "BLEClient.h"
 #include "sdkconfig.h"
@@ -22,7 +22,7 @@ static BLEUUID    charUUID((uint16_t)0x2a06);
 class MyClient: public Task {
 	void run(void *data) {
 		BLEAddress* pAddress = (BLEAddress *)data;
-		BLEClient*  pClient = BLE::createClient();
+		BLEClient*  pClient = BLEDevice::createClient();
 
 
 		pClient->connect(*pAddress);
@@ -55,8 +55,8 @@ class MyClient: public Task {
 
 static void run() {
 	ESP_LOGD(LOG_TAG, "MLE-15 sample starting");
-	BLE::initClient();
-	BLEClient*  pClient = BLE::createClient();
+	BLEDevice::init("");
+	BLEClient*  pClient = BLEDevice::createClient();
 
 
 	pClient->connect(BLEAddress("ff:ff:45:19:14:80"));

@@ -23,7 +23,7 @@
 #include <string>
 #include <sstream>
 #include <sys/time.h>
-#include "../../BLEDevice.h"
+#include "../components/cpp_utils/BLEDevice.h"
 
 #include "BLEServer.h"
 #include "BLEUtils.h"
@@ -72,7 +72,7 @@ static void run() {
 	pMyNotifyTask->setStackSize(8000);
 
 	// Create the BLE Device
-	BLE::initServer("MYDEVICE");
+	BLEDevice::init("MYDEVICE");
 
 	// Create the BLE Server
 	BLEServer *pServer = new BLEServer();

@@ -4,7 +4,7 @@
 #include <string>
 #include <sys/time.h>
 #include <sstream>
-#include "../../BLEDevice.h"
+#include "../components/cpp_utils/BLEDevice.h"
 
 #include "sdkconfig.h"
 
@@ -27,7 +27,7 @@ class MyCallbackHandler: public BLECharacteristicCallbacks {
 };
 
 static void run() {
-	BLE::initServer("MYDEVICE");
+	BLEDevice::init("MYDEVICE");
 	BLEServer *pServer = new BLEServer();
 
 	BLEService *pService = pServer->createService(BLEUUID(SERVICE_UUID_BIN, 16, true));

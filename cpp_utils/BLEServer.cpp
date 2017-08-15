@@ -28,7 +28,7 @@ static const char* LOG_TAG = "BLEServer";
  * @brief Construct a %BLE Server
  *
  * This class is not designed to be individually instantiated.  Instead one should create a server by asking
- * the BLE device class.
+ * the BLEDevice class.
  */
 BLEServer::BLEServer() {
 	m_appId            = -1;

@@ -4,7 +4,7 @@
 #include <esp_log.h>
 #include <string>
 #include <Task.h>
-#include "../../BLEDevice.h"
+#include "../components/cpp_utils/BLEDevice.h"
 
 #include "sdkconfig.h"
 
@@ -14,7 +14,7 @@ class MainBLEServer: public Task {
 	void run(void *data) {
 		ESP_LOGD(LOG_TAG, "Starting BLE work!");
 
-		BLE::initServer("MYDEVICE");
+		BLEDevice::init("MYDEVICE");
 		BLEServer* pServer = new BLEServer();
 
 		BLEService* pService = pServer->createService(BLEUUID((uint16_t)0x1234));
