@@ -4,7 +4,7 @@
 #include <string>
 #include <sys/time.h>
 #include <sstream>
-#include "../components/cpp_utils/BLEDevice.h"
+#include "BLEDevice.h"
 
 #include "sdkconfig.h"
 

@@ -4,7 +4,7 @@
 #include <esp_log.h>
 #include <string>
 #include <Task.h>
-#include "../components/cpp_utils/BLEDevice.h"
+#include "BLEDevice.h"
 
 #include "sdkconfig.h"
 

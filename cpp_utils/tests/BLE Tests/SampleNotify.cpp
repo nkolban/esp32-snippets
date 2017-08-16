@@ -23,7 +23,7 @@
 #include <string>
 #include <sstream>
 #include <sys/time.h>
-#include "../components/cpp_utils/BLEDevice.h"
+#include "BLEDevice.h"
 
 #include "BLEServer.h"
 #include "BLEUtils.h"

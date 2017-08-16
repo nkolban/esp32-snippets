@@ -3,7 +3,7 @@
 #include <esp_log.h>
 #include <string>
 
-#include "../../BLEDevice.h"
+#include "BLEDevice.h"
 #include "sdkconfig.h"
 
 // See the following for generating UUIDs:
@@ -13,7 +13,7 @@
 #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
 static void run() {
-	BLE::initServer("MYDEVICE");
+	BLEDevice::init("MYDEVICE");
 
 	BLEServer *pServer = new BLEServer();
 

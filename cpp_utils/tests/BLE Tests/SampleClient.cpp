@@ -2,7 +2,7 @@
 #include <string>
 #include <sstream>
 #include <sys/time.h>
-#include "../components/cpp_utils/BLEDevice.h"
+#include "BLEDevice.h"
 
 #include "BLEAdvertisedDevice.h"
 #include "BLEClient.h"

@@ -3,7 +3,7 @@
 #include <esp_log.h>
 #include <string>
 
-#include "../components/cpp_utils/BLEDevice.h"
+#include "BLEDevice.h"
 #include "BLEAdvertisedDevice.h"
 #include "sdkconfig.h"
 
