@@ -6,6 +6,8 @@
  */
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <esp_err.h>
 #include <nvs_flash.h>
 #include <freertos/FreeRTOS.h>
@@ -199,6 +201,7 @@ void BLEDevice::init(std::string deviceName) {
 		return;
 	};
 
+	vTaskDelay(200/portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
 } // init
 
 
