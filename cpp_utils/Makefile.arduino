@@ -8,8 +8,6 @@
 # The source file for BLE
 #
 BLE_FILES= \
-	BLEDevice.cpp \
-	BLEDevice.h \
 	BLE2902.cpp \
 	BLE2902.h \
 	BLEAddress.cpp \
@@ -28,6 +26,8 @@ BLE_FILES= \
 	BLEDescriptor.cpp \
 	BLEDescriptor.h \
 	BLEDescriptorMap.cpp \
+	BLEDevice.cpp \
+	BLEDevice.h \
 	BLERemoteCharacteristic.cpp \
 	BLERemoteCharacteristic.h \
 	BLERemoteDescriptor.cpp \
@@ -60,7 +60,9 @@ build_ble:
 	cp $(BLE_FILES) Arduino/ESP32_BLE/src
 	cp Arduino_ESP32_BLE.library.properties Arduino/ESP32_BLE/library.properties
 	mkdir -p Arduino/ESP32_BLE/examples
-	cp tests/BLE\ Tests/Arduino/* Arduino/ESP32_BLE/examples
+	cp --recursive tests/BLETests/Arduino Arduino/ESP32_BLE/examples
 	rm -f Arduino/ESP32_BLE.zip
 	cd Arduino; zip -r ESP32_BLE.zip ESP32_BLE
 	rm -rf Arduino/ESP32_BLE
+	@echo "---------------------------------------"
+	@echo "ESP32_BLE.zip Arduino library now built"
