@@ -69,7 +69,7 @@ private:
 class BLEClientCallbacks {
 public:
 	virtual ~BLEClientCallbacks() {};
-	virtual void onConnect(BLEClient *pClient);
+	virtual void onConnect(BLEClient *pClient) = 0;
 };
 
 #endif // CONFIG_BT_ENABLED

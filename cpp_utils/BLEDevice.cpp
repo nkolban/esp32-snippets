@@ -28,7 +28,7 @@
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
 
-static const char* LOG_TAG = "BLE";
+static const char* LOG_TAG = "BLEDevice";
 
 BLEServer *BLEDevice::m_bleServer = nullptr;
 BLEScan   *BLEDevice::m_pScan     = nullptr;

@@ -22,7 +22,6 @@ BLE_FILES= \
 	BLECharacteristicMap.cpp \
 	BLEClient.cpp \
 	BLEClient.h \
-	BLEClientCallbacks.cpp \
 	BLEDescriptor.cpp \
 	BLEDescriptor.h \
 	BLEDescriptorMap.cpp \
