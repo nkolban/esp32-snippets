@@ -4,6 +4,8 @@
 #define MAIN_SOCKSERV_H_
 #include <stdint.h>
 #include <string>
+#include "FreeRTOS.h"
+
 
 /**
  * @brief Provide a socket listener and the ability to send data to connected partners.
@@ -23,20 +25,24 @@
  * @endcode
  *
  */
+
 class SockServ {
 private:
-	uint16_t port;
-	int sock;
-	int clientSock;
-	static void acceptTask(void *data);
+	static void acceptTask(void*);
+	uint16_t m_port;
+	int      m_sock;
+	int      m_clientSock;
+	FreeRTOS::Semaphore m_clientSemaphore;
 public:
 	SockServ(uint16_t port);
-	int connectedCount();
-	void disconnect();
-	void sendData(uint8_t *data, size_t length);
-	void sendData(std::string str);
-	void start();
-	void stop();
+	int    connectedCount();
+	void   disconnect();
+	size_t receiveData(void* pData, size_t maxData);
+	void   sendData(uint8_t *data, size_t length);
+	void   sendData(std::string str);
+	void   start();
+	void   stop();
+	void   waitForClient();
 };
 
 #endif /* MAIN_SOCKSERV_H_ */

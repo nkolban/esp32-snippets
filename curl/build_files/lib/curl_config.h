@@ -904,6 +904,8 @@
 /* The size of `void*', as computed by sizeof. */
 #define SIZEOF_VOIDP 4
 
+#define SIZEOF_CURL_OFF_T 4
+
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
@@ -944,8 +946,8 @@
 #define USE_MANUAL 1
 
 /* if mbedTLS is enabled */
-/* #undef USE_MBEDTLS */
-#define USE_MBEDTLS 1
+#undef USE_MBEDTLS
+//#define USE_MBEDTLS 1
 
 /* Define to enable metalink support */
 /* #undef USE_METALINK */
