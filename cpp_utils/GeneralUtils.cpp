@@ -308,6 +308,7 @@ std::string GeneralUtils::ipToString(uint8_t *ip) {
 	return s.str();
 } // ipToString
 
+
 /**
  * @brief Convert an ESP error code to a string.
  * @param [in] errCode The errCode to be converted.

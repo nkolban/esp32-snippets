@@ -4,7 +4,11 @@
 #define MAIN_SOCKSERV_H_
 #include <stdint.h>
 #include <string>
+#include <set>
+#include "Socket.h"
 #include "FreeRTOS.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
 
 
 /**
@@ -30,19 +34,23 @@ class SockServ {
 private:
 	static void acceptTask(void*);
 	uint16_t m_port;
-	int      m_sock;
-	int      m_clientSock;
+	Socket   m_serverSocket;
 	FreeRTOS::Semaphore m_clientSemaphore;
+	std::set<Socket> m_clientSet;
+	QueueHandle_t m_acceptQueue;
 public:
 	SockServ(uint16_t port);
+	SockServ();
 	int    connectedCount();
-	void   disconnect();
-	size_t receiveData(void* pData, size_t maxData);
-	void   sendData(uint8_t *data, size_t length);
+	void   disconnect(Socket s);
+	size_t receiveData(Socket s, void* pData, size_t maxData);
+	void   sendData(uint8_t* data, size_t length);
 	void   sendData(std::string str);
+	void   setPort(uint16_t port);
 	void   start();
 	void   stop();
-	void   waitForClient();
+	Socket waitForData(std::set<Socket>& socketSet);
+	Socket waitForNewClient();
 };
 
 #endif /* MAIN_SOCKSERV_H_ */

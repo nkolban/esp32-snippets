@@ -526,7 +526,7 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
 	 * Iterate through each of the path handlers looking for a match with the method and specified path.
 	 */
 	std::vector<PathHandler>::iterator it;
-	for (it = m_pathHandlers.begin(); it < m_pathHandlers.end(); it++) {
+	for (it = m_pathHandlers.begin(); it != m_pathHandlers.end(); ++it) {
 		if ((*it).match(mgStrToString(message->method), uri)) {
 			HTTPRequest httpRequest(message);
 			(*it).invoke(&httpRequest, &httpResponse);

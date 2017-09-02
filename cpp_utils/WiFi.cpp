@@ -10,7 +10,6 @@
 #include <sstream>
 #include <iomanip>
 #include "sdkconfig.h"
-#if defined(CONFIG_WIFI_ENABLED)
 
 
 #include "WiFi.h"
@@ -433,6 +432,3 @@ void MDNS::setHostname(std::string hostname) {
 void MDNS::setInstance(std::string instance) {
 	ESP_ERROR_CHECK(mdns_set_instance(m_mdns_server, instance.c_str()));
 } // setInstance
-
-
-#endif // CONFIG_WIFI_ENABLED

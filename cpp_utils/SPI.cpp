@@ -114,8 +114,8 @@ void SPI::transfer(uint8_t* data, size_t dataLen) {
 	}
 #endif
 	spi_transaction_t trans_desc;
-	trans_desc.address   = 0;
-	trans_desc.command   = 0;
+	//trans_desc.address   = 0;
+	//trans_desc.command   = 0;
 	trans_desc.flags     = 0;
 	trans_desc.length    = dataLen * 8;
 	trans_desc.rxlength  = 0;

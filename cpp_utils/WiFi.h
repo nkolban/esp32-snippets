@@ -8,7 +8,7 @@
 #ifndef MAIN_WIFI_H_
 #define MAIN_WIFI_H_
 #include "sdkconfig.h"
-#if defined(CONFIG_WIFI_ENABLED)
+
 #include <string>
 #include <vector>
 #include <mdns.h>
@@ -134,5 +134,4 @@ private:
 
 };
 
-#endif // CONFIG_WIFI_ENABLED
 #endif /* MAIN_WIFI_H_ */

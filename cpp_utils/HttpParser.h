@@ -1,0 +1,36 @@
+/*
+ * HttpParser.h
+ *
+ *  Created on: Aug 28, 2017
+ *      Author: kolban
+ */
+
+#ifndef CPP_UTILS_HTTPPARSER_H_
+#define CPP_UTILS_HTTPPARSER_H_
+#include <string>
+#include <map>
+#include "Socket.h"
+
+class HttpParser {
+private:
+	std::string m_method;
+	std::string m_url;
+	std::string m_version;
+	std::string m_body;
+	std::map<std::string, std::string> m_headers;
+	void dump();
+	void parseRequestLine(std::string &line);
+public:
+	HttpParser();
+	virtual ~HttpParser();
+	std::string getBody();
+	std::string getHeader(std::string& name);
+	std::map<std::string, std::string> getHeaders();
+	std::string getMethod();
+	std::string getURL();
+	std::string getVersion();
+	void parse(std::string message);
+	void parse(Socket s);
+};
+
+#endif /* CPP_UTILS_HTTPPARSER_H_ */

@@ -23,19 +23,27 @@ public:
 	Socket();
 	virtual ~Socket();
 
-	void send_cpp(std::string value);
-	static std::string addressToString(struct sockaddr *addr);
+	Socket accept_cpp();
+	static std::string addressToString(struct sockaddr* addr);
 	void bind_cpp(uint16_t port, uint32_t address);
 	void close_cpp();
-	int connect_cpp(struct in_addr address, uint16_t port);
-	int connect_cpp(char *address, uint16_t port);
-	int createSocket_cpp(bool isDatagram = false);
-	void getBind_cpp(struct sockaddr *pAddr);
-	void listen_cpp(uint16_t port, bool isDatagram);
-	int receive_cpp(uint8_t *data, size_t length);
-	int receiveFrom_cpp(uint8_t *data, size_t length, struct sockaddr *pAddr);
-	void send_cpp(const uint8_t *data, size_t length);
-	void sendTo_cpp(const uint8_t *data, size_t length, struct sockaddr *pAddr);
+	int  connect_cpp(struct in_addr address, uint16_t port);
+	int  connect_cpp(char* address, uint16_t port);
+	int  createSocket_cpp(bool isDatagram = false);
+	void getBind_cpp(struct sockaddr* pAddr);
+	int getFD() const;
+	bool isValid();
+	void listen_cpp(uint16_t port, bool isDatagram=false);
+	bool operator<(const Socket& other) const;
+	std::string readToDelim(std::string delim);
+	int  receive_cpp(uint8_t* data, size_t length);
+	int  receiveFrom_cpp(uint8_t* data, size_t length, struct sockaddr* pAddr);
+	void send_cpp(std::string value) const;
+	void send_cpp(const uint8_t* data, size_t length) const;
+	void sendTo_cpp(const uint8_t* data, size_t length, struct sockaddr* pAddr);
+	std::string toString();
+
+
 private:
 	int m_sock;
 };

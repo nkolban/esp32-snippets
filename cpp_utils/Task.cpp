@@ -25,6 +25,7 @@ static char tag[] = "Task";
  * @return N/A.
  */
 Task::Task(std::string taskName, uint16_t stackSize) {
+	m_taskName  = taskName;
 	m_stackSize = stackSize;
 	m_taskData  = nullptr;
 	m_handle    = nullptr;
@@ -51,10 +52,11 @@ void Task::delay(int ms) {
  * @param [in] pTaskInstance The task to run.
  */
 void Task::runTask(void* pTaskInstance) {
-	ESP_LOGD(tag, ">> runTask");
 	Task* pTask = (Task*)pTaskInstance;
+	ESP_LOGD(tag, ">> runTask: taskName=%s", pTask->m_taskName.c_str());
 	pTask->run(pTask->m_taskData);
 	pTask->stop();
+	ESP_LOGD(tag, "<< runTask: taskName=%s", pTask->m_taskName.c_str());
 } // runTask
 
 /**

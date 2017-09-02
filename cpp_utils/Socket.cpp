@@ -5,26 +5,46 @@
  *      Author: kolban
  */
 
+#include <sstream>
+
 #include <errno.h>
 #include <esp_log.h>
 #include <lwip/sockets.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 
+#include <unistd.h>
 #include "sdkconfig.h"
 #include "Socket.h"
 
-static char tag[] = "Socket";
+static const char* LOG_TAG = "Socket";
 
 Socket::Socket() {
 	m_sock = -1;
 }
 
 Socket::~Socket() {
-	close_cpp(); // When the class instance has ended, delete the socket.
+	//close_cpp(); // When the class instance has ended, delete the socket.
 }
 
+
+
+Socket Socket::accept_cpp() {
+	struct sockaddr addr;
+	getBind_cpp(&addr);
+	ESP_LOGD(LOG_TAG, "Accepting on %s", addressToString(&addr).c_str());
+	struct sockaddr_in clientAddress;
+	socklen_t clientAddressLength = sizeof(clientAddress);
+	int clientSockFD = ::accept(m_sock, (struct sockaddr *)&clientAddress, &clientAddressLength);
+	if (clientSockFD == -1) {
+		ESP_LOGE(LOG_TAG, "accept(): %s, m_sock=%d", strerror(errno), m_sock);
+		Socket newSocket;
+		return newSocket;
+	}
+	Socket newSocket;
+	newSocket.m_sock = clientSockFD;
+	return newSocket;
+}
 
 /**
  * @brief Convert a socket address to a string representation.
@@ -50,8 +70,9 @@ std::string Socket::addressToString(struct sockaddr* addr) {
  * @return N/A
  */
 void Socket::bind_cpp(uint16_t port, uint32_t address) {
+	ESP_LOGD(LOG_TAG, "bind_cpp: port=%d, address=0x%x", port, address);
 	if (m_sock == -1) {
-		ESP_LOGE(tag, "bind_cpp: Socket is not initialized.");
+		ESP_LOGE(LOG_TAG, "bind_cpp: Socket is not initialized.");
 	}
 	struct sockaddr_in serverAddress;
 	serverAddress.sin_family = AF_INET;
@@ -59,7 +80,7 @@ void Socket::bind_cpp(uint16_t port, uint32_t address) {
 	serverAddress.sin_port   = htons(port);
 	int rc = ::bind(m_sock, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
 	if (rc == -1) {
-		ESP_LOGE(tag, "bind_cpp: bind[socket=%d]: %d: %s", m_sock, errno, strerror(errno));
+		ESP_LOGE(LOG_TAG, "bind_cpp: bind[socket=%d]: %d: %s", m_sock, errno, strerror(errno));
 		return;
 	}
 } // bind_cpp
@@ -71,6 +92,7 @@ void Socket::bind_cpp(uint16_t port, uint32_t address) {
  * @return N/A.
  */
 void Socket::close_cpp() {
+	ESP_LOGD(LOG_TAG, "close_cpp: m_sock=%d", m_sock);
 	if (m_sock != -1) {
 		::close(m_sock);
 	}
@@ -92,15 +114,15 @@ int Socket::connect_cpp(struct in_addr address, uint16_t port) {
 	serverAddress.sin_port   = htons(port);
 	char msg[50];
 	inet_ntop(AF_INET, &address, msg, sizeof(msg));
-	ESP_LOGD(tag, "Connecting to %s:[%d]", msg, port);
+	ESP_LOGD(LOG_TAG, "Connecting to %s:[%d]", msg, port);
 	createSocket_cpp();
 	int rc = ::connect(m_sock, (struct sockaddr *)&serverAddress, sizeof(struct sockaddr_in));
 	if (rc == -1) {
-		ESP_LOGE(tag, "connect_cpp: Error: %s", strerror(errno));
+		ESP_LOGE(LOG_TAG, "connect_cpp: Error: %s", strerror(errno));
 		close_cpp();
 		return -1;
 	} else {
-		ESP_LOGD(tag, "Connected to partner");
+		ESP_LOGD(LOG_TAG, "Connected to partner");
 		return 0;
 	}
 } // connect_cpp
@@ -133,7 +155,7 @@ int Socket::createSocket_cpp(bool isDatagram) {
 		m_sock = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	}
 	if (m_sock == -1) {
-		ESP_LOGE(tag, "createSocket_cpp: socket: %d", errno);
+		ESP_LOGE(LOG_TAG, "createSocket_cpp: socket: %d", errno);
 		return m_sock;
 	}
 	return m_sock;
@@ -145,14 +167,27 @@ int Socket::createSocket_cpp(bool isDatagram) {
  * @param [out] pAddr The storage to hold the address.
  * @return N/A.
  */
-void Socket::getBind_cpp(struct sockaddr *pAddr) {
+void Socket::getBind_cpp(struct sockaddr* pAddr) {
 	if (m_sock == -1) {
-		ESP_LOGE(tag, "getBind_cpp: Socket is not initialized.");
+		ESP_LOGE(LOG_TAG, "getBind_cpp: Socket is not initialized.");
 	}
 	socklen_t nameLen = sizeof(struct sockaddr);
 	::getsockname(m_sock, pAddr, &nameLen);
 } // getBind_cpp
 
+
+/**
+ * @brief Get the underlying socket file descriptor.
+ * @return The underlying socket file descriptor.
+ */
+int Socket::getFD() const {
+	return m_sock;
+} // getFD
+
+
+bool Socket::isValid() {
+	return m_sock != -1;
+} // isValid
 
 /**
  * @brief Create a listening socket.
@@ -161,8 +196,48 @@ void Socket::getBind_cpp(struct sockaddr *pAddr) {
  */
 void Socket::listen_cpp(uint16_t port, bool isDatagram) {
 	createSocket_cpp(isDatagram);
-	bind_cpp(port, INADDR_ANY);
+	bind_cpp(port, 0);
+	int rc = ::listen(m_sock, 5);
+	if (rc == -1) {
+		ESP_LOGE(LOG_TAG, "listen_cpp: %s", strerror(errno));
+	}
 } // listen_cpp
+
+bool Socket::operator <(const Socket& other) const {
+	return m_sock < other.m_sock;
+}
+
+
+std::string Socket::readToDelim(std::string delim) {
+	std::string ret;
+	std::string part;
+	auto it = delim.begin();
+	while(1) {
+		uint8_t val;
+		int rc = receive_cpp(&val, 1);
+		if (rc == -1) {
+			return "";
+		}
+		if (rc == 0) {
+			return ret+part;
+		}
+		if (*it == val) {
+			part+= val;
+			++it;
+			if (it == delim.end()) {
+				return ret;
+			}
+		} else {
+			if (part.empty()) {
+				ret += part;
+				part.clear();
+				it = delim.begin();
+			}
+			ret += val;
+		}
+	} // While
+} // readToDelim
+
 
 
 /**
@@ -175,7 +250,7 @@ void Socket::listen_cpp(uint16_t port, bool isDatagram) {
 int Socket::receive_cpp(uint8_t* data, size_t length) {
 	int rc = ::recv(m_sock, data, length, 0);
 	if (rc == -1) {
-		ESP_LOGE(tag, "receive_cpp: %s", strerror(errno));
+		ESP_LOGE(LOG_TAG, "receive_cpp: %s", strerror(errno));
 	}
 	return rc;
 } // receive_cpp
@@ -203,10 +278,10 @@ int Socket::receiveFrom_cpp(uint8_t* data, size_t length,	struct sockaddr *pAddr
  * @return N/A.
  *
  */
-void Socket::send_cpp(const uint8_t* data, size_t length) {
+void Socket::send_cpp(const uint8_t* data, size_t length) const {
 	int rc = ::send(m_sock, data, length, 0);
 	if (rc == -1) {
-		ESP_LOGE(tag, "send: socket=%d, %s", m_sock, strerror(errno));
+		ESP_LOGE(LOG_TAG, "send: socket=%d, %s", m_sock, strerror(errno));
 	}
 } // send_cpp
 
@@ -217,7 +292,7 @@ void Socket::send_cpp(const uint8_t* data, size_t length) {
  * @param [in] value The string to send to the partner.
  * @return N/A.
  */
-void Socket::send_cpp(std::string value) {
+void Socket::send_cpp(std::string value) const {
 	send_cpp((uint8_t *)value.data(), value.size());
 } // send_cpp
 
@@ -231,6 +306,16 @@ void Socket::send_cpp(std::string value) {
 void Socket::sendTo_cpp(const uint8_t* data, size_t length, struct sockaddr* pAddr) {
 	int rc = ::sendto(m_sock, data, length, 0, pAddr, sizeof(struct sockaddr));
 	if (rc == -1) {
-		ESP_LOGE(tag, "sendto_cpp: socket=%d %s", m_sock, strerror(errno));
+		ESP_LOGE(LOG_TAG, "sendto_cpp: socket=%d %s", m_sock, strerror(errno));
 	}
 } // sendTo_cpp
+
+/**
+ * @brief Get the string representation of this socket
+ * @return the string representation of the socket.
+ */
+std::string Socket::toString() {
+	std::ostringstream oss;
+	oss << "fd: " << m_sock;
+	return oss.str();
+} // toString
