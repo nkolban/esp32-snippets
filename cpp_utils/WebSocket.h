@@ -18,15 +18,17 @@ public:
 
 class WebSocket {
 private:
+
 	Socket           m_socket;
 	WebSocketHandler m_webSocketHandler;
+
 public:
 	WebSocket(Socket socket);
 	virtual ~WebSocket();
-	void close_cpp();
+	void   close_cpp();
 	Socket getSocket();
-	void send_cpp(std::string data);
-	void setHandler(WebSocketHandler handler);
+	void   send_cpp(std::string data);
+	void   setHandler(WebSocketHandler handler);
 };
 
 #endif /* COMPONENTS_WEBSOCKET_H_ */

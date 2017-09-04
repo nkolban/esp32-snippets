@@ -24,11 +24,12 @@ public:
 	HttpParser();
 	virtual ~HttpParser();
 	std::string getBody();
-	std::string getHeader(std::string& name);
+	std::string getHeader(const std::string& name);
 	std::map<std::string, std::string> getHeaders();
 	std::string getMethod();
 	std::string getURL();
 	std::string getVersion();
+	bool hasHeader(const std::string& name);
 	void parse(std::string message);
 	void parse(Socket s);
 };

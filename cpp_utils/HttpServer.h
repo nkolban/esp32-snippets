@@ -12,7 +12,8 @@
 #include <vector>
 #include "SockServ.h"
 #include "HttpRequest.h"
-class HttpResponse;
+#include "HttpResponse.h"
+
 class HttpServerTask;
 
 class PathHandler {
@@ -25,7 +26,8 @@ class PathHandler {
 		void invoke(HttpRequest* request, HttpResponse* response);
 	private:
 		std::string m_method;
-		std::regex m_pattern;
+		std::regex  m_pattern;
+		std::string m_textPattern;
 		void (*m_requestHandler)(HttpRequest* pHttpRequest, HttpResponse* pHttpResponse);
 }; // PathHandler
 
@@ -42,11 +44,14 @@ public:
 			HttpRequest* pHttpRequest,
 			HttpResponse* pHttpResponse) );
 	uint16_t getPort();
+	std::string getRootPath();
+	void setRootPath(std::string path);
 	void start(uint16_t portNumber);
 private:
 	friend class HttpServerTask;
-	uint16_t m_portNumber;
+	uint16_t                 m_portNumber;
 	std::vector<PathHandler> m_pathHandlers;
+	std::string              m_rootPath;
 }; // HttpServer
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPSERVER_H_ */

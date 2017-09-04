@@ -9,7 +9,9 @@
 #define COMPONENTS_CPP_UTILS_HTTPREQUEST_H_
 #include <string>
 #include <map>
+#include <vector>
 #include "Socket.h"
+#include "WebSocket.h"
 #include "HttpParser.h"
 
 
@@ -19,10 +21,7 @@ private:
 	Socket      m_clientSocket;
 	HttpParser  m_parser;
 	int         m_status;
-	bool        m_isWebsocket;
-	std::string m_responseMessage;
-	std::string m_responseBody;
-	std::map<std::string, std::string> m_responseHeaders;
+	WebSocket  *m_webSocket;
 public:
 
 	HttpRequest(Socket s);
@@ -52,36 +51,21 @@ public:
 	static const std::string HTTP_METHOD_POST;
 	static const std::string HTTP_METHOD_PUT;
 
-	static const int HTTP_STATUS_CONTINUE;
-	static const int HTTP_STATUS_SWITCHING_PROTOCOL;
-	static const int HTTP_STATUS_OK;
-	static const int HTTP_STATUS_MOVED_PERMANENTLY;
-	static const int HTTP_STATUS_BAD_REQUEST;
-	static const int HTTP_STATUS_UNAUTHORIZED;
-	static const int HTTP_STATUS_FORBIDDEN;
-	static const int HTTP_STATUS_NOT_FOUND;
-	static const int HTTP_STATUS_METHOD_NOT_ALLOWED;
-	static const int HTTP_STATUS_INTERNAL_SERVER_ERROR;
-	static const int HTTP_STATUS_NOT_IMPLEMENTED;
-	static const int HTTP_STATUS_SERVICE_UNAVAILABLE;
 
-	void addResponseHeader(const std::string name, const std::string value);
+
 	void close_cpp();
 	void dump();
+	std::string getBody();
+	std::string getHeader(std::string name);
+	std::map<std::string, std::string> getHeaders();
 	std::string getMethod();
 	std::string getPath();
-	std::string getRequestBody();
-	std::string getRequestHeader(std::string name);
-	std::map<std::string, std::string> getRequestHeaders();
-	std::string getResponseHeader(std::string name);
-	std::map<std::string, std::string> getResponseHeaders();
-	Socket getSocket();
-
+	std::map<std::string, std::string> getQuery();
+	Socket      getSocket();
 	std::string getVersion();
-	bool isWebsocket();
-	void sendResponse();
-	void setResponseBody(const std::string body);
-	void setStatus(const int status, const std::string message);
+	WebSocket*  getWebSocket();
+	bool        isWebsocket();
+	std::vector<std::string> pathSplit();
 };
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPREQUEST_H_ */

@@ -5,8 +5,12 @@
  *      Author: kolban
  */
 
-#include "HttpParser.h"
 #include <string>
+#include <iostream>
+#include <cstdlib>
+#include "HttpParser.h"
+#include "HttpRequest.h"
+
 #include <esp_log.h>
 /**
  * RFC7230 - Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing
@@ -70,7 +74,6 @@ static std::string toStringToken(std::string::iterator &it, std::string &str, st
 			}
 			ret += *it;
 		}
-
 	} // for
 	return ret;
 } // toStringToken
@@ -94,8 +97,6 @@ static std::string toCharToken(std::string::iterator &it, std::string &str, char
 	}
 	return ret;
 } // toCharToken
-
-
 
 
 /**
@@ -139,33 +140,48 @@ void HttpParser::dump() {
 	ESP_LOGD(LOG_TAG, "Body: \"%s\"", m_body.c_str());
 } // dump
 
+
 std::string HttpParser::getBody() {
 	return m_body;
 }
 
-std::string HttpParser::getHeader(std::string& name) {
-	if (m_headers.find(name) == m_headers.end()) {
+
+std::string HttpParser::getHeader(const std::string& name) {
+	if (!hasHeader(name)) {
 		return "";
 	}
 	return m_headers.at(name);
 }
 
+
 std::map<std::string, std::string> HttpParser::getHeaders() {
 	return m_headers;
 }
+
 
 std::string HttpParser::getMethod() {
 	return m_method;
 } // getMethod
 
+
 std::string HttpParser::getURL() {
 	return m_url;
 } // getURL
+
 
 std::string HttpParser::getVersion() {
 	return m_version;
 } // getVersion
 
+
+/**
+ * @brief Determine if we have a header of the given name.
+ * @param [in] name The name of the header to find.
+ * @return True if the header is present and false otherwise.
+ */
+bool HttpParser::hasHeader(const std::string& name) {
+	return m_headers.find(name) != m_headers.end();
+} // hasHeader
 
 
 /**
@@ -181,6 +197,26 @@ void HttpParser::parse(Socket s) {
 		m_headers.insert(parseHeader(line));
 		line = s.readToDelim(lineTerminator);
 	}
+	// Only PUT and POST requests have a body
+	if (getMethod() != "POST" && getMethod() != "PUT") {
+		return;
+	}
+
+	// We have now parsed up to and including the separator ... we are now at the point where we
+	// want to read the body.  There are two stories here.  The first is that we know the exact length
+	// of the body or we read until we can't read anymore.
+	if (hasHeader(HttpRequest::HTTP_HEADER_CONTENT_LENGTH)) {
+		std::string val = getHeader(HttpRequest::HTTP_HEADER_CONTENT_LENGTH);
+		int length = std::atoi(val.c_str());
+		uint8_t data[length];
+		s.receive_cpp(data, length, true);
+		m_body = std::string((char *)data, length);
+	} else {
+		uint8_t data[512];
+		int rc = s.receive_cpp(data, sizeof(data));
+		m_body = std::string((char *)data, rc);
+	}
+	ESP_LOGD(LOG_TAG, "Size of body: %d", m_body.length());
 } // parse
 
 
@@ -188,6 +224,7 @@ void HttpParser::parse(Socket s) {
  * @brief Parse a string message.
  * @param [in] message The HTTP message to parse.
  */
+/*
 void HttpParser::parse(std::string message) {
 	auto it = message.begin();
 	auto line = toStringToken(it, message, lineTerminator);
@@ -202,7 +239,7 @@ void HttpParser::parse(std::string message) {
 
 	m_body = message.substr(std::distance(message.begin(), it));
 } // parse
-
+*/
 
 /**
  * @brief Parse A request line.
@@ -224,6 +261,3 @@ void HttpParser::parseRequestLine(std::string &line) {
 	// Get the version
 	m_version = toCharToken(it, line, ' ');
 } // parseRequestLine
-
-
-

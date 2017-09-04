@@ -36,7 +36,7 @@ public:
 	void listen_cpp(uint16_t port, bool isDatagram=false);
 	bool operator<(const Socket& other) const;
 	std::string readToDelim(std::string delim);
-	int  receive_cpp(uint8_t* data, size_t length);
+	int  receive_cpp(uint8_t* data, size_t length, bool exact=false);
 	int  receiveFrom_cpp(uint8_t* data, size_t length, struct sockaddr* pAddr);
 	void send_cpp(std::string value) const;
 	void send_cpp(const uint8_t* data, size_t length) const;

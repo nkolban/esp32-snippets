@@ -7,9 +7,9 @@
 
 #include "FATFS_VFS.h"
 #include <esp_err.h>
-extern "C" {
+
 #include <esp_vfs_fat.h>
-}
+
 
 /**
  * @brief Constructor.

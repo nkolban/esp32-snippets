@@ -14,6 +14,7 @@
 #include <string.h>
 
 #include <unistd.h>
+#include "GeneralUtils.h"
 #include "sdkconfig.h"
 #include "Socket.h"
 
@@ -245,14 +246,31 @@ std::string Socket::readToDelim(std::string delim) {
  *
  * @param [in] data The buffer into which the received data will be stored.
  * @param [in] length The size of the buffer.
+ * @param [in] exact Read exactly this amount?
  * @return The length of the data received or -1 on an error.
  */
-int Socket::receive_cpp(uint8_t* data, size_t length) {
-	int rc = ::recv(m_sock, data, length, 0);
-	if (rc == -1) {
-		ESP_LOGE(LOG_TAG, "receive_cpp: %s", strerror(errno));
+int Socket::receive_cpp(uint8_t* data, size_t length, bool exact) {
+	//ESP_LOGD(LOG_TAG, ">> receive_cpp: length: %d, exact: %d", length, exact);
+	if (exact == false) {
+		int rc = ::recv(m_sock, data, length, 0);
+		if (rc == -1) {
+			ESP_LOGE(LOG_TAG, "receive_cpp: %s", strerror(errno));
+		}
+		//GeneralUtils::hexDump(data, rc);
+		return rc;
 	}
-	return rc;
+	size_t amountToRead = length;
+	while(amountToRead > 0) {
+		int rc = ::recv(m_sock, data, amountToRead, 0);
+		if (rc == -1) {
+			ESP_LOGE(LOG_TAG, "receive_cpp: %s", strerror(errno));
+			return 0;
+		}
+		amountToRead -= rc;
+		data+= rc;
+	}
+	//GeneralUtils::hexDump(data, length);
+	return length;
 } // receive_cpp
 
 

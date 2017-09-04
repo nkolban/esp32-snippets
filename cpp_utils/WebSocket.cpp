@@ -12,12 +12,17 @@
 #include <esp_log.h>
 
 static const char* LOG_TAG = "WebSocket";
-static const int OPCODE_CONTINUE = 0x0;
-static const int OPCODE_TEXT     = 0x1;
+
+// WebSocket op codes as found in a WebSocket frame.
+static const int OPCODE_CONTINUE = 0x00;
+static const int OPCODE_TEXT     = 0x01;
 static const int OPCODE_BINARY   = 0x02;
 static const int OPCODE_CLOSE    = 0x08;
 static const int OPCODE_PING     = 0x09;
 static const int OPCODE_PONG     = 0x0a;
+
+
+// Structure definition for the WebSocket frame.
 struct Frame {
 	unsigned int opCode : 4; // [7:4]
 	unsigned int rsv3   : 1; // [3]
@@ -29,18 +34,11 @@ struct Frame {
 	unsigned int mask   : 1; // [0]
 };
 
-/*
- * struct Frame {
-	unsigned int fin    : 1;
-	unsigned int rsv1   : 1;
-	unsigned int rsv2   : 1;
-	unsigned int rsv3   : 1;
-	unsigned int opCode : 4;
-	unsigned int mask   : 1;
-	unsigned int len    : 7;
-};
- */
 
+/**
+ * @brief Dump the content of the frame for debugging.
+ * @param [in] frame The frame to dump.
+ */
 static void dumpFrame(Frame frame) {
 	std::ostringstream oss;
 	oss << "Fin: " << frame.fin << ", OpCode: " << frame.opCode;
@@ -76,8 +74,12 @@ static void dumpFrame(Frame frame) {
 	}
 	oss << ", Mask: " << frame.mask << ", len: " << frame.len;
 	ESP_LOGD(LOG_TAG, "WebSocket frame: %s", oss.str().c_str());
-}
+} // dumpFrame
 
+
+/**
+ * @brief A task that will watch web socket inputs.
+ */
 class WebSocketReader: public Task {
 	void run(void* data) {
 		uint8_t buffer[1000];
@@ -90,6 +92,8 @@ class WebSocketReader: public Task {
 		ESP_LOGD(LOG_TAG, "Received data from web socket.  Length: %d", length);
 		GeneralUtils::hexDump(buffer, length);
 		dumpFrame(*(Frame *)buffer);
+
+		// The following section parses the WebSocket frame.
 		if (length > 0) {
 			Frame* pFrame = (Frame*)buffer;
 			uint32_t payloadLen = 0;
@@ -121,15 +125,15 @@ class WebSocketReader: public Task {
 			GeneralUtils::hexDump(pData, payloadLen);
 		}
 	} // run
-};
+}; // WebSocketReader
 
 
 void WebSocketHandler::onData(std::string data) {
-}
+} // onData
 
 
 void WebSocketHandler::onError(std::string error) {
-}
+} // onError
 
 
 WebSocket::WebSocket(Socket socket) {
@@ -140,22 +144,41 @@ WebSocket::WebSocket(Socket socket) {
 
 
 WebSocket::~WebSocket() {
-}
+} // ~WebSocket
 
 
+/**
+ * @brief Close the Web socket
+ */
 void WebSocket::close_cpp() {
+
 } // close_cpp
 
 
+/**
+ * @brief Get the underlying socket for the websocket.
+ * @return The socket associated with the Web socket.
+ */
 Socket WebSocket::getSocket() {
 	return m_socket;
 } // getSocket
 
 
+/**
+ * @brief Send data down the web socket
+ * @param [in] data The data to send down the websocket.
+ */
 void WebSocket::send_cpp(std::string data) {
 } // send_cpp
 
 
+/**
+ * @brief Set the Web socket handler associated with this Websocket.
+ *
+ * This will be the user supplied code that will be invoked to process incoming WebSocket
+ * events.  An instance of WebSocketHandler is passed in.
+ *
+ */
 void WebSocket::setHandler(WebSocketHandler handler) {
 	m_webSocketHandler = handler;
 } // setHandler

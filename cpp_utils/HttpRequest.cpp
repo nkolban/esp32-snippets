@@ -32,6 +32,8 @@
  */
 
 #include <sstream>
+#include <vector>
+#include "HttpResponse.h"
 #include "HttpRequest.h"
 #include "GeneralUtils.h"
 
@@ -41,7 +43,7 @@
 
 static const char* LOG_TAG="HttpRequest";
 
-static std::string lineTerminator = "\r\n";
+//static std::string lineTerminator = "\r\n";
 
 const std::string HttpRequest::HTTP_HEADER_ACCEPT         = "Accept";
 const std::string HttpRequest::HTTP_HEADER_ALLOW          = "Allow";
@@ -69,18 +71,7 @@ const std::string HttpRequest::HTTP_METHOD_POST    = "POST";
 const std::string HttpRequest::HTTP_METHOD_PUT     = "PUT";
 
 
-const int HttpRequest::HTTP_STATUS_CONTINUE              = 100;
-const int HttpRequest::HTTP_STATUS_SWITCHING_PROTOCOL    = 101;
-const int HttpRequest::HTTP_STATUS_OK                    = 200;
-const int HttpRequest::HTTP_STATUS_MOVED_PERMANENTLY     = 301;
-const int HttpRequest::HTTP_STATUS_BAD_REQUEST           = 400;
-const int HttpRequest::HTTP_STATUS_UNAUTHORIZED          = 401;
-const int HttpRequest::HTTP_STATUS_FORBIDDEN             = 403;
-const int HttpRequest::HTTP_STATUS_NOT_FOUND             = 404;
-const int HttpRequest::HTTP_STATUS_METHOD_NOT_ALLOWED    = 405;
-const int HttpRequest::HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
-const int HttpRequest::HTTP_STATUS_NOT_IMPLEMENTED       = 501;
-const int HttpRequest::HTTP_STATUS_SERVICE_UNAVAILABLE   = 503;
+
 
 std::string buildResponseHash(std::string requestKey) {
 	std::string newKey = requestKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
@@ -96,29 +87,31 @@ std::string buildResponseHash(std::string requestKey) {
 HttpRequest::HttpRequest(Socket clientSocket) {
 	m_clientSocket = clientSocket;
 	m_status       = 0;
-	m_isWebsocket  = false;
+	m_webSocket    = nullptr;
 
-	m_parser.parse(clientSocket);
+	m_parser.parse(clientSocket); // Parse the socket stream to build the HTTP data.
 
 	// Is this a Web Socket?
 	if (getMethod() == HTTP_METHOD_GET &&
-			!getRequestHeader(HTTP_HEADER_HOST).empty() &&
-			getRequestHeader(HTTP_HEADER_UPGRADE) == "websocket" &&
-			getRequestHeader(HTTP_HEADER_CONNECTION) == "Upgrade" &&
-			!getRequestHeader(HTTP_HEADER_SEC_WEBSOCKET_KEY).empty() &&
-			!getRequestHeader(HTTP_HEADER_SEC_WEBSOCKET_VERSION).empty()) {
+			!getHeader(HTTP_HEADER_HOST).empty() &&
+			getHeader(HTTP_HEADER_UPGRADE) == "websocket" &&
+			getHeader(HTTP_HEADER_CONNECTION) == "Upgrade" &&
+			!getHeader(HTTP_HEADER_SEC_WEBSOCKET_KEY).empty() &&
+			!getHeader(HTTP_HEADER_SEC_WEBSOCKET_VERSION).empty()) {
 		ESP_LOGD(LOG_TAG, "Websocket detected!");
-		m_isWebsocket = true;
 		// do something
 		// Process the web socket request
 
 
-		setStatus(HTTP_STATUS_SWITCHING_PROTOCOL, "Switching Protocols");
-		addResponseHeader(HTTP_HEADER_UPGRADE, "websocket");
-		addResponseHeader(HTTP_HEADER_CONNECTION, "Upgrade");
-		addResponseHeader(HTTP_HEADER_SEC_WEBSOCKET_ACCEPT,
-			buildResponseHash(getRequestHeader(HTTP_HEADER_SEC_WEBSOCKET_KEY)));
-		sendResponse();
+		HttpResponse response(this);
+
+		response.setStatus(HttpResponse::HTTP_STATUS_SWITCHING_PROTOCOL, "Switching Protocols");
+		response.addHeader(HTTP_HEADER_UPGRADE, "websocket");
+		response.addHeader(HTTP_HEADER_CONNECTION, "Upgrade");
+		response.addHeader(HTTP_HEADER_SEC_WEBSOCKET_ACCEPT,
+			buildResponseHash(getHeader(HTTP_HEADER_SEC_WEBSOCKET_KEY)));
+		response.sendData("");
+		m_webSocket = new WebSocket(clientSocket);
 	} else {
 		ESP_LOGD(LOG_TAG, "Not a Websocket");
 	}
@@ -129,11 +122,6 @@ HttpRequest::~HttpRequest() {
 } // ~HttpRequest
 
 
-void HttpRequest::addResponseHeader(const std::string name, const std::string value) {
-	m_responseHeaders.insert(std::pair<std::string, std::string>(name, value));
-} // addResponseHeader
-
-
 void HttpRequest::close_cpp() {
 	m_clientSocket.close_cpp();
 } // close_cpp
@@ -141,13 +129,28 @@ void HttpRequest::close_cpp() {
 
 void HttpRequest::dump() {
 	ESP_LOGD(LOG_TAG, "Method: %s, URL: \"%s\", Version: %s", getMethod().c_str(), getPath().c_str(), getVersion().c_str());
-	auto headers = getRequestHeaders();
+	auto headers = getHeaders();
 	auto it2 = headers.begin();
 	for (; it2 != headers.end(); ++it2) {
 		ESP_LOGD(LOG_TAG, "name=\"%s\", value=\"%s\"", it2->first.c_str(), it2->second.c_str());
 	}
-	ESP_LOGD(LOG_TAG, "Body: \"%s\"", getRequestBody().c_str());
+	ESP_LOGD(LOG_TAG, "Body: \"%s\"", getBody().c_str());
 } // dump
+
+
+std::string HttpRequest::getBody() {
+	return m_parser.getBody();
+} // getBody
+
+
+std::string HttpRequest::getHeader(std::string name) {
+	return m_parser.getHeader(name);
+} // getHeader
+
+
+std::map<std::string, std::string> HttpRequest::getHeaders() {
+	return m_parser.getHeaders();
+} // getHeaders
 
 
 std::string HttpRequest::getMethod() {
@@ -157,74 +160,113 @@ std::string HttpRequest::getMethod() {
 
 std::string HttpRequest::getPath() {
 	return m_parser.getURL();
-} // getURL
-
-std::string HttpRequest::getRequestBody() {
-	return m_parser.getBody();
-} // getRequestBody
+} // getPath
 
 
-std::string HttpRequest::getRequestHeader(std::string name) {
-	return m_parser.getHeader(name);
-} // getRequestHeader
+#define STATE_NAME 0
+#define STATE_VALUE 1
+/**
+ * @brief Get the query part of the request.
+ * The query is a set of name = value pairs.  The return is a map keyed by the name items.
+ *
+ * @return The query part of the request.
+ */
+std::map<std::string, std::string> HttpRequest::getQuery() {
+	// Walk through all the characters in the query string maintaining a simple state machine
+	// that lets us know what we are parsing.
+	std::map<std::string, std::string> queryMap;
+	std::string queryString = "";
+	int i=0;
 
-
-std::map<std::string, std::string> HttpRequest::getRequestHeaders() {
-	return m_parser.getHeaders();
-} // getRequestHeaders
-
-
-std::string HttpRequest::getResponseHeader(std::string name) {
-	if (m_responseHeaders.find(name) == m_responseHeaders.end()) {
-		return "";
+	/*
+	 * We maintain a simple state machine with states of:
+	 * * STATE_NAME - We are parsing a name.
+	 * * STATE_VALUE - We are parsing a value.
+	 */
+	int state = STATE_NAME;
+	std::string name = "";
+	std::string value;
+	// Loop through each character in the query string.
+	for (i=0; i<queryString.length(); i++) {
+		char currentChar = queryString[i];
+		if (state == STATE_NAME) {
+			if (currentChar != '=') {
+				name += currentChar;
+			} else {
+				state = STATE_VALUE;
+				value = "";
+			}
+		} // End state = STATE_NAME
+		else if (state == STATE_VALUE) {
+			if (currentChar != '&') {
+				value += currentChar;
+			} else {
+				//ESP_LOGD(tag, "name=%s, value=%s", name.c_str(), value.c_str());
+				queryMap[name] = value;
+				state = STATE_NAME;
+				name = "";
+			}
+		} // End state = STATE_VALUE
+	} // End for loop
+	if (state == STATE_VALUE) {
+		//ESP_LOGD(tag, "name=%s, value=%s", name.c_str(), value.c_str());
+		queryMap[name] = value;
 	}
-	return m_responseHeaders.at(name);
-} // getResponseHeader
-
-
-std::map<std::string, std::string> HttpRequest::getResponseHeaders() {
-	return m_responseHeaders;
-} // getResponseHeaders
+	return queryMap;
+} // getQuery
 
 
 Socket HttpRequest::getSocket() {
 		return m_clientSocket;
-}
-
-
-
+} // getSocket
 
 
 std::string HttpRequest::getVersion() {
 	return m_parser.getVersion();
 } // getVersion
 
+WebSocket* HttpRequest::getWebSocket() {
+	return m_webSocket;
+} // getWebSocket
 
+
+/**
+ * @brief Determine if this request represents a WebSocket
+ * @return True if the request creates a web socket.
+ */
 bool HttpRequest::isWebsocket() {
-	return m_isWebsocket;
-}
+	return m_webSocket != nullptr;
+} // isWebsocket
 
-
-void HttpRequest::sendResponse() {
-	std::ostringstream oss;
-	oss << getVersion() << " " << m_status << " " << m_responseMessage << lineTerminator;
-	for (auto it = m_responseHeaders.begin(); it != m_responseHeaders.end(); ++it) {
-		oss << it->first.c_str() << ": " << it->second.c_str() << lineTerminator;
+/**
+ * @brief Return the constituent parts of the path.
+ * If we imagine a path as composed of parts separated by slashes, then this function
+ * returns a vector composed of the parts.  For example:
+ *
+ * ```
+ * /x/y/z
+ * ```
+ * will break out to:
+ *
+ * ```
+ * path[0] = ""
+ * path[1] = "x"
+ * path[2] = "y"
+ * path[3] = "z"
+ * ```
+ *
+ * @return A vector of the constituent parts of the path.
+ */
+std::vector<std::string> HttpRequest::pathSplit() {
+	std::istringstream stream(getPath());
+	std::vector<std::string> ret;
+	std::string pathPart;
+	while(std::getline(stream, pathPart, '/')) {
+		ret.push_back(pathPart);
 	}
-	oss << lineTerminator;
-	oss << m_responseBody;
-	ESP_LOGD(LOG_TAG, ">> sendResponse: %s", oss.str().c_str());
-	m_clientSocket.send_cpp(oss.str());
-	/*TODO*/
-} // sendResponse
-
-
-void HttpRequest::setResponseBody(const std::string body) {
-	m_responseBody = body;
-} // setResponseBody
-
-
-void HttpRequest::setStatus(const int status, const std::string message) {
-	m_status = status;
-	m_responseMessage = message;
-} // setStatus
+	// Debug
+	for (int i=0; i<ret.size(); i++) {
+		ESP_LOGD(LOG_TAG, "part[%d]: %s", i, ret[i].c_str());
+	}
+	return ret;
+} // pathSplit
