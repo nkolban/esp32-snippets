@@ -1,3 +1,9 @@
+/**
+ * Create a BLE Server that when it receive a read request from a BLE client for the value
+ * of a characteristic will have the BLECharacteristicCallback invoked in its onRead() method.
+ * This can be then used to set the value of the corresponding characteristic which will then
+ * be returned back to the client.
+ */
 #include "BLEUtils.h"
 #include "BLEServer.h"
 #include <esp_log.h>

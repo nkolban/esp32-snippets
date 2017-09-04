@@ -1,3 +1,9 @@
+/**
+ * Create a BLE Server such that when a client connects and requests a change to the characteristic
+ * value, the callback associated with the server will be invoked such that the server can perform
+ * some action based on the new value.  The action in this sample is merely to log the new value to
+ * the console.
+ */
 #include "BLEUtils.h"
 #include "BLEServer.h"
 #include <esp_log.h>
@@ -27,6 +33,7 @@ class MyCallbacks: public BLECharacteristicCallbacks {
 		}
 };
 
+
 static void run() {
 	BLEDevice::init("MYDEVICE");
 	BLEServer *pServer = new BLEServer();
@@ -47,6 +54,7 @@ static void run() {
 	BLEAdvertising *pAdvertising = pServer->getAdvertising();
 	pAdvertising->start();
 }
+
 
 void SampleWrite(void)
 {

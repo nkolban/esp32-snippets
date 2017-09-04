@@ -18,6 +18,9 @@ static const char LOG_TAG[] = "Sample-MLE-15";
 
 static BLEUUID serviceUUID((uint16_t)0x1802);
 static BLEUUID    charUUID((uint16_t)0x2a06);
+static void notifyCallback(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify) {
+
+}
 
 class MyClient: public Task {
 	void run(void *data) {
@@ -43,7 +46,7 @@ class MyClient: public Task {
 		pRemoteCharacteristic->readValue();
 
 		pRemoteCharacteristic->writeValue("123");
-		pRemoteCharacteristic->registerForNotify();
+		pRemoteCharacteristic->registerForNotify(notifyCallback);
 		pClient->disconnect();
 
 		ESP_LOGD(LOG_TAG, "%s", pClient->toString().c_str());

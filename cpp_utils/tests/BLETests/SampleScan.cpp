@@ -1,3 +1,6 @@
+/**
+ * Perform scanning for BLE advertised servers.
+ */
 #include "BLEUtils.h"
 #include "BLEScan.h"
 #include <esp_log.h>

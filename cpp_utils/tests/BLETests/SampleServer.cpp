@@ -1,3 +1,6 @@
+/**
+ * Create a new BLE server.
+ */
 #include "BLEUtils.h"
 #include "BLEServer.h"
 #include "BLE2902.h"

@@ -1,7 +1,6 @@
 /**
- * Create a sample BLE client that connects to a BLE server and then retrieves the current
- * characteristic value.  It will then periodically update the value of the characteristic on the
- * remote server with the current time since boot.
+ * Create a sample BLE client that connects to a BLE server and then waits for server generated
+ * notifications and logs them when they arrive.
  */
 #include <esp_log.h>
 #include <string>
@@ -17,7 +16,7 @@
 
 #include "sdkconfig.h"
 
-static const char* LOG_TAG = "SampleClient";
+static const char* LOG_TAG = "SampleClient_Notify";
 
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
@@ -26,6 +25,14 @@ static BLEUUID serviceUUID("91bad492-b950-4226-aa2b-4ede9fa42f59");
 // The characteristic of the remote service we are interested in.
 static BLEUUID    charUUID("0d563a58-196a-48ce-ace2-dfec78acc814");
 
+static void notifyCallback(
+	BLERemoteCharacteristic* pBLERemoteCharacteristic,
+	uint8_t* pData,
+	size_t length,
+	bool isNotify) {
+		ESP_LOGD(LOG_TAG, "Notify callback for characteristic %s of data length %d",
+				pBLERemoteCharacteristic->getUUID().toString().c_str(), length);
+}
 
 /**
  * Become a BLE client to a remote BLE server.  We are passed in the address of the BLE server
@@ -58,19 +65,7 @@ class MyClient: public Task {
 		std::string value = pRemoteCharacteristic->readValue();
 		ESP_LOGD(LOG_TAG, "The characteristic value was: %s", value.c_str());
 
-		while(1) {
-			// Set a new value of the characteristic
-			ESP_LOGD(LOG_TAG, "Setting the new value");
-			std::ostringstream stringStream;
-			struct timeval tv;
-			gettimeofday(&tv, nullptr);
-			stringStream << "Time since boot: " << tv.tv_sec;
-			pRemoteCharacteristic->writeValue(stringStream.str());
-
-			FreeRTOS::sleep(1000);
-		}
-
-		pClient->disconnect();
+		pRemoteCharacteristic->registerForNotify(notifyCallback);
 
 		ESP_LOGD(LOG_TAG, "%s", pClient->toString().c_str());
 		ESP_LOGD(LOG_TAG, "-- End of task");
@@ -103,8 +98,8 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
 /**
  * Perform the work of a sample BLE client.
  */
-void SampleClient(void) {
-	ESP_LOGD(LOG_TAG, "Scanning sample starting");
+void SampleClient_Notify(void) {
+	ESP_LOGD(LOG_TAG, "SampleClient_Notify starting");
 	BLEDevice::init("");
 	BLEScan *pBLEScan = BLEDevice::getScan();
 	pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
