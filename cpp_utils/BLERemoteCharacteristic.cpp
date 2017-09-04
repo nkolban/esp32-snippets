@@ -6,6 +6,7 @@
  */
 
 #include "BLERemoteCharacteristic.h"
+
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 
@@ -14,7 +15,6 @@
 #include <esp_err.h>
 
 #include <sstream>
-
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
 
@@ -28,6 +28,7 @@ BLERemoteCharacteristic::BLERemoteCharacteristic(
 	m_charId         = charId;
 	m_charProp       = charProp;
 	m_pRemoteService = pRemoteService;
+	m_notifyCallback = nullptr;
 } // BLERemoteCharacteristic
 
 
@@ -154,6 +155,10 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 }; // gattClientEventHandler
 
 
+BLEUUID BLERemoteCharacteristic::getUUID() {
+	return BLEUUID(m_charId.uuid);
+}
+
 /**
  * @brief Read an unsigned 16 bit value
  * @return The unsigned 16 bit value.
@@ -226,10 +231,18 @@ std::string BLERemoteCharacteristic::readValue() {
 
 /**
  * @brief Register for notifications.
+ * @param [in] notifyCallback A callback to be invoked for a notification.
  * @return N/A.
  */
-void BLERemoteCharacteristic::registerForNotify() {
+void BLERemoteCharacteristic::registerForNotify(
+		void (*notifyCallback)(
+			BLERemoteCharacteristic* pBLERemoteCharacteristic,
+			uint8_t* pData,
+			size_t length,
+			bool isNotify)) {
 	ESP_LOGD(LOG_TAG, ">> registerForNotify()");
+
+	m_notifyCallback = notifyCallback; // Save the notification callback.
 
 	m_semaphoreRegForNotifyEvt.take("registerForNotify");
 
@@ -266,6 +279,7 @@ std::string BLERemoteCharacteristic::toString() {
 /**
  * @brief Write the new value for the characteristic.
  * @param [in] newValue The new value to write.
+ * @param [in] response Do we expect a response?
  * @return N/A.
  */
 void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
@@ -297,11 +311,25 @@ void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
 
 /**
  * @brief Write the new value for the characteristic.
- * @param [in] newValue The new value to write.
+ *
+ * This is a convenience function.  Many BLE characteristics are a single byte of data.
+ * @param [in] newValue The new byte value to write.
+ * @param [in] response Whether we require a response from the write.
  * @return N/A.
  */
 void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
 	writeValue(std::string(reinterpret_cast<char*>(&newValue), 1), response);
+} // writeValue
+
+
+/**
+ * @brief Write the new value for the characteristic from a data buffer.
+ * @param [in] data A pointer to a data buffer.
+ * @param [in] length The length of the data in the data buffer.
+ * @param [in] response Whether we require a response from the write.
+ */
+void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool response) {
+	writeValue(std::string((char *)data, length), response);
 } // writeValue
 
 

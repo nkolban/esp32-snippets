@@ -19,18 +19,3 @@ Here is the recipe.
 
 And here you will find the `ESP32_BLE.zip` that is build from the latest source.  You can then install this into your Arduino IDE environment are you are ready to go.
 
-
-## Modifying the Arduino environment for BLE
-The Arduino environment supplied for the ESP32 is **not** sufficient for full BLE support as supplied.  A modification must be made.
-
-Here are the instructions
-
-1. Find the directory where your Arduino IDE is installed
-2. Navigate relative from there to `<Arduino>/hardware/espressif/esp32/tools/sdk/include/config`
-3. Edit the file called `sdkconfig.h`
-4. Find the line which reads `#define CONFIG_BTC_TASK_STACK_SIZE 2048` and change to `#define CONFIG_BTC_TASK_STACK_SIZE 8000`
-
-You are now ready to build (re-build) your BLE based applications.
-
-A request has been made to he owners of the Arduino on ESP32 project to see if we can't make this the default or otherwise supply an easier story for modification see [arduino-esp32 issue 567](https://github.com/espressif/arduino-esp32/issues/567).
-

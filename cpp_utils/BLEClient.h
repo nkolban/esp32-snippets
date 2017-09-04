@@ -55,8 +55,8 @@ private:
 	esp_gatt_if_t m_gattc_if;
 
 	BLEClientCallbacks* m_pClientCallbacks;
-	FreeRTOS::Semaphore m_semaphoreRegEvt = FreeRTOS::Semaphore("RegEvt");
-	FreeRTOS::Semaphore m_semaphoreOpenEvt = FreeRTOS::Semaphore("OpenEvt");
+	FreeRTOS::Semaphore m_semaphoreRegEvt        = FreeRTOS::Semaphore("RegEvt");
+	FreeRTOS::Semaphore m_semaphoreOpenEvt       = FreeRTOS::Semaphore("OpenEvt");
 	FreeRTOS::Semaphore m_semaphoreSearchCmplEvt = FreeRTOS::Semaphore("SearchCmplEvt");
 	std::map<std::string, BLERemoteService*> m_servicesMap;
 	bool m_haveServices; // Have we previously obtain the set of services.

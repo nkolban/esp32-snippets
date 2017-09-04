@@ -110,6 +110,36 @@ void BLEClient::gattClientEventHandler(
 	// Execute handler code based on the type of event received.
 	switch(event) {
 		//
+		// ESP_GATTC_NOTIFY_EVT
+		//
+		// notify
+		// uint16_t           conn_id
+		// esp_bd_addr_t      remote_bda
+		// esp_gatt_srvc_id_t srvc_id
+		// esp_gatt_id_t      char_id
+		// esp_gatt_id_t      descr_id
+		// uint16_t           value_len
+		// uint8_t*           value
+		// bool               is_notify
+		//
+		case ESP_GATTC_NOTIFY_EVT: {
+			BLERemoteService *pBLERemoteService = getService(BLEUUID(evtParam->notify.srvc_id.id.uuid));
+			if (pBLERemoteService == nullptr) {
+				ESP_LOGE(LOG_TAG, "Could not find service with UUID %s for notification", BLEUUID(evtParam->notify.srvc_id.id.uuid).toString().c_str());
+				break;
+			}
+			BLERemoteCharacteristic* pBLERemoteCharacteristic = pBLERemoteService->getCharacteristic(BLEUUID(evtParam->notify.char_id.uuid));
+			if (pBLERemoteCharacteristic == nullptr) {
+				ESP_LOGE(LOG_TAG, "Could not find characteristic with UUID %s for notification", BLEUUID(evtParam->notify.char_id.uuid).toString().c_str());
+				break;
+			}
+			if (pBLERemoteCharacteristic->m_notifyCallback != nullptr) {
+				pBLERemoteCharacteristic->m_notifyCallback(pBLERemoteCharacteristic, evtParam->notify.value, evtParam->notify.value_len, evtParam->notify.is_notify);
+			}
+			break;
+		} // ESP_GATTC_NOTIFY_EVT
+
+		//
 		// ESP_GATTC_OPEN_EVT
 		//
 		// open:
@@ -212,6 +242,7 @@ BLERemoteService* BLEClient::getService(const char* uuid) {
     return getService(BLEUUID(uuid));
 }
 
+
 /**
  * @brief Get the service object corresponding to the uuid.
  * @param [in] uuid The UUID of the service being sought.
@@ -276,7 +307,6 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
 void BLEClient::setClientCallbacks(BLEClientCallbacks* pClientCallbacks) {
 	m_pClientCallbacks = pClientCallbacks;
 } // setClientCallbacks
-
 
 
 /**

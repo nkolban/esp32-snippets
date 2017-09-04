@@ -743,6 +743,31 @@ void BLEUtils::dumpGattClientEvent(
 			break;
 		} // ESP_GATTC_GET_CHAR_EVT
 
+		//
+		// ESP_GATTC_NOTIFY_EVT
+		//
+		// notify
+		// uint16_t           conn_id
+		// esp_bd_addr_t      remote_bda
+		// esp_gatt_srvc_id_t srvc_id
+		// esp_gatt_id_t      char_id
+		// esp_gatt_id_t      descr_id
+		// uint16_t           value_len
+		// uint8_t*           value
+		// bool               is_notify
+		//
+		case ESP_GATTC_NOTIFY_EVT: {
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s, srvc_id: <%s>, char_id: <%s>, descr_id: <%s>, value_len: %d, is_notify: %d]",
+				evtParam->notify.conn_id,
+				BLEAddress(evtParam->notify.remote_bda).toString().c_str(),
+				BLEUtils::gattServiceIdToString(evtParam->notify.srvc_id).c_str(),
+				gattIdToString(evtParam->notify.char_id).c_str(),
+				gattIdToString(evtParam->notify.descr_id).c_str(),
+				evtParam->notify.value_len,
+				evtParam->notify.is_notify
+			);
+			break;
+		}
 
 		//
 		// ESP_GATTC_OPEN_EVT

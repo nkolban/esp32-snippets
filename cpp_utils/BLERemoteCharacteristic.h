@@ -15,6 +15,7 @@
 #include <esp_gattc_api.h>
 
 #include "BLERemoteService.h"
+#include "BLEUUID.h"
 #include "FreeRTOS.h"
 
 class BLERemoteService;
@@ -27,16 +28,19 @@ public:
 	BLERemoteCharacteristic(esp_gatt_id_t charId, esp_gatt_char_prop_t charProp, BLERemoteService* pRemoteService);
 
 	// Public member functions
+	BLEUUID     getUUID();
 	std::string readValue(void);
 	uint8_t     readUInt8(void);
 	uint16_t    readUInt16(void);
 	uint32_t    readUInt32(void);
-	void        registerForNotify(void);
+	void        registerForNotify(void (*notifyCallback)(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify));
+	void        writeValue(uint8_t* data, size_t length, bool response = false);
 	void        writeValue(std::string newValue, bool response = false);
 	void        writeValue(uint8_t newValue, bool response = false);
 	std::string toString(void);
 
 private:
+	friend class BLEClient;
 	friend class BLERemoteService;
 
 	// Private member functions
@@ -52,7 +56,8 @@ private:
 	FreeRTOS::Semaphore  m_semaphoreReadCharEvt      = FreeRTOS::Semaphore("ReadCharEvt");
 	FreeRTOS::Semaphore  m_semaphoreRegForNotifyEvt  = FreeRTOS::Semaphore("RegForNotifyEvt");
 	FreeRTOS::Semaphore  m_semaphoreWriteCharEvt     = FreeRTOS::Semaphore("WriteCharEvt");
-	std::string m_value;
+	std::string          m_value;
+  void (*m_notifyCallback)(BLERemoteCharacteristic *pBLERemoteCharacteristic, uint8_t *pData, size_t length, bool isNotify);
 }; // BLERemoteCharacteristic
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEREMOTECHARACTERISTIC_H_ */
