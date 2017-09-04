@@ -67,6 +67,7 @@ void BLERemoteService::gattClientEventHandler(
 				break;
 			}
 
+			// If the status is NOT OK then we have a problem and continue.
 			if (evtParam->get_char.status != ESP_GATT_OK) {
 				m_semaphoreGetCharEvt.give();
 				break;
@@ -78,14 +79,19 @@ void BLERemoteService::gattClientEventHandler(
 					BLEUUID(evtParam->get_char.char_id.uuid).toString(),
 					new BLERemoteCharacteristic(evtParam->get_char.char_id, evtParam->get_char.char_prop, this)	));
 
-			/*
-			::esp_ble_gattc_get_characteristic(
+
+			// Now that we have received a characteristic, lets ask for the next one.
+			esp_err_t errRc = ::esp_ble_gattc_get_characteristic(
 					m_pClient->getGattcIf(),
 					m_pClient->getConnId(),
 					&m_srvcId,
 					&evtParam->get_char.char_id);
-					*/
-			m_semaphoreGetCharEvt.give();
+			if (errRc != ESP_OK) {
+				ESP_LOGE(LOG_TAG, "esp_ble_gattc_get_characteristic: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+				break;
+			}
+
+			//m_semaphoreGetCharEvt.give();
 			break;
 		} // ESP_GATTC_GET_CHAR_EVT
 
@@ -119,7 +125,7 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(const char* uuid) {
 BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
 // Design
 // ------
-// We wish to retrieve the characteritic given its UUID.  It is possible that we have not yet asked the
+// We wish to retrieve the characteristic given its UUID.  It is possible that we have not yet asked the
 // device what characteristics it has in which case we have nothing to match against.  If we have not
 // asked the device about its characteristics, then we do that now.  Once we get the results we can then
 // examine the characteristics map to see if it has the characteristic we are looking for.
