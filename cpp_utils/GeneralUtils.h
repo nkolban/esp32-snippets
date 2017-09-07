@@ -18,7 +18,7 @@ class GeneralUtils {
 public:
 	GeneralUtils();
 	virtual ~GeneralUtils();
-	static void hexDump(uint8_t *pData, uint32_t length);
+	static void hexDump(const uint8_t *pData, uint32_t length);
 	static std::string ipToString(uint8_t *ip);
 	static bool base64Encode(const std::string &in, std::string *out);
 	static bool base64Decode(const std::string &in, std::string *out);

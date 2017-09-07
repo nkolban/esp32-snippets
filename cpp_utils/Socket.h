@@ -7,9 +7,15 @@
 
 #ifndef COMPONENTS_CPP_UTILS_SOCKET_H_
 #define COMPONENTS_CPP_UTILS_SOCKET_H_
+
+#include <string>
+#include <iostream>
+#include <streambuf>
+#include <cstdio>
+#include <cstring>
 #include <lwip/inet.h>
 #include <lwip/sockets.h>
-#include <string>
+
 
 /**
  * @brief Encapsulate a socket.
@@ -38,14 +44,29 @@ public:
 	std::string readToDelim(std::string delim);
 	int  receive_cpp(uint8_t* data, size_t length, bool exact=false);
 	int  receiveFrom_cpp(uint8_t* data, size_t length, struct sockaddr* pAddr);
-	void send_cpp(std::string value) const;
-	void send_cpp(const uint8_t* data, size_t length) const;
+	int send_cpp(std::string value) const;
+	int send_cpp(const uint8_t* data, size_t length) const;
+	int send_cpp(uint16_t value);
+	int send_cpp(uint32_t value);
 	void sendTo_cpp(const uint8_t* data, size_t length, struct sockaddr* pAddr);
 	std::string toString();
 
 
 private:
 	int m_sock;
+};
+
+class SocketInputRecordStream : public std::streambuf {
+public:
+	SocketInputRecordStream(Socket* socket, size_t dataLength, size_t bufferSize=512);
+	~SocketInputRecordStream();
+	int_type underflow();
+private:
+	char *m_buffer;
+	Socket* m_pSocket;
+	size_t  m_dataLength;
+	size_t  m_bufferSize;
+	size_t  m_sizeRead;
 };
 
 #endif /* COMPONENTS_CPP_UTILS_SOCKET_H_ */

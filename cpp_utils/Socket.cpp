@@ -4,6 +4,12 @@
  *  Created on: Mar 5, 2017
  *      Author: kolban
  */
+#include <iostream>
+#include <streambuf>
+#include <cstdio>
+#include <cstring>
+#include <cctype>
+#include <string>
 
 #include <sstream>
 
@@ -296,11 +302,14 @@ int Socket::receiveFrom_cpp(uint8_t* data, size_t length,	struct sockaddr *pAddr
  * @return N/A.
  *
  */
-void Socket::send_cpp(const uint8_t* data, size_t length) const {
+int Socket::send_cpp(const uint8_t* data, size_t length) const {
+	ESP_LOGD(LOG_TAG, "send_cpp: Raw binary of length: %d", length);
+	GeneralUtils::hexDump(data, length);
 	int rc = ::send(m_sock, data, length, 0);
 	if (rc == -1) {
 		ESP_LOGE(LOG_TAG, "send: socket=%d, %s", m_sock, strerror(errno));
 	}
+	return rc;
 } // send_cpp
 
 
@@ -310,8 +319,20 @@ void Socket::send_cpp(const uint8_t* data, size_t length) const {
  * @param [in] value The string to send to the partner.
  * @return N/A.
  */
-void Socket::send_cpp(std::string value) const {
-	send_cpp((uint8_t *)value.data(), value.size());
+int Socket::send_cpp(std::string value) const {
+	ESP_LOGD(LOG_TAG, "send_cpp: Binary of length: %d", value.length());
+	return send_cpp((uint8_t *)value.data(), value.size());
+} // send_cpp
+
+
+int Socket::send_cpp(uint16_t value) {
+	ESP_LOGD(LOG_TAG, "send_cpp: 16bit value: %.2x", value);
+	return send_cpp((uint8_t *)&value, sizeof(value));
+} // send_cpp
+
+int  Socket::send_cpp(uint32_t value) {
+	ESP_LOGD(LOG_TAG, "send_cpp: 32bit value: %.2x", value);
+	return send_cpp((uint8_t *)&value, sizeof(value));
 } // send_cpp
 
 
@@ -337,3 +358,37 @@ std::string Socket::toString() {
 	oss << "fd: " << m_sock;
 	return oss.str();
 } // toString
+
+
+/**
+ * @brief Create a socket input record streambuf
+ * @param [in] socket The socket we will be reading from.
+ * @param [in] dataLength The size of a record.
+ * @param [in] bufferSize The size of the buffer we wish to allocate to hold data.
+ */
+SocketInputRecordStream::SocketInputRecordStream(
+	Socket* socket,
+	size_t dataLength,
+	size_t bufferSize) {
+	m_pSocket     = socket;    // The socket we will be reading from
+	m_dataLength = dataLength; // The size of the record we wish to read.
+	m_bufferSize = bufferSize; // The size of the buffer used to hold data
+	m_sizeRead   = 0;          // The size of data read from the socket
+	m_buffer = new char[bufferSize]; // Create the buffer used to hold the data read from the socket.
+
+	setg(m_buffer, m_buffer, m_buffer); // Set the initial get buffer pointers to no data.
+} // SocketInputRecordStream
+
+
+/**
+ * @brief Handle the request to read data from the stream but we need more data from the source.
+ *
+ */
+SocketInputRecordStream::int_type SocketInputRecordStream::underflow() {
+	return 0;
+} // underflow
+
+
+SocketInputRecordStream::~SocketInputRecordStream() {
+	delete[] m_buffer;
+} // ~SocketInputRecordStream

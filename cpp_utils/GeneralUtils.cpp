@@ -261,7 +261,7 @@ void GeneralUtils::hexDump(uint8_t* pData, uint32_t length) {
  * @param [in] length Length of the data (in bytes) to be logged.
  * @return N/A.
  */
-void GeneralUtils::hexDump(uint8_t* pData, uint32_t length) {
+void GeneralUtils::hexDump(const uint8_t* pData, uint32_t length) {
 	char ascii[80];
 	char hex[80];
 	char tempBuf[80];

@@ -49,6 +49,7 @@ public:
 	void start(uint16_t portNumber);
 private:
 	friend class HttpServerTask;
+	friend class WebSocket;
 	uint16_t                 m_portNumber;
 	std::vector<PathHandler> m_pathHandlers;
 	std::string              m_rootPath;

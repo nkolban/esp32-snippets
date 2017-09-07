@@ -52,6 +52,7 @@ private:
 				ESP_LOGD(LOG_TAG, "Found a path handler match!!");
 				if (request.isWebsocket()) {
 					it->invoke(&request, nullptr);
+					request.getWebSocket()->startReader();
 				} else {
 					HttpResponse response(&request);
 
@@ -82,13 +83,14 @@ private:
 		while(1) {
 			ESP_LOGD(LOG_TAG, "Waiting for new client");
 			Socket clientSocket = sockServ.waitForNewClient();
+			ESP_LOGD(LOG_TAG, "Got a new client");
 			HttpRequest request(clientSocket);
 			request.dump();
 			processRequest(request);
 			if (!request.isWebsocket()) {
 				request.close_cpp();
 			}
-			ESP_LOGD(LOG_TAG, "Got a new client");
+
 		} // while
 	} // run
 }; // HttpServerTask

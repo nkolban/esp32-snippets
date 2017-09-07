@@ -19,3 +19,46 @@ Here is the recipe.
 
 And here you will find the `ESP32_BLE.zip` that is build from the latest source.  You can then install this into your Arduino IDE environment are you are ready to go.
 
+
+## Installing a new version
+If you have previously installed a version of the Arduino BLE Support and need to install a new one, follow the steps above to build yourself a new instance of the `ESP32_BLE.zip` that is ready for installation.  I recommend removing the old one before installing the new one.  To remove the old one, find the directory where the Arduino IDE stores your libraries (on Linux this is commonly `$HOME/Arduino`).  In there you will find a directory called `libraries` and, if you have previously installed the BLE support, you will find a directory called `ESP32_BLE`.  Remove that directory.
+
+## Switching on debugging
+The BLE support contains extensive internal diagnostics which can be switched on by editing the file called `sdkconfig` and finding the lines which read:
+
+```
+#
+# Log output
+#
+# CONFIG_LOG_DEFAULT_LEVEL_NONE is not set
+CONFIG_LOG_DEFAULT_LEVEL_ERROR=y
+# CONFIG_LOG_DEFAULT_LEVEL_WARN is not set
+# CONFIG_LOG_DEFAULT_LEVEL_INFO is not set
+# CONFIG_LOG_DEFAULT_LEVEL_DEBUG is not set
+# CONFIG_LOG_DEFAULT_LEVEL_VERBOSE is not set
+CONFIG_LOG_DEFAULT_LEVEL=1
+```
+
+Change this to:
+
+```
+#
+# Log output
+#
+# CONFIG_LOG_DEFAULT_LEVEL_NONE is not set
+# CONFIG_LOG_DEFAULT_LEVEL_ERROR=y
+# CONFIG_LOG_DEFAULT_LEVEL_WARN is not set
+# CONFIG_LOG_DEFAULT_LEVEL_INFO is not set
+# CONFIG_LOG_DEFAULT_LEVEL_DEBUG is not set
+CONFIG_LOG_DEFAULT_LEVEL_VERBOSE=y
+CONFIG_LOG_DEFAULT_LEVEL=5
+# CONFIG_LOG_COLORS is not set
+```
+
+and rebuild/deploy your project.
+
+This file can be found in your Arduino IDE installation directories at:
+
+```
+<ArduinoIDE>/hardware/espressif/esp32/tools/sdk
+```

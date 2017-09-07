@@ -87,7 +87,7 @@ std::string buildResponseHash(std::string requestKey) {
 HttpRequest::HttpRequest(Socket clientSocket) {
 	m_clientSocket = clientSocket;
 	m_status       = 0;
-	m_webSocket    = nullptr;
+	m_pWebSocket   = nullptr;
 
 	m_parser.parse(clientSocket); // Parse the socket stream to build the HTTP data.
 
@@ -102,7 +102,7 @@ HttpRequest::HttpRequest(Socket clientSocket) {
 		// do something
 		// Process the web socket request
 
-
+		// Send the response HTTP message to switch to being a Web Socket
 		HttpResponse response(this);
 
 		response.setStatus(HttpResponse::HTTP_STATUS_SWITCHING_PROTOCOL, "Switching Protocols");
@@ -111,7 +111,7 @@ HttpRequest::HttpRequest(Socket clientSocket) {
 		response.addHeader(HTTP_HEADER_SEC_WEBSOCKET_ACCEPT,
 			buildResponseHash(getHeader(HTTP_HEADER_SEC_WEBSOCKET_KEY)));
 		response.sendData("");
-		m_webSocket = new WebSocket(clientSocket);
+		m_pWebSocket = new WebSocket(clientSocket);
 	} else {
 		ESP_LOGD(LOG_TAG, "Not a Websocket");
 	}
@@ -226,7 +226,7 @@ std::string HttpRequest::getVersion() {
 } // getVersion
 
 WebSocket* HttpRequest::getWebSocket() {
-	return m_webSocket;
+	return m_pWebSocket;
 } // getWebSocket
 
 
@@ -235,7 +235,7 @@ WebSocket* HttpRequest::getWebSocket() {
  * @return True if the request creates a web socket.
  */
 bool HttpRequest::isWebsocket() {
-	return m_webSocket != nullptr;
+	return m_pWebSocket != nullptr;
 } // isWebsocket
 
 /**

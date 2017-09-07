@@ -21,7 +21,7 @@ private:
 	Socket      m_clientSocket;
 	HttpParser  m_parser;
 	int         m_status;
-	WebSocket  *m_webSocket;
+	WebSocket  *m_pWebSocket;
 public:
 
 	HttpRequest(Socket s);
