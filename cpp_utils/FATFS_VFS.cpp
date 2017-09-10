@@ -26,10 +26,10 @@
  * @param [in] partitionName The name of the partition used to store the FAT file system.
  */
 FATFS_VFS::FATFS_VFS(std::string mountPath, std::string partitionName) {
-	m_mountPath = mountPath;
+	m_mountPath     = mountPath;
 	m_partitionName = partitionName;
-	m_maxFiles = 4;
-	m_wl_handle = WL_INVALID_HANDLE;
+	m_maxFiles      = 4;
+	m_wl_handle     = WL_INVALID_HANDLE;
 } // FATFS_VFS
 
 

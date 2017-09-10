@@ -249,13 +249,15 @@ std::string Socket::readToDelim(std::string delim) {
 
 /**
  * @brief Receive data from the partner.
- *
+ * Receive data from the socket partner.  If exact = false, we read as much data as
+ * is available without blocking up to length.  If exact = true, we will block until
+ * we have received exactly length bytes or there are no more bytes to read.
  * @param [in] data The buffer into which the received data will be stored.
  * @param [in] length The size of the buffer.
- * @param [in] exact Read exactly this amount?
+ * @param [in] exact Read exactly this amount.
  * @return The length of the data received or -1 on an error.
  */
-int Socket::receive_cpp(uint8_t* data, size_t length, bool exact) {
+size_t Socket::receive_cpp(uint8_t* data, size_t length, bool exact) {
 	//ESP_LOGD(LOG_TAG, ">> receive_cpp: length: %d, exact: %d", length, exact);
 	if (exact == false) {
 		int rc = ::recv(m_sock, data, length, 0);
@@ -271,6 +273,9 @@ int Socket::receive_cpp(uint8_t* data, size_t length, bool exact) {
 		if (rc == -1) {
 			ESP_LOGE(LOG_TAG, "receive_cpp: %s", strerror(errno));
 			return 0;
+		}
+		if (rc == 0) {
+			break;
 		}
 		amountToRead -= rc;
 		data+= rc;
@@ -304,7 +309,7 @@ int Socket::receiveFrom_cpp(uint8_t* data, size_t length,	struct sockaddr *pAddr
  */
 int Socket::send_cpp(const uint8_t* data, size_t length) const {
 	ESP_LOGD(LOG_TAG, "send_cpp: Raw binary of length: %d", length);
-	GeneralUtils::hexDump(data, length);
+	//GeneralUtils::hexDump(data, length);
 	int rc = ::send(m_sock, data, length, 0);
 	if (rc == -1) {
 		ESP_LOGE(LOG_TAG, "send: socket=%d, %s", m_sock, strerror(errno));
@@ -366,29 +371,37 @@ std::string Socket::toString() {
  * @param [in] dataLength The size of a record.
  * @param [in] bufferSize The size of the buffer we wish to allocate to hold data.
  */
-SocketInputRecordStream::SocketInputRecordStream(
-	Socket* socket,
-	size_t dataLength,
-	size_t bufferSize) {
-	m_pSocket     = socket;    // The socket we will be reading from
+SocketInputRecordStreambuf::SocketInputRecordStreambuf(
+	Socket  socket,
+	size_t  dataLength,
+	size_t  bufferSize) {
+	m_socket     = socket;    // The socket we will be reading from
 	m_dataLength = dataLength; // The size of the record we wish to read.
 	m_bufferSize = bufferSize; // The size of the buffer used to hold data
 	m_sizeRead   = 0;          // The size of data read from the socket
 	m_buffer = new char[bufferSize]; // Create the buffer used to hold the data read from the socket.
 
 	setg(m_buffer, m_buffer, m_buffer); // Set the initial get buffer pointers to no data.
-} // SocketInputRecordStream
+} // SocketInputRecordStreambuf
+
+SocketInputRecordStreambuf::~SocketInputRecordStreambuf() {
+	delete[] m_buffer;
+} // ~SocketInputRecordStreambuf
 
 
 /**
  * @brief Handle the request to read data from the stream but we need more data from the source.
  *
  */
-SocketInputRecordStream::int_type SocketInputRecordStream::underflow() {
-	return 0;
+SocketInputRecordStreambuf::int_type SocketInputRecordStreambuf::underflow() {
+	if (m_sizeRead >= m_dataLength) {
+		return EOF;
+	}
+	int bytesRead = m_socket.receive_cpp((uint8_t*)m_buffer, m_bufferSize, true);
+	if (bytesRead == 0) {
+		return EOF;
+	}
+	m_sizeRead += bytesRead;
+	setg(m_buffer, m_buffer, m_buffer + bytesRead);
+	return traits_type::to_int_type(*gptr());
 } // underflow
-
-
-SocketInputRecordStream::~SocketInputRecordStream() {
-	delete[] m_buffer;
-} // ~SocketInputRecordStream

@@ -122,7 +122,7 @@ HttpRequest::~HttpRequest() {
 } // ~HttpRequest
 
 
-void HttpRequest::close_cpp() {
+void HttpRequest::close() {
 	m_clientSocket.close_cpp();
 } // close_cpp
 

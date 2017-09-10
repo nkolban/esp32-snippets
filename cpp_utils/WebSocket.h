@@ -9,15 +9,47 @@
 #define COMPONENTS_WEBSOCKET_H_
 #include <string>
 #include "Socket.h"
+class WebSocketReader;
 
+// +-------------------------------+
+// | WebSocketInputRecordStreambuf |
+// +-------------------------------+
+class WebSocketInputRecordStreambuf : public std::streambuf {
+public:
+	WebSocketInputRecordStreambuf(
+		Socket   socket,
+		size_t   dataLength,
+		uint8_t* pMask=nullptr,
+		size_t   bufferSize=2048);
+	~WebSocketInputRecordStreambuf();
+	int_type underflow();
+	void discard();
+	size_t getRecordSize();
+private:
+	char*    m_buffer;
+	Socket   m_socket;
+	size_t   m_dataLength;
+	size_t   m_bufferSize;
+	size_t   m_sizeRead;
+	uint8_t* m_pMask;
+};
+
+
+// +------------------+
+// | WebSocketHandler |
+// +------------------+
 class WebSocketHandler {
 public:
+	virtual ~WebSocketHandler();
 	virtual void onClose();
-	virtual void onMessage(std::string data);
+	virtual void onMessage(WebSocketInputRecordStreambuf *pWebSocketInputRecordStreambuf);
 	virtual void onError(std::string error);
 };
 
-class WebSocketReader;
+
+// +-----------+
+// | WebSocket |
+// +-----------+
 class WebSocket {
 private:
 	friend class WebSocketReader;
@@ -26,9 +58,8 @@ private:
 	bool              m_receivedClose; // True when we have received a close request.
 	bool              m_sentClose;     // True when we have sent a close request.
 	Socket            m_socket;        // Partner socket.
-	WebSocketHandler  m_webSocketHandler;
+	WebSocketHandler *m_pWebSocketHandler;
 	WebSocketReader  *m_pWebSockerReader;
-
 
 public:
 	static const uint16_t CLOSE_NORMAL_CLOSURE        = 1000;
@@ -51,11 +82,12 @@ public:
 
 	WebSocket(Socket socket);
 	virtual ~WebSocket();
-	void   close_cpp(uint16_t status=CLOSE_NORMAL_CLOSURE, std::string message = "");
+
+	void              close_cpp(uint16_t status=CLOSE_NORMAL_CLOSURE, std::string message = "");
 	WebSocketHandler* getHandler();
-	Socket getSocket();
-	void   send_cpp(std::string data, uint8_t sendType = SEND_TYPE_BINARY);
-	void   setHandler(WebSocketHandler handler);
-};
+	Socket            getSocket();
+	void              send_cpp(std::string data, uint8_t sendType = SEND_TYPE_BINARY);
+	void              setHandler(WebSocketHandler *handler);
+}; // WebSocket
 
 #endif /* COMPONENTS_WEBSOCKET_H_ */

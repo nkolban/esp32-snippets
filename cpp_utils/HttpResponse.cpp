@@ -50,9 +50,9 @@ void HttpResponse::addHeader(const std::string name, const std::string value) {
 } // addHeader
 
 
-void HttpResponse::close_cpp() {
-	m_request->close_cpp();
-} // close_cpp
+void HttpResponse::close() {
+	m_request->close();
+} // close
 
 
 std::string HttpResponse::getHeader(std::string name) {
@@ -74,6 +74,7 @@ std::map<std::string, std::string> HttpResponse::getHeaders() {
  * @param [in] data The data to send to the partner.
  */
 void HttpResponse::sendData(std::string data) {
+	// If we haven't yet sent the header of the data, send that now.
 	if (m_headerCommitted == false) {
 		std::ostringstream oss;
 		oss << m_request->getVersion() << " " << m_status << " " << m_statusMessage << lineTerminator;
@@ -84,6 +85,8 @@ void HttpResponse::sendData(std::string data) {
 		m_headerCommitted = true;
 		m_request->getSocket().send_cpp(oss.str());
 	}
+
+	// Send the payload data.
 	m_request->getSocket().send_cpp(data);
 } // sendData
 

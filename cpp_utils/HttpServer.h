@@ -23,7 +23,7 @@ class PathHandler {
 			std::string pathPattern,
 			void (*webServerRequestHandler)(HttpRequest* pHttpRequest, HttpResponse* pHttpResponse));
 		bool match(std::string method, std::string path);
-		void invoke(HttpRequest* request, HttpResponse* response);
+		void invokePathHandler(HttpRequest* request, HttpResponse* response);
 	private:
 		std::string m_method;
 		std::regex  m_pattern;
@@ -38,21 +38,22 @@ class HttpServer {
 public:
 	HttpServer();
 	virtual ~HttpServer();
-	void addPathHandler(std::string method,
+
+	void        addPathHandler(std::string method,
 		std::string pathExpr,
 		void (*webServerRequestHandler)(
 			HttpRequest* pHttpRequest,
 			HttpResponse* pHttpResponse) );
-	uint16_t getPort();
+	uint16_t    getPort();
 	std::string getRootPath();
-	void setRootPath(std::string path);
-	void start(uint16_t portNumber);
+	void        setRootPath(std::string path);
+	void        start(uint16_t portNumber);
 private:
 	friend class HttpServerTask;
 	friend class WebSocket;
 	uint16_t                 m_portNumber;
 	std::vector<PathHandler> m_pathHandlers;
-	std::string              m_rootPath;
+	std::string              m_rootPath; // Root path into the file system.
 }; // HttpServer
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPSERVER_H_ */

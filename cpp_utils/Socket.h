@@ -42,7 +42,7 @@ public:
 	void listen_cpp(uint16_t port, bool isDatagram=false);
 	bool operator<(const Socket& other) const;
 	std::string readToDelim(std::string delim);
-	int  receive_cpp(uint8_t* data, size_t length, bool exact=false);
+	size_t  receive_cpp(uint8_t* data, size_t length, bool exact=false);
 	int  receiveFrom_cpp(uint8_t* data, size_t length, struct sockaddr* pAddr);
 	int send_cpp(std::string value) const;
 	int send_cpp(const uint8_t* data, size_t length) const;
@@ -56,14 +56,14 @@ private:
 	int m_sock;
 };
 
-class SocketInputRecordStream : public std::streambuf {
+class SocketInputRecordStreambuf : public std::streambuf {
 public:
-	SocketInputRecordStream(Socket* socket, size_t dataLength, size_t bufferSize=512);
-	~SocketInputRecordStream();
+	SocketInputRecordStreambuf(Socket socket, size_t dataLength, size_t bufferSize=512);
+	~SocketInputRecordStreambuf();
 	int_type underflow();
 private:
 	char *m_buffer;
-	Socket* m_pSocket;
+	Socket  m_socket;
 	size_t  m_dataLength;
 	size_t  m_bufferSize;
 	size_t  m_sizeRead;

@@ -10,6 +10,7 @@
 #include <string>
 extern "C" {
 #include <esp_vfs_fat.h>
+#include <wear_levelling.h>
 }
 /**
  * @brief Provide access to the FAT file system on %SPI flash.
@@ -42,6 +43,7 @@ class FATFS_VFS {
 public:
 	FATFS_VFS(std::string mountPath, std::string partitionName);
 	virtual ~FATFS_VFS();
+
 	void mount();
 	void setMaxFiles(int maxFiles);
 	void unmount();
@@ -49,7 +51,7 @@ private:
 	wl_handle_t m_wl_handle;
 	std::string m_mountPath;
 	std::string m_partitionName;
-	int m_maxFiles;
+	int         m_maxFiles;
 };
 
 #endif /* COMPONENTS_CPP_UTILS_FATFS_VFS_H_ */

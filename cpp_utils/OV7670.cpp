@@ -354,10 +354,12 @@ void OV7670::dump() {
 	}
 } // dump
 
+/*
 static void log(char *marker) {
 	ESP_LOGD(LOG_TAG, "%s", marker);
 	FreeRTOS::sleep(100);
 }
+*/
 
 /**
  * @brief Initialize the camera.

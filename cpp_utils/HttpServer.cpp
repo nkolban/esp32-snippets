@@ -5,6 +5,7 @@
  *      Author: kolban
  */
 
+#include <fstream>
 #include "HttpServer.h"
 #include "SockServ.h"
 #include "Task.h"
@@ -14,6 +15,7 @@
 #include "WebSocket.h"
 static const char* LOG_TAG = "HttpServer";
 
+#undef close
 /**
  * Constructor for HTTP Server
  */
@@ -30,13 +32,16 @@ HttpServer::~HttpServer() {
  */
 class HttpServerTask: public Task {
 public:
-	HttpServerTask(std::string name): Task(name) {};
+	HttpServerTask(std::string name): Task(name) {
+		m_pHttpServer = nullptr;
+	};
 
 private:
 	HttpServer* m_pHttpServer; // Reference to the HTTP Server
 
 	/**
 	 * @brief Process an incoming HTTP Request
+	 *
 	 * We examine each of the path handlers to see if we have a match for the method/path pair.  If we do,
 	 * we invoke the handler callback passing in both the request and response.
 	 *
@@ -45,52 +50,81 @@ private:
 	 * @param [in] request The HTTP request to process.
 	 */
 	void processRequest(HttpRequest &request) {
-		ESP_LOGD(LOG_TAG, ">> processRequest: Method: %s, Path: %s",
-			request.getMethod().c_str(), request.getPath().c_str())
+		ESP_LOGD("HttpServerTask", ">> processRequest: Method: %s, Path: %s",
+			request.getMethod().c_str(), request.getPath().c_str());
+
 		for (auto it = m_pHttpServer->m_pathHandlers.begin(); it != m_pHttpServer->m_pathHandlers.end(); ++it) {
 			if (it->match(request.getMethod(), request.getPath())) {
-				ESP_LOGD(LOG_TAG, "Found a path handler match!!");
+				ESP_LOGD("HttpServerTask", "Found a path handler match!!");
 				if (request.isWebsocket()) {
-					it->invoke(&request, nullptr);
+					it->invokePathHandler(&request, nullptr);
 					request.getWebSocket()->startReader();
 				} else {
 					HttpResponse response(&request);
-
-					it->invoke(&request, &response);
+					it->invokePathHandler(&request, &response);
 				}
 				return;
 			} // Path handler match
 		} // For each path handler
 
+		ESP_LOGD("HttpServerTask", "No Path handler found");
+		// If we reach here, then we did not find a handler for the request.
+
+		// Check to see if we have an un-handled WebSocket
+		if (request.isWebsocket()) {
+			request.getWebSocket()->close_cpp();
+			return;
+		}
+
 		// Serve up the content from the file on the file system ... if found ...
 
-		ESP_LOGD(LOG_TAG, "No Path handler found");
+		std::ifstream ifStream;
+		std::string fileName = m_pHttpServer->getRootPath() + request.getPath();
+		ESP_LOGD("HttpServerTask", "Opening file: %s", fileName.c_str());
+		ifStream.open(fileName, std::ifstream::in | std::ifstream::binary);
+
+		// If we failed to open the requested file, then it probably didn't exist so return a not found.
+		if (!ifStream.is_open()) {
+			HttpResponse response(&request);
+			response.setStatus(HttpResponse::HTTP_STATUS_NOT_FOUND, "Not Found");
+			response.sendData("");
+			return;
+		}
+
+		// We now have an open file and want to push the content of that file through to the browser.
 		HttpResponse response(&request);
-		response.setStatus(HttpResponse::HTTP_STATUS_NOT_FOUND, "Not Found");
-		response.sendData("");
+		response.setStatus(HttpResponse::HTTP_STATUS_OK, "OK");
+		std::stringstream ss;
+		ss << ifStream.rdbuf();
+		response.sendData(ss.str());
+		ifStream.close();
 
 	} // processRequest
 
 
 	/**
-	 * Perform the task handling for server.
+	 * @brief Perform the task handling for server.
+	 * @param [in] data A reference to the HttpServer.
 	 */
 	void run(void* data) {
 		m_pHttpServer = (HttpServer*)data;
+
+		// Create a socket server and start it running.
 		SockServ sockServ(m_pHttpServer->getPort());
 		sockServ.start();
-		ESP_LOGD(LOG_TAG, "Listening on port %d", m_pHttpServer->getPort());
+		ESP_LOGD("HttpServerTask", "Listening on port %d", m_pHttpServer->getPort());
+
 		while(1) {
-			ESP_LOGD(LOG_TAG, "Waiting for new client");
+			ESP_LOGD("HttpServerTask", "Waiting for new peer client");
 			Socket clientSocket = sockServ.waitForNewClient();
-			ESP_LOGD(LOG_TAG, "Got a new client");
+			ESP_LOGD("HttpServerTask", "HttpServer listening on port %d received a new client connection", m_pHttpServer->getPort());
+
 			HttpRequest request(clientSocket);
 			request.dump();
 			processRequest(request);
 			if (!request.isWebsocket()) {
-				request.close_cpp();
+				request.close();
 			}
-
 		} // while
 	} // run
 }; // HttpServerTask
@@ -132,6 +166,7 @@ uint16_t HttpServer::getPort() {
 	return m_portNumber;
 } // getPort
 
+
 /**
  * @brief Get the current root path.
  * @return The current root path.
@@ -139,6 +174,7 @@ uint16_t HttpServer::getPort() {
 std::string HttpServer::getRootPath() {
 	return m_rootPath;
 } // getRootPath
+
 
 /**
  * @brief Set the root path for URL file mapping.
@@ -200,7 +236,7 @@ PathHandler::PathHandler(std::string method, std::string pathPattern,
  * @return True if the path matches.
  */
 bool PathHandler::match(std::string method, std::string path) {
-	ESP_LOGD(LOG_TAG, "match: %s with %s", m_textPattern.c_str(), path.c_str());
+	ESP_LOGD(LOG_TAG, "matching: %s with %s", m_textPattern.c_str(), path.c_str());
 	if (method != m_method) {
 		return false;
 	}
@@ -214,6 +250,6 @@ bool PathHandler::match(std::string method, std::string path) {
  * @param [in] response An object representing the response.
  * @return N/A.
  */
-void PathHandler::invoke(HttpRequest* request, HttpResponse *response) {
+void PathHandler::invokePathHandler(HttpRequest* request, HttpResponse *response) {
 	m_requestHandler(request, response);
-} // invoke
+} // invokePathHandler

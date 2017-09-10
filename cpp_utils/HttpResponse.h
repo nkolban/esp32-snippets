@@ -36,7 +36,7 @@ public:
 	virtual ~HttpResponse();
 
 	void addHeader(std::string name, std::string value);
-	void close_cpp();
+	void close();
 	//std::string getRootPath();
 	std::string getHeader(std::string name);
 	std::map<std::string, std::string> getHeaders();

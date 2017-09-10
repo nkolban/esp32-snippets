@@ -11,6 +11,12 @@
 #include "GeneralUtils.h"
 #include <esp_log.h>
 
+extern "C" {
+	extern uint16_t lwip_ntohs(uint16_t);
+	extern uint32_t lwip_ntohl(uint32_t);
+	extern uint16_t lwip_htons(uint16_t);
+	extern uint32_t lwip_htonl(uint32_t);
+}
 static const char* LOG_TAG = "WebSocket";
 
 // WebSocket op codes as found in a WebSocket frame.
@@ -87,108 +93,106 @@ static void dumpFrame(Frame frame) {
  * incoming asynchronous events.  We spawn a task to do this.  This is the implementation of that task.
  */
 class WebSocketReader: public Task {
+public:
+	WebSocketReader() {
+		m_end = false;
+	}
+	void end() {
+		m_end = true;
+	}
+private:
+	bool m_end;
 	/**
 	 * @brief Loop over the web socket waiting for new input.
 	 * @param [in] data A pointer to an instance of the WebSocket.
 	 */
 	void run(void* data) {
-		WebSocket *pWebSocket = (WebSocket*) data;
+		WebSocket* pWebSocket = (WebSocket*) data;
 		ESP_LOGD("WebSocketReader", "WebSocketReader Task started, socket: %s", pWebSocket->getSocket().toString().c_str());
-		uint8_t buffer[1000];
 
 		Socket peerSocket = pWebSocket->getSocket();
 
+		Frame frame;
 		while(1) {
+			if (m_end) {
+				break;
+			}
 			ESP_LOGD("WebSocketReader", "Waiting on socket data for socket %s", peerSocket.toString().c_str());
-			int length = peerSocket.receive_cpp(buffer, sizeof(buffer));
-			if (length == -1 || length == 0) {
+			int length = peerSocket.receive_cpp((uint8_t*)&frame, sizeof(frame), true); // Read exact
+			if (length != sizeof(frame)) {
 				ESP_LOGD(LOG_TAG, "Socket read error");
 				pWebSocket->close_cpp();
 				return;
 			}
 			ESP_LOGD("WebSocketReader", "Received data from web socket.  Length: %d", length);
-			GeneralUtils::hexDump(buffer, length);
-			dumpFrame(*(Frame *)buffer);
+			dumpFrame(frame);
 
 			// The following section parses the WebSocket frame.
-			if (length > 0) {
-				Frame* pFrame = (Frame*)buffer;
-				uint32_t payloadLen = 0;
-				uint8_t* pMask = nullptr;
-				uint8_t* pData;
-				if (pFrame->len < 126) {
-					payloadLen = pFrame->len;
-					pMask = buffer + 2;
-				} else if (pFrame->len == 126) {
-					payloadLen = *(uint16_t*)(buffer+2);
-					pMask = buffer + 4;
-				} else if (pFrame->len == 127) {
-					ESP_LOGE(LOG_TAG, "Too much data!");
-					return;
+			uint32_t payloadLen = 0;
+			uint8_t  mask[4];
+			if (frame.len < 126) {
+				payloadLen = frame.len;
+			} else if (frame.len == 126) {
+				uint16_t tempLen;
+				peerSocket.receive_cpp((uint8_t*)&tempLen, sizeof(tempLen), true);
+				payloadLen = ntohs(tempLen);
+			} else if (frame.len == 127) {
+				uint64_t tempLen;
+				peerSocket.receive_cpp((uint8_t*)&tempLen, sizeof(tempLen), true);
+				payloadLen = ntohl((uint32_t)tempLen);
+			}
+			if (frame.mask == 1) {
+				peerSocket.receive_cpp(mask, sizeof(mask), true);
+			}
+
+			if (payloadLen == 0) {
+				ESP_LOGD("WebSocketReader", "Web socket payload is not present");
+			} else {
+				ESP_LOGD("WebSocketReader", "Web socket payload, length=%d:", payloadLen);
+			}
+
+			WebSocketHandler *pWebSocketHandler = pWebSocket->getHandler();
+			switch(frame.opCode) {
+				case OPCODE_TEXT:
+				case OPCODE_BINARY: {
+					if (pWebSocketHandler != nullptr) {
+						WebSocketInputRecordStreambuf streambuf(pWebSocket->getSocket(), payloadLen, frame.mask==1?mask:nullptr);
+						pWebSocketHandler->onMessage(&streambuf);
+						//streambuf.discard();
+					}
+					break;
 				}
-				if (pFrame->mask == 1) {
-					pData = pMask + 4;
-					for (int i=0; i<payloadLen; i++) {
-						*pData = *pData ^ pMask[i%4];
-						pData++;
-					}
-					pData = pMask + 4;
-				} else {
-					pData = pMask;
-				}
-				std::string payloadData = std::string((char *)pData, payloadLen);
 
-				if (payloadLen == 0) {
-					ESP_LOGD("WebSocketReader", "Web socket payload is empty");
-				} else {
-					ESP_LOGD("WebSocketReader", "Web socket payload, length=%d:", payloadLen);
-					GeneralUtils::hexDump(pData, payloadLen);
+				case OPCODE_CLOSE: {
+					pWebSocket->m_receivedClose = true;
+					if (pWebSocketHandler != nullptr) {
+						pWebSocketHandler->onClose();
+						pWebSocket->close_cpp();
+					}
+					break;
 				}
 
-				WebSocketHandler *pWebSocketHandler = pWebSocket->getHandler();
-				switch(pFrame->opCode) {
-					case OPCODE_BINARY: {
-						if (pWebSocketHandler != nullptr) {
-							pWebSocketHandler->onMessage(payloadData);
-						}
-						break;
-					}
+				case OPCODE_CONTINUE: {
+					break;
+				}
 
-					case OPCODE_CLOSE: {
-						pWebSocket->m_receivedClose = true;
-						if (pWebSocketHandler != nullptr) {
-							pWebSocketHandler->onClose();
-							pWebSocket->close_cpp();
-						}
-						break;
-					}
+				case OPCODE_PING: {
+					break;
+				}
 
-					case OPCODE_CONTINUE: {
-						break;
-					}
+				case OPCODE_PONG: {
+					break;
+				}
 
-					case OPCODE_PING: {
-						break;
-					}
 
-					case OPCODE_PONG: {
-						break;
-					}
+				default: {
+						ESP_LOGD("WebSocketReader", "Unknown opcode: %d", frame.opCode);
+					break;
+				}
+			} // Switch opCode
 
-					case OPCODE_TEXT: {
-						if (pWebSocketHandler != nullptr) {
-							pWebSocketHandler->onMessage(payloadData);
-						}
-						break;
-					}
-
-					default: {
-							ESP_LOGD("WebSocketReader", "Unknown opcode: %d", pFrame->opCode);
-						break;
-					}
-				} // Switch opCode
-			} // Length of data > 0
 		} // While (1)
+		ESP_LOGD("WebSocketReader", "<< run");
 	} // run
 }; // WebSocketReader
 
@@ -198,17 +202,22 @@ class WebSocketReader: public Task {
  * If no over-riding handler is provided for the "close" event, this method is called.
  */
 void WebSocketHandler::onClose() {
-	ESP_LOGD(LOG_TAG, ">> WebSocketHandler:onClose()");
+	ESP_LOGD("WebSocketHandler", ">> WebSocketHandler:onClose()");
 } // onClose
 
 
 /**
  * @brief The default onData handler.
  * If no over-riding handler is provided for the "message" event, this method is called.
+ * A particularly useful pattern for using onMessage is:
+ * ```
+ * std::stringstream buffer;
+ * buffer << pWebSocketInputRecordStreambuf;
+ * ```
+ * This will read the whole message into the string stream.
  */
-void WebSocketHandler::onMessage(std::string data) {
-	ESP_LOGD(LOG_TAG, ">> WebSocketHandler:onMessage(), length: %d", data.length());
-	GeneralUtils::hexDump((uint8_t*)data.data(), data.length());
+void WebSocketHandler::onMessage(WebSocketInputRecordStreambuf* pWebSocketInputRecordStreambuf) {
+	ESP_LOGD("WebSocketHandler", ">> onMessage")
 } // onData
 
 
@@ -217,19 +226,22 @@ void WebSocketHandler::onMessage(std::string data) {
  * If no over-riding handler is provided for the "error" event, this method is called.
  */
 void WebSocketHandler::onError(std::string error) {
-	ESP_LOGD(LOG_TAG, ">> WebSocketHandler:onError()");
+	ESP_LOGD("WebSocketHandler", ">> WebSocketHandler:onError()");
 } // onError
 
 
 WebSocket::WebSocket(Socket socket) {
-	m_receivedClose    = false;
-	m_sentClose        = false;
-	m_socket           = socket;
-	m_pWebSockerReader = new WebSocketReader();
+	m_receivedClose     = false;
+	m_sentClose         = false;
+	m_socket            = socket;
+	m_pWebSockerReader  = new WebSocketReader();
+	m_pWebSocketHandler = nullptr;
 } // WebSocket
 
 
 WebSocket::~WebSocket() {
+	m_pWebSockerReader->stop();
+	delete m_pWebSockerReader;
 } // ~WebSocket
 
 
@@ -240,6 +252,7 @@ void WebSocket::close_cpp(uint16_t status, std::string message) {
 	ESP_LOGD(LOG_TAG, ">> close_cpp(): status: %d, message: %s", status, message.c_str());
 	if (m_sentClose) {
 		m_socket.close_cpp();
+		m_pWebSockerReader->end();
 		return;
 	}
 	m_sentClose = true;
@@ -261,6 +274,7 @@ void WebSocket::close_cpp(uint16_t status, std::string message) {
 	}
 	if (m_receivedClose || rc == 0 || rc == -1) {
 		m_socket.close_cpp();
+		m_pWebSockerReader->end();
 	}
 } // close_cpp
 
@@ -271,7 +285,7 @@ void WebSocket::close_cpp(uint16_t status, std::string message) {
  * event received over the network needs to be handled by user code.
  */
 WebSocketHandler* WebSocket::getHandler() {
-	return &m_webSocketHandler;
+	return m_pWebSocketHandler;
 } // getHandler
 
 
@@ -320,8 +334,8 @@ void WebSocket::send_cpp(std::string data, uint8_t sendType) {
  * events.  An instance of WebSocketHandler is passed in.
  *
  */
-void WebSocket::setHandler(WebSocketHandler handler) {
-	m_webSocketHandler = handler;
+void WebSocket::setHandler(WebSocketHandler *pHandler) {
+	m_pWebSocketHandler = pHandler;
 } // setHandler
 
 
@@ -334,3 +348,111 @@ void WebSocket::startReader() {
 	ESP_LOGD(LOG_TAG, ">> startReader: Socket: %s", m_socket.toString().c_str());
 	m_pWebSockerReader->start(this);
 } // startReader
+
+
+/**
+ * @brief Create a Web Socket input record streambuf
+ * @param [in] socket The socket we will be reading from.
+ * @param [in] dataLength The size of a record.
+ * @param [in] bufferSize The size of the buffer we wish to allocate to hold data.
+ */
+WebSocketInputRecordStreambuf::WebSocketInputRecordStreambuf(
+	Socket   socket,
+	size_t   dataLength,
+	uint8_t *pMask,
+	size_t   bufferSize) {
+	m_socket     = socket;    // The socket we will be reading from
+	m_dataLength = dataLength; // The size of the record we wish to read.
+	m_pMask      = pMask;
+	m_bufferSize = bufferSize; // The size of the buffer used to hold data
+	m_sizeRead   = 0;          // The size of data read from the socket
+	m_buffer = new char[bufferSize]; // Create the buffer used to hold the data read from the socket.
+
+	setg(m_buffer, m_buffer, m_buffer); // Set the initial get buffer pointers to no data.
+} // WebSocketInputRecordStreambuf
+
+
+/**
+ * @brief Destructor
+ */
+WebSocketInputRecordStreambuf::~WebSocketInputRecordStreambuf() {
+	delete[] m_buffer;
+	discard();
+} // ~WebSocketInputRecordStreambuf
+
+
+/**
+ * @brief Discard data for the record that has not yet been read.
+ *
+ * We are working on a logical fixed length record in a socket stream.  This means that we know in advance
+ * how big the record should be.  If we have read some data from the stream and no longer wish to consume
+ * any further, we have to discard the remaining bytes in the stream before we can get to process the
+ * next record.  This function discards the remainder of the data.
+ *
+ * For example, if our record size is 1000 bytes and we have read 700 bytes and determine that we no
+ * longer need to continue, we can't just stop.  There are still 300 bytes in the socket stream that
+ * need to be consumed/discarded before we can move on to the next record.
+ */
+void WebSocketInputRecordStreambuf::discard() {
+	uint8_t byte;
+	ESP_LOGD("WebSocketInputRecordStreambuf", ">> discard: Discarding %d bytes", m_dataLength - m_sizeRead);
+	while(m_sizeRead < m_dataLength) {
+		m_socket.receive_cpp(&byte, 1);
+		m_sizeRead++;
+	}
+	ESP_LOGD("WebSocketInputRecordStreambuf", "<< discard");
+} // discard
+
+
+/**
+ * @brief Get the size of the expected record.
+ * @return The size of the expected record.
+ */
+size_t WebSocketInputRecordStreambuf::getRecordSize() {
+	return m_dataLength;
+} // getRecordSize
+
+
+/**
+ * @brief Handle the request to read data from the stream but we need more data from the source.
+ *
+ */
+WebSocketInputRecordStreambuf::int_type WebSocketInputRecordStreambuf::underflow() {
+	ESP_LOGD("WebSocketInputRecordStreambuf", ">> underflow");
+	if (m_sizeRead >= getRecordSize()) {
+		ESP_LOGD("WebSocketInputRecordStreambuf", "<< underflow: Already read maximum");
+		return EOF;
+	}
+
+	// We wish to refill the buffer.  We want to read data from the socket.  We want to read either
+	// the size of the buffer to fill it or the maximum number of bytes remaining to be read.
+	// We will choose which ever is smaller as the number of bytes to read into the buffer.
+	int remainingBytes = getRecordSize()-m_sizeRead;
+	size_t sizeToRead;
+	if (remainingBytes < m_bufferSize) {
+		sizeToRead = remainingBytes;
+	} else {
+		sizeToRead = m_bufferSize;
+	}
+
+	ESP_LOGD("WebSocketInputRecordStreambuf", "- getting next buffer of data; size request: %d", sizeToRead);
+	int bytesRead = m_socket.receive_cpp((uint8_t*)m_buffer, sizeToRead, true);
+	if (bytesRead == 0) {
+		ESP_LOGD("WebSocketInputRecordStreambuf", "<< underflow: Read 0 bytes");
+		return EOF;
+	}
+
+	if (m_pMask != nullptr) {
+		for (int i=0; i<bytesRead; i++) {
+			m_buffer[i] = m_buffer[i] ^ m_pMask[(m_sizeRead+i)%4];
+		}
+	}
+
+	m_sizeRead += bytesRead;
+	setg(m_buffer, m_buffer, m_buffer + bytesRead);
+	ESP_LOGD("WebSocketInputRecordStreambuf", "<< underflow - got %d more bytes", bytesRead);
+	return traits_type::to_int_type(*gptr());
+} // underflow
+
+WebSocketHandler::~WebSocketHandler() {
+}

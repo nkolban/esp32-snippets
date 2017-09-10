@@ -14,7 +14,7 @@
 #include "WebSocket.h"
 #include "HttpParser.h"
 
-
+#undef close
 
 class HttpRequest {
 private:
@@ -51,10 +51,8 @@ public:
 	static const std::string HTTP_METHOD_POST;
 	static const std::string HTTP_METHOD_PUT;
 
-
-
-	void close_cpp();
-	void dump();
+	void        close();
+	void        dump();
 	std::string getBody();
 	std::string getHeader(std::string name);
 	std::map<std::string, std::string> getHeaders();

@@ -259,6 +259,17 @@ std::string JsonObject::getString(std::string name) {
 
 
 /**
+ * @brief Determine if the object has the specified item.
+ * @param [in] name The name of the property to check for presence.
+ * @return True if the object contains this property.
+ */
+bool JsonObject::hasItem(std::string name) {
+	return cJSON_GetObjectItem(m_node, name.c_str()) != nullptr;
+} // hasItem
+
+
+
+/**
  * @brief Set the named array property.
  * @param [in] name The name of the property to add.
  * @param [in] array The array to add to the object.
@@ -334,3 +345,4 @@ std::string JsonObject::toString() {
 	free(data);
 	return ret;
 } // toString
+
