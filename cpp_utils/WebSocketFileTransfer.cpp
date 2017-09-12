@@ -45,11 +45,11 @@ private:
 	bool          m_active;        // Are we actively processing a file.
 	std::ofstream m_ofStream;
 
-	virtual void onMessage(WebSocketInputRecordStreambuf* pWebSocketInputRecordStreambuf) {
+	virtual void onMessage(WebSocketInputStreambuf* pWebSocketInputStreambuf) {
 		ESP_LOGD("FileTransferWebSocketHandler", ">> onMessage");
 		if (!m_active) {
 			std::stringstream buffer;
-			buffer << pWebSocketInputRecordStreambuf;
+			buffer << pWebSocketInputStreambuf;
 			ESP_LOGD("FileTransferWebSocketHandler", "Data read: %s", buffer.str().c_str());
 			JsonObject jo = JSON::parseObject(buffer.str());
 			m_fileName    = jo.getString("name");
@@ -79,7 +79,7 @@ private:
 			ESP_LOGD("FileTransferWebSocketHandler", "Filename: %s, length: %d", fileName.c_str(), m_fileLength);
 		} else {
 			// We are about to receive a chunk of file
-			m_ofStream << pWebSocketInputRecordStreambuf;
+			m_ofStream << pWebSocketInputStreambuf;
 			/*
 			std::stringstream bufferStream;
 			bufferStream << pWebSocketInputRecordStreambuf;

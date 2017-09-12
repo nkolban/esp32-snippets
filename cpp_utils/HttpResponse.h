@@ -1,6 +1,8 @@
 /*
  * HttpResponse.h
  *
+ * Encapsulate a response to be sent to the Http client.
+ *
  *  Created on: Sep 2, 2017
  *      Author: kolban
  */
@@ -13,11 +15,14 @@
 
 class HttpResponse {
 private:
-	HttpRequest* m_request;
-	std::string  m_statusMessage;
-	int          m_status;
-	bool         m_headerCommitted;
-	std::map<std::string, std::string> m_responseHeaders;
+	bool                               m_headerCommitted;  // Has the header been sent?
+	HttpRequest*                       m_request;          // The request associated with this response.
+	std::map<std::string, std::string> m_responseHeaders;  // The headers to be sent with the response.
+	int                                m_status;           // The status to be sent with the response.
+	std::string                        m_statusMessage;    // The status message to be sent with the response.
+
+	void sendHeader();                                     // Send the header to the client.
+
 public:
 	static const int HTTP_STATUS_CONTINUE;
 	static const int HTTP_STATUS_SWITCHING_PROTOCOL;
@@ -35,16 +40,12 @@ public:
 	HttpResponse(HttpRequest* httpRequest);
 	virtual ~HttpResponse();
 
-	void addHeader(std::string name, std::string value);
-	void close();
-	//std::string getRootPath();
-	std::string getHeader(std::string name);
-	std::map<std::string, std::string> getHeaders();
-	void sendData(std::string data);
-	//void sendData(uint8_t *pData, size_t length);
-	//void setHeaders(std::map<std::string, std::string>  headers);
-	void setStatus(int status, std::string message);
-	//void setRootPath(std::string path);
+	void                               addHeader(std::string name, std::string value);  // Add a header to be sent to the client.
+	void                               close();                                         // Close the request/response.
+	std::string                        getHeader(std::string name);                     // Get a named header.
+	std::map<std::string, std::string> getHeaders();                                    // Get all headers.
+	void                               sendData(std::string data);                      // Send data to the client.
+	void                               setStatus(int status, std::string message);      // Set the response status.
 };
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPRESPONSE_H_ */

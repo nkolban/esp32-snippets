@@ -20,8 +20,9 @@ static const char* LOG_TAG = "HttpServer";
  * Constructor for HTTP Server
  */
 HttpServer::HttpServer() {
-	m_portNumber = 80;
-}
+	m_portNumber = 80;         // The default port number.
+	m_rootPath = "/";          // The default path.
+} // HttpServer
 
 HttpServer::~HttpServer() {
 	ESP_LOGD(LOG_TAG, "~HttpServer");
@@ -29,6 +30,9 @@ HttpServer::~HttpServer() {
 
 /**
  * @brief Be an HTTP server task.
+ * Here we define a Task that will be run when the HTTP server starts.  It is this task
+ * that executes the majority of the passive work of the server.  It listens for incoming
+ * connections and processes them when they arrive.
  */
 class HttpServerTask: public Task {
 public:
@@ -53,42 +57,45 @@ private:
 		ESP_LOGD("HttpServerTask", ">> processRequest: Method: %s, Path: %s",
 			request.getMethod().c_str(), request.getPath().c_str());
 
-		for (auto it = m_pHttpServer->m_pathHandlers.begin(); it != m_pHttpServer->m_pathHandlers.end(); ++it) {
-			if (it->match(request.getMethod(), request.getPath())) {
+		// Loop over all the path handlers we have looking for the first one that matches.  Note that none of them
+		// may match.  If we find one that does, then invoke the handler and that is the end of processing.
+		for (auto pathHandlerIterartor = m_pHttpServer->m_pathHandlers.begin();
+				pathHandlerIterartor != m_pHttpServer->m_pathHandlers.end();
+				++pathHandlerIterartor) {
+			if (pathHandlerIterartor->match(request.getMethod(), request.getPath())) { // Did we match the handler?
 				ESP_LOGD("HttpServerTask", "Found a path handler match!!");
-				if (request.isWebsocket()) {
-					it->invokePathHandler(&request, nullptr);
+				if (request.isWebsocket()) {                                     // Is this handler to be invoked for a web socket?
+					pathHandlerIterartor->invokePathHandler(&request, nullptr);    // Invoke the handler.
 					request.getWebSocket()->startReader();
 				} else {
 					HttpResponse response(&request);
-					it->invokePathHandler(&request, &response);
+					pathHandlerIterartor->invokePathHandler(&request, &response); // Invoke the handler.
 				}
-				return;
+				return;                                                         // End of processing the request
 			} // Path handler match
 		} // For each path handler
 
 		ESP_LOGD("HttpServerTask", "No Path handler found");
 		// If we reach here, then we did not find a handler for the request.
 
-		// Check to see if we have an un-handled WebSocket
-		if (request.isWebsocket()) {
-			request.getWebSocket()->close_cpp();
+
+		if (request.isWebsocket()) { 		       // Check to see if we have an un-handled WebSocket
+			request.getWebSocket()->close();     // If we do, close the socket as there is nothing further to do.
 			return;
 		}
 
 		// Serve up the content from the file on the file system ... if found ...
-
 		std::ifstream ifStream;
-		std::string fileName = m_pHttpServer->getRootPath() + request.getPath();
+		std::string fileName = m_pHttpServer->getRootPath() + request.getPath(); // Build the absolute file name to read.
 		ESP_LOGD("HttpServerTask", "Opening file: %s", fileName.c_str());
-		ifStream.open(fileName, std::ifstream::in | std::ifstream::binary);
+		ifStream.open(fileName, std::ifstream::in | std::ifstream::binary);      // Attempt to open the file for reading.
 
 		// If we failed to open the requested file, then it probably didn't exist so return a not found.
 		if (!ifStream.is_open()) {
 			HttpResponse response(&request);
 			response.setStatus(HttpResponse::HTTP_STATUS_NOT_FOUND, "Not Found");
 			response.sendData("");
-			return;
+			return; // Since we failed to open the file, no further work to be done.
 		}
 
 		// We now have an open file and want to push the content of that file through to the browser.
@@ -104,26 +111,32 @@ private:
 
 	/**
 	 * @brief Perform the task handling for server.
+	 * We loop forever waiting for new client connections to arrive.  When they do, we parse the
+	 * content and look for a handler for that content.
 	 * @param [in] data A reference to the HttpServer.
 	 */
 	void run(void* data) {
-		m_pHttpServer = (HttpServer*)data;
+		m_pHttpServer = (HttpServer*)data;           // The passed in data is an instance of an HttpServer.
 
-		// Create a socket server and start it running.
-		SockServ sockServ(m_pHttpServer->getPort());
-		sockServ.start();
+		SockServ sockServ(m_pHttpServer->getPort()); // Create a socket server on our target port.
+		sockServ.start();                            // Start the socket server listening.
+
 		ESP_LOGD("HttpServerTask", "Listening on port %d", m_pHttpServer->getPort());
 
-		while(1) {
+		while(1) {   // Loop forever.
+
 			ESP_LOGD("HttpServerTask", "Waiting for new peer client");
-			Socket clientSocket = sockServ.waitForNewClient();
+
+			Socket clientSocket = sockServ.waitForNewClient();   // Block waiting for a new external client connection.
+
 			ESP_LOGD("HttpServerTask", "HttpServer listening on port %d received a new client connection", m_pHttpServer->getPort());
 
-			HttpRequest request(clientSocket);
-			request.dump();
-			processRequest(request);
-			if (!request.isWebsocket()) {
-				request.close();
+
+			HttpRequest request(clientSocket);   // Build the HTTP Request from the socket.
+			request.dump();                      // debug.
+			processRequest(request);             // Process the request.
+			if (!request.isWebsocket()) {        // If this is NOT a WebSocket, then close it as the request
+				request.close();                   //   has been completed.
 			}
 		} // while
 	} // run
@@ -154,6 +167,8 @@ void HttpServer::addPathHandler(
 		std::string method,
 		std::string pathExpr,
 		void (*handler)(HttpRequest *pHttpRequest, HttpResponse *pHttpResponse)) {
+
+	// We are maintaining a C++ vector of PathHandler objects.  We add a new entry into that vector.
 	m_pathHandlers.push_back(PathHandler(method, pathExpr, handler));
 } // addPathHandler
 
@@ -220,11 +235,15 @@ void HttpServer::start(uint16_t portNumber) {
  * @param [in] webServerRequestHandler The request handler to be called.
  */
 PathHandler::PathHandler(std::string method, std::string pathPattern,
-		void (*webServerRequestHandler)(HttpRequest *pHttpRequest, HttpResponse *pHttpResponse)) {
-	m_method         = method;
-	m_pattern        = std::regex(pathPattern);
-	m_textPattern    = pathPattern;
-	m_requestHandler = webServerRequestHandler;
+		void (*pWebServerRequestHandler)
+		(
+			HttpRequest*  pHttpRequest,
+			HttpResponse* pHttpResponse)
+		) {
+	m_method          = method;                  // Save the method we are looking for.
+	m_pattern         = std::regex(pathPattern); // Create the Regex pattern.
+	m_textPattern     = pathPattern;             // The plain text of the regex pattern.
+	m_pRequestHandler = pWebServerRequestHandler; // The handler to be invoked if the pattern matches.
 } // PathHandler
 
 
@@ -236,7 +255,7 @@ PathHandler::PathHandler(std::string method, std::string pathPattern,
  * @return True if the path matches.
  */
 bool PathHandler::match(std::string method, std::string path) {
-	ESP_LOGD(LOG_TAG, "matching: %s with %s", m_textPattern.c_str(), path.c_str());
+	ESP_LOGD("PathHandler", "matching: %s with %s", m_textPattern.c_str(), path.c_str());
 	if (method != m_method) {
 		return false;
 	}
@@ -251,5 +270,5 @@ bool PathHandler::match(std::string method, std::string path) {
  * @return N/A.
  */
 void PathHandler::invokePathHandler(HttpRequest* request, HttpResponse *response) {
-	m_requestHandler(request, response);
+	m_pRequestHandler(request, response);
 } // invokePathHandler

@@ -9,19 +9,22 @@
 #define COMPONENTS_WEBSOCKET_H_
 #include <string>
 #include "Socket.h"
+
+#undef close
+#undef send
 class WebSocketReader;
 
 // +-------------------------------+
-// | WebSocketInputRecordStreambuf |
+// | WebSocketInputStreambuf |
 // +-------------------------------+
-class WebSocketInputRecordStreambuf : public std::streambuf {
+class WebSocketInputStreambuf : public std::streambuf {
 public:
-	WebSocketInputRecordStreambuf(
+	WebSocketInputStreambuf(
 		Socket   socket,
 		size_t   dataLength,
 		uint8_t* pMask=nullptr,
 		size_t   bufferSize=2048);
-	~WebSocketInputRecordStreambuf();
+	~WebSocketInputStreambuf();
 	int_type underflow();
 	void discard();
 	size_t getRecordSize();
@@ -42,7 +45,7 @@ class WebSocketHandler {
 public:
 	virtual ~WebSocketHandler();
 	virtual void onClose();
-	virtual void onMessage(WebSocketInputRecordStreambuf *pWebSocketInputRecordStreambuf);
+	virtual void onMessage(WebSocketInputStreambuf *pWebSocketInputStreambuf);
 	virtual void onError(std::string error);
 };
 
@@ -83,10 +86,10 @@ public:
 	WebSocket(Socket socket);
 	virtual ~WebSocket();
 
-	void              close_cpp(uint16_t status=CLOSE_NORMAL_CLOSURE, std::string message = "");
+	void              close(uint16_t status=CLOSE_NORMAL_CLOSURE, std::string message = "");
 	WebSocketHandler* getHandler();
 	Socket            getSocket();
-	void              send_cpp(std::string data, uint8_t sendType = SEND_TYPE_BINARY);
+	void              send(std::string data, uint8_t sendType = SEND_TYPE_BINARY);
 	void              setHandler(WebSocketHandler *handler);
 }; // WebSocket
 

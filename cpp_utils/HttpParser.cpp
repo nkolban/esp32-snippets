@@ -12,6 +12,8 @@
 #include "HttpRequest.h"
 
 #include <esp_log.h>
+
+#undef close
 /**
  * RFC7230 - Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing
  * RFC3986 - URI
@@ -209,11 +211,11 @@ void HttpParser::parse(Socket s) {
 		std::string val = getHeader(HttpRequest::HTTP_HEADER_CONTENT_LENGTH);
 		int length = std::atoi(val.c_str());
 		uint8_t data[length];
-		s.receive_cpp(data, length, true);
+		s.receive(data, length, true);
 		m_body = std::string((char *)data, length);
 	} else {
 		uint8_t data[512];
-		int rc = s.receive_cpp(data, sizeof(data));
+		int rc = s.receive(data, sizeof(data));
 		m_body = std::string((char *)data, rc);
 	}
 	ESP_LOGD(LOG_TAG, "Size of body: %d", m_body.length());

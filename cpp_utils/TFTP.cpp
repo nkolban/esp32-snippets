@@ -19,6 +19,13 @@
 
 #include "sdkconfig.h"
 
+extern "C" {
+	extern uint16_t lwip_ntohs(uint16_t);
+	extern uint32_t lwip_ntohl(uint32_t);
+	extern uint16_t lwip_htons(uint16_t);
+	extern uint32_t lwip_htonl(uint32_t);
+}
+
 static char tag[] = "TFTP";
 
 enum opcode {
@@ -118,7 +125,7 @@ void TFTP::TFTP_Transaction::processRRQ() {
 		ESP_LOGD(tag, "Sending data to %s, blockNumber=%d, size=%d",
 				Socket::addressToString(&m_partnerAddress).c_str(), blockNumber, sizeRead);
 
-		m_partnerSocket.sendTo_cpp(buf, sizeRead+4, &m_partnerAddress);
+		m_partnerSocket.sendTo(buf, sizeRead+4, &m_partnerAddress);
 
 
 		if (sizeRead < TFTP_DATA_SIZE) {
@@ -180,7 +187,7 @@ void TFTP::TFTP_Transaction::processWRQ() {
 		}
 	} // Finished
 	fclose(file);
-	m_partnerSocket.close_cpp();
+	m_partnerSocket.close();
 } // process
 
 
@@ -201,7 +208,7 @@ void TFTP::TFTP_Transaction::sendAck(uint16_t blockNumber) {
 	ackData.blockNumber = htons(blockNumber);
 
 	ESP_LOGD(tag, "Sending ack to %s, blockNumber=%d", Socket::addressToString(&m_partnerAddress).c_str(), blockNumber);
-	m_partnerSocket.sendTo_cpp((uint8_t *)&ackData, sizeof(ackData), &m_partnerAddress);
+	m_partnerSocket.sendTo((uint8_t *)&ackData, sizeof(ackData), &m_partnerAddress);
 } // sendAck
 
 
@@ -222,7 +229,7 @@ void TFTP::start(uint16_t port) {
  */
 	ESP_LOGD(tag, "Starting TFTP::start() on port %d", port);
 	Socket serverSocket;
-	serverSocket.listen_cpp(port, true); // Create a listening socket that is a datagram.
+	serverSocket.listen(port, true); // Create a listening socket that is a datagram.
 	while(true) {
 		// This would be a good place to start a transaction in the background.
 		TFTP_Transaction *pTFTPTransaction = new TFTP_Transaction();
@@ -336,7 +343,7 @@ uint16_t TFTP::TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
 		// Handle the Write Request command.
 		case TFTP_OPCODE_WRQ: {
 			m_partnerSocket.createSocket_cpp(true);
-			m_partnerSocket.bind_cpp(0, INADDR_ANY);
+			m_partnerSocket.bind(0, INADDR_ANY);
 			sendAck(0);
 			break;
 		}
@@ -345,7 +352,7 @@ uint16_t TFTP::TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
 		// Handle the Read request command.
 		case TFTP_OPCODE_RRQ: {
 			m_partnerSocket.createSocket_cpp(true);
-			m_partnerSocket.bind_cpp(0, INADDR_ANY);
+			m_partnerSocket.bind(0, INADDR_ANY);
 			break;
 		}
 
@@ -375,6 +382,6 @@ void TFTP::TFTP_Transaction::sendError(uint16_t code, std::string message) {
 	*(uint16_t *)(&buf[0]) = htons(opcode::TFTP_OPCODE_ERROR);
 	*(uint16_t *)(&buf[2]) = htons(code);
 	strcpy((char *)(&buf[4]), message.c_str());
-	m_partnerSocket.sendTo_cpp(buf, size, &m_partnerAddress);
+	m_partnerSocket.sendTo(buf, size, &m_partnerAddress);
 	free(buf);
 } // sendError

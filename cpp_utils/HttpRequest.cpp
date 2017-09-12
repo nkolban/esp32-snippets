@@ -72,8 +72,10 @@ const std::string HttpRequest::HTTP_METHOD_PUT     = "PUT";
 
 
 
-
-std::string buildResponseHash(std::string requestKey) {
+/**
+ * @brief Build a WebSockey response has.
+ */
+std::string buildWebsocketKeyResponseHash(std::string requestKey) {
 	std::string newKey = requestKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 	uint8_t shaData[20];
 	esp_sha(SHA1, (uint8_t*)newKey.data(), newKey.length(), shaData);
@@ -81,13 +83,16 @@ std::string buildResponseHash(std::string requestKey) {
 	std::string retStr;
 	GeneralUtils::base64Encode(std::string((char*)shaData, sizeof(shaData)), &retStr);
 	return retStr;
-}
+} // buildWebsocketKeyResponseHash
 
 
+/**
+ * @brief Create an HTTP Request instance.
+ */
 HttpRequest::HttpRequest(Socket clientSocket) {
 	m_clientSocket = clientSocket;
-	m_status       = 0;
 	m_pWebSocket   = nullptr;
+	m_isClosed     = false;
 
 	m_parser.parse(clientSocket); // Parse the socket stream to build the HTTP data.
 
@@ -102,19 +107,19 @@ HttpRequest::HttpRequest(Socket clientSocket) {
 		// do something
 		// Process the web socket request
 
-		// Send the response HTTP message to switch to being a Web Socket
+		// Build and send the response HTTP message to switch to being a Web Socket
 		HttpResponse response(this);
 
 		response.setStatus(HttpResponse::HTTP_STATUS_SWITCHING_PROTOCOL, "Switching Protocols");
 		response.addHeader(HTTP_HEADER_UPGRADE, "websocket");
 		response.addHeader(HTTP_HEADER_CONNECTION, "Upgrade");
 		response.addHeader(HTTP_HEADER_SEC_WEBSOCKET_ACCEPT,
-			buildResponseHash(getHeader(HTTP_HEADER_SEC_WEBSOCKET_KEY)));
+			buildWebsocketKeyResponseHash(getHeader(HTTP_HEADER_SEC_WEBSOCKET_KEY)));
 		response.sendData("");
+
+		// Now that we have converted the request into a WebSocket, create the new WebSocket entry.
 		m_pWebSocket = new WebSocket(clientSocket);
-	} else {
-		ESP_LOGD(LOG_TAG, "Not a Websocket");
-	}
+	} // if this is a web socket ...
 } // HttpRequest
 
 
@@ -122,11 +127,21 @@ HttpRequest::~HttpRequest() {
 } // ~HttpRequest
 
 
+/**
+ * @brief Close the HttpRequest
+ */
 void HttpRequest::close() {
-	m_clientSocket.close_cpp();
+	if (isWebsocket()) {
+		ESP_LOGW(LOG_TAG, "Request to close an HTTP Request but we think it is a web socket!");
+	}
+	m_clientSocket.close();
+	m_isClosed = true;
 } // close_cpp
 
 
+/**
+ * @brief Dump the HttpRequest for debugging purposes.
+ */
 void HttpRequest::dump() {
 	ESP_LOGD(LOG_TAG, "Method: %s, URL: \"%s\", Version: %s", getMethod().c_str(), getPath().c_str(), getVersion().c_str());
 	auto headers = getHeaders();
@@ -138,11 +153,19 @@ void HttpRequest::dump() {
 } // dump
 
 
+/**
+ * @brief Get the body of the HttpRequest.
+ */
 std::string HttpRequest::getBody() {
 	return m_parser.getBody();
 } // getBody
 
 
+/**
+ * @brief Get the named header.
+ * @param [in] name The name of the header field to retrieve.
+ * @return The value of the header field.
+ */
 std::string HttpRequest::getHeader(std::string name) {
 	return m_parser.getHeader(name);
 } // getHeader
@@ -163,7 +186,7 @@ std::string HttpRequest::getPath() {
 } // getPath
 
 
-#define STATE_NAME 0
+#define STATE_NAME  0
 #define STATE_VALUE 1
 /**
  * @brief Get the query part of the request.
@@ -176,7 +199,6 @@ std::map<std::string, std::string> HttpRequest::getQuery() {
 	// that lets us know what we are parsing.
 	std::map<std::string, std::string> queryMap;
 	std::string queryString = "";
-	int i=0;
 
 	/*
 	 * We maintain a simple state machine with states of:
@@ -187,7 +209,7 @@ std::map<std::string, std::string> HttpRequest::getQuery() {
 	std::string name = "";
 	std::string value;
 	// Loop through each character in the query string.
-	for (i=0; i<queryString.length(); i++) {
+	for (int i=0; i<queryString.length(); i++) {
 		char currentChar = queryString[i];
 		if (state == STATE_NAME) {
 			if (currentChar != '=') {
@@ -216,6 +238,11 @@ std::map<std::string, std::string> HttpRequest::getQuery() {
 } // getQuery
 
 
+
+/**
+ * @brief Get the underlying socket.
+ * @return The underlying socket.
+ */
 Socket HttpRequest::getSocket() {
 		return m_clientSocket;
 } // getSocket
@@ -225,9 +252,19 @@ std::string HttpRequest::getVersion() {
 	return m_parser.getVersion();
 } // getVersion
 
+
 WebSocket* HttpRequest::getWebSocket() {
 	return m_pWebSocket;
 } // getWebSocket
+
+
+/**
+ * @brief Determine if the request is closed.
+ * @return Returns true if the request is closed.
+ */
+bool HttpRequest::isClosed() {
+	return m_isClosed;
+} // isClosed
 
 
 /**
@@ -237,6 +274,7 @@ WebSocket* HttpRequest::getWebSocket() {
 bool HttpRequest::isWebsocket() {
 	return m_pWebSocket != nullptr;
 } // isWebsocket
+
 
 /**
  * @brief Return the constituent parts of the path.
@@ -270,3 +308,4 @@ std::vector<std::string> HttpRequest::pathSplit() {
 	}
 	return ret;
 } // pathSplit
+

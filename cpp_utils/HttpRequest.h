@@ -18,10 +18,11 @@
 
 class HttpRequest {
 private:
-	Socket      m_clientSocket;
-	HttpParser  m_parser;
-	int         m_status;
-	WebSocket  *m_pWebSocket;
+	Socket      m_clientSocket; // The socket connected to the client.
+	bool        m_isClosed;     // Is the client connection closed?
+	HttpParser  m_parser;       // The parse to parse HTTP data.
+	WebSocket*  m_pWebSocket;   // A possible reference to a WebSocket object instance.
+
 public:
 
 	HttpRequest(Socket s);
@@ -51,19 +52,20 @@ public:
 	static const std::string HTTP_METHOD_POST;
 	static const std::string HTTP_METHOD_PUT;
 
-	void        close();
-	void        dump();
-	std::string getBody();
-	std::string getHeader(std::string name);
-	std::map<std::string, std::string> getHeaders();
-	std::string getMethod();
-	std::string getPath();
-	std::map<std::string, std::string> getQuery();
-	Socket      getSocket();
-	std::string getVersion();
-	WebSocket*  getWebSocket();
-	bool        isWebsocket();
-	std::vector<std::string> pathSplit();
+	void                               close();                      // Close the connection to the client.
+	void                               dump();                       // Diagnostic dump of the Http request.
+	std::string                        getBody();                    // Get the body of the request.
+	std::string                        getHeader(std::string name);  // Get the value of a named header.
+	std::map<std::string, std::string> getHeaders();                 // Get all the headers.
+	std::string                        getMethod();                  // Get the request method.
+	std::string                        getPath();                    // Get the request path.
+	std::map<std::string, std::string> getQuery();                   // Get the query part of the request.
+	Socket                             getSocket();                  // Get the underlying TCP/IP socket.
+	std::string                        getVersion();                 // Get the HTTP version.
+	WebSocket*                         getWebSocket();               // Get the WebSocket reference if this is a web socket.
+	bool                               isClosed();                   // Has the connection been closed?
+	bool                               isWebsocket();                // Is this request to create a web socket?
+	std::vector<std::string>           pathSplit();
 };
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPREQUEST_H_ */

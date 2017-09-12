@@ -49,7 +49,7 @@ void SockServ::acceptTask(void *data) {
 
 	SockServ* pSockServ = (SockServ*)data;
 	while(1) {
-		Socket tempSock = pSockServ->m_serverSocket.accept_cpp();
+		Socket tempSock = pSockServ->m_serverSocket.accept();
 		if (!tempSock.isValid()) {
 			continue;
 		}
@@ -88,7 +88,7 @@ void SockServ::disconnect(Socket s) {
  * @return The amount of data returned or 0 if there was an error.
  */
 size_t SockServ::receiveData(Socket s, void* pData, size_t maxData) {
-	int rc = s.receive_cpp((uint8_t*)pData, maxData);
+	int rc = s.receive((uint8_t*)pData, maxData);
 	if (rc == -1) {
 		ESP_LOGE(LOG_TAG, "recv(): %s", strerror(errno));
 		return 0;
@@ -115,7 +115,7 @@ void SockServ::sendData(std::string str) {
  */
 void SockServ::sendData(uint8_t* data, size_t length) {
   for (auto it = m_clientSet.begin(); it != m_clientSet.end(); ++it) {
-  	(*it).send_cpp(data, length);
+  	(*it).send(data, length);
   }
 } // sendData
 
@@ -135,7 +135,7 @@ void SockServ::setPort(uint16_t port) {
  */
 void SockServ::start() {
 	assert(m_port != 0);
-	m_serverSocket.listen_cpp(m_port);
+	m_serverSocket.listen(m_port);
 	ESP_LOGD(LOG_TAG, "Now listening on port %d", m_port);
 	FreeRTOS::startTask(acceptTask, "acceptTask", this);
 } // start
