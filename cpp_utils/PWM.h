@@ -29,13 +29,13 @@ public:
 
 	uint32_t getDuty();
 	uint32_t getFrequency();
-	void setDuty(uint32_t duty);
-	void setDutyPercentage(uint8_t percent);
-	void setFrequency(uint32_t freq);
-	void stop(bool idleLevel=false);
+	void     setDuty(uint32_t duty);
+	void     setDutyPercentage(uint8_t percent);
+	void     setFrequency(uint32_t freq);
+	void     stop(bool idleLevel=false);
 private:
-	ledc_channel_t channel;
-	ledc_timer_t timer;
+	ledc_channel_t   channel;
+	ledc_timer_t     timer;
 	ledc_timer_bit_t bitSize; // Bit size of timer.
 };
 
