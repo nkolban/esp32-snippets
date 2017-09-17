@@ -7,6 +7,7 @@
 
 #ifndef COMPONENTS_CPP_UTILS_SOCKET_H_
 #define COMPONENTS_CPP_UTILS_SOCKET_H_
+
 #include <mbedtls/platform.h>
 
 #include <mbedtls/ctr_drbg.h>
@@ -16,11 +17,6 @@
 #include <mbedtls/net.h>
 #include <mbedtls/ssl.h>
 
-#include <string>
-#include <iostream>
-#include <streambuf>
-#include <cstdio>
-#include <cstring>
 #include <lwip/inet.h>
 #include <lwip/sockets.h>
 
@@ -29,8 +25,16 @@
 #undef close
 #undef connect
 #undef listen
+#undef read
 #undef recv
 #undef send
+#undef write
+
+#include <string>
+#include <iostream>
+#include <streambuf>
+#include <cstdio>
+#include <cstring>
 
 /**
  * @brief Encapsulate a socket.
