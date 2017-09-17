@@ -13,6 +13,8 @@
 
 #include <sstream>
 
+
+
 #include <errno.h>
 #include <esp_log.h>
 #include <lwip/sockets.h>
@@ -21,13 +23,29 @@
 
 #include <unistd.h>
 #include "GeneralUtils.h"
+#include "SSLUtils.h"
 #include "sdkconfig.h"
 #include "Socket.h"
 
 static const char* LOG_TAG = "Socket";
 
+#undef bind
+
+static void my_debug(
+   void *ctx,
+   int level,
+   const char *file,
+   int line,
+   const char *str) {
+
+   ((void) level);
+   ((void) ctx);
+   printf("%s:%04d: %s", file, line, str);
+}
+
 Socket::Socket() {
-	m_sock = -1;
+	m_sock   = -1;
+	m_useSSL = false;
 }
 
 Socket::~Socket() {
@@ -35,11 +53,14 @@ Socket::~Socket() {
 }
 
 
-
-Socket Socket::accept() {
+/**
+ * @brief Accept a new socket.
+ */
+Socket Socket::accept(bool useSSL) {
 	struct sockaddr addr;
 	getBind(&addr);
-	ESP_LOGD(LOG_TAG, "Accepting on %s", addressToString(&addr).c_str());
+	ESP_LOGD(LOG_TAG, ">> accept: Accepting on %s", addressToString(&addr).c_str());
+
 	struct sockaddr_in clientAddress;
 	socklen_t clientAddressLength = sizeof(clientAddress);
 	int clientSockFD = ::lwip_accept(m_sock, (struct sockaddr *)&clientAddress, &clientAddressLength);
@@ -48,10 +69,22 @@ Socket Socket::accept() {
 		Socket newSocket;
 		return newSocket;
 	}
+
+	ESP_LOGD(LOG_TAG, " - accept: Received new client!: sockFd: %d", clientSockFD);
 	Socket newSocket;
 	newSocket.m_sock = clientSockFD;
+	if (useSSL) {
+		newSocket.setSSL(true);
+		newSocket.m_sslSock.fd = clientSockFD;
+		newSocket.sslHandshake();
+		ESP_LOGD(LOG_TAG, "DEBUG DEBUG ");
+		uint8_t x;
+		newSocket.receive(&x, 1, 0); // FIX FIX FIX
+	}
+	ESP_LOGD(LOG_TAG, "<< accept: sockFd: %d", clientSockFD);
 	return newSocket;
 } // accept
+
 
 /**
  * @brief Convert a socket address to a string representation.
@@ -77,19 +110,21 @@ std::string Socket::addressToString(struct sockaddr* addr) {
  * @return N/A
  */
 void Socket::bind(uint16_t port, uint32_t address) {
-	ESP_LOGD(LOG_TAG, "bind: port=%d, address=0x%x", port, address);
+	ESP_LOGD(LOG_TAG, ">> bind: port=%d, address=0x%x", port, address);
+
 	if (m_sock == -1) {
 		ESP_LOGE(LOG_TAG, "bind: Socket is not initialized.");
 	}
 	struct sockaddr_in serverAddress;
-	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_family      = AF_INET;
 	serverAddress.sin_addr.s_addr = htonl(address);
-	serverAddress.sin_port   = htons(port);
+	serverAddress.sin_port        = htons(port);
 	int rc = ::lwip_bind(m_sock, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
 	if (rc == -1) {
-		ESP_LOGE(LOG_TAG, "bind: bind[socket=%d]: %d: %s", m_sock, errno, strerror(errno));
+		ESP_LOGE(LOG_TAG, "<< bind: bind[socket=%d]: %d: %s", m_sock, errno, strerror(errno));
 		return;
 	}
+	ESP_LOGD(LOG_TAG, "<< bind");
 } // bind
 
 
@@ -100,6 +135,12 @@ void Socket::bind(uint16_t port, uint32_t address) {
  */
 void Socket::close() {
 	ESP_LOGD(LOG_TAG, "close: m_sock=%d", m_sock);
+	if (getSSL()) {
+		int rc = mbedtls_ssl_close_notify(&m_sslContext);
+		if (rc < 0) {
+			ESP_LOGD(LOG_TAG, "mbedtls_ssl_close_notify: %d", rc);
+		}
+	}
 	if (m_sock != -1) {
 		::lwip_close(m_sock);
 	}
@@ -122,7 +163,7 @@ int Socket::connect(struct in_addr address, uint16_t port) {
 	char msg[50];
 	inet_ntop(AF_INET, &address, msg, sizeof(msg));
 	ESP_LOGD(LOG_TAG, "Connecting to %s:[%d]", msg, port);
-	createSocket_cpp();
+	createSocket();
 	int rc = ::lwip_connect(m_sock, (struct sockaddr *)&serverAddress, sizeof(struct sockaddr_in));
 	if (rc == -1) {
 		ESP_LOGE(LOG_TAG, "connect_cpp: Error: %s", strerror(errno));
@@ -154,7 +195,8 @@ int Socket::connect(char* strAddress, uint16_t port) {
  * @param [in] isDatagram Set to true to create a datagram socket.  Default is false.
  * @return The socket descriptor.
  */
-int Socket::createSocket_cpp(bool isDatagram) {
+int Socket::createSocket(bool isDatagram) {
+	ESP_LOGD(LOG_TAG, ">> createSocket: isDatagram: %d", isDatagram);
 	if (isDatagram) {
 		m_sock = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	}
@@ -162,11 +204,12 @@ int Socket::createSocket_cpp(bool isDatagram) {
 		m_sock = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	}
 	if (m_sock == -1) {
-		ESP_LOGE(LOG_TAG, "createSocket_cpp: socket: %d", errno);
+		ESP_LOGE(LOG_TAG, "<< createSocket: socket: %d", errno);
 		return m_sock;
 	}
+	ESP_LOGD(LOG_TAG, "<< createSocket: sockFd: %d", m_sock);
 	return m_sock;
-} // createSocket_cpp
+} // createSocket
 
 
 /**
@@ -191,6 +234,9 @@ int Socket::getFD() const {
 	return m_sock;
 } // getFD
 
+bool Socket::getSSL() const {
+	return m_useSSL;
+}
 
 bool Socket::isValid() {
 	return m_sock != -1;
@@ -202,13 +248,20 @@ bool Socket::isValid() {
  * @param [in] isDatagram True if we are listening on a datagram.
  */
 void Socket::listen(uint16_t port, bool isDatagram) {
-	createSocket_cpp(isDatagram);
+	ESP_LOGD(LOG_TAG, ">> listen: port: %d, isDatagram: %d", port, isDatagram);
+	createSocket(isDatagram);
 	bind(port, 0);
-	int rc = ::lwip_listen(m_sock, 5);
-	if (rc == -1) {
-		ESP_LOGE(LOG_TAG, "listen: %s", strerror(errno));
+	// For a datagram socket, we don't execute a listen call.  That is is only for connection oriented
+	// sockets.
+	if (!isDatagram) {
+		int rc = ::lwip_listen(m_sock, 5);
+		if (rc == -1) {
+			ESP_LOGE(LOG_TAG, "<< listen: %s", strerror(errno));
+		}
 	}
+	ESP_LOGD(LOG_TAG, "<< listen");
 } // listen
+
 
 bool Socket::operator <(const Socket& other) const {
 	return m_sock < other.m_sock;
@@ -258,18 +311,35 @@ std::string Socket::readToDelim(std::string delim) {
  * @return The length of the data received or -1 on an error.
  */
 size_t Socket::receive(uint8_t* data, size_t length, bool exact) {
-	//ESP_LOGD(LOG_TAG, ">> receive_cpp: length: %d, exact: %d", length, exact);
+	ESP_LOGD(LOG_TAG, ">> receive: sockFd: %d, length: %d, exact: %d", m_sock, length, exact);
 	if (exact == false) {
-		int rc = ::lwip_recv(m_sock, data, length, 0);
-		if (rc == -1) {
-			ESP_LOGE(LOG_TAG, "receive_cpp: %s", strerror(errno));
+		int rc;
+		if (getSSL()) {
+			do {
+				rc = mbedtls_ssl_read(&m_sslContext, data, length);
+				ESP_LOGD(LOG_TAG, "rc=%d, MBEDTLS_ERR_SSL_WANT_READ=%d", rc, MBEDTLS_ERR_SSL_WANT_READ);
+			} while(rc == MBEDTLS_ERR_SSL_WANT_WRITE || rc == MBEDTLS_ERR_SSL_WANT_READ);
+		} else {
+			rc = ::lwip_recv(m_sock, data, length, 0);
+			if (rc == -1) {
+				ESP_LOGE(LOG_TAG, "receive: %s", strerror(errno));
+			}
 		}
 		//GeneralUtils::hexDump(data, rc);
+		ESP_LOGD(LOG_TAG, "<< receive: rc: %d", rc);
 		return rc;
-	}
+	} // Read what we can, doesn't need to be an exact amount.
+
 	size_t amountToRead = length;
+	int rc;
 	while(amountToRead > 0) {
-		int rc = ::lwip_recv(m_sock, data, amountToRead, 0);
+		if (getSSL()) {
+			do {
+				rc = mbedtls_ssl_read(&m_sslContext, data, amountToRead);
+			} while(rc == MBEDTLS_ERR_SSL_WANT_WRITE || rc == MBEDTLS_ERR_SSL_WANT_READ);
+		} else {
+			rc = ::lwip_recv(m_sock, data, amountToRead, 0);
+		}
 		if (rc == -1) {
 			ESP_LOGE(LOG_TAG, "receive_cpp: %s", strerror(errno));
 			return 0;
@@ -278,9 +348,10 @@ size_t Socket::receive(uint8_t* data, size_t length, bool exact) {
 			break;
 		}
 		amountToRead -= rc;
-		data+= rc;
+		data += rc;
 	}
 	//GeneralUtils::hexDump(data, length);
+	ESP_LOGD(LOG_TAG, "<< receive: %d", length);
 	return length;
 } // receive_cpp
 
@@ -292,11 +363,11 @@ size_t Socket::receive(uint8_t* data, size_t length, bool exact) {
  * @param [in] pAddr An area into which we can store the address of the partner.
  * @return The length of the data received.
  */
-int Socket::receiveFrom_cpp(uint8_t* data, size_t length,	struct sockaddr *pAddr) {
+int Socket::receiveFrom(uint8_t* data, size_t length,	struct sockaddr *pAddr) {
 	socklen_t addrLen = sizeof(struct sockaddr);
 	int rc = ::recvfrom(m_sock, data, length, 0, pAddr, &addrLen);
 	return rc;
-} // receiveFrom_cpp
+} // receiveFrom
 
 
 /**
@@ -310,7 +381,12 @@ int Socket::receiveFrom_cpp(uint8_t* data, size_t length,	struct sockaddr *pAddr
 int Socket::send(const uint8_t* data, size_t length) const {
 	ESP_LOGD(LOG_TAG, "send: Raw binary of length: %d", length);
 	//GeneralUtils::hexDump(data, length);
-	int rc = ::lwip_send(m_sock, data, length, 0);
+	int rc;
+	if (getSSL()) {
+		rc = mbedtls_ssl_write((mbedtls_ssl_context*)&m_sslContext, data, length);
+	} else {
+		rc = ::lwip_send(m_sock, data, length, 0);
+	}
 	if (rc == -1) {
 		ESP_LOGE(LOG_TAG, "send: socket=%d, %s", m_sock, strerror(errno));
 	}
@@ -349,11 +425,118 @@ int  Socket::send(uint32_t value) {
  * @param [in] pAddr The address to send the data.
  */
 void Socket::sendTo(const uint8_t* data, size_t length, struct sockaddr* pAddr) {
-	int rc = ::sendto(m_sock, data, length, 0, pAddr, sizeof(struct sockaddr));
-	if (rc == -1) {
+	int rc;
+	if (getSSL()) {
+		rc = mbedtls_ssl_write(&m_sslContext, data, length);
+	} else {
+		rc = ::sendto(m_sock, data, length, 0, pAddr, sizeof(struct sockaddr));
+	}
+	if (rc < 0) {
 		ESP_LOGE(LOG_TAG, "sendto: socket=%d %s", m_sock, strerror(errno));
 	}
 } // sendTo
+
+
+/**
+ * @brief Flag the socket as using SSL
+ * @param [in] sslValue True if we wish to use SSL.
+ */
+void Socket::setSSL(bool sslValue) {
+  const char* pers = "ssl_server";
+	ESP_LOGD(LOG_TAG, ">> setSSL: %s", sslValue?"Yes":"No");
+	m_useSSL = sslValue;
+
+	if (sslValue == true) {
+		char* pvtKey = SSLUtils::getKey();
+		char* certificate = SSLUtils::getCertificate();
+
+		mbedtls_net_init(&m_sslSock);
+		mbedtls_ssl_init(&m_sslContext);
+		mbedtls_ssl_config_init(&m_conf);
+		mbedtls_x509_crt_init(&m_srvcert);
+		mbedtls_pk_init(&m_pkey);
+		mbedtls_entropy_init(&m_entropy);
+		mbedtls_ctr_drbg_init(&m_ctr_drbg);
+
+
+		int ret = mbedtls_x509_crt_parse(&m_srvcert, (unsigned char*)certificate, strlen(certificate)+1);
+		if( ret != 0 ) {
+			ESP_LOGD(LOG_TAG, "mbedtls_x509_crt_parse returned 0x%x", -ret );
+			goto exit;
+		}
+
+
+		ret =  mbedtls_pk_parse_key(&m_pkey, (unsigned char*)pvtKey, strlen(pvtKey)+1, NULL, 0 );
+		if( ret != 0 ) {
+			ESP_LOGD(LOG_TAG, "mbedtls_pk_parse_key returned 0x%x", -ret);
+			goto exit;
+		}
+
+		ret = mbedtls_ctr_drbg_seed( &m_ctr_drbg, mbedtls_entropy_func, &m_entropy,	(const unsigned char*) pers, strlen(pers));
+		if( ret != 0 ) {
+    	ESP_LOGD(LOG_TAG, "! mbedtls_ctr_drbg_seed returned %d\n",ret);
+        goto exit;
+    }
+
+		ret = mbedtls_ssl_config_defaults(&m_conf,
+			MBEDTLS_SSL_IS_SERVER,
+			MBEDTLS_SSL_TRANSPORT_STREAM,
+			MBEDTLS_SSL_PRESET_DEFAULT);
+		if(ret != 0 )	{
+			ESP_LOGD(LOG_TAG, "mbedtls_ssl_config_defaults returned %d\n\n", ret);
+			goto exit;
+		}
+
+		mbedtls_ssl_conf_rng(&m_conf, mbedtls_ctr_drbg_random, &m_ctr_drbg);
+		//mbedtls_ssl_conf_dbg(&m_conf, my_debug, stdout );
+
+    mbedtls_ssl_conf_ca_chain( &m_conf, m_srvcert.next, NULL);
+    ret = mbedtls_ssl_conf_own_cert( &m_conf, &m_srvcert, &m_pkey);
+    if(ret != 0) {
+    	ESP_LOGD(LOG_TAG, "mbedtls_ssl_conf_own_cert returned %d\n\n", ret);
+    	goto exit;
+    }
+
+    mbedtls_ssl_conf_dbg(&m_conf, my_debug, nullptr);
+    mbedtls_debug_set_threshold(4);
+
+    ret = mbedtls_ssl_setup(&m_sslContext, &m_conf);
+    if(ret != 0) {
+    	ESP_LOGD(LOG_TAG, "mbedtls_ssl_setup returned %d\n\n", ret );
+    	goto exit;
+    }
+/*
+    ret = mbedtls_ssl_set_hostname(&m_sslContext, "192.168.1.99");
+    if(ret != 0) {
+    	ESP_LOGD(LOG_TAG, "mbedtls_ssl_set_hostname returned %d\n\n", ret );
+    	goto exit;
+    }
+    */
+
+		exit:
+		 return;
+	}
+} // setSSL
+
+
+/**
+ * @brief perform the SSL handshake
+ */
+void Socket::sslHandshake() {
+	ESP_LOGD(LOG_TAG, ">> sslHandshake: sock: %d", m_sslSock.fd);
+	mbedtls_ssl_session_reset(&m_sslContext);
+	ESP_LOGD(LOG_TAG, " - Reset complete");
+	mbedtls_ssl_set_bio(&m_sslContext, &m_sslSock, mbedtls_net_send, mbedtls_net_recv, NULL);
+	int ret;
+	while((ret = mbedtls_ssl_handshake(&m_sslContext))!=0) {
+		if(ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE) {
+			ESP_LOGD(LOG_TAG, "mbedtls_ssl_handshake returned %d\n\n", ret );
+			return;
+		}
+	} // End while
+	ESP_LOGD(LOG_TAG, "<< sslHandshake");
+} // sslHandshake
+
 
 /**
  * @brief Get the string representation of this socket
@@ -406,3 +589,6 @@ SocketInputRecordStreambuf::int_type SocketInputRecordStreambuf::underflow() {
 	setg(m_buffer, m_buffer, m_buffer + bytesRead);
 	return traits_type::to_int_type(*gptr());
 } // underflow
+
+
+

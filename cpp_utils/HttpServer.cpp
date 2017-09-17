@@ -22,6 +22,7 @@ static const char* LOG_TAG = "HttpServer";
 HttpServer::HttpServer() {
 	m_portNumber = 80;         // The default port number.
 	m_rootPath = "/";          // The default path.
+	m_useSSL = false;
 } // HttpServer
 
 HttpServer::~HttpServer() {
@@ -36,7 +37,7 @@ HttpServer::~HttpServer() {
  */
 class HttpServerTask: public Task {
 public:
-	HttpServerTask(std::string name): Task(name) {
+	HttpServerTask(std::string name): Task(name, 16*1024) {
 		m_pHttpServer = nullptr;
 	};
 
@@ -116,10 +117,11 @@ private:
 	 * @param [in] data A reference to the HttpServer.
 	 */
 	void run(void* data) {
-		m_pHttpServer = (HttpServer*)data;           // The passed in data is an instance of an HttpServer.
+		m_pHttpServer = (HttpServer*)data;             // The passed in data is an instance of an HttpServer.
 
-		SockServ sockServ(m_pHttpServer->getPort()); // Create a socket server on our target port.
-		sockServ.start();                            // Start the socket server listening.
+		SockServ sockServ(m_pHttpServer->getPort());   // Create a socket server on our target port.
+		sockServ.setSSL(m_pHttpServer->getSSL());
+		sockServ.start();                              // Start the socket server listening.
 
 		ESP_LOGD("HttpServerTask", "Listening on port %d", m_pHttpServer->getPort());
 
@@ -191,6 +193,10 @@ std::string HttpServer::getRootPath() {
 } // getRootPath
 
 
+bool HttpServer::getSSL() {
+	return m_useSSL;
+} // getSSL
+
 /**
  * @brief Set the root path for URL file mapping.
  *
@@ -218,9 +224,11 @@ void HttpServer::setRootPath(std::string path) {
  * We start an instance of the HTTP server listening.  A new task is spawned to perform this work in the
  * back ground.
  * @param [in] portNumber The port number on which the HTTP server should listen.
+ * @param [in] useSSL Should we use SSL?
  */
-void HttpServer::start(uint16_t portNumber) {
-	ESP_LOGD(LOG_TAG, ">> start");
+void HttpServer::start(uint16_t portNumber, bool useSSL) {
+	ESP_LOGD(LOG_TAG, ">> start: port: %d, useSSL: %d", portNumber, useSSL);
+	m_useSSL     = useSSL;
 	m_portNumber = portNumber;
 	HttpServerTask* pHttpServerTask = new HttpServerTask("HttpServerTask");
 	pHttpServerTask->start(this);
@@ -272,3 +280,5 @@ bool PathHandler::match(std::string method, std::string path) {
 void PathHandler::invokePathHandler(HttpRequest* request, HttpResponse *response) {
 	m_pRequestHandler(request, response);
 } // invokePathHandler
+
+

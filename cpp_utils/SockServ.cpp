@@ -49,7 +49,7 @@ void SockServ::acceptTask(void *data) {
 
 	SockServ* pSockServ = (SockServ*)data;
 	while(1) {
-		Socket tempSock = pSockServ->m_serverSocket.accept();
+		Socket tempSock = pSockServ->m_serverSocket.accept(true);
 		if (!tempSock.isValid()) {
 			continue;
 		}
@@ -57,6 +57,7 @@ void SockServ::acceptTask(void *data) {
 		pSockServ->m_clientSet.insert(tempSock);
 		xQueueSendToBack(pSockServ->m_acceptQueue, &tempSock, portMAX_DELAY);
 		pSockServ->m_clientSemaphore.give();
+		FreeRTOS::sleep(9999999);
 	}
 } // acceptTask
 
@@ -128,6 +129,12 @@ void SockServ::setPort(uint16_t port) {
 	m_port = port;
 } // setPort
 
+
+void SockServ::setSSL(bool use) {
+	m_useSSL = use;
+} // setSSL
+
+
 /**
  * @brief Start listening for new partner connections.
  *
@@ -135,9 +142,10 @@ void SockServ::setPort(uint16_t port) {
  */
 void SockServ::start() {
 	assert(m_port != 0);
+	//m_serverSocket.setSSL(m_useSSL);
 	m_serverSocket.listen(m_port);
 	ESP_LOGD(LOG_TAG, "Now listening on port %d", m_port);
-	FreeRTOS::startTask(acceptTask, "acceptTask", this);
+	FreeRTOS::startTask(acceptTask, "acceptTask", this, 16*1024);
 } // start
 
 
@@ -146,6 +154,8 @@ void SockServ::start() {
  */
 void SockServ::stop() {
 } // stop
+
+
 
 
 Socket SockServ::waitForData(std::set<Socket>& socketSet) {
@@ -160,11 +170,11 @@ Socket SockServ::waitForData(std::set<Socket>& socketSet) {
 	} // End for
 
 	int rc = ::select(
-		maxFd+1, // Number of sockets to scan
+		maxFd+1,  // Number of sockets to scan
 		&readSet, // Set of read sockets
-		nullptr, // Set of write sockets
-		nullptr, // Set of exception sockets
-		nullptr // Timeout
+		nullptr,  // Set of write sockets
+		nullptr,  // Set of exception sockets
+		nullptr   // Timeout
 	);
 	if (rc == -1) {
 		ESP_LOGE(LOG_TAG, "Error with select");
@@ -192,6 +202,7 @@ Socket SockServ::waitForNewClient() {
 	m_clientSemaphore.wait("waitForClient");
 	Socket tempSocket;
 	xQueueReceive(m_acceptQueue, &tempSocket,portMAX_DELAY);
+	ESP_LOGD(LOG_TAG, "<< waitForClient");
 	return tempSocket;
 } // waitForClient
 

@@ -57,14 +57,16 @@ public:
 		);
 	uint16_t    getPort(); // Get the port on which the Http server is listening.
 	std::string getRootPath(); // Get the root of the file system path.
+	bool        getSSL();   // Are we using SSL?
 	void        setRootPath(std::string path); // Set the root of the file system path.
-	void        start(uint16_t portNumber);
+	void        start(uint16_t portNumber, bool useSSL=false);
 private:
 	friend class HttpServerTask;
 	friend class WebSocket;
 	uint16_t                 m_portNumber;
 	std::vector<PathHandler> m_pathHandlers;
 	std::string              m_rootPath; // Root path into the file system.
+	bool                     m_useSSL;
 }; // HttpServer
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPSERVER_H_ */

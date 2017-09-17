@@ -33,11 +33,12 @@
 class SockServ {
 private:
 	static void acceptTask(void*);
-	uint16_t m_port;
-	Socket   m_serverSocket;
+	uint16_t            m_port;
+	Socket              m_serverSocket;
 	FreeRTOS::Semaphore m_clientSemaphore;
-	std::set<Socket> m_clientSet;
-	QueueHandle_t m_acceptQueue;
+	std::set<Socket>    m_clientSet;
+	QueueHandle_t       m_acceptQueue;
+	bool                m_useSSL;
 public:
 	SockServ(uint16_t port);
 	SockServ();
@@ -47,6 +48,7 @@ public:
 	void   sendData(uint8_t* data, size_t length);
 	void   sendData(std::string str);
 	void   setPort(uint16_t port);
+	void   setSSL(bool use=true);
 	void   start();
 	void   stop();
 	Socket waitForData(std::set<Socket>& socketSet);

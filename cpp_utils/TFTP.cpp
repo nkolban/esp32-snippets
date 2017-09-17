@@ -172,7 +172,7 @@ void TFTP::TFTP_Transaction::processWRQ() {
 	}
 	while(!finished) {
 		pRecv_data = (struct recv_data *)dataBuffer;
-		int receivedSize = m_partnerSocket.receiveFrom_cpp(dataBuffer, sizeof(dataBuffer), &recvAddr);
+		int receivedSize = m_partnerSocket.receiveFrom(dataBuffer, sizeof(dataBuffer), &recvAddr);
 		if (receivedSize == -1) {
 			ESP_LOGE(tag, "rc == -1 from receive_from");
 		}
@@ -287,7 +287,7 @@ void TFTP::TFTP_Transaction::waitForAck(uint16_t blockNumber) {
 	} ackData;
 
 	ESP_LOGD(tag, "TFTP: Waiting for an acknowledgment request");
-	int sizeRead = m_partnerSocket.receiveFrom_cpp((uint8_t *)&ackData, sizeof(ackData), &m_partnerAddress);
+	int sizeRead = m_partnerSocket.receiveFrom((uint8_t *)&ackData, sizeof(ackData), &m_partnerAddress);
 	ESP_LOGD(tag, "TFTP: Received some data.");
 
 	if (sizeRead != sizeof(ackData)) {
@@ -331,7 +331,7 @@ uint16_t TFTP::TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
 	size_t length = 100;
 
 	ESP_LOGD(tag, "TFTP: Waiting for a request");
-	pServerSocket->receiveFrom_cpp(buf, length, &m_partnerAddress);
+	pServerSocket->receiveFrom(buf, length, &m_partnerAddress);
 
 	// Save the filename, mode and op code.
 
@@ -342,7 +342,7 @@ uint16_t TFTP::TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
 
 		// Handle the Write Request command.
 		case TFTP_OPCODE_WRQ: {
-			m_partnerSocket.createSocket_cpp(true);
+			m_partnerSocket.createSocket(true);
 			m_partnerSocket.bind(0, INADDR_ANY);
 			sendAck(0);
 			break;
@@ -351,7 +351,7 @@ uint16_t TFTP::TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
 
 		// Handle the Read request command.
 		case TFTP_OPCODE_RRQ: {
-			m_partnerSocket.createSocket_cpp(true);
+			m_partnerSocket.createSocket(true);
 			m_partnerSocket.bind(0, INADDR_ANY);
 			break;
 		}
