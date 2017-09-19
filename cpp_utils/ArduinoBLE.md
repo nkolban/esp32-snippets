@@ -25,13 +25,13 @@ If you have previously installed a version of the Arduino BLE Support and need t
 The BLE support contains extensive internal diagnostics which can be switched on by editing the file called `sdkconfig.h` and finding the lines which read:
 
 ```
-#define CONFIG_LOG_DEFAULT 1
+#define CONFIG_LOG_DEFAULT_LEVEL 1
 ```
 
 Change this to:
 
 ```
-#define CONFIG_LOG_DEFAULT 5
+#define CONFIG_LOG_DEFAULT_LEVEL 5
 ```
 
 and rebuild/deploy your project.
