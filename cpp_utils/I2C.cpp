@@ -26,7 +26,7 @@ I2C::I2C() {
 	address = 0;
 	cmd     = 0;
 	sdaPin  = DEFAULT_SDA_PIN;
-	sclPin  = DEFAULT_SDA_PIN;
+	sclPin  = DEFAULT_CLK_PIN;
 } // I2C
 
 
