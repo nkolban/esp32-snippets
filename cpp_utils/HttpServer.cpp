@@ -12,6 +12,7 @@
 #include <esp_log.h>
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "FileSystem.h"
 #include "WebSocket.h"
 static const char* LOG_TAG = "HttpServer";
 
@@ -20,10 +21,12 @@ static const char* LOG_TAG = "HttpServer";
  * Constructor for HTTP Server
  */
 HttpServer::HttpServer() {
-	m_portNumber = 80;         // The default port number.
-	m_rootPath = "/";          // The default path.
-	m_useSSL = false;
+	m_portNumber = 80;              // The default port number.
+	m_rootPath   = "/";             // The default path.
+	m_useSSL     = false;           // Default SSL is no.
+	setDirectoryListing(false);   // Default directory listing is no.
 } // HttpServer
+
 
 HttpServer::~HttpServer() {
 	ESP_LOGD(LOG_TAG, "~HttpServer");
@@ -88,6 +91,10 @@ private:
 		// Serve up the content from the file on the file system ... if found ...
 		std::ifstream ifStream;
 		std::string fileName = m_pHttpServer->getRootPath() + request.getPath(); // Build the absolute file name to read.
+		if (FileSystem::isDirectory(fileName)) {
+			ESP_LOGD(LOG_TAG, "Path is a directory");
+			return;
+		}
 		ESP_LOGD("HttpServerTask", "Opening file: %s", fileName.c_str());
 		ifStream.open(fileName, std::ifstream::in | std::ifstream::binary);      // Attempt to open the file for reading.
 
@@ -131,7 +138,7 @@ private:
 
 			Socket clientSocket = sockServ.waitForNewClient();   // Block waiting for a new external client connection.
 
-			ESP_LOGD("HttpServerTask", "HttpServer listening on port %d received a new client connection", m_pHttpServer->getPort());
+			ESP_LOGD("HttpServerTask", "HttpServer listening on port %d received a new client connection; sockFd=%d", m_pHttpServer->getPort(), clientSocket.getFD());
 
 
 			HttpRequest request(clientSocket);   // Build the HTTP Request from the socket.
@@ -196,6 +203,16 @@ std::string HttpServer::getRootPath() {
 bool HttpServer::getSSL() {
 	return m_useSSL;
 } // getSSL
+
+
+/**
+ * @brief Set whether or not we will list directories.
+ * @param [in] use Set to true to enable directory listing.
+ */
+void HttpServer::setDirectoryListing(bool use) {
+	m_directoryListing = use;
+} // setDirectoryListening
+
 
 /**
  * @brief Set the root path for URL file mapping.

@@ -126,8 +126,5 @@ bool File::isDirectory() {
 	if (rc != 0) {
 		return false;
 	}
-	if (S_ISDIR(buf.st_mode)) {
-		return true;
-	}
-	return false;
+	return S_ISDIR(buf.st_mode);
 } // isDirectory

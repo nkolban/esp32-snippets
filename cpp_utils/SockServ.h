@@ -44,6 +44,7 @@ public:
 	SockServ();
 	int    connectedCount();
 	void   disconnect(Socket s);
+	bool   getSSL();
 	size_t receiveData(Socket s, void* pData, size_t maxData);
 	void   sendData(uint8_t* data, size_t length);
 	void   sendData(std::string str);

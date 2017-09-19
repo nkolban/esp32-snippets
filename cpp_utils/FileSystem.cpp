@@ -10,6 +10,7 @@
 
 #include <dirent.h>
 #include <errno.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -75,14 +76,30 @@ std::vector<File> FileSystem::getDirectoryContents(std::string path) {
 
 
 /**
+ * @brief Does the path refer to a directory?
+ * @param [in] path The path to the directory.
+ */
+bool FileSystem::isDirectory(std::string path) {
+	struct stat statBuf;
+	int rc = stat(path.c_str(), &statBuf);
+	if (rc != 0) {
+		return false;
+	}
+	return S_ISDIR(statBuf.st_mode);
+} // isDirectory
+
+
+
+/**
  * @brief Create a directory
  * @param [in] path The directory to create.
  * @return N/A.
  */
 int FileSystem::mkdir(std::string path) {
+	ESP_LOGD(LOG_TAG, ">> mkdir: %s", path.c_str());
 	int rc = ::mkdir(path.c_str(), 0);
 	if (rc != 0) {
-		ESP_LOGE(LOG_TAG, "mkdir: errno=%d", errno);
+		ESP_LOGE(LOG_TAG, "mkdir: errno=%d %s", errno, strerror(errno));
 		rc = errno;
 	}
 	return rc;

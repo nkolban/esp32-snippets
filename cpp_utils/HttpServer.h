@@ -25,14 +25,14 @@ class HttpServerTask;
 class PathHandler {
 	public:
 		PathHandler(
-			std::string method,               // The method in the request to be matched.
-			std::string pathPattern,          // The pattern in the request to be matched
-			void (*pWebServerRequestHandler)  // The handler function to be invoked upon a match.
+			std::string method,                // The method in the request to be matched.
+			std::string pathPattern,           // The pattern in the request to be matched
+			void (*pWebServerRequestHandler)   // The handler function to be invoked upon a match.
 			(
 				HttpRequest*  pHttpRequest,
 				HttpResponse* pHttpResponse)
 			);
-		bool match(std::string method, std::string path); // Does the request method and pattern match?
+		bool match(std::string method, std::string path);   // Does the request method and pattern match?
 		void invokePathHandler(HttpRequest* request, HttpResponse* response);
 	private:
 		std::string m_method;
@@ -55,18 +55,20 @@ public:
 			HttpRequest*  pHttpRequest,
 			HttpResponse* pHttpResponse)
 		);
-	uint16_t    getPort(); // Get the port on which the Http server is listening.
-	std::string getRootPath(); // Get the root of the file system path.
-	bool        getSSL();   // Are we using SSL?
-	void        setRootPath(std::string path); // Set the root of the file system path.
+	uint16_t    getPort();       // Get the port on which the Http server is listening.
+	std::string getRootPath();   // Get the root of the file system path.
+	bool        getSSL();        // Are we using SSL?
+	void        setDirectoryListing(bool use);   // Should we list the content of directories?
+	void        setRootPath(std::string path);   // Set the root of the file system path.
 	void        start(uint16_t portNumber, bool useSSL=false);
 private:
 	friend class HttpServerTask;
 	friend class WebSocket;
-	uint16_t                 m_portNumber;
-	std::vector<PathHandler> m_pathHandlers;
-	std::string              m_rootPath; // Root path into the file system.
-	bool                     m_useSSL;
+	uint16_t                 m_portNumber;         // Port number on which server is listening.
+	std::vector<PathHandler> m_pathHandlers;       // Vector of path handlers.
+	std::string              m_rootPath;           // Root path into the file system.
+	bool                     m_useSSL;             // Is this server listening on an HTTPS port?
+	bool                     m_directoryListing;   // Should we list directory content?
 }; // HttpServer
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPSERVER_H_ */

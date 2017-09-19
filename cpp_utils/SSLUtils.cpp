@@ -13,12 +13,9 @@ char* SSLUtils::m_certificate = nullptr;
 char* SSLUtils::m_key = nullptr;
 
 SSLUtils::SSLUtils() {
-	// TODO Auto-generated constructor stub
-
 }
 
 SSLUtils::~SSLUtils() {
-	// TODO Auto-generated destructor stub
 }
 
 void SSLUtils::setCertificate(std::string certificate) {

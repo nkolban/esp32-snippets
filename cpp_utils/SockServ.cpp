@@ -49,7 +49,7 @@ void SockServ::acceptTask(void *data) {
 
 	SockServ* pSockServ = (SockServ*)data;
 	while(1) {
-		Socket tempSock = pSockServ->m_serverSocket.accept(true);
+		Socket tempSock = pSockServ->m_serverSocket.accept(pSockServ->getSSL());
 		if (!tempSock.isValid()) {
 			continue;
 		}
@@ -57,7 +57,6 @@ void SockServ::acceptTask(void *data) {
 		pSockServ->m_clientSet.insert(tempSock);
 		xQueueSendToBack(pSockServ->m_acceptQueue, &tempSock, portMAX_DELAY);
 		pSockServ->m_clientSemaphore.give();
-		FreeRTOS::sleep(9999999);
 	}
 } // acceptTask
 
@@ -80,6 +79,14 @@ void SockServ::disconnect(Socket s) {
 	auto search = m_clientSet.find(s);
 	m_clientSet.erase(search);
 } // disconnect
+
+
+/**
+ * Get the SSL status.
+ */
+bool SockServ::getSSL() {
+	return m_useSSL;
+} // getSSL
 
 
 /**
@@ -198,12 +205,12 @@ Socket SockServ::waitForData(std::set<Socket>& socketSet) {
  * or can return immediately is there is already a client connection in existence.
  */
 Socket SockServ::waitForNewClient() {
-
-	m_clientSemaphore.wait("waitForClient");
+	ESP_LOGD(LOG_TAG, ">> waitForNewClient")
+	m_clientSemaphore.wait("waitForNewClient");
 	Socket tempSocket;
 	xQueueReceive(m_acceptQueue, &tempSocket,portMAX_DELAY);
-	ESP_LOGD(LOG_TAG, "<< waitForClient");
+	ESP_LOGD(LOG_TAG, "<< waitForNewClient");
 	return tempSocket;
-} // waitForClient
+} // waitForNewClient
 
 

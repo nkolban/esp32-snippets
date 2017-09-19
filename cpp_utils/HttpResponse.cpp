@@ -27,7 +27,7 @@ const int HttpResponse::HTTP_STATUS_SERVICE_UNAVAILABLE   = 503;
 static std::string lineTerminator = "\r\n";
 HttpResponse::HttpResponse(HttpRequest *request) {
 	m_request = request;
-	m_status  = 0;
+	m_status  = 200;
 	m_headerCommitted = false; // We have not yet sent a header.
 }
 
