@@ -294,7 +294,7 @@ WebServer::~WebServer() {
  * @brief Get the current root path.
  * @return The current root path.
  */
-std::string WebServer::getRootPath() {
+const std::string& WebServer::getRootPath() {
 	return m_rootPath;
 } // getRootPath
 
@@ -319,10 +319,17 @@ std::string WebServer::getRootPath() {
  * @param [in] pathExpr The path being accessed.
  * @param [in] handler The callback function to be invoked when a request arrives.
  */
-void WebServer::addPathHandler(std::string method, std::string pathExpr, void (*handler)(WebServer::HTTPRequest *pHttpRequest, WebServer::HTTPResponse *pHttpResponse)) {
+void WebServer::addPathHandler(const std::string& method, const std::string& pathExpr,
+                               void (* handler)(WebServer::HTTPRequest* pHttpRequest,
+                                                WebServer::HTTPResponse* pHttpResponse)) {
 	m_pathHandlers.push_back(PathHandler(method, pathExpr, handler));
 } // addPathHandler
 
+void WebServer::addPathHandler(std::string&& method, const std::string& pathExpr,
+                               void (* handler)(WebServer::HTTPRequest* pHttpRequest,
+                                                WebServer::HTTPResponse* pHttpResponse)) {
+    m_pathHandlers.push_back(PathHandler(std::move(method), pathExpr, handler));
+} // addPathHandler
 
 /**
  * @brief Run the web server listening at the given port.
@@ -387,7 +394,7 @@ void WebServer::setMultiPartFactory(HTTPMultiPartFactory *pMultiPartFactory) {
  * @param [in] path The root path on the file system.
  * @return N/A.
  */
-void WebServer::setRootPath(std::string path) {
+void WebServer::setRootPath(const std::string& path) {
 	m_rootPath = path;
 } // setRootPath
 
@@ -419,10 +426,13 @@ WebServer::HTTPResponse::HTTPResponse(struct mg_connection* nc) {
  * @param [in] name The name of the header.
  * @param [in] value The value of the header.
  */
-void WebServer::HTTPResponse::addHeader(std::string name, std::string value) {
+void WebServer::HTTPResponse::addHeader(const std::string& name, const std::string& value) {
 	m_headers[name] = value;
 } // addHeader
 
+void WebServer::HTTPResponse::addHeader(std::string&& name, std::string&& value) {
+    m_headers[std::move(name)] = std::move(value);
+}
 
 /**
  * @brief Send data to the HTTP caller.
@@ -430,7 +440,7 @@ void WebServer::HTTPResponse::addHeader(std::string name, std::string value) {
  * @param [in] data The data to be sent to the HTTP caller.
  * @return N/A.
  */
-void WebServer::HTTPResponse::sendData(std::string data) {
+void WebServer::HTTPResponse::sendData(const std::string& data) {
 	sendData((uint8_t *)data.data(), data.length());
 } // sendData
 
@@ -442,7 +452,7 @@ void WebServer::HTTPResponse::sendData(std::string data) {
  * @param [in] length The length of the data to be sent.
  * @return N/A.
  */
-void WebServer::HTTPResponse::sendData(uint8_t *pData, size_t length) {
+void WebServer::HTTPResponse::sendData(const uint8_t* pData, size_t length) {
 	if (m_dataSent) {
 		ESP_LOGE(tag, "HTTPResponse: Data already sent!  Attempt to send again/more.");
 		return;
@@ -470,8 +480,12 @@ void WebServer::HTTPResponse::sendData(uint8_t *pData, size_t length) {
  * @param [in] headers The complete set of headers to send to the caller.
  * @return N/A.
  */
-void WebServer::HTTPResponse::setHeaders(std::map<std::string, std::string> headers) {
+void WebServer::HTTPResponse::setHeaders(const std::map<std::string, std::string>& headers) {
 	m_headers = headers;
+} // setHeaders
+
+void WebServer::HTTPResponse::setHeaders(std::map<std::string, std::string>&& headers) {
+    m_headers = std::move(headers);
 } // setHeaders
 
 
@@ -489,10 +503,9 @@ std::string WebServer::HTTPResponse::getRootPath() {
  * @param [in] path The root path on the file system.
  * @return N/A.
  */
-void WebServer::HTTPResponse::setRootPath(std::string path) {
+void WebServer::HTTPResponse::setRootPath(const std::string& path) {
 	m_rootPath = path;
 } // setRootPath
-
 
 /**
  * @brief Set the status value in the HTTP response.
@@ -537,7 +550,8 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
 
 	// Because we reached here, it means that we did NOT match a handler.  Now we want to attempt
 	// to retrieve the corresponding file content.
-	std::string filePath = httpResponse.getRootPath() + uri;
+	std::string filePath = httpResponse.getRootPath();
+    filePath += uri;
 	ESP_LOGD(tag, "Opening file: %s", filePath.c_str());
 	FILE *file = fopen(filePath.c_str(), "r");
 	if (file != nullptr) {
@@ -564,10 +578,20 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
  * @param [in] pathPattern The path pattern to be matched.
  * @param [in] webServerRequestHandler The request handler to be called.
  */
-WebServer::PathHandler::PathHandler(std::string method, std::string pathPattern, void (*webServerRequestHandler)(WebServer::HTTPRequest *pHttpRequest, WebServer::HTTPResponse *pHttpResponse)) {
+WebServer::PathHandler::PathHandler(const std::string& method, const std::string& pathPattern,
+                                    void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest,
+                                                                     WebServer::HTTPResponse* pHttpResponse)) {
 	m_method         = method;
 	m_pattern        = std::regex(pathPattern);
 	m_requestHandler = webServerRequestHandler;
+} // PathHandler
+
+WebServer::PathHandler::PathHandler(std::string&& method, const std::string& pathPattern,
+                                    void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest,
+                                                                     WebServer::HTTPResponse* pHttpResponse)) {
+    m_method         = std::move(method);
+    m_pattern        = std::regex(pathPattern);
+    m_requestHandler = webServerRequestHandler;
 } // PathHandler
 
 
@@ -578,7 +602,7 @@ WebServer::PathHandler::PathHandler(std::string method, std::string pathPattern,
  * @param [in] path The path to be matched.
  * @return True if the path matches.
  */
-bool WebServer::PathHandler::match(std::string method, std::string path) {
+bool WebServer::PathHandler::match(const std::string& method, const std::string& path) {
 	//ESP_LOGD(tag, "match: %s with %s", m_pattern.c_str(), path.c_str());
 	if (method != m_method) {
 		return false;
@@ -615,7 +639,7 @@ WebServer::HTTPRequest::HTTPRequest(struct http_message* message) {
  * known as the body.  This method returns that payload (if it exists).
  * @return The body of the request.
  */
-std::string WebServer::HTTPRequest::getBody() {
+std::string WebServer::HTTPRequest::getBody() const {
 	return mgStrToString(m_message->body);
 } // getBody
 
@@ -625,7 +649,7 @@ std::string WebServer::HTTPRequest::getBody() {
  * An HTTP request contains a request method which is one of GET, PUT, POST, etc.
  * @return The method of the request.
  */
-std::string WebServer::HTTPRequest::getMethod() {
+std::string WebServer::HTTPRequest::getMethod() const {
 	return mgStrToString(m_message->method);
 } // getMethod
 
@@ -636,7 +660,7 @@ std::string WebServer::HTTPRequest::getMethod() {
  * but does not include any query parameters.
  * @return The path of the request.
  */
-std::string WebServer::HTTPRequest::getPath() {
+std::string WebServer::HTTPRequest::getPath() const {
 	return mgStrToString(m_message->uri);
 } // getPath
 
@@ -648,7 +672,7 @@ std::string WebServer::HTTPRequest::getPath() {
  *
  * @return The query part of the request.
  */
-std::map<std::string, std::string> WebServer::HTTPRequest::getQuery() {
+std::map<std::string, std::string> WebServer::HTTPRequest::getQuery() const {
 	// Walk through all the characters in the query string maintaining a simple state machine
 	// that lets us know what we are parsing.
 	std::map<std::string, std::string> queryMap;
@@ -712,7 +736,7 @@ std::map<std::string, std::string> WebServer::HTTPRequest::getQuery() {
  *
  * @return A vector of the constituent parts of the path.
  */
-std::vector<std::string> WebServer::HTTPRequest::pathSplit() {
+std::vector<std::string> WebServer::HTTPRequest::pathSplit() const {
 	std::istringstream stream(getPath());
 	std::vector<std::string> ret;
 	std::string pathPart;
@@ -734,7 +758,7 @@ std::vector<std::string> WebServer::HTTPRequest::pathSplit() {
  * @param [in] fileName The name of the file being uploaded (may not be present).
  * @return N/A.
  */
-void WebServer::HTTPMultiPart::begin(std::string varName, std::string fileName) {
+void WebServer::HTTPMultiPart::begin(const std::string& varName, const std::string& fileName) {
 	ESP_LOGD(tag, "WebServer::HTTPMultiPart::begin(varName=\"%s\", fileName=\"%s\")",
 		varName.c_str(), fileName.c_str());
 } // WebServer::HTTPMultiPart::begin
@@ -757,7 +781,7 @@ void WebServer::HTTPMultiPart::end() {
  * @param [in] data The data received in this callback.
  * @return N/A.
  */
-void WebServer::HTTPMultiPart::data(std::string data) {
+void WebServer::HTTPMultiPart::data(const std::string& data) {
 	ESP_LOGD(tag, "WebServer::HTTPMultiPart::data(), length=%d", data.length());
 } // WebServer::HTTPMultiPart::data
 
@@ -794,7 +818,7 @@ void WebServer::WebSocketHandler::onCreated() {
  * @param [in] message The message received from the client.
  * @return N/A.
  */
-void WebServer::WebSocketHandler::onMessage(std::string message){
+void WebServer::WebSocketHandler::onMessage(const std::string& message){
 
 } // onMessage
 
@@ -812,7 +836,7 @@ void WebServer::WebSocketHandler::onClosed() {
  * @param [in] message The message to send down the socket.
  * @return N/A.
  */
-void WebServer::WebSocketHandler::sendData(std::string message) {
+void WebServer::WebSocketHandler::sendData(const std::string& message) {
 	ESP_LOGD(tag, "WebSocketHandler::sendData(length=%d)", message.length());
 	mg_send_websocket_frame(m_mgConnection,
 	   WEBSOCKET_OP_BINARY | WEBSOCKET_OP_CONTINUE,
@@ -825,7 +849,7 @@ void WebServer::WebSocketHandler::sendData(std::string message) {
  * @param [in] size The size of the message
  * @return N/A.
  */
-void WebServer::WebSocketHandler::sendData(uint8_t *data, uint32_t size) {
+void WebServer::WebSocketHandler::sendData(const uint8_t* data, uint32_t size) {
 	mg_send_websocket_frame(m_mgConnection,
 	   WEBSOCKET_OP_BINARY | WEBSOCKET_OP_CONTINUE,
 	   data, size);
