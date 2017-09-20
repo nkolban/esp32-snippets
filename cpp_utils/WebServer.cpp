@@ -449,15 +449,14 @@ void WebServer::HTTPResponse::sendData(uint8_t *pData, size_t length) {
 	}
 	m_dataSent = true;
 
-	std::map<std::string, std::string>::iterator iter;
 	std::string headers;
 
-	for (iter = m_headers.begin(); iter != m_headers.end(); iter++) {
-		if (headers.length() == 0) {
-			headers = iter->first + ": " + iter->second;
-		} else {
-			headers = "; " + iter->first + "=" + iter->second;
-		}
+	for (auto iter = m_headers.begin(); iter != m_headers.end(); iter++) {
+        if(iter != m_headers.begin())
+            headers += "\r\n";
+        headers += iter->first;
+        headers += ": ";
+        headers += iter->second;
 	}
 	mg_send_head(m_nc, m_status, length, headers.c_str());
 	mg_send(m_nc, pData, length);
