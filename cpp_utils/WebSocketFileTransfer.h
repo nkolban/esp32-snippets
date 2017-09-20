@@ -12,13 +12,12 @@
 
 class WebSocketFileTransfer {
 private:
-	std::string   m_fileName;
-	size_t        m_length;
-	WebSocket*    m_pWebSocket;
+	WebSocket*    m_pWebSocket;   // The WebSocket over which the file data will arrive.
+	std::string   m_rootPath;
+
 public:
-	WebSocketFileTransfer();
-	virtual ~WebSocketFileTransfer();
-	void     start(WebSocket *pWebSocket);
+	WebSocketFileTransfer(std::string rootPath);
+	void start(WebSocket *pWebSocket);
 };
 
 #endif /* COMPONENTS_CPP_UTILS_WEBSOCKETFILETRANSFER_H_ */

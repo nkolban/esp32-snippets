@@ -44,6 +44,7 @@ bool connectToServer(BLEAddress pAddress) {
       Serial.println(serviceUUID.toString().c_str());
       return false;
     }
+    Serial.println(" - Found our service");
 
 
     // Obtain a reference to the characteristic in the service of the remote BLE server.
@@ -53,6 +54,7 @@ bool connectToServer(BLEAddress pAddress) {
       Serial.println(charUUID.toString().c_str());
       return false;
     }
+    Serial.println(" - Found our characteristic");
 
     // Read the value of the characteristic.
     std::string value = pRemoteCharacteristic->readValue();

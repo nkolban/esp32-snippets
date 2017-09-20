@@ -249,6 +249,7 @@ BLERemoteService* BLEClient::getService(const char* uuid) {
  * @return A reference to the Service or nullptr if don't know about it.
  */
 BLERemoteService* BLEClient::getService(BLEUUID uuid) {
+	ESP_LOGD(LOG_TAG, ">> getService: uuid: %s", uuid.toString().c_str());
 // Design
 // ------
 // We wish to retrieve the service given its UUID.  It is possible that we have not yet asked the
@@ -258,12 +259,14 @@ BLERemoteService* BLEClient::getService(BLEUUID uuid) {
 	if (!m_haveServices) {
 		getServices();
 	}
-	std::string v = uuid.toString();
+	std::string uuidStr = uuid.toString();
 	for (auto &myPair : m_servicesMap) {
-		if (myPair.first == v) {
+		if (myPair.first == uuidStr) {
+			ESP_LOGD(LOG_TAG, "<< getService: found");
 			return myPair.second;
 		}
 	}
+	ESP_LOGD(LOG_TAG, "<< getService: not found");
 	return nullptr;
 } // getService
 

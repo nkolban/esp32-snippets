@@ -265,7 +265,7 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 				} // ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE
 
 				default: {
-					ESP_LOGD(LOG_TAG, "Unhandled type");
+					ESP_LOGD(LOG_TAG, "Unhandled type: adType: %d - 0x%.2x", ad_type, ad_type);
 					break;
 				}
 			} // switch
