@@ -59,7 +59,7 @@ build_ble:
 	cp $(BLE_FILES) Arduino/ESP32_BLE/src
 	cp Arduino_ESP32_BLE.library.properties Arduino/ESP32_BLE/library.properties
 	mkdir -p Arduino/ESP32_BLE/examples
-	cp --recursive tests/BLETests/Arduino Arduino/ESP32_BLE/examples
+	cp -R tests/BLETests/Arduino Arduino/ESP32_BLE/examples
 	rm -f Arduino/ESP32_BLE.zip
 	cd Arduino; zip -r ESP32_BLE.zip ESP32_BLE
 	rm -rf Arduino/ESP32_BLE
