@@ -43,3 +43,12 @@ This file can be found in your Arduino IDE installation directories at:
 ```
 <ArduinoIDE>/hardware/espressif/esp32/tools/sdk/include/config
 ```
+
+## Decoding an exception stack trace
+While using the BLE C++ classes there is always the unfortunate possibility that something will go wrong and your application crash.  Fortunately, this results in some debug information being logged to the console.  This is known as a *stack trace*.   Included in the stack trace are a sequence of hexadecimal numbers known as the *back trace* which are the list of addresses of functions that were executed just before the crash was detected.  If we could decode these we would have a lot of great information that could be used to aid in the resolution.   Fortunately there is a fantastic project that makes decoding this information very easy indeed.
+
+This project can be found here:
+
+https://github.com/me-no-dev/EspExceptionDecoder
+
+If you start to encounter crashes in your BLE C++ applications and wish to report these through Github issues, please help us to help you by installing this tool int your Arduino IDE and including the decoded information in the issue report.
