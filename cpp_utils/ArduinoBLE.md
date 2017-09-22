@@ -5,9 +5,11 @@ That said, we now have the ability to produce a driver you can use for testing. 
 
 When complete, the BLE support for ESP32 Arduino will be available as a single ZIP file.  The file will be called **ESP32_BLE.zip**.  It is this file that will be able to be imported into the Arduino IDE from the `Sketch -> Include Library -> Add .ZIP library`.  When initial development of the library has been completed, this ZIP will be placed under some form of release control so that an ordinary Arduino IDE user can simply download this as a unit and install.
 
-We provide sample builds of the `ESP32_BLE.zip` file in the `Arduino` folder found relative to this directory.
+A build of the BLE support for Arduino can be found through the Arduino IDE.  Visit Sketch -> Include Library -> Manage Libraries.  In the library filter, enter "esp32 ble arduino".  The search will narrow and you should see "ESP32 BLE Arduino" available for installation or upgrade.
 
-The build of the Arduino support will be current as of the date of the ZIP file however should you wish to build your own instance of the ZIP from the source, here is the recipe.
+
+
+Should you wish to build your own instance of the ZIP from the source, here is the recipe.
 
 1. Create a new directory called `build`
 2. Enter that directory and run `git clone https://github.com/nkolban/esp32-snippets.git`
