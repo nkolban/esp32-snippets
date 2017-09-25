@@ -28,7 +28,6 @@
 #include <Task.h>
 
 
-
 static char tag[]= "WiFi";
 
 
@@ -68,13 +67,45 @@ WiFi::WiFi() {
  * @param [in] ip The IP address of the DNS Server.
  * @return N/A.
  */
-void WiFi::addDNSServer(std::string ip) {
-	ip_addr_t dnsserver;
-	ESP_LOGD(tag, "Setting DNS[%d] to %s", m_dnsCount, ip.c_str());
-	inet_pton(AF_INET, ip.c_str(), &dnsserver);
-	::dns_setserver(m_dnsCount, &dnsserver);
-	m_dnsCount++;
+void WiFi::addDNSServer(const std::string& ip) {
+	addDNSServer(ip.c_str());
 } // addDNSServer
+
+void WiFi::addDNSServer(const char* ip) {
+    ip_addr_t dnsserver;
+    ESP_LOGD(tag, "Setting DNS[%d] to %s", m_dnsCount, ip);
+    inet_pton(AF_INET, ip, &dnsserver);
+    ::dns_setserver(m_dnsCount, &dnsserver);
+    m_dnsCount++;
+    m_dnsCount %= 2;
+} // addDNSServer
+
+/**
+ * @brief Set a reference to a DNS server.
+ *
+ * Here we define a server that will act as a DNS server.  We use numdns to specify which DNS server to set
+ *
+ * For example:
+ *
+ * @code{.cpp}
+ * wifi.setDNSServer(0, "8.8.8.8");
+ * wifi.setDNSServer(1, "8.8.4.4");
+ * @endcode
+ *
+ * @param [in] numdns The DNS number we wish to set
+ * @param [in] ip The IP address of the DNS Server.
+ * @return N/A.
+ */
+void WiFi::setDNSServer(int numdns, const std::string& ip) {
+    setDNSServer(numdns, ip.c_str());
+} // setDNSServer
+
+void WiFi::setDNSServer(int numdns, const char* ip) {
+    ip_addr_t dnsserver;
+    ESP_LOGD(tag, "Setting DNS[%d] to %s", numdns, ip);
+    inet_pton(AF_INET, ip, &dnsserver);
+    ::dns_setserver(numdns, &dnsserver);
+} // setDNSServer
 
 /**
  * @brief Connect to an external access point.
@@ -85,7 +116,7 @@ void WiFi::addDNSServer(std::string ip) {
  * @param[in] password The password of the access point to which we wish to connect.
  * @return N/A.
  */
-void WiFi::connectAP(std::string ssid, std::string password){
+void WiFi::connectAP(const std::string& ssid, const std::string& password){
 	::nvs_flash_init();
 	::tcpip_adapter_init();
 	if (ip.length() > 0 && gw.length() > 0 && netmask.length() > 0) {
@@ -114,7 +145,6 @@ void WiFi::connectAP(std::string ssid, std::string password){
 
 	ESP_ERROR_CHECK(::esp_wifi_connect());
 } // connectAP
-
 
 /**
  * @brief Dump diagnostics to the log.
@@ -147,9 +177,9 @@ tcpip_adapter_ip_info_t WiFi::getApIpInfo() {
 std::string WiFi::getApMac() {
 	uint8_t mac[6];
 	esp_wifi_get_mac(WIFI_IF_AP, mac);
-	std::stringstream s;
-	s << std::hex << std::setfill('0') << std::setw(2) << (int) mac[0] << ':' << (int) mac[1] << ':' << (int) mac[2] << ':' << (int) mac[3] << ':' << (int) mac[4] << ':' << (int) mac[5];
-	return s.str();
+    auto mac_str = (char*) malloc(18);
+    sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	return std::string(std::move(mac_str));
 } // getApMac
 
 
@@ -171,18 +201,21 @@ std::string WiFi::getApSSID() {
  *
  * @return The IP address of the host or 0.0.0.0 if not found.
  */
-struct in_addr WiFi::getHostByName(std::string hostName) {
-	struct in_addr retAddr;
-	struct hostent *he = gethostbyname(hostName.c_str());
-	if (he == nullptr) {
-		retAddr.s_addr = 0;
-		ESP_LOGD(tag, "Unable to resolve %s - %d", hostName.c_str(), h_errno);
-	} else {
-		retAddr = *(struct in_addr *)(he->h_addr_list[0]);
-		//ESP_LOGD(tag, "resolved %s to %.8x", hostName, *(uint32_t *)&retAddr);
+struct in_addr WiFi::getHostByName(const std::string& hostName) {
+	return getHostByName(hostName.c_str());
+} // getHostByName
 
-	}
-	return retAddr;
+struct in_addr WiFi::getHostByName(const char* hostName) {
+    struct in_addr retAddr;
+    struct hostent *he = gethostbyname(hostName);
+    if (he == nullptr) {
+        retAddr.s_addr = 0;
+        ESP_LOGD(tag, "Unable to resolve %s - %d", hostName, h_errno);
+    } else {
+        retAddr = *(struct in_addr *)(he->h_addr_list[0]);
+        ESP_LOGD(tag, "resolved %s to %.8x", hostName, *(uint32_t *)&retAddr);
+    }
+    return retAddr;
 } // getHostByName
 
 
@@ -226,9 +259,9 @@ tcpip_adapter_ip_info_t WiFi::getStaIpInfo() {
 std::string WiFi::getStaMac() {
 	uint8_t mac[6];
 	esp_wifi_get_mac(WIFI_IF_STA, mac);
-	std::stringstream s;
-	s << std::hex << std::setfill('0') << std::setw(2) << (int) mac[0] << ':' << (int) mac[1] << ':' << (int) mac[2] << ':' << (int) mac[3] << ':' << (int) mac[4] << ':' << (int) mac[5];
-	return s.str();
+    auto mac_str = (char*) malloc(18);
+    sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    return std::string(std::move(mac_str));
 } // getStaMac
 
 
@@ -295,7 +328,7 @@ std::vector<WiFiAPRecord> WiFi::scan() {
  * @param[in] password The password to use for station connections.
  * @return N/A.
  */
-void WiFi::startAP(std::string ssid, std::string password) {
+void WiFi::startAP(const std::string& ssid, const std::string& password) {
 	::nvs_flash_init();
 	::tcpip_adapter_init();
 	ESP_ERROR_CHECK(esp_event_loop_init(wifiEventHandler->getEventHandler(), wifiEventHandler));
@@ -306,7 +339,7 @@ void WiFi::startAP(std::string ssid, std::string password) {
 	wifi_config_t apConfig;
 	::memset(&apConfig, 0, sizeof(apConfig));
 	::memcpy(apConfig.ap.ssid, ssid.data(), ssid.size());
-	apConfig.ap.ssid_len = 0;
+	apConfig.ap.ssid_len = ssid.size();
 	::memcpy(apConfig.ap.password, password.data(), password.size());
 	apConfig.ap.channel = 0;
 	apConfig.ap.authmode = WIFI_AUTH_OPEN;
@@ -334,10 +367,16 @@ void WiFi::startAP(std::string ssid, std::string password) {
  * @param [in] netmask Netmask value.
  * @return N/A.
  */
-void WiFi::setIPInfo(std::string ip, std::string gw, std::string netmask) {
+void WiFi::setIPInfo(const std::string& ip, const std::string& gw, const std::string& netmask) {
 	this->ip = ip;
 	this->gw = gw;
 	this->netmask = netmask;
+} // setIPInfo
+
+void WiFi::setIPInfo(std::string&& ip, std::string&& gw, std::string&& netmask) {
+    this->ip = std::move(ip);
+    this->gw = std::move(gw);
+    this->netmask = std::move(netmask);
 } // setIPInfo
 
 
@@ -368,9 +407,11 @@ std::string WiFiAPRecord::toString() {
 		auth = "<unknown>";
 		break;
 	}
-	std::stringstream s;
-	s<< "ssid: " << m_ssid << ", auth: " << auth << ", rssi: " << m_rssi;
-	return s.str();
+//    std::stringstream s;
+//    s<< "ssid: " << m_ssid << ", auth: " << auth << ", rssi: " << m_rssi;
+    auto info_str = (char*) malloc(6 + 32 + 8 + 22 + 8 + 3 + 1);
+    sprintf(info_str, "ssid: %s, auth: %s, rssi: %d", m_ssid.c_str(), auth.c_str(), (int) m_rssi);
+	return std::string(std::move(info_str));
 } // toString
 
 MDNS::MDNS() {
@@ -392,23 +433,23 @@ MDNS::~MDNS() {
  * @param [in] port
  * @return N/A.
  */
-void MDNS::serviceAdd(std::string service, std::string proto, uint16_t port) {
-	ESP_ERROR_CHECK(mdns_service_add(m_mdns_server, service.c_str(), proto.c_str(), port));
+void MDNS::serviceAdd(const std::string& service, const std::string& proto, uint16_t port) {
+    serviceAdd(service.c_str(), proto.c_str(), port);
 } // serviceAdd
 
 
-void MDNS::serviceInstanceSet(std::string service, std::string proto, std::string instance) {
-	ESP_ERROR_CHECK(mdns_service_instance_set(m_mdns_server, service.c_str(), proto.c_str(), instance.c_str()));
+void MDNS::serviceInstanceSet(const std::string& service, const std::string& proto, const std::string& instance) {
+    serviceInstanceSet(service.c_str(), proto.c_str(), instance.c_str());
 } // serviceInstanceSet
 
 
-void MDNS::servicePortSet(std::string service, std::string proto, uint16_t port) {
-	ESP_ERROR_CHECK(mdns_service_port_set(m_mdns_server, service.c_str(), proto.c_str(), port));
+void MDNS::servicePortSet(const std::string& service, const std::string& proto, uint16_t port) {
+    servicePortSet(service.c_str(), proto.c_str(), port);
 } // servicePortSet
 
 
-void MDNS::serviceRemove(std::string service, std::string proto) {
-	ESP_ERROR_CHECK(mdns_service_remove(m_mdns_server, service.c_str(), proto.c_str()));
+void MDNS::serviceRemove(const std::string& service, const std::string& proto) {
+    serviceRemove(service.c_str(), proto.c_str());
 } // serviceRemove
 
 
@@ -418,8 +459,8 @@ void MDNS::serviceRemove(std::string service, std::string proto) {
  * @param [in] hostname The host name to set against the mDNS.
  * @return N/A.
  */
-void MDNS::setHostname(std::string hostname) {
-	ESP_ERROR_CHECK(mdns_set_hostname(m_mdns_server,hostname.c_str()));
+void MDNS::setHostname(const std::string& hostname) {
+    setHostname(hostname.c_str());
 } // setHostname
 
 
@@ -429,6 +470,55 @@ void MDNS::setHostname(std::string hostname) {
  * @param [in] instance The instance name to set against the mDNS.
  * @return N/A.
  */
-void MDNS::setInstance(std::string instance) {
-	ESP_ERROR_CHECK(mdns_set_instance(m_mdns_server, instance.c_str()));
+void MDNS::setInstance(const std::string& instance) {
+    setInstance(instance.c_str());
+} // setInstance
+
+/**
+ * @brief Define the service for mDNS.
+ *
+ * @param [in] service
+ * @param [in] proto
+ * @param [in] port
+ * @return N/A.
+ */
+void MDNS::serviceAdd(const char* service, const char* proto, uint16_t port) {
+    ESP_ERROR_CHECK(mdns_service_add(m_mdns_server, service, proto, port));
+} // serviceAdd
+
+
+void MDNS::serviceInstanceSet(const char* service, const char* proto, const char* instance) {
+    ESP_ERROR_CHECK(mdns_service_instance_set(m_mdns_server, service, proto, instance));
+} // serviceInstanceSet
+
+
+void MDNS::servicePortSet(const char* service, const char* proto, uint16_t port) {
+    ESP_ERROR_CHECK(mdns_service_port_set(m_mdns_server, service, proto, port));
+} // servicePortSet
+
+
+void MDNS::serviceRemove(const char* service, const char* proto) {
+    ESP_ERROR_CHECK(mdns_service_remove(m_mdns_server, service, proto));
+} // serviceRemove
+
+
+/**
+ * @brief Set the mDNS hostname.
+ *
+ * @param [in] hostname The host name to set against the mDNS.
+ * @return N/A.
+ */
+void MDNS::setHostname(const char* hostname) {
+    ESP_ERROR_CHECK(mdns_set_hostname(m_mdns_server,hostname));
+} // setHostname
+
+
+/**
+ * @brief Set the mDNS instance.
+ *
+ * @param [in] instance The instance name to set against the mDNS.
+ * @return N/A.
+ */
+void MDNS::setInstance(const char* instance) {
+    ESP_ERROR_CHECK(mdns_set_instance(m_mdns_server, instance));
 } // setInstance

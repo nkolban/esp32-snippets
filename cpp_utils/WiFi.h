@@ -21,12 +21,20 @@ class MDNS {
 public:
 	MDNS();
 	~MDNS();
-	void serviceAdd(std::string service, std::string proto, uint16_t port);
-	void serviceInstanceSet(std::string service, std::string proto, std::string instance);
-	void servicePortSet(std::string service, std::string proto, uint16_t port);
-	void serviceRemove(std::string service, std::string proto);
-	void setHostname(std::string hostname);
-	void setInstance(std::string instance);
+	void serviceAdd(const std::string& service, const std::string& proto, uint16_t port);
+	void serviceInstanceSet(const std::string& service, const std::string& proto, const std::string& instance);
+	void servicePortSet(const std::string& service, const std::string& proto, uint16_t port);
+	void serviceRemove(const std::string& service, const std::string& proto);
+	void setHostname(const std::string& hostname);
+	void setInstance(const std::string& instance);
+    // If we the above functions with a basic char*, a copy would be created into an std::string,
+    // making the whole thing require twice as much processing power and speed
+    void serviceAdd(const char* service, const char* proto, uint16_t port);
+    void serviceInstanceSet(const char* service, const char* proto, const char* instance);
+    void servicePortSet(const char* service, const char* proto, uint16_t port);
+    void serviceRemove(const char* service, const char* proto);
+    void setHostname(const char* hostname);
+    void setInstance(const char* instance);
 private:
 	mdns_server_t *m_mdns_server = nullptr;
 };
@@ -102,9 +110,13 @@ private:
 
 public:
 	WiFi();
-	void addDNSServer(std::string ip);
-	struct in_addr getHostByName(std::string hostName);
-	void connectAP(std::string ssid, std::string passwd);
+	void addDNSServer(const std::string& ip);
+    void addDNSServer(const char* ip);
+    void setDNSServer(int numdns, const std::string& ip);
+    void setDNSServer(int numdns, const char* ip);
+    struct in_addr getHostByName(const std::string& hostName);
+    struct in_addr getHostByName(const char* hostName);
+	void connectAP(const std::string& ssid, const std::string& password);
 	void dump();
 	static std::string getApMac();
 	static tcpip_adapter_ip_info_t getApIpInfo();
@@ -114,8 +126,9 @@ public:
 	static std::string getStaMac();
 	static std::string getStaSSID();
 	std::vector<WiFiAPRecord> scan();
-	void startAP(std::string ssid, std::string passwd);
-	void setIPInfo(std::string ip, std::string gw, std::string netmask);
+	void startAP(const std::string& ssid, const std::string& passwd);
+	void setIPInfo(const std::string& ip, const std::string& gw, const std::string& netmask);
+	void setIPInfo(std::string&& ip, std::string&& gw, std::string&& netmask);
 
 
 
@@ -129,7 +142,7 @@ public:
 		this->wifiEventHandler = wifiEventHandler;
 	}
 private:
-	int m_dnsCount=0;
+	uint8_t m_dnsCount=0;
 	//char *m_dnsServer = nullptr;
 
 };
