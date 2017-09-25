@@ -612,7 +612,7 @@ WebServer::PathHandler::PathHandler(std::string&& method, const std::string& pat
  * @return True if the path matches.
  */
 
-bool WebServer::PathHandler::match(const char* method, unsigned long method_len, const char* path) {
+bool WebServer::PathHandler::match(const char* method, size_t method_len, const char* path) {
     //ESP_LOGD(tag, "match: %s with %s", m_pattern.c_str(), path.c_str());
     if (method_len != m_method.length() || strcmp(method, m_method.c_str()) != 0) {
         return false;
