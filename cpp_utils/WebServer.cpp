@@ -109,8 +109,7 @@ static std::string mongoose_eventToString(int event) {
 
 static void dumpHttpMessage(struct http_message *pHttpMessage) {
     ESP_LOGD(tag, "HTTP Message");
-    ESP_LOGD(tag, "Message: %s", pHttpMessage->message.p);
-    ESP_LOGD(tag, "URI: %s", pHttpMessage->uri.p);
+    ESP_LOGD(tag, "Message: %.*s", (int)pHttpMessage->uri.len, pHttpMessage->message.p);
 }
 
 /*
@@ -539,7 +538,7 @@ void WebServer::HTTPResponse::setStatus(int status) {
  * @param [in] message The message representing the request.
  */
 void WebServer::processRequest(struct mg_connection *mgConnection, struct http_message* message) {
-    ESP_LOGD(tag, "WebServer::processRequest: Matching: %s", message->uri.p);
+    ESP_LOGD(tag, "WebServer::processRequest: Matching: %.*s", (int)message->uri.len, message->uri.p);
     HTTPResponse httpResponse = HTTPResponse(mgConnection);
     httpResponse.setRootPath(getRootPath());
 
@@ -559,7 +558,7 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
     // Because we reached here, it means that we did NOT match a handler.  Now we want to attempt
     // to retrieve the corresponding file content.
     std::string filePath = httpResponse.getRootPath();
-    filePath += message->uri.p;
+    filePath.append(message->uri.p, message->uri.len);
     ESP_LOGD(tag, "Opening file: %s", filePath.c_str());
     FILE *file = fopen(filePath.c_str(), "r");
     if (file != nullptr) {
@@ -586,17 +585,13 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
  * @param [in] pathPattern The path pattern to be matched.
  * @param [in] webServerRequestHandler The request handler to be called.
  */
-WebServer::PathHandler::PathHandler(const std::string& method, const std::string& pathPattern,
-                                    void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest,
-                                                                     WebServer::HTTPResponse* pHttpResponse)) {
+WebServer::PathHandler::PathHandler(const std::string& method, const std::string& pathPattern, void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest, WebServer::HTTPResponse* pHttpResponse)) {
     m_method         = method;
     m_pattern        = std::regex(pathPattern);
     m_requestHandler = webServerRequestHandler;
 } // PathHandler
 
-WebServer::PathHandler::PathHandler(std::string&& method, const std::string& pathPattern,
-                                    void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest,
-                                                                     WebServer::HTTPResponse* pHttpResponse)) {
+WebServer::PathHandler::PathHandler(std::string&& method, const std::string& pathPattern, void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest, WebServer::HTTPResponse* pHttpResponse)) {
     m_method         = std::move(method);
     m_pattern        = std::regex(pathPattern);
     m_requestHandler = webServerRequestHandler;
@@ -614,7 +609,7 @@ WebServer::PathHandler::PathHandler(std::string&& method, const std::string& pat
 
 bool WebServer::PathHandler::match(const char* method, size_t method_len, const char* path) {
     //ESP_LOGD(tag, "match: %s with %s", m_pattern.c_str(), path.c_str());
-    if (method_len != m_method.length() || strcmp(method, m_method.c_str()) != 0) {
+    if (method_len != m_method.length() || strncmp(method, m_method.c_str(), method_len) != 0) {
         return false;
     }
     return std::regex_search(path, m_pattern);
@@ -646,7 +641,8 @@ WebServer::HTTPRequest::HTTPRequest(struct http_message* message) {
 /**
  * @brief Get the body of the request.
  * When an HTTP request is either PUT or POST then it may contain a payload that is also
- * known as the body.  This method returns that payload (if it exists).
+ * known as the body.  This method returns that payload (if it exists). Careful, because it's not a standard string
+ * that is terminated by a null character, use the getBodyLen() function to determine the body length
  * @return The body of the request.
  */
 const char* WebServer::HTTPRequest::getBody() const {
@@ -667,7 +663,9 @@ size_t WebServer::HTTPRequest::getBodyLen() const {
 /**
  * @brief Get the method of the request.
  * An HTTP request contains a request method which is one of GET, PUT, POST, etc.
- * @return The method of the request.
+ * @return The method of the request. Careful, because it's not a standard string
+ * that is terminated by a null character, use the getMethodLen() function to determine the method length
+ * @return The body of the request.
  */
 const char* WebServer::HTTPRequest::getMethod() const {
     return m_message->method.p;
@@ -686,7 +684,9 @@ size_t WebServer::HTTPRequest::getMethodLen() const {
 /**
  * @brief Get the path of the request.
  * The path of an HTTP request is the portion of the URL that follows the hostname/port pair
- * but does not include any query parameters.
+ * but does not include any query parameters. Careful, because it's not a standard string
+ * that is terminated by a null character, use the getPathLen() function to determine the path length
+ * @return The body of the request.
  * @return The path of the request.
  */
 const char* WebServer::HTTPRequest::getPath() const {
@@ -777,7 +777,7 @@ std::map<std::string, std::string> WebServer::HTTPRequest::getQuery() const {
  * @return A vector of the constituent parts of the path.
  */
 std::vector<std::string> WebServer::HTTPRequest::pathSplit() const {
-    std::istringstream stream(getPath());
+    std::istringstream stream(std::string(getPath(), getPathLen())); // I don't know if there's a better istringstream constructor for this
     std::vector<std::string> ret;
     std::string pathPart;
     while(std::getline(stream, pathPart, '/')) {
