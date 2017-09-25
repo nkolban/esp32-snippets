@@ -18,14 +18,13 @@
 #include <mongoose.h>
 #include <string>
 
-
 static char tag[] = "WebServer";
 
 struct WebServerUserData {
-	WebServer *pWebServer;
-	WebServer::HTTPMultiPart *pMultiPart;
-	WebServer::WebSocketHandler *pWebSocketHandler;
-	void *originalUserData;
+    WebServer *pWebServer;
+    WebServer::HTTPMultiPart *pMultiPart;
+    WebServer::WebSocketHandler *pWebSocketHandler;
+    void *originalUserData;
 };
 
 /**
@@ -34,98 +33,89 @@ struct WebServerUserData {
  * @return The string representation of the event.
  */
 static std::string mongoose_eventToString(int event) {
-	switch (event) {
-	case MG_EV_CONNECT:
-		return "MG_EV_CONNECT";
-	case MG_EV_ACCEPT:
-		return "MG_EV_ACCEPT";
-	case MG_EV_CLOSE:
-		return "MG_EV_CLOSE";
-	case MG_EV_SEND:
-		return "MG_EV_SEND";
-	case MG_EV_RECV:
-		return "MG_EV_RECV";
-	case MG_EV_POLL:
-		return "MG_EV_POLL";
-	case MG_EV_TIMER:
-		return "MG_EV_TIMER";
-	case MG_EV_HTTP_PART_DATA:
-		return "MG_EV_HTTP_PART_DATA";
-	case MG_EV_HTTP_MULTIPART_REQUEST:
-		return "MG_EV_HTTP_MULTIPART_REQUEST";
-	case MG_EV_HTTP_PART_BEGIN:
-		return "MG_EV_HTTP_PART_BEGIN";
-	case MG_EV_HTTP_PART_END:
-		return "MG_EV_HTTP_PART_END";
-	case MG_EV_HTTP_MULTIPART_REQUEST_END:
-		return "MG_EV_HTTP_MULTIPART_REQUEST_END";
-	case MG_EV_HTTP_REQUEST:
-		return "MG_EV_HTTP_REQUEST";
-	case MG_EV_HTTP_REPLY:
-		return "MG_EV_HTTP_REPLY";
-	case MG_EV_HTTP_CHUNK:
-		return "MG_EV_HTTP_CHUNK";
-	case MG_EV_MQTT_CONNACK:
-		return "MG_EV_MQTT_CONNACK";
-	case MG_EV_MQTT_CONNECT:
-		return "MG_EV_MQTT_CONNECT";
-	case MG_EV_MQTT_DISCONNECT:
-		return "MG_EV_MQTT_DISCONNECT";
-	case MG_EV_MQTT_PINGREQ:
-		return "MG_EV_MQTT_PINGREQ";
-	case MG_EV_MQTT_PINGRESP:
-		return "MG_EV_MQTT_PINGRESP";
-	case MG_EV_MQTT_PUBACK:
-		return "MG_EV_MQTT_PUBACK";
-	case MG_EV_MQTT_PUBCOMP:
-		return "MG_EV_MQTT_PUBCOMP";
-	case MG_EV_MQTT_PUBLISH:
-		return "MG_EV_MQTT_PUBLISH";
-	case MG_EV_MQTT_PUBREC:
-		return "MG_EV_MQTT_PUBREC";
-	case MG_EV_MQTT_PUBREL:
-		return "MG_EV_MQTT_PUBREL";
-	case MG_EV_MQTT_SUBACK:
-		return "MG_EV_MQTT_SUBACK";
-	case MG_EV_MQTT_SUBSCRIBE:
-		return "MG_EV_MQTT_SUBSCRIBE";
-	case MG_EV_MQTT_UNSUBACK:
-		return "MG_EV_MQTT_UNSUBACK";
-	case MG_EV_MQTT_UNSUBSCRIBE:
-		return "MG_EV_MQTT_UNSUBSCRIBE";
-	case MG_EV_WEBSOCKET_HANDSHAKE_REQUEST:
-		return "MG_EV_WEBSOCKET_HANDSHAKE_REQUEST";
-	case MG_EV_WEBSOCKET_HANDSHAKE_DONE:
-		return "MG_EV_WEBSOCKET_HANDSHAKE_DONE";
-	case MG_EV_WEBSOCKET_FRAME:
-		return "MG_EV_WEBSOCKET_FRAME";
-	case MG_EV_WEBSOCKET_CONTROL_FRAME:
-		return "MG_EV_WEBSOCKET_CONTROL_FRAME";
-	}
-	std::ostringstream s;
-	s << "Unknown event: " << event;
-	return s.str();
+    switch (event) {
+    case MG_EV_CONNECT:
+        return "MG_EV_CONNECT";
+    case MG_EV_ACCEPT:
+        return "MG_EV_ACCEPT";
+    case MG_EV_CLOSE:
+        return "MG_EV_CLOSE";
+    case MG_EV_SEND:
+        return "MG_EV_SEND";
+    case MG_EV_RECV:
+        return "MG_EV_RECV";
+    case MG_EV_POLL:
+        return "MG_EV_POLL";
+    case MG_EV_TIMER:
+        return "MG_EV_TIMER";
+    case MG_EV_HTTP_PART_DATA:
+        return "MG_EV_HTTP_PART_DATA";
+    case MG_EV_HTTP_MULTIPART_REQUEST:
+        return "MG_EV_HTTP_MULTIPART_REQUEST";
+    case MG_EV_HTTP_PART_BEGIN:
+        return "MG_EV_HTTP_PART_BEGIN";
+    case MG_EV_HTTP_PART_END:
+        return "MG_EV_HTTP_PART_END";
+    case MG_EV_HTTP_MULTIPART_REQUEST_END:
+        return "MG_EV_HTTP_MULTIPART_REQUEST_END";
+    case MG_EV_HTTP_REQUEST:
+        return "MG_EV_HTTP_REQUEST";
+    case MG_EV_HTTP_REPLY:
+        return "MG_EV_HTTP_REPLY";
+    case MG_EV_HTTP_CHUNK:
+        return "MG_EV_HTTP_CHUNK";
+    case MG_EV_MQTT_CONNACK:
+        return "MG_EV_MQTT_CONNACK";
+    case MG_EV_MQTT_CONNECT:
+        return "MG_EV_MQTT_CONNECT";
+    case MG_EV_MQTT_DISCONNECT:
+        return "MG_EV_MQTT_DISCONNECT";
+    case MG_EV_MQTT_PINGREQ:
+        return "MG_EV_MQTT_PINGREQ";
+    case MG_EV_MQTT_PINGRESP:
+        return "MG_EV_MQTT_PINGRESP";
+    case MG_EV_MQTT_PUBACK:
+        return "MG_EV_MQTT_PUBACK";
+    case MG_EV_MQTT_PUBCOMP:
+        return "MG_EV_MQTT_PUBCOMP";
+    case MG_EV_MQTT_PUBLISH:
+        return "MG_EV_MQTT_PUBLISH";
+    case MG_EV_MQTT_PUBREC:
+        return "MG_EV_MQTT_PUBREC";
+    case MG_EV_MQTT_PUBREL:
+        return "MG_EV_MQTT_PUBREL";
+    case MG_EV_MQTT_SUBACK:
+        return "MG_EV_MQTT_SUBACK";
+    case MG_EV_MQTT_SUBSCRIBE:
+        return "MG_EV_MQTT_SUBSCRIBE";
+    case MG_EV_MQTT_UNSUBACK:
+        return "MG_EV_MQTT_UNSUBACK";
+    case MG_EV_MQTT_UNSUBSCRIBE:
+        return "MG_EV_MQTT_UNSUBSCRIBE";
+    case MG_EV_WEBSOCKET_HANDSHAKE_REQUEST:
+        return "MG_EV_WEBSOCKET_HANDSHAKE_REQUEST";
+    case MG_EV_WEBSOCKET_HANDSHAKE_DONE:
+        return "MG_EV_WEBSOCKET_HANDSHAKE_DONE";
+    case MG_EV_WEBSOCKET_FRAME:
+        return "MG_EV_WEBSOCKET_FRAME";
+    case MG_EV_WEBSOCKET_CONTROL_FRAME:
+        return "MG_EV_WEBSOCKET_CONTROL_FRAME";
+    }
+    std::string s;
+    s += "Unknown event: ";
+    s += event;
+    return s;
 } //eventToString
 
-/**
- * @brief Convert a Mongoose string type to a string.
- * @param [in] mgStr The Mongoose string.
- * @return A std::string representation of the Mongoose string.
- */
-static std::string mgStrToString(struct mg_str mgStr) {
-	return std::string(mgStr.p, mgStr.len);
-} // mgStrToStr
-
 static void dumpHttpMessage(struct http_message *pHttpMessage) {
-	ESP_LOGD(tag, "HTTP Message");
-	ESP_LOGD(tag, "Message: %s", mgStrToString(pHttpMessage->message).c_str());
-	ESP_LOGD(tag, "URI: %s", mgStrToString(pHttpMessage->uri).c_str());
+    ESP_LOGD(tag, "HTTP Message");
+    ESP_LOGD(tag, "Message: %.*s", (int)pHttpMessage->uri.len, pHttpMessage->message.p);
 }
 
 /*
 static struct mg_str uploadFileNameHandler(struct mg_connection *mgConnection, struct mg_str fname) {
-	ESP_LOGD(tag, "uploadFileNameHandler: %s", mgStrToString(fname).c_str());
-	return fname;
+    ESP_LOGD(tag, "uploadFileNameHandler: %s", mgStrToString(fname).c_str());
+    return fname;
 }
 */
 
@@ -140,139 +130,139 @@ static struct mg_str uploadFileNameHandler(struct mg_connection *mgConnection, s
  * @return N/A.
  */
 static void mongoose_event_handler_web_server(
-	struct mg_connection *mgConnection, // The network connection associated with the event.
-	int event, // The type of event.
-	void *eventData // Data associated with the event.
+    struct mg_connection *mgConnection, // The network connection associated with the event.
+    int event, // The type of event.
+    void *eventData // Data associated with the event.
 ) {
-	if (event == MG_EV_POLL) {
-		return;
-	}
-	ESP_LOGD(tag, "Event: %s [%d]", mongoose_eventToString(event).c_str(), mgConnection->sock);
-	switch (event) {
-		case MG_EV_HTTP_REQUEST: {
-			struct http_message *message = (struct http_message *) eventData;
-			dumpHttpMessage(message);
+    if (event == MG_EV_POLL) {
+        return;
+    }
+    ESP_LOGD(tag, "Event: %s [%d]", mongoose_eventToString(event).c_str(), mgConnection->sock);
+    switch (event) {
+        case MG_EV_HTTP_REQUEST: {
+            struct http_message *message = (struct http_message *) eventData;
+            dumpHttpMessage(message);
 
-			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
-			WebServer *pWebServer = pWebServerUserData->pWebServer;
-			pWebServer->processRequest(mgConnection, message);
-			break;
-		} // MG_EV_HTTP_REQUEST
+            struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+            WebServer *pWebServer = pWebServerUserData->pWebServer;
+            pWebServer->processRequest(mgConnection, message);
+            break;
+        } // MG_EV_HTTP_REQUEST
 
-		case MG_EV_HTTP_MULTIPART_REQUEST: {
-			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
-			ESP_LOGD(tag, "User_data address 0x%d", (uint32_t)pWebServerUserData);
-			WebServer *pWebServer = pWebServerUserData->pWebServer;
-			if (pWebServer->m_pMultiPartFactory == nullptr) {
-				return;
-			}
-			WebServer::HTTPMultiPart *pMultiPart = pWebServer->m_pMultiPartFactory->newInstance();
-			struct WebServerUserData *p2 = new WebServerUserData();
-			ESP_LOGD(tag, "New User_data address 0x%d", (uint32_t)p2);
-			p2->originalUserData    = pWebServerUserData;
-			p2->pWebServer          = pWebServerUserData->pWebServer;
-			p2->pMultiPart          = pMultiPart;
-			p2->pWebSocketHandler   = nullptr;
-			mgConnection->user_data = p2;
-			//struct http_message *message = (struct http_message *) eventData;
-			//dumpHttpMessage(message);
-			break;
-		} // MG_EV_HTTP_MULTIPART_REQUEST
+        case MG_EV_HTTP_MULTIPART_REQUEST: {
+            struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+            ESP_LOGD(tag, "User_data address 0x%d", (uint32_t)pWebServerUserData);
+            WebServer *pWebServer = pWebServerUserData->pWebServer;
+            if (pWebServer->m_pMultiPartFactory == nullptr) {
+                return;
+            }
+            WebServer::HTTPMultiPart *pMultiPart = pWebServer->m_pMultiPartFactory->newInstance();
+            struct WebServerUserData *p2 = new WebServerUserData();
+            ESP_LOGD(tag, "New User_data address 0x%d", (uint32_t)p2);
+            p2->originalUserData    = pWebServerUserData;
+            p2->pWebServer          = pWebServerUserData->pWebServer;
+            p2->pMultiPart          = pMultiPart;
+            p2->pWebSocketHandler   = nullptr;
+            mgConnection->user_data = p2;
+            //struct http_message *message = (struct http_message *) eventData;
+            //dumpHttpMessage(message);
+            break;
+        } // MG_EV_HTTP_MULTIPART_REQUEST
 
-		case MG_EV_HTTP_MULTIPART_REQUEST_END: {
-			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
-			if (pWebServerUserData->pMultiPart != nullptr) {
-				delete pWebServerUserData->pMultiPart;
-				pWebServerUserData->pMultiPart = nullptr;
-			}
-			mgConnection->user_data = pWebServerUserData->originalUserData;
-			delete pWebServerUserData;
-			WebServer::HTTPResponse httpResponse = WebServer::HTTPResponse(mgConnection);
-			httpResponse.setStatus(200);
-			httpResponse.sendData("");
-			break;
-		} // MG_EV_HTTP_MULTIPART_REQUEST_END
+        case MG_EV_HTTP_MULTIPART_REQUEST_END: {
+            struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+            if (pWebServerUserData->pMultiPart != nullptr) {
+                delete pWebServerUserData->pMultiPart;
+                pWebServerUserData->pMultiPart = nullptr;
+            }
+            mgConnection->user_data = pWebServerUserData->originalUserData;
+            delete pWebServerUserData;
+            WebServer::HTTPResponse httpResponse = WebServer::HTTPResponse(mgConnection);
+            httpResponse.setStatus(200);
+            httpResponse.sendData("");
+            break;
+        } // MG_EV_HTTP_MULTIPART_REQUEST_END
 
-		case MG_EV_HTTP_PART_BEGIN: {
-			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
-			struct mg_http_multipart_part *part = (struct mg_http_multipart_part *)eventData;
-			ESP_LOGD(tag, "file_name: \"%s\", var_name: \"%s\", status: %d, user_data: 0x%d",
-					part->file_name, part->var_name, part->status, (uint32_t)part->user_data);
-			if (pWebServerUserData->pMultiPart != nullptr) {
-				pWebServerUserData->pMultiPart->begin(std::string(part->var_name), std::string(part->file_name));
-			}
-			break;
-		} // MG_EV_HTTP_PART_BEGIN
+        case MG_EV_HTTP_PART_BEGIN: {
+            struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+            struct mg_http_multipart_part *part = (struct mg_http_multipart_part *)eventData;
+            ESP_LOGD(tag, "file_name: \"%s\", var_name: \"%s\", status: %d, user_data: 0x%d",
+                    part->file_name, part->var_name, part->status, (uint32_t)part->user_data);
+            if (pWebServerUserData->pMultiPart != nullptr) {
+                pWebServerUserData->pMultiPart->begin(std::string(part->var_name), std::string(part->file_name));
+            }
+            break;
+        } // MG_EV_HTTP_PART_BEGIN
 
-		case MG_EV_HTTP_PART_DATA: {
-			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
-			struct mg_http_multipart_part *part = (struct mg_http_multipart_part *)eventData;
-			ESP_LOGD(tag, "file_name: \"%s\", var_name: \"%s\", status: %d, user_data: 0x%d",
-					part->file_name, part->var_name, part->status, (uint32_t)part->user_data);
-			if (pWebServerUserData->pMultiPart != nullptr) {
-				pWebServerUserData->pMultiPart->data(mgStrToString(part->data));
-			}
-			break;
-		} // MG_EV_HTTP_PART_DATA
+        case MG_EV_HTTP_PART_DATA: {
+            struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+            struct mg_http_multipart_part *part = (struct mg_http_multipart_part *)eventData;
+            ESP_LOGD(tag, "file_name: \"%s\", var_name: \"%s\", status: %d, user_data: 0x%d",
+                    part->file_name, part->var_name, part->status, (uint32_t)part->user_data);
+            if (pWebServerUserData->pMultiPart != nullptr) {
+                pWebServerUserData->pMultiPart->data(std::string(part->data.p, part->data.len));
+            }
+            break;
+        } // MG_EV_HTTP_PART_DATA
 
-		case MG_EV_HTTP_PART_END: {
-			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
-			struct mg_http_multipart_part *part = (struct mg_http_multipart_part *)eventData;
-			ESP_LOGD(tag, "file_name: \"%s\", var_name: \"%s\", status: %d, user_data: 0x%d",
-					part->file_name, part->var_name, part->status, (uint32_t)part->user_data);
-			if (pWebServerUserData->pMultiPart != nullptr) {
-				pWebServerUserData->pMultiPart->end();
-			}
-			break;
-		} // MG_EV_HTTP_PART_END
+        case MG_EV_HTTP_PART_END: {
+            struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+            struct mg_http_multipart_part *part = (struct mg_http_multipart_part *)eventData;
+            ESP_LOGD(tag, "file_name: \"%s\", var_name: \"%s\", status: %d, user_data: 0x%d",
+                    part->file_name, part->var_name, part->status, (uint32_t)part->user_data);
+            if (pWebServerUserData->pMultiPart != nullptr) {
+                pWebServerUserData->pMultiPart->end();
+            }
+            break;
+        } // MG_EV_HTTP_PART_END
 
-		case MG_EV_WEBSOCKET_HANDSHAKE_REQUEST: {
-			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
-			WebServer *pWebServer = pWebServerUserData->pWebServer;
-			if (pWebServer->m_pWebSocketHandlerFactory != nullptr) {
-				if (pWebServerUserData->pWebSocketHandler != nullptr) {
-					ESP_LOGD(tag, "Warning: MG_EV_WEBSOCKET_HANDSHAKE_REQUEST: pWebSocketHandler was NOT null");
-				}
-				struct WebServerUserData *p2 = new WebServerUserData();
-				ESP_LOGD(tag, "New User_data address 0x%d", (uint32_t)p2);
-				p2->originalUserData    = pWebServerUserData;
-				p2->pWebServer          = pWebServerUserData->pWebServer;
-				p2->pWebSocketHandler = pWebServer->m_pWebSocketHandlerFactory->newInstance();
-				mgConnection->user_data = p2;
-			} else {
-				ESP_LOGD(tag, "We received a WebSocket request but we have no handler factory!");
-			}
-			break;
-		} // MG_EV_WEBSOCKET_HANDSHAKE_REQUEST
+        case MG_EV_WEBSOCKET_HANDSHAKE_REQUEST: {
+            struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+            WebServer *pWebServer = pWebServerUserData->pWebServer;
+            if (pWebServer->m_pWebSocketHandlerFactory != nullptr) {
+                if (pWebServerUserData->pWebSocketHandler != nullptr) {
+                    ESP_LOGD(tag, "Warning: MG_EV_WEBSOCKET_HANDSHAKE_REQUEST: pWebSocketHandler was NOT null");
+                }
+                struct WebServerUserData *p2 = new WebServerUserData();
+                ESP_LOGD(tag, "New User_data address 0x%d", (uint32_t)p2);
+                p2->originalUserData    = pWebServerUserData;
+                p2->pWebServer          = pWebServerUserData->pWebServer;
+                p2->pWebSocketHandler = pWebServer->m_pWebSocketHandlerFactory->newInstance();
+                mgConnection->user_data = p2;
+            } else {
+                ESP_LOGD(tag, "We received a WebSocket request but we have no handler factory!");
+            }
+            break;
+        } // MG_EV_WEBSOCKET_HANDSHAKE_REQUEST
 
-		case MG_EV_WEBSOCKET_HANDSHAKE_DONE: {
-			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
-			if (pWebServerUserData->pWebSocketHandler == nullptr) {
-				ESP_LOGE(tag, "Error: MG_EV_WEBSOCKET_FRAME: pWebSocketHandler is null");
-				return;
-			}
-			pWebServerUserData->pWebSocketHandler->onCreated();
-			break;
-		} // MG_EV_WEBSOCKET_HANDSHAKE_DONE
+        case MG_EV_WEBSOCKET_HANDSHAKE_DONE: {
+            struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+            if (pWebServerUserData->pWebSocketHandler == nullptr) {
+                ESP_LOGE(tag, "Error: MG_EV_WEBSOCKET_FRAME: pWebSocketHandler is null");
+                return;
+            }
+            pWebServerUserData->pWebSocketHandler->onCreated();
+            break;
+        } // MG_EV_WEBSOCKET_HANDSHAKE_DONE
 
 
-		/*
-		 * When we receive a MG_EV_WEBSOCKET_FRAME then we have received a chunk of data over the network.
-		 * Our goal will be to send this to the web socket handler (if one exists).
-		 */
-		case MG_EV_WEBSOCKET_FRAME: {
-			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
-			if (pWebServerUserData->pWebSocketHandler == nullptr) {
-				ESP_LOGE(tag, "Error: MG_EV_WEBSOCKET_FRAME: pWebSocketHandler is null");
-				return;
-			}
-			struct websocket_message *ws_message = (websocket_message *)eventData;
-			ESP_LOGD(tag, "Received data length: %d", ws_message->size);
-			pWebServerUserData->pWebSocketHandler->onMessage(std::string((char *)ws_message->data, ws_message->size));
-			break;
-		} // MG_EV_WEBSOCKET_FRAME
+        /*
+         * When we receive a MG_EV_WEBSOCKET_FRAME then we have received a chunk of data over the network.
+         * Our goal will be to send this to the web socket handler (if one exists).
+         */
+        case MG_EV_WEBSOCKET_FRAME: {
+            struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+            if (pWebServerUserData->pWebSocketHandler == nullptr) {
+                ESP_LOGE(tag, "Error: MG_EV_WEBSOCKET_FRAME: pWebSocketHandler is null");
+                return;
+            }
+            struct websocket_message *ws_message = (websocket_message *)eventData;
+            ESP_LOGD(tag, "Received data length: %d", ws_message->size);
+            pWebServerUserData->pWebSocketHandler->onMessage(std::string((char *)ws_message->data, ws_message->size));
+            break;
+        } // MG_EV_WEBSOCKET_FRAME
 
-	} // End of switch
+    } // End of switch
 } // End of mongoose_event_handler
 
 
@@ -280,9 +270,9 @@ static void mongoose_event_handler_web_server(
  * @brief Constructor.
  */
 WebServer::WebServer() {
-	m_rootPath                 = "";
-	m_pMultiPartFactory        = nullptr;
-	m_pWebSocketHandlerFactory = nullptr;
+    m_rootPath                 = "";
+    m_pMultiPartFactory        = nullptr;
+    m_pWebSocketHandlerFactory = nullptr;
 } // WebServer
 
 
@@ -295,7 +285,7 @@ WebServer::~WebServer() {
  * @return The current root path.
  */
 const std::string& WebServer::getRootPath() {
-	return m_rootPath;
+    return m_rootPath;
 } // getRootPath
 
 
@@ -322,7 +312,7 @@ const std::string& WebServer::getRootPath() {
 void WebServer::addPathHandler(const std::string& method, const std::string& pathExpr,
                                void (* handler)(WebServer::HTTPRequest* pHttpRequest,
                                                 WebServer::HTTPResponse* pHttpResponse)) {
-	m_pathHandlers.push_back(PathHandler(method, pathExpr, handler));
+    m_pathHandlers.push_back(PathHandler(method, pathExpr, handler));
 } // addPathHandler
 
 void WebServer::addPathHandler(std::string&& method, const std::string& pathExpr,
@@ -340,31 +330,31 @@ void WebServer::addPathHandler(std::string&& method, const std::string& pathExpr
  * @return N/A.
  */
 void WebServer::start(uint16_t port) {
-	ESP_LOGD(tag, "WebServer task starting");
-	struct mg_mgr mgr;
-	mg_mgr_init(&mgr, NULL);
+    ESP_LOGD(tag, "WebServer task starting");
+    struct mg_mgr mgr;
+    mg_mgr_init(&mgr, NULL);
 
-	std::stringstream stringStream;
-	stringStream << ':' << port;
-	struct mg_connection *mgConnection = mg_bind(&mgr, stringStream.str().c_str(), mongoose_event_handler_web_server);
+    std::stringstream stringStream;
+    stringStream << ':' << port;
+    struct mg_connection *mgConnection = mg_bind(&mgr, stringStream.str().c_str(), mongoose_event_handler_web_server);
 
-	if (mgConnection == NULL) {
-		ESP_LOGE(tag, "No connection from the mg_bind()");
-		vTaskDelete(NULL);
-		return;
-	}
+    if (mgConnection == NULL) {
+        ESP_LOGE(tag, "No connection from the mg_bind()");
+        vTaskDelete(NULL);
+        return;
+    }
 
-	struct WebServerUserData *pWebServerUserData = new WebServerUserData();
-	pWebServerUserData->pWebServer = this;
-	pWebServerUserData->pMultiPart = nullptr;
-	mgConnection->user_data        = pWebServerUserData; // Save the WebServer instance reference in user_data.
-	ESP_LOGD(tag, "start: User_data address 0x%d", (uint32_t)pWebServerUserData);
-	mg_set_protocol_http_websocket(mgConnection);
+    struct WebServerUserData *pWebServerUserData = new WebServerUserData();
+    pWebServerUserData->pWebServer = this;
+    pWebServerUserData->pMultiPart = nullptr;
+    mgConnection->user_data        = pWebServerUserData; // Save the WebServer instance reference in user_data.
+    ESP_LOGD(tag, "start: User_data address 0x%d", (uint32_t)pWebServerUserData);
+    mg_set_protocol_http_websocket(mgConnection);
 
-	ESP_LOGD(tag, "WebServer listening on port %d", port);
-	while (1) {
-		mg_mgr_poll(&mgr, 2000);
-	}
+    ESP_LOGD(tag, "WebServer listening on port %d", port);
+    while (1) {
+        mg_mgr_poll(&mgr, 2000);
+    }
 } // run
 
 
@@ -373,7 +363,7 @@ void WebServer::start(uint16_t port) {
  * @param [in] pMultiPart A pointer to the multi part factory.
  */
 void WebServer::setMultiPartFactory(HTTPMultiPartFactory *pMultiPartFactory) {
-	m_pMultiPartFactory = pMultiPartFactory;
+    m_pMultiPartFactory = pMultiPartFactory;
 }
 
 
@@ -395,7 +385,11 @@ void WebServer::setMultiPartFactory(HTTPMultiPartFactory *pMultiPartFactory) {
  * @return N/A.
  */
 void WebServer::setRootPath(const std::string& path) {
-	m_rootPath = path;
+    m_rootPath = path;
+} // setRootPath
+
+void WebServer::setRootPath(std::string&& path) {
+    m_rootPath = std::move(path);
 } // setRootPath
 
 
@@ -406,7 +400,7 @@ void WebServer::setRootPath(const std::string& path) {
  * @return N/A.
  */
 void WebServer::setWebSocketHandlerFactory(WebSocketHandlerFactory* pWebSocketHandlerFactory) {
-	m_pWebSocketHandlerFactory = pWebSocketHandlerFactory;
+    m_pWebSocketHandlerFactory = pWebSocketHandlerFactory;
 } // setWebSocketHandlerFactory
 
 
@@ -415,9 +409,9 @@ void WebServer::setWebSocketHandlerFactory(WebSocketHandlerFactory* pWebSocketHa
  * @param [in] nc The network connection for the response.
  */
 WebServer::HTTPResponse::HTTPResponse(struct mg_connection* nc) {
-	m_nc = nc;
-	m_status = 200;
-	m_dataSent = false;
+    m_nc = nc;
+    m_status = 200;
+    m_dataSent = false;
 } // HTTPResponse
 
 
@@ -427,7 +421,7 @@ WebServer::HTTPResponse::HTTPResponse(struct mg_connection* nc) {
  * @param [in] value The value of the header.
  */
 void WebServer::HTTPResponse::addHeader(const std::string& name, const std::string& value) {
-	m_headers[name] = value;
+    m_headers[name] = value;
 } // addHeader
 
 void WebServer::HTTPResponse::addHeader(std::string&& name, std::string&& value) {
@@ -441,7 +435,7 @@ void WebServer::HTTPResponse::addHeader(std::string&& name, std::string&& value)
  * @return N/A.
  */
 void WebServer::HTTPResponse::sendData(const std::string& data) {
-	sendData((uint8_t *)data.data(), data.length());
+    sendData((uint8_t *)data.data(), data.length());
 } // sendData
 
 
@@ -453,24 +447,35 @@ void WebServer::HTTPResponse::sendData(const std::string& data) {
  * @return N/A.
  */
 void WebServer::HTTPResponse::sendData(const uint8_t* pData, size_t length) {
-	if (m_dataSent) {
-		ESP_LOGE(tag, "HTTPResponse: Data already sent!  Attempt to send again/more.");
-		return;
-	}
-	m_dataSent = true;
+    if (m_dataSent) {
+        ESP_LOGE(tag, "HTTPResponse: Data already sent!  Attempt to send again/more.");
+        return;
+    }
+    m_dataSent = true;
 
-	std::string headers;
+    std::string headers;
+    unsigned long headers_len = 0;
 
-	for (auto iter = m_headers.begin(); iter != m_headers.end(); iter++) {
+    for(auto iter = m_headers.begin(); iter != m_headers.end(); iter++) {
+        if(iter != m_headers.begin())
+            headers_len += 2;
+        headers_len += iter->first.length();
+        headers_len += 2;
+        headers_len += iter->second.length();
+    }
+    headers_len += 1;
+    headers.resize(headers_len); // Will not have to resize and recopy during the next loop, we have 2 loops but it still ends up being faster
+
+    for (auto iter = m_headers.begin(); iter != m_headers.end(); iter++) {
         if(iter != m_headers.begin())
             headers += "\r\n";
         headers += iter->first;
         headers += ": ";
         headers += iter->second;
-	}
-	mg_send_head(m_nc, m_status, length, headers.c_str());
-	mg_send(m_nc, pData, length);
-	m_nc->flags |= MG_F_SEND_AND_CLOSE;
+    }
+    mg_send_head(m_nc, m_status, length, headers.c_str());
+    mg_send(m_nc, pData, length);
+    m_nc->flags |= MG_F_SEND_AND_CLOSE;
 } // sendData
 
 
@@ -480,7 +485,7 @@ void WebServer::HTTPResponse::sendData(const uint8_t* pData, size_t length) {
  * @return N/A.
  */
 void WebServer::HTTPResponse::setHeaders(const std::map<std::string, std::string>& headers) {
-	m_headers = headers;
+    m_headers = headers;
 } // setHeaders
 
 void WebServer::HTTPResponse::setHeaders(std::map<std::string, std::string>&& headers) {
@@ -492,8 +497,8 @@ void WebServer::HTTPResponse::setHeaders(std::map<std::string, std::string>&& he
  * @brief Get the current root path.
  * @return The current root path.
  */
-std::string WebServer::HTTPResponse::getRootPath() {
-	return m_rootPath;
+const std::string& WebServer::HTTPResponse::getRootPath() const {
+    return m_rootPath;
 } // getRootPath
 
 
@@ -503,7 +508,11 @@ std::string WebServer::HTTPResponse::getRootPath() {
  * @return N/A.
  */
 void WebServer::HTTPResponse::setRootPath(const std::string& path) {
-	m_rootPath = path;
+    m_rootPath = path;
+} // setRootPath
+
+void WebServer::HTTPResponse::setRootPath(std::string&& path) {
+    m_rootPath = std::move(path);
 } // setRootPath
 
 /**
@@ -514,7 +523,7 @@ void WebServer::HTTPResponse::setRootPath(const std::string& path) {
  * @return N/A.
  */
 void WebServer::HTTPResponse::setStatus(int status) {
-	m_status = status;
+    m_status = status;
 } // setStatus
 
 
@@ -529,44 +538,43 @@ void WebServer::HTTPResponse::setStatus(int status) {
  * @param [in] message The message representing the request.
  */
 void WebServer::processRequest(struct mg_connection *mgConnection, struct http_message* message) {
-	std::string uri = mgStrToString(message->uri);
-	ESP_LOGD(tag, "WebServer::processRequest: Matching: %s", uri.c_str());
-	HTTPResponse httpResponse = HTTPResponse(mgConnection);
-	httpResponse.setRootPath(getRootPath());
+    ESP_LOGD(tag, "WebServer::processRequest: Matching: %.*s", (int)message->uri.len, message->uri.p);
+    HTTPResponse httpResponse = HTTPResponse(mgConnection);
+    httpResponse.setRootPath(getRootPath());
 
-	/*
-	 * Iterate through each of the path handlers looking for a match with the method and specified path.
-	 */
-	std::vector<PathHandler>::iterator it;
-	for (it = m_pathHandlers.begin(); it != m_pathHandlers.end(); ++it) {
-		if ((*it).match(mgStrToString(message->method), uri)) {
-			HTTPRequest httpRequest(message);
-			(*it).invoke(&httpRequest, &httpResponse);
-			ESP_LOGD(tag, "Found a match!!");
-			return;
-		}
-	} // End of examine path handlers.
+    /*
+     * Iterate through each of the path handlers looking for a match with the method and specified path.
+     */
+    std::vector<PathHandler>::iterator it;
+    for (it = m_pathHandlers.begin(); it != m_pathHandlers.end(); ++it) {
+        if ((*it).match(message->method.p, message->method.len, message->uri.p)) {
+            HTTPRequest httpRequest(message);
+            (*it).invoke(&httpRequest, &httpResponse);
+            ESP_LOGD(tag, "Found a match!!");
+            return;
+        }
+    } // End of examine path handlers.
 
-	// Because we reached here, it means that we did NOT match a handler.  Now we want to attempt
-	// to retrieve the corresponding file content.
-	std::string filePath = httpResponse.getRootPath();
-    filePath += uri;
-	ESP_LOGD(tag, "Opening file: %s", filePath.c_str());
-	FILE *file = fopen(filePath.c_str(), "r");
-	if (file != nullptr) {
-		fseek(file, 0L, SEEK_END);
-		size_t length = ftell(file);
-		fseek(file, 0L, SEEK_SET);
-		uint8_t *pData = (uint8_t *)malloc(length);
-		fread(pData, length, 1, file);
-		fclose(file);
-		httpResponse.sendData(pData, length);
-		free(pData);
-	} else {
-		// Handle unable to open file
-		httpResponse.setStatus(404); // Not found
-		httpResponse.sendData("");
-	}
+    // Because we reached here, it means that we did NOT match a handler.  Now we want to attempt
+    // to retrieve the corresponding file content.
+    std::string filePath = httpResponse.getRootPath();
+    filePath.append(message->uri.p, message->uri.len);
+    ESP_LOGD(tag, "Opening file: %s", filePath.c_str());
+    FILE *file = fopen(filePath.c_str(), "r");
+    if (file != nullptr) {
+        fseek(file, 0L, SEEK_END);
+        size_t length = ftell(file);
+        fseek(file, 0L, SEEK_SET);
+        uint8_t *pData = (uint8_t *)malloc(length);
+        fread(pData, length, 1, file);
+        fclose(file);
+        httpResponse.sendData(pData, length);
+        free(pData);
+    } else {
+        // Handle unable to open file
+        httpResponse.setStatus(404); // Not found
+        httpResponse.sendData("");
+    }
 } // processRequest
 
 
@@ -577,17 +585,13 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
  * @param [in] pathPattern The path pattern to be matched.
  * @param [in] webServerRequestHandler The request handler to be called.
  */
-WebServer::PathHandler::PathHandler(const std::string& method, const std::string& pathPattern,
-                                    void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest,
-                                                                     WebServer::HTTPResponse* pHttpResponse)) {
-	m_method         = method;
-	m_pattern        = std::regex(pathPattern);
-	m_requestHandler = webServerRequestHandler;
+WebServer::PathHandler::PathHandler(const std::string& method, const std::string& pathPattern, void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest, WebServer::HTTPResponse* pHttpResponse)) {
+    m_method         = method;
+    m_pattern        = std::regex(pathPattern);
+    m_requestHandler = webServerRequestHandler;
 } // PathHandler
 
-WebServer::PathHandler::PathHandler(std::string&& method, const std::string& pathPattern,
-                                    void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest,
-                                                                     WebServer::HTTPResponse* pHttpResponse)) {
+WebServer::PathHandler::PathHandler(std::string&& method, const std::string& pathPattern, void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest, WebServer::HTTPResponse* pHttpResponse)) {
     m_method         = std::move(method);
     m_pattern        = std::regex(pathPattern);
     m_requestHandler = webServerRequestHandler;
@@ -598,15 +602,17 @@ WebServer::PathHandler::PathHandler(std::string&& method, const std::string& pat
  * @brief Determine if the path matches.
  *
  * @param [in] method The method to be matched.
+ * @param [in] method_len The method's length
  * @param [in] path The path to be matched.
  * @return True if the path matches.
  */
-bool WebServer::PathHandler::match(const std::string& method, const std::string& path) {
-	//ESP_LOGD(tag, "match: %s with %s", m_pattern.c_str(), path.c_str());
-	if (method != m_method) {
-		return false;
-	}
-	return std::regex_search(path, m_pattern);
+
+bool WebServer::PathHandler::match(const char* method, size_t method_len, const char* path) {
+    //ESP_LOGD(tag, "match: %s with %s", m_pattern.c_str(), path.c_str());
+    if (method_len != m_method.length() || strncmp(method, m_method.c_str(), method_len) != 0) {
+        return false;
+    }
+    return std::regex_search(path, m_pattern);
 } // match
 
 
@@ -617,7 +623,7 @@ bool WebServer::PathHandler::match(const std::string& method, const std::string&
  * @return N/A.
  */
 void WebServer::PathHandler::invoke(WebServer::HTTPRequest* request, WebServer::HTTPResponse *response) {
-	m_requestHandler(request, response);
+    m_requestHandler(request, response);
 } // invoke
 
 
@@ -628,30 +634,64 @@ void WebServer::PathHandler::invoke(WebServer::HTTPRequest* request, WebServer::
  * @param [in] message The description of the underlying Mongoose message.
  */
 WebServer::HTTPRequest::HTTPRequest(struct http_message* message) {
-	m_message = message;
+    m_message = message;
 } // HTTPRequest
 
 
 /**
  * @brief Get the body of the request.
  * When an HTTP request is either PUT or POST then it may contain a payload that is also
- * known as the body.  This method returns that payload (if it exists).
+ * known as the body.  This method returns that payload (if it exists). Careful, because it's not a standard string
+ * that is terminated by a null character, use the getBodyLen() function to determine the body length
  * @return The body of the request.
  */
-std::string WebServer::HTTPRequest::getBody() const {
-	return mgStrToString(m_message->body);
+const char* WebServer::HTTPRequest::getBody() const {
+    return m_message->body.p;
 } // getBody
+
+/**
+ * @brief Get the length of the body of the request.
+ * When an HTTP request is either PUT or POST then it may contain a payload that is also
+ * known as the body.  This method returns that payload (if it exists).
+ * @return The length of the body of the request.
+ */
+size_t WebServer::HTTPRequest::getBodyLen() const {
+    return m_message->body.len;
+} // getBodyLen
 
 
 /**
  * @brief Get the method of the request.
  * An HTTP request contains a request method which is one of GET, PUT, POST, etc.
- * @return The method of the request.
+ * @return The method of the request. Careful, because it's not a standard string
+ * that is terminated by a null character, use the getMethodLen() function to determine the method length
+ * @return The body of the request.
  */
-std::string WebServer::HTTPRequest::getMethod() const {
-	return mgStrToString(m_message->method);
+const char* WebServer::HTTPRequest::getMethod() const {
+    return m_message->method.p;
 } // getMethod
 
+/**
+ * @brief Get the length of the method of the request.
+ * An HTTP request contains a request method which is one of GET, PUT, POST, etc.
+ * @return The length of the method of the request.
+ */
+size_t WebServer::HTTPRequest::getMethodLen() const {
+    return m_message->method.len;
+} // getMethodLen
+
+
+/**
+ * @brief Get the path of the request.
+ * The path of an HTTP request is the portion of the URL that follows the hostname/port pair
+ * but does not include any query parameters. Careful, because it's not a standard string
+ * that is terminated by a null character, use the getPathLen() function to determine the path length
+ * @return The body of the request.
+ * @return The path of the request.
+ */
+const char* WebServer::HTTPRequest::getPath() const {
+    return m_message->uri.p;
+} // getPath
 
 /**
  * @brief Get the path of the request.
@@ -659,8 +699,8 @@ std::string WebServer::HTTPRequest::getMethod() const {
  * but does not include any query parameters.
  * @return The path of the request.
  */
-std::string WebServer::HTTPRequest::getPath() const {
-	return mgStrToString(m_message->uri);
+size_t WebServer::HTTPRequest::getPathLen() const {
+    return m_message->uri.len;
 } // getPath
 
 #define STATE_NAME 0
@@ -672,47 +712,48 @@ std::string WebServer::HTTPRequest::getPath() const {
  * @return The query part of the request.
  */
 std::map<std::string, std::string> WebServer::HTTPRequest::getQuery() const {
-	// Walk through all the characters in the query string maintaining a simple state machine
-	// that lets us know what we are parsing.
-	std::map<std::string, std::string> queryMap;
-	std::string queryString = mgStrToString(m_message->query_string);
-	int i=0;
+    // Walk through all the characters in the query string maintaining a simple state machine
+    // that lets us know what we are parsing.
+    std::map<std::string, std::string> queryMap;
+    const char* queryString = m_message->query_string.p;
+    size_t queryStringLen = m_message->query_string.len;
+    int i=0;
 
-	/*
-	 * We maintain a simple state machine with states of:
-	 * * STATE_NAME - We are parsing a name.
-	 * * STATE_VALUE - We are parsing a value.
-	 */
-	int state = STATE_NAME;
-	std::string name = "";
-	std::string value;
-	// Loop through each character in the query string.
-	for (i=0; i<queryString.length(); i++) {
-		char currentChar = queryString[i];
-		if (state == STATE_NAME) {
-			if (currentChar != '=') {
-				name += currentChar;
-			} else {
-				state = STATE_VALUE;
-				value = "";
-			}
-		} // End state = STATE_NAME
-		else if (state == STATE_VALUE) {
-			if (currentChar != '&') {
-				value += currentChar;
-			} else {
-				//ESP_LOGD(tag, "name=%s, value=%s", name.c_str(), value.c_str());
-				queryMap[name] = value;
-				state = STATE_NAME;
-				name = "";
-			}
-		} // End state = STATE_VALUE
-	} // End for loop
-	if (state == STATE_VALUE) {
-		//ESP_LOGD(tag, "name=%s, value=%s", name.c_str(), value.c_str());
-		queryMap[name] = value;
-	}
-	return queryMap;
+    /*
+     * We maintain a simple state machine with states of:
+     * * STATE_NAME - We are parsing a name.
+     * * STATE_VALUE - We are parsing a value.
+     */
+    int state = STATE_NAME;
+    std::string name = "";
+    std::string value;
+    // Loop through each character in the query string.
+    for (i=0; i<queryStringLen; i++) {
+        char currentChar = queryString[i];
+        if (state == STATE_NAME) {
+            if (currentChar != '=') {
+                name += currentChar;
+            } else {
+                state = STATE_VALUE;
+                value = "";
+            }
+        } // End state = STATE_NAME
+        else if (state == STATE_VALUE) {
+            if (currentChar != '&') {
+                value += currentChar;
+            } else {
+                //ESP_LOGD(tag, "name=%s, value=%s", name.c_str(), value.c_str());
+                queryMap[name] = value;
+                state = STATE_NAME;
+                name = "";
+            }
+        } // End state = STATE_VALUE
+    } // End for loop
+    if (state == STATE_VALUE) {
+        //ESP_LOGD(tag, "name=%s, value=%s", name.c_str(), value.c_str());
+        queryMap[name] = value;
+    }
+    return queryMap;
 } // getQuery
 
 
@@ -736,17 +777,17 @@ std::map<std::string, std::string> WebServer::HTTPRequest::getQuery() const {
  * @return A vector of the constituent parts of the path.
  */
 std::vector<std::string> WebServer::HTTPRequest::pathSplit() const {
-	std::istringstream stream(getPath());
-	std::vector<std::string> ret;
-	std::string pathPart;
-	while(std::getline(stream, pathPart, '/')) {
-		ret.push_back(pathPart);
-	}
-	// Debug
-	for (int i=0; i<ret.size(); i++) {
-		ESP_LOGD(tag, "part[%d]: %s", i, ret[i].c_str());
-	}
-	return ret;
+    std::istringstream stream(std::string(getPath(), getPathLen())); // I don't know if there's a better istringstream constructor for this
+    std::vector<std::string> ret;
+    std::string pathPart;
+    while(std::getline(stream, pathPart, '/')) {
+        ret.push_back(pathPart);
+    }
+    // Debug
+    for (int i=0; i<ret.size(); i++) {
+        ESP_LOGD(tag, "part[%d]: %s", i, ret[i].c_str());
+    }
+    return ret;
 } // pathSplit
 
 /**
@@ -758,8 +799,8 @@ std::vector<std::string> WebServer::HTTPRequest::pathSplit() const {
  * @return N/A.
  */
 void WebServer::HTTPMultiPart::begin(const std::string& varName, const std::string& fileName) {
-	ESP_LOGD(tag, "WebServer::HTTPMultiPart::begin(varName=\"%s\", fileName=\"%s\")",
-		varName.c_str(), fileName.c_str());
+    ESP_LOGD(tag, "WebServer::HTTPMultiPart::begin(varName=\"%s\", fileName=\"%s\")",
+        varName.c_str(), fileName.c_str());
 } // WebServer::HTTPMultiPart::begin
 
 
@@ -769,7 +810,7 @@ void WebServer::HTTPMultiPart::begin(const std::string& varName, const std::stri
  * @return N/A.
  */
 void WebServer::HTTPMultiPart::end() {
-	ESP_LOGD(tag, "WebServer::HTTPMultiPart::end()");
+    ESP_LOGD(tag, "WebServer::HTTPMultiPart::end()");
 } // WebServer::HTTPMultiPart::end
 
 
@@ -781,7 +822,7 @@ void WebServer::HTTPMultiPart::end() {
  * @return N/A.
  */
 void WebServer::HTTPMultiPart::data(const std::string& data) {
-	ESP_LOGD(tag, "WebServer::HTTPMultiPart::data(), length=%d", data.length());
+    ESP_LOGD(tag, "WebServer::HTTPMultiPart::data(), length=%d", data.length());
 } // WebServer::HTTPMultiPart::data
 
 
@@ -790,7 +831,7 @@ void WebServer::HTTPMultiPart::data(const std::string& data) {
  * @return N/A.
  */
 void WebServer::HTTPMultiPart::multipartEnd() {
-	ESP_LOGD(tag, "WebServer::HTTPMultiPart::multipartEnd()");
+    ESP_LOGD(tag, "WebServer::HTTPMultiPart::multipartEnd()");
 } // WebServer::HTTPMultiPart::multipartEnd
 
 
@@ -799,7 +840,7 @@ void WebServer::HTTPMultiPart::multipartEnd() {
  * @return N/A.
  */
 void WebServer::HTTPMultiPart::multipartStart() {
-	ESP_LOGD(tag, "WebServer::HTTPMultiPart::multipartStart()");
+    ESP_LOGD(tag, "WebServer::HTTPMultiPart::multipartStart()");
 } // WebServer::HTTPMultiPart::multipartStart
 
 
@@ -836,10 +877,10 @@ void WebServer::WebSocketHandler::onClosed() {
  * @return N/A.
  */
 void WebServer::WebSocketHandler::sendData(const std::string& message) {
-	ESP_LOGD(tag, "WebSocketHandler::sendData(length=%d)", message.length());
-	mg_send_websocket_frame(m_mgConnection,
-	   WEBSOCKET_OP_BINARY | WEBSOCKET_OP_CONTINUE,
-	   message.data(), message.length());
+    ESP_LOGD(tag, "WebSocketHandler::sendData(length=%d)", message.length());
+    mg_send_websocket_frame(m_mgConnection,
+       WEBSOCKET_OP_BINARY | WEBSOCKET_OP_CONTINUE,
+       message.data(), message.length());
 } // sendData
 
 /**
@@ -849,9 +890,9 @@ void WebServer::WebSocketHandler::sendData(const std::string& message) {
  * @return N/A.
  */
 void WebServer::WebSocketHandler::sendData(const uint8_t* data, uint32_t size) {
-	mg_send_websocket_frame(m_mgConnection,
-	   WEBSOCKET_OP_BINARY | WEBSOCKET_OP_CONTINUE,
-	   data, size);
+    mg_send_websocket_frame(m_mgConnection,
+       WEBSOCKET_OP_BINARY | WEBSOCKET_OP_CONTINUE,
+       data, size);
 } // sendData
 
 
@@ -862,7 +903,7 @@ void WebServer::WebSocketHandler::sendData(const uint8_t* data, uint32_t size) {
  * @return N/A.
  */
 void WebServer::WebSocketHandler::close() {
-	mg_send_websocket_frame(m_mgConnection, WEBSOCKET_OP_CLOSE, nullptr, 0);
+    mg_send_websocket_frame(m_mgConnection, WEBSOCKET_OP_CLOSE, nullptr, 0);
 } // close
 
 
