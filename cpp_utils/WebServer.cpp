@@ -18,7 +18,6 @@
 #include <mongoose.h>
 #include <string>
 
-
 static char tag[] = "WebServer";
 
 struct WebServerUserData {
@@ -102,24 +101,16 @@ static std::string mongoose_eventToString(int event) {
 	case MG_EV_WEBSOCKET_CONTROL_FRAME:
 		return "MG_EV_WEBSOCKET_CONTROL_FRAME";
 	}
-	std::ostringstream s;
-	s << "Unknown event: " << event;
-	return s.str();
+	std::string s;
+	s += "Unknown event: ";
+    s += event;
+	return s;
 } //eventToString
-
-/**
- * @brief Convert a Mongoose string type to a string.
- * @param [in] mgStr The Mongoose string.
- * @return A std::string representation of the Mongoose string.
- */
-static std::string mgStrToString(struct mg_str mgStr) {
-	return std::string(mgStr.p, mgStr.len);
-} // mgStrToStr
 
 static void dumpHttpMessage(struct http_message *pHttpMessage) {
 	ESP_LOGD(tag, "HTTP Message");
-	ESP_LOGD(tag, "Message: %s", mgStrToString(pHttpMessage->message).c_str());
-	ESP_LOGD(tag, "URI: %s", mgStrToString(pHttpMessage->uri).c_str());
+	ESP_LOGD(tag, "Message: %s", pHttpMessage->message.p);
+	ESP_LOGD(tag, "URI: %s", pHttpMessage->uri.p);
 }
 
 /*
@@ -210,7 +201,7 @@ static void mongoose_event_handler_web_server(
 			ESP_LOGD(tag, "file_name: \"%s\", var_name: \"%s\", status: %d, user_data: 0x%d",
 					part->file_name, part->var_name, part->status, (uint32_t)part->user_data);
 			if (pWebServerUserData->pMultiPart != nullptr) {
-				pWebServerUserData->pMultiPart->data(mgStrToString(part->data));
+				pWebServerUserData->pMultiPart->data(std::string(part->data.p, part->data.len));
 			}
 			break;
 		} // MG_EV_HTTP_PART_DATA
@@ -398,6 +389,10 @@ void WebServer::setRootPath(const std::string& path) {
 	m_rootPath = path;
 } // setRootPath
 
+void WebServer::setRootPath(std::string&& path) {
+    m_rootPath = std::move(path);
+} // setRootPath
+
 
 /**
  * @brief Register the factory for creating web socket handlers.
@@ -460,6 +455,17 @@ void WebServer::HTTPResponse::sendData(const uint8_t* pData, size_t length) {
 	m_dataSent = true;
 
 	std::string headers;
+    unsigned long headers_len = 0;
+
+    for(auto iter = m_headers.begin(); iter != m_headers.end(); iter++) {
+        if(iter != m_headers.begin())
+            headers_len += 2;
+        headers_len += iter->first.length();
+        headers_len += 2;
+        headers_len += iter->second.length();
+    }
+    headers_len += 1;
+    headers.resize(headers_len); // Will not have to resize and recopy during the next loop, we have 2 loops but it still ends up being faster
 
 	for (auto iter = m_headers.begin(); iter != m_headers.end(); iter++) {
         if(iter != m_headers.begin())
@@ -492,7 +498,7 @@ void WebServer::HTTPResponse::setHeaders(std::map<std::string, std::string>&& he
  * @brief Get the current root path.
  * @return The current root path.
  */
-std::string WebServer::HTTPResponse::getRootPath() {
+const std::string& WebServer::HTTPResponse::getRootPath() const {
 	return m_rootPath;
 } // getRootPath
 
@@ -504,6 +510,10 @@ std::string WebServer::HTTPResponse::getRootPath() {
  */
 void WebServer::HTTPResponse::setRootPath(const std::string& path) {
 	m_rootPath = path;
+} // setRootPath
+
+void WebServer::HTTPResponse::setRootPath(std::string&& path) {
+	m_rootPath = std::move(path);
 } // setRootPath
 
 /**
@@ -529,8 +539,7 @@ void WebServer::HTTPResponse::setStatus(int status) {
  * @param [in] message The message representing the request.
  */
 void WebServer::processRequest(struct mg_connection *mgConnection, struct http_message* message) {
-	std::string uri = mgStrToString(message->uri);
-	ESP_LOGD(tag, "WebServer::processRequest: Matching: %s", uri.c_str());
+	ESP_LOGD(tag, "WebServer::processRequest: Matching: %s", message->uri.p);
 	HTTPResponse httpResponse = HTTPResponse(mgConnection);
 	httpResponse.setRootPath(getRootPath());
 
@@ -539,7 +548,7 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
 	 */
 	std::vector<PathHandler>::iterator it;
 	for (it = m_pathHandlers.begin(); it != m_pathHandlers.end(); ++it) {
-		if ((*it).match(mgStrToString(message->method), uri)) {
+		if ((*it).match(message->method.p, message->method.len, message->uri.p)) {
 			HTTPRequest httpRequest(message);
 			(*it).invoke(&httpRequest, &httpResponse);
 			ESP_LOGD(tag, "Found a match!!");
@@ -550,7 +559,7 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
 	// Because we reached here, it means that we did NOT match a handler.  Now we want to attempt
 	// to retrieve the corresponding file content.
 	std::string filePath = httpResponse.getRootPath();
-    filePath += uri;
+    filePath += message->uri.p;
 	ESP_LOGD(tag, "Opening file: %s", filePath.c_str());
 	FILE *file = fopen(filePath.c_str(), "r");
 	if (file != nullptr) {
@@ -598,15 +607,17 @@ WebServer::PathHandler::PathHandler(std::string&& method, const std::string& pat
  * @brief Determine if the path matches.
  *
  * @param [in] method The method to be matched.
+ * @param [in] method_len The method's length
  * @param [in] path The path to be matched.
  * @return True if the path matches.
  */
-bool WebServer::PathHandler::match(const std::string& method, const std::string& path) {
-	//ESP_LOGD(tag, "match: %s with %s", m_pattern.c_str(), path.c_str());
-	if (method != m_method) {
-		return false;
-	}
-	return std::regex_search(path, m_pattern);
+
+bool WebServer::PathHandler::match(const char* method, unsigned long method_len, const char* path) {
+    //ESP_LOGD(tag, "match: %s with %s", m_pattern.c_str(), path.c_str());
+    if (method_len != m_method.length() || strcmp(method, m_method.c_str()) != 0) {
+        return false;
+    }
+    return std::regex_search(path, m_pattern);
 } // match
 
 
@@ -638,9 +649,19 @@ WebServer::HTTPRequest::HTTPRequest(struct http_message* message) {
  * known as the body.  This method returns that payload (if it exists).
  * @return The body of the request.
  */
-std::string WebServer::HTTPRequest::getBody() const {
-	return mgStrToString(m_message->body);
+const char* WebServer::HTTPRequest::getBody() const {
+    return m_message->body.p;
 } // getBody
+
+/**
+ * @brief Get the length of the body of the request.
+ * When an HTTP request is either PUT or POST then it may contain a payload that is also
+ * known as the body.  This method returns that payload (if it exists).
+ * @return The length of the body of the request.
+ */
+size_t WebServer::HTTPRequest::getBodyLen() const {
+    return m_message->body.len;
+} // getBodyLen
 
 
 /**
@@ -648,9 +669,18 @@ std::string WebServer::HTTPRequest::getBody() const {
  * An HTTP request contains a request method which is one of GET, PUT, POST, etc.
  * @return The method of the request.
  */
-std::string WebServer::HTTPRequest::getMethod() const {
-	return mgStrToString(m_message->method);
+const char* WebServer::HTTPRequest::getMethod() const {
+	return m_message->method.p;
 } // getMethod
+
+/**
+ * @brief Get the length of the method of the request.
+ * An HTTP request contains a request method which is one of GET, PUT, POST, etc.
+ * @return The length of the method of the request.
+ */
+size_t WebServer::HTTPRequest::getMethodLen() const {
+    return m_message->method.len;
+} // getMethodLen
 
 
 /**
@@ -659,8 +689,18 @@ std::string WebServer::HTTPRequest::getMethod() const {
  * but does not include any query parameters.
  * @return The path of the request.
  */
-std::string WebServer::HTTPRequest::getPath() const {
-	return mgStrToString(m_message->uri);
+const char* WebServer::HTTPRequest::getPath() const {
+	return m_message->uri.p;
+} // getPath
+
+/**
+ * @brief Get the path of the request.
+ * The path of an HTTP request is the portion of the URL that follows the hostname/port pair
+ * but does not include any query parameters.
+ * @return The path of the request.
+ */
+size_t WebServer::HTTPRequest::getPathLen() const {
+    return m_message->uri.len;
 } // getPath
 
 #define STATE_NAME 0
@@ -675,7 +715,8 @@ std::map<std::string, std::string> WebServer::HTTPRequest::getQuery() const {
 	// Walk through all the characters in the query string maintaining a simple state machine
 	// that lets us know what we are parsing.
 	std::map<std::string, std::string> queryMap;
-	std::string queryString = mgStrToString(m_message->query_string);
+	const char* queryString = m_message->query_string.p;
+    size_t queryStringLen = m_message->query_string.len;
 	int i=0;
 
 	/*
@@ -687,7 +728,7 @@ std::map<std::string, std::string> WebServer::HTTPRequest::getQuery() const {
 	std::string name = "";
 	std::string value;
 	// Loop through each character in the query string.
-	for (i=0; i<queryString.length(); i++) {
+	for (i=0; i<queryStringLen; i++) {
 		char currentChar = queryString[i];
 		if (state == STATE_NAME) {
 			if (currentChar != '=') {

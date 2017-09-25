@@ -15,8 +15,6 @@
 #ifdef CONFIG_MONGOOSE_PRESENT
 #include <mongoose.h>
 
-
-
 class WebServer;
 
 /**
@@ -32,11 +30,14 @@ public:
 	class HTTPRequest {
 		public:
 			HTTPRequest(struct http_message* message);
-			std::string getMethod() const;
-			std::string getPath() const;
-			std::map<std::string, std::string> getQuery() const;
-			std::string getBody() const;
-			std::vector<std::string> pathSplit() const;
+			const char* getMethod() const;
+            const char* getPath() const;
+            const char* getBody() const;
+            size_t getMethodLen() const;
+            size_t getPathLen() const;
+            size_t getBodyLen() const;
+            std::map<std::string, std::string> getQuery() const;
+            std::vector<std::string> pathSplit() const;
 		private:
 			struct http_message* m_message;
 	}; // HTTPRequest
@@ -49,13 +50,14 @@ public:
 			HTTPResponse(struct mg_connection *nc);
 			void addHeader(const std::string& name, const std::string& value);
 			void addHeader(std::string&& name, std::string&& value);
-			std::string getRootPath();
 			void setStatus(int status);
-			void setHeaders(const std::map<std::string, std::string>& headers);
-			void setHeaders(std::map<std::string, std::string>&& headers);
-			void sendData(const std::string& data);
-			void sendData(const uint8_t* pData, size_t length);
-			void setRootPath(const std::string& path);
+            void setHeaders(const std::map<std::string, std::string>& headers);
+            void setHeaders(std::map<std::string, std::string>&& headers);
+            void sendData(const std::string& data);
+            void sendData(const uint8_t* pData, size_t length);
+            const std::string& getRootPath() const;
+            void setRootPath(const std::string& path);
+            void setRootPath(std::string&& path);
 		private:
 			struct mg_connection *m_nc;
 			std::string m_rootPath;
@@ -149,7 +151,7 @@ public:
 		public:
 			PathHandler(const std::string& method, const std::string& pathPattern, void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest, WebServer::HTTPResponse* pHttpResponse));
 			PathHandler(std::string&& method, const std::string& pathPattern, void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest, WebServer::HTTPResponse* pHttpResponse));
-			bool match(const std::string& method, const std::string& path);
+            bool match(const char* method, size_t method_len, const char* path);
 			void invoke(HTTPRequest *request, HTTPResponse *response);
 		private:
 			std::string m_method;
@@ -164,7 +166,6 @@ public:
 	public:
 		void onCreated();
 		virtual void onMessage(const std::string& message);
-        // virtual void onMessage(std::string&& message); // ? Don't know what this is used for yet so i will not touch it
 		void onClosed();
 		void sendData(const std::string& message);
 		void sendData(const uint8_t* data, uint32_t size);
@@ -180,15 +181,12 @@ public:
 
 	WebServer();
 	virtual ~WebServer();
-	void addPathHandler(const std::string& method, const std::string& pathExpr,
-						void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest,
-														 WebServer::HTTPResponse* pHttpResponse));
-    void addPathHandler(std::string&& method, const std::string& pathExpr,
-                        void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest,
-                                                         WebServer::HTTPResponse* pHttpResponse));
+	void addPathHandler(const std::string& method, const std::string& pathExpr, void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest, WebServer::HTTPResponse* pHttpResponse));
+    void addPathHandler(std::string&& method, const std::string& pathExpr, void (* webServerRequestHandler)(WebServer::HTTPRequest* pHttpRequest, WebServer::HTTPResponse* pHttpResponse));
 	const std::string& getRootPath();
 	void setMultiPartFactory(HTTPMultiPartFactory *pMultiPartFactory);
-	void setRootPath(const std::string& path);
+    void setRootPath(const std::string& path);
+    void setRootPath(std::string&& path);
 	void setWebSocketHandlerFactory(WebSocketHandlerFactory *pWebSocketHandlerFactory);
 	void start(unsigned short port = 80);
 	void processRequest(struct mg_connection *mgConnection, struct http_message *message);
