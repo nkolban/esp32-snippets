@@ -30,6 +30,7 @@ public:
 	static BLEClient* findByAddress(BLEAddress address);
 	static std::string gattClientEventTypeToString(esp_gattc_cb_event_t eventType);
 	static std::string gattServerEventTypeToString(esp_gatts_cb_event_t eventType);
+	static std::string gattcServiceElementToString(esp_gattc_service_elem_t *pGATTCServiceElement);
 	static std::string gattServiceIdToString(esp_gatt_srvc_id_t srvcId);
 	static std::string gattStatusToString(esp_gatt_status_t status);
 	static std::string gattServiceToString(uint32_t serviceId);

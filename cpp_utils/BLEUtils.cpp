@@ -349,12 +349,12 @@ std::string BLEUtils::gattClientEventTypeToString(esp_gattc_cb_event_t eventType
 			return "ESP_GATTC_ENC_CMPL_CB_EVT";
 		case ESP_GATTC_EXEC_EVT:
 			return "ESP_GATTC_EXEC_EVT";
-		case ESP_GATTC_GET_CHAR_EVT:
-			return "ESP_GATTC_GET_CHAR_EVT";
-		case ESP_GATTC_GET_DESCR_EVT:
-			return "ESP_GATTC_GET_DESCR_EVT";
-		case ESP_GATTC_GET_INCL_SRVC_EVT:
-			return "ESP_GATTC_GET_INCL_SRVC_EVT";
+		//case ESP_GATTC_GET_CHAR_EVT:
+//			return "ESP_GATTC_GET_CHAR_EVT";
+		//case ESP_GATTC_GET_DESCR_EVT:
+//			return "ESP_GATTC_GET_DESCR_EVT";
+		//case ESP_GATTC_GET_INCL_SRVC_EVT:
+//			return "ESP_GATTC_GET_INCL_SRVC_EVT";
 		case ESP_GATTC_MULT_ADV_DATA_EVT:
 			return "ESP_GATTC_MULT_ADV_DATA_EVT";
 		case ESP_GATTC_MULT_ADV_DIS_EVT:
@@ -716,6 +716,7 @@ void BLEUtils::dumpGattClientEvent(
 		// - esp_gatt_id_t        char_id
 		// - esp_gatt_char_prop_t char_prop
 		//
+		/*
 		case ESP_GATTC_GET_CHAR_EVT: {
 
 			// If the status of the event shows that we have a value other than ESP_GATT_OK then the
@@ -742,6 +743,7 @@ void BLEUtils::dumpGattClientEvent(
 			}
 			break;
 		} // ESP_GATTC_GET_CHAR_EVT
+		*/
 
 		//
 		// ESP_GATTC_NOTIFY_EVT
@@ -749,20 +751,17 @@ void BLEUtils::dumpGattClientEvent(
 		// notify
 		// uint16_t           conn_id
 		// esp_bd_addr_t      remote_bda
-		// esp_gatt_srvc_id_t srvc_id
-		// esp_gatt_id_t      char_id
-		// esp_gatt_id_t      descr_id
+		// handle             handle
 		// uint16_t           value_len
 		// uint8_t*           value
 		// bool               is_notify
 		//
 		case ESP_GATTC_NOTIFY_EVT: {
-			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s, srvc_id: <%s>, char_id: <%s>, descr_id: <%s>, value_len: %d, is_notify: %d]",
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s, handle: %d 0x%.2x, value_len: %d, is_notify: %d]",
 				evtParam->notify.conn_id,
 				BLEAddress(evtParam->notify.remote_bda).toString().c_str(),
-				BLEUtils::gattServiceIdToString(evtParam->notify.srvc_id).c_str(),
-				gattIdToString(evtParam->notify.char_id).c_str(),
-				gattIdToString(evtParam->notify.descr_id).c_str(),
+				evtParam->notify.handle,
+				evtParam->notify.handle,
 				evtParam->notify.value_len,
 				evtParam->notify.is_notify
 			);
@@ -796,20 +795,16 @@ void BLEUtils::dumpGattClientEvent(
 		// read:
 		// esp_gatt_status_t  status
 		// uint16_t           conn_id
-		// esp_gatt_srvc_id_t srvc_id
-		// esp_gatt_id_t      char_id
-		// esp_gatt_id_t      descr_id
+		// uint16_t           handle
 		// uint8_t*           value
 		// uint16_t           value_type
 		// uint16_t           value_len
 		case ESP_GATTC_READ_CHAR_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, srvc_id: <%s>, char_id: <%s>, descr_id: <%s>, value_type: 0x%x, value_len: %d]",
+			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, handle: %d 0x%.2x, value_len: %d]",
 				BLEUtils::gattStatusToString(evtParam->read.status).c_str(),
 				evtParam->read.conn_id,
-				BLEUtils::gattServiceIdToString(evtParam->read.srvc_id).c_str(),
-				gattIdToString(evtParam->read.char_id).c_str(),
-				gattIdToString(evtParam->read.descr_id).c_str(),
-				evtParam->read.value_type,
+				evtParam->read.handle,
+				evtParam->read.handle,
 				evtParam->read.value_len
 			);
 			if (evtParam->read.status == ESP_GATT_OK) {
@@ -844,13 +839,13 @@ void BLEUtils::dumpGattClientEvent(
 		//
 		// reg_for_notify:
 		// - esp_gatt_status_t status
-		// - esp_gatt_srvc_id_t srvc_id
-		// - esp_gatt_id_t char_id
+		// - uint16_t          handle
 		case ESP_GATTC_REG_FOR_NOTIFY_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %s, srvc_id: <%s>, char_id: <%s>]",
+			ESP_LOGD(LOG_TAG, "[status: %s, handle: %d 0x%.2x]",
 				BLEUtils::gattStatusToString(evtParam->reg_for_notify.status).c_str(),
-				BLEUtils::gattServiceIdToString(evtParam->reg_for_notify.srvc_id).c_str(),
-				gattIdToString(evtParam->reg_for_notify.char_id).c_str());
+				evtParam->reg_for_notify.handle,
+				evtParam->reg_for_notify.handle
+			);
 			break;
 		} // ESP_GATTC_REG_FOR_NOTIFY_EVT
 
@@ -874,23 +869,19 @@ void BLEUtils::dumpGattClientEvent(
 		// ESP_GATTC_SEARCH_RES_EVT
 		//
 		// search_res:
-		// - uint16_t           conn_id
-		// - esp_gatt_srvc_id_t srvc_id
+		// - uint16_t      conn_id
+		// - uint16_t      start_handle
+		// - uint16_t      end_handle
+		// - esp_gatt_id_t srvc_id
 		//
 		case ESP_GATTC_SEARCH_RES_EVT: {
-			std::string name = "";
-			if (evtParam->search_res.srvc_id.id.uuid.len == ESP_UUID_LEN_16) {
-				name = BLEUtils::gattServiceToString(evtParam->search_res.srvc_id.id.uuid.uuid.uuid16);
-			}
-			if (name.length() == 0) {
-				name = "<Unknown Service>";
-			}
-
-			ESP_LOGD(LOG_TAG, "[srvc_id: %s [%s], instanceId: 0x%.2x conn_id: %d]",
-				BLEUtils::gattServiceIdToString(evtParam->search_res.srvc_id).c_str(),
-				name.c_str(),
-				evtParam->search_res.srvc_id.id.inst_id,
-				evtParam->search_res.conn_id);
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, start_handle: %d 0x%.2x, end_handle: %d 0x%.2x, srvc_id: %s",
+				evtParam->search_res.conn_id,
+				evtParam->search_res.start_handle,
+				evtParam->search_res.start_handle,
+				evtParam->search_res.end_handle,
+				evtParam->search_res.end_handle,
+				gattIdToString(evtParam->search_res.srvc_id).c_str());
 			break;
 		} // ESP_GATTC_SEARCH_RES_EVT
 
@@ -899,21 +890,19 @@ void BLEUtils::dumpGattClientEvent(
 		// ESP_GATTC_WRITE_CHAR_EVT
 		//
 		// write:
-		// esp_gatt_status_t  status
-		// uint16_t           conn_id
-		// esp_gatt_srvc_id_t srvc_id
-		// esp_gatt_id_t      char_id
-		// esp_gatt_id_t      descr_id
+		// - esp_gatt_status_t status
+		// - uint16_t          conn_id
+		// - uint16_t          handle
+		//
 		case ESP_GATTC_WRITE_CHAR_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, srvc_id: <%s>, char_id: <%s>, descr_id: <%s>]",
+			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, handle: %d 0x%.2x]",
 				BLEUtils::gattStatusToString(evtParam->write.status).c_str(),
 				evtParam->write.conn_id,
-				BLEUtils::gattServiceIdToString(evtParam->write.srvc_id).c_str(),
-				gattIdToString(evtParam->write.char_id).c_str(),
-				gattIdToString(evtParam->write.descr_id).c_str()
+				evtParam->write.handle,
+				evtParam->write.handle
 			);
 			break;
-		}
+		} // ESP_GATTC_WRITE_CHAR_EVT
 
 		default:
 			break;
@@ -939,18 +928,22 @@ void BLEUtils::dumpGattServerEvent(
 	switch(event) {
 
 		case ESP_GATTS_ADD_CHAR_DESCR_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %s, attr_handle: 0x%.2x, service_handle: 0x%.2x, char_uuid: %s]",
+			ESP_LOGD(LOG_TAG, "[status: %s, attr_handle: %d 0x%.2x, service_handle: %d 0x%.2x, char_uuid: %s]",
 				gattStatusToString(evtParam->add_char_descr.status).c_str(),
 				evtParam->add_char_descr.attr_handle,
+				evtParam->add_char_descr.attr_handle,
+				evtParam->add_char_descr.service_handle,
 				evtParam->add_char_descr.service_handle,
 				BLEUUID(evtParam->add_char_descr.char_uuid).toString().c_str());
 			break;
 		} // ESP_GATTS_ADD_CHAR_DESCR_EVT
 
 		case ESP_GATTS_ADD_CHAR_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %s, attr_handle: 0x%.2x, service_handle: 0x%.2x, char_uuid: %s]",
+			ESP_LOGD(LOG_TAG, "[status: %s, attr_handle: %d 0x%.2x, service_handle: %d 0x%.2x, char_uuid: %s]",
 				gattStatusToString(evtParam->add_char.status).c_str(),
 				evtParam->add_char.attr_handle,
+				evtParam->add_char.attr_handle,
+				evtParam->add_char.service_handle,
 				evtParam->add_char.service_handle,
 				BLEUUID(evtParam->add_char.char_uuid).toString().c_str());
 			break;
@@ -987,8 +980,9 @@ void BLEUtils::dumpGattServerEvent(
 		} // ESP_GATTS_CONNECT_EVT
 
 		case ESP_GATTS_CREATE_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %s, service_handle: 0x%.2x, service_id: [%s]]",
+			ESP_LOGD(LOG_TAG, "[status: %s, service_handle: %d 0x%.2x, service_id: [%s]]",
 				gattStatusToString(evtParam->create.status).c_str(),
+				evtParam->create.service_handle,
 				evtParam->create.service_handle,
 				gattServiceIdToString(evtParam->create.service_id).c_str());
 			break;
@@ -1139,7 +1133,7 @@ const char* BLEUtils::eventTypeToString(esp_ble_evt_type_t eventType) {
 		case ESP_BLE_EVT_SCAN_RSP:
 			return "ESP_BLE_EVT_SCAN_RSP";
 		default:
-			ESP_LOGD(LOG_TAG, "Unknown esp_ble_evt_type_t: %d", eventType);
+			ESP_LOGD(LOG_TAG, "Unknown esp_ble_evt_type_t: %d (0x%.2x)", eventType, eventType);
 			return "*** Unknown ***";
 	}
 } // eventTypeToString
@@ -1208,6 +1202,22 @@ std::string BLEUtils::gattCharacteristicUUIDToString(uint32_t characteristicUUID
 	}
 	return "Unknown";
 } // gattCharacteristicUUIDToString
+
+
+/**
+ * @brief Return a string representation of an esp_gattc_service_elem_t.
+ * @return A string representation of an esp_gattc_service_elem_t.
+ */
+std::string BLEUtils::gattcServiceElementToString(esp_gattc_service_elem_t *pGATTCServiceElement) {
+	std::stringstream ss;
+
+	ss << "[uuid: " << BLEUUID(pGATTCServiceElement->uuid).toString() <<
+		", start_handle: " << pGATTCServiceElement->start_handle <<
+			" 0x" << std::hex << pGATTCServiceElement->start_handle <<
+		", end_handle: " << std::dec << pGATTCServiceElement->end_handle <<
+		  " 0x" << std::hex << pGATTCServiceElement->end_handle << "]";
+	return ss.str();
+} // gattcServiceElementToString
 
 
 /**
@@ -1312,10 +1322,18 @@ std::string BLEUtils::gattStatusToString(esp_gatt_status_t status) {
 			return "ESP_GATT_ALREADY_OPEN";
 		case ESP_GATT_CANCEL:
 			return "ESP_GATT_CANCEL";
+		case ESP_GATT_STACK_RSP:
+			return "ESP_GATT_STACK_RSP";
+		case ESP_GATT_APP_RSP:
+			return "ESP_GATT_APP_RSP";
+		case ESP_GATT_UNKNOWN_ERROR:
+			return "ESP_GATT_UNKNOWN_ERROR";
 		case ESP_GATT_CCC_CFG_ERR:
 			return "ESP_GATT_CCC_CFG_ERR";
 		case ESP_GATT_PRC_IN_PROGRESS:
 			return "ESP_GATT_PRC_IN_PROGRESS";
+		case ESP_GATT_OUT_OF_RANGE:
+			return "ESP_GATT_OUT_OF_RANGE";
 		default:
 			return "Unknown";
 	}

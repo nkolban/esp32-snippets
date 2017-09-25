@@ -251,7 +251,7 @@ void HttpParser::parse(std::string message) {
 // <method> <sp> <request-target> <sp> <HTTP-version>
 //
 void HttpParser::parseRequestLine(std::string &line) {
-	ESP_LOGD(LOG_TAG, ">> parseRequestLine: %s [%d]", line.c_str(), line.length());
+	ESP_LOGD(LOG_TAG, ">> parseRequestLine: \"%s\" [%d]", line.c_str(), line.length());
 	std::string::iterator it = line.begin();
 
 	// Get the method
@@ -262,4 +262,5 @@ void HttpParser::parseRequestLine(std::string &line) {
 
 	// Get the version
 	m_version = toCharToken(it, line, ' ');
+	ESP_LOGD(LOG_TAG, "<< parseRequestLine: method: %s, url: %s, version: %s", m_method.c_str(), m_url.c_str(), m_version.c_str());
 } // parseRequestLine

@@ -22,6 +22,7 @@ public:
 	static std::string ipToString(uint8_t *ip);
 	static bool base64Encode(const std::string &in, std::string *out);
 	static bool base64Decode(const std::string &in, std::string *out);
+	static bool endsWith(std::string str, char c);
 	static const char *errorToString(esp_err_t errCode);
 };
 

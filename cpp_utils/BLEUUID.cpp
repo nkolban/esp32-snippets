@@ -166,11 +166,11 @@ BLEUUID::BLEUUID(esp_bt_uuid_t uuid) {
 
 
 /**
- * @brief Create a UUID from the ESP32 esp_gatt_srvc_id_t.
+ * @brief Create a UUID from the ESP32 esp_gat_id_t.
  *
- * @param [in] srvcId The data to create the UUID from.
+ * @param [in] gattId The data to create the UUID from.
  */
-BLEUUID::BLEUUID(esp_gatt_srvc_id_t srcvId) : BLEUUID(srcvId.id.uuid) {
+BLEUUID::BLEUUID(esp_gatt_id_t gattId) : BLEUUID(gattId.uuid) {
 } // BLEUUID
 
 

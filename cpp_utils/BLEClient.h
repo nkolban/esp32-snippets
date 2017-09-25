@@ -34,6 +34,7 @@ public:
 	std::map<std::string, BLERemoteService*>*  getServices();
 	BLERemoteService*                          getService(const char* uuid);
 	BLERemoteService*                          getService(BLEUUID uuid);
+	BLERemoteService*                          getService(uint16_t handle);
 	void                                       setClientCallbacks(BLEClientCallbacks *pClientCallbacks);
 	std::string                                toString();
 

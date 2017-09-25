@@ -14,15 +14,59 @@
 #include "HttpResponse.h"
 #include "FileSystem.h"
 #include "WebSocket.h"
+#include "GeneralUtils.h"
 static const char* LOG_TAG = "HttpServer";
 
 #undef close
+
+/**
+ * Send a directory listing back to the browser.
+ * @param [in] path The path of the directory to list.
+ * @param [in] response The response object to use to send data back to the browser.
+ */
+static void listDirectory(std::string path, HttpResponse& response) {
+	// If path ends with a "/" then remove it.
+	if (GeneralUtils::endsWith(path, '/')) {
+		path = path.substr(0, path.length()-1);
+	}
+	response.addHeader("Content-Type", "text/html");
+	response.setStatus(HttpResponse::HTTP_STATUS_OK, "OK");
+	response.sendData("<html><head>");
+	if (!GeneralUtils::endsWith(path, '/')) {
+		response.sendData("<base href='" + path + "/' />");
+	}
+	response.sendData("</head><body>");
+	response.sendData("<h1>" + path + "</h1>");
+	response.sendData("<hr/>");
+	response.sendData("<p><a href='..'>[To Parent Directory]</a></p>");
+	response.sendData("<table style='font-family: monospace;'>");
+	auto files = FileSystem::getDirectoryContents(path);
+	for (auto it = files.begin(); it != files.end(); ++it) {
+		std::stringstream ss;
+		ss << "<tr><td><a href='" << it->getName() << "'>" << it->getName() << "</a></td>";
+		if (it->isDirectory()) {
+			ss << "<td>&lt;dir&gt;</td>";
+		}
+		else {
+			ss << "<td>" << it->length() << "</td>";
+		}
+
+		ss << "</tr>";
+		response.sendData(ss.str());
+		ESP_LOGD(LOG_TAG, "file: %s", ss.str().c_str());
+	}
+	response.sendData("</table>");
+	response.sendData("<hr/>");
+	response.sendData("</body></html>");
+	response.close();
+} // listDirectory
+
 /**
  * Constructor for HTTP Server
  */
 HttpServer::HttpServer() {
 	m_portNumber = 80;              // The default port number.
-	m_rootPath   = "/";             // The default path.
+	m_rootPath   = "";             // The default path.
 	m_useSSL     = false;           // Default SSL is no.
 	setDirectoryListing(false);   // Default directory listing is no.
 } // HttpServer
@@ -91,15 +135,26 @@ private:
 		// Serve up the content from the file on the file system ... if found ...
 		std::ifstream ifStream;
 		std::string fileName = m_pHttpServer->getRootPath() + request.getPath(); // Build the absolute file name to read.
-		if (FileSystem::isDirectory(fileName)) {
-			ESP_LOGD(LOG_TAG, "Path is a directory");
-			return;
+
+		// If the file name ends with a '/' then remove it ... we are normalizing to NO trailing slashes.
+		if (GeneralUtils::endsWith(fileName, '/')) {
+			fileName = fileName.substr(0, fileName.length()-1);
 		}
+
+		// Test if the path is a directory.
+		if (FileSystem::isDirectory(fileName)) {
+			ESP_LOGD(LOG_TAG, "Path %s is a directory", fileName.c_str());
+			HttpResponse response(&request);
+			listDirectory(fileName, response);
+			return;
+		} // Path was a directory.
+
 		ESP_LOGD("HttpServerTask", "Opening file: %s", fileName.c_str());
 		ifStream.open(fileName, std::ifstream::in | std::ifstream::binary);      // Attempt to open the file for reading.
 
 		// If we failed to open the requested file, then it probably didn't exist so return a not found.
 		if (!ifStream.is_open()) {
+			ESP_LOGE("HttpServerTask", "Unable to open file %s for reading", fileName.c_str());
 			HttpResponse response(&request);
 			response.setStatus(HttpResponse::HTTP_STATUS_NOT_FOUND, "Not Found");
 			response.sendData("");

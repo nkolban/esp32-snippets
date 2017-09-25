@@ -20,12 +20,13 @@ public:
 	std::string getContent(bool base64Encode=false);
 	std::string getContent(uint32_t offset, uint32_t size);
 	std::string getName();
+	std::string getPath();
 	uint8_t     getType();
 	bool        isDirectory();
 	uint32_t    length();
 
 private:
-	std::string m_name;
+	std::string m_path;
 	uint8_t     m_type;
 };
 

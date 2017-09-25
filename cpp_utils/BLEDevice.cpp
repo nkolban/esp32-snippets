@@ -69,19 +69,19 @@ void BLEDevice::gattServerEventHandler(
  * @brief Handle GATT client events.
  *
  * Handler for the GATT client events.
- * * `ESP_GATTC_OPEN_EVT` – Invoked when a connection is opened.
+ * * `ESP_GATTC_OPEN_EVT`       – Invoked when a connection is opened.
  * * `ESP_GATTC_PREP_WRITE_EVT` – Response to write a characteristic.
- * * `ESP_GATTC_READ_CHAR_EVT` – Response to read a characteristic.
- * * `ESP_GATTC_REG_EVT` – Invoked when a GATT client has been registered.
+ * * `ESP_GATTC_READ_CHAR_EVT`  – Response to read a characteristic.
+ * * `ESP_GATTC_REG_EVT`        – Invoked when a GATT client has been registered.
  *
  * @param [in] event
  * @param [in] gattc_if
  * @param [in] param
  */
 void BLEDevice::gattClientEventHandler(
-	esp_gattc_cb_event_t event,
-	esp_gatt_if_t gattc_if,
-	esp_ble_gattc_cb_param_t *param) {
+	esp_gattc_cb_event_t      event,
+	esp_gatt_if_t             gattc_if,
+	esp_ble_gattc_cb_param_t* param) {
 
 	ESP_LOGD(LOG_TAG, "gattClientEventHandler [esp_gatt_if: %d] ... %s",
 		gattc_if, BLEUtils::gattClientEventTypeToString(event).c_str());

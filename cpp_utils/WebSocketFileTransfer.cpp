@@ -8,6 +8,7 @@
 #include <fstream>
 #include <esp_log.h>
 #include <sys/stat.h>
+#include "GeneralUtils.h"
 #include "JSON.h"
 static const char* LOG_TAG = "WebSocketFileTransfer";
 
@@ -20,9 +21,18 @@ static const char* LOG_TAG = "WebSocketFileTransfer";
  * @param [in] rootPath The path prefix for new files.
  */
 WebSocketFileTransfer::WebSocketFileTransfer(std::string rootPath) {
+	// If the root path doesn't end with a '/', add one.
+	if (!GeneralUtils::endsWith(rootPath, '/')) {
+		rootPath += '/';
+	}
 	m_rootPath   = rootPath;
 	m_pWebSocket = nullptr;
-}
+	if (rootPath.empty()) {
+		ESP_LOGE(LOG_TAG, "Root path can not be empty");
+	} else if (m_rootPath.substr(m_rootPath.size()-1) != "/") {
+		ESP_LOGE(LOG_TAG, "Root path must end with a \"/\"");
+	}
+} // WebSocketFileTransfer
 
 
 // Hide the class in an un-named namespace
@@ -59,6 +69,7 @@ public:
 		// Test to see if we are currently active.  If not, this is the start of a transfer.
 		if (!m_active) {
 
+			ESP_LOGD("FileTransferWebSocketHandler", "Not yet active!");
 			// Read a chunk of data into memory.
 			std::stringstream buffer;
 			buffer << pWebSocketInputStreambuf;
@@ -77,6 +88,7 @@ public:
 				m_fileLength  = jo.getInt("length");
 			}
 			std::string fileName = m_rootPath + m_fileName;
+			ESP_LOGD("FileTransferWebSocketHandler", "Target file is %s", fileName.c_str());
 
 			// If the file to create ends in a "/" then we are being asked to create a directory.
 			if (m_fileName.substr(m_fileName.size()-1)=="/") {
@@ -98,7 +110,7 @@ public:
 			else {
 				m_ofStream.open(fileName, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
 				if (!m_ofStream.is_open()) {
-					ESP_LOGE("FileTransferWebSocketHandler", "Failed to open file %s", m_fileName.c_str());
+					ESP_LOGE("FileTransferWebSocketHandler", "Failed to open file %s for writing", m_fileName.c_str());
 					return;
 				}
 			}
@@ -134,6 +146,7 @@ public:
 		if (m_ofStream.is_open()) {
 			m_ofStream.close();   // Close the file now that we have finished writing to it.
 		}
+		delete this;   // Delete ourself.
 	} // onClose
 }; // FileTransferWebSocketHandler
 

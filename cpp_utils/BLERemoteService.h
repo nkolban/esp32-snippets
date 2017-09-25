@@ -26,24 +26,29 @@ class BLERemoteCharacteristic;
  */
 class BLERemoteService {
 public:
-	BLERemoteService(esp_gatt_srvc_id_t srvcId, BLEClient* pClient);
+
 	virtual ~BLERemoteService();
 
 	// Public methods
 	BLERemoteCharacteristic* getCharacteristic(const char* uuid);	
 	BLERemoteCharacteristic* getCharacteristic(BLEUUID uuid);
+	BLERemoteCharacteristic* getCharacteristic(uint16_t handle);
 	void                     getCharacteristics(void);
 	BLEClient*               getClient(void);
 	BLEUUID                  getUUID(void);
 	std::string              toString(void);
 
 private:
+	// Private constructor ... never meant to be created by a user application.
+	BLERemoteService(esp_gatt_id_t srvcId, BLEClient* pClient, uint16_t startHandle, uint16_t endHandle);
+
 	// Friends
 	friend class BLEClient;
 	friend class BLERemoteCharacteristic;
 
 	// Private methods
-	esp_gatt_srvc_id_t* getSrvcId(void);
+	uint16_t            getHandle();
+	esp_gatt_id_t*      getSrvcId(void);
 	void                gattClientEventHandler(
 		esp_gattc_cb_event_t      event,
 		esp_gatt_if_t             gattc_if,
@@ -51,12 +56,17 @@ private:
 	void                removeCharacteristics();
 
 	// Properties
+
+	// We maintain a map of characteristics owned by this service keyed by a string representation of the UUID.
 	std::map<std::string, BLERemoteCharacteristic *> m_characteristicMap;
+
 	bool                m_haveCharacteristics; // Have we previously obtained the characteristics.
 	BLEClient*          m_pClient;
 	FreeRTOS::Semaphore m_semaphoreGetCharEvt = FreeRTOS::Semaphore("GetCharEvt");
-	esp_gatt_srvc_id_t  m_srvcId;
+	esp_gatt_id_t       m_srvcId;
 	BLEUUID             m_uuid;
+	uint16_t            m_startHandle;
+	uint16_t            m_endHandle;
 }; // BLERemoteService
 
 #endif /* CONFIG_BT_ENABLED */

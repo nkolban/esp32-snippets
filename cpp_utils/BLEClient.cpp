@@ -51,6 +51,7 @@ BLEClient::BLEClient() {
 /**
  * @brief Connect to the partner.
  * @param [in] address The address of the partner.
+ * @return True on success.
  */
 bool BLEClient::connect(BLEAddress address) {
 	ESP_LOGD(LOG_TAG, ">> connect(%s)", address.toString().c_str());
@@ -113,29 +114,38 @@ void BLEClient::gattClientEventHandler(
 		// ESP_GATTC_NOTIFY_EVT
 		//
 		// notify
-		// uint16_t           conn_id
-		// esp_bd_addr_t      remote_bda
-		// esp_gatt_srvc_id_t srvc_id
-		// esp_gatt_id_t      char_id
-		// esp_gatt_id_t      descr_id
-		// uint16_t           value_len
-		// uint8_t*           value
-		// bool               is_notify
+		// - uint16_t           conn_id
+		// - esp_bd_addr_t      remote_bda
+		// - uint16_t           handle
+		// - uint16_t           value_len
+		// - uint8_t*           value
+		// - bool               is_notify
+		//
+		// We have received a notification event which means that the server wishes us to know about a notification
+		// piece of data.  What we must now do is find the characteristic with the associated handle and then
+		// invoke its notification callback (if it has one).
 		//
 		case ESP_GATTC_NOTIFY_EVT: {
-			BLERemoteService *pBLERemoteService = getService(BLEUUID(evtParam->notify.srvc_id.id.uuid));
+			BLERemoteService* pBLERemoteService = getService(evtParam->notify.handle);
 			if (pBLERemoteService == nullptr) {
-				ESP_LOGE(LOG_TAG, "Could not find service with UUID %s for notification", BLEUUID(evtParam->notify.srvc_id.id.uuid).toString().c_str());
+				ESP_LOGE(LOG_TAG, "Could not find service containing handle %d 0x%.2x for notification",
+					evtParam->notify.handle, evtParam->notify.handle);
 				break;
 			}
-			BLERemoteCharacteristic* pBLERemoteCharacteristic = pBLERemoteService->getCharacteristic(BLEUUID(evtParam->notify.char_id.uuid));
+			BLERemoteCharacteristic* pBLERemoteCharacteristic = pBLERemoteService->getCharacteristic(evtParam->notify.handle);
 			if (pBLERemoteCharacteristic == nullptr) {
-				ESP_LOGE(LOG_TAG, "Could not find characteristic with UUID %s for notification", BLEUUID(evtParam->notify.char_id.uuid).toString().c_str());
+				ESP_LOGE(LOG_TAG, "Could not find characteristic with handle %d 0x%.2x for notification",
+					evtParam->notify.handle, evtParam->notify.handle);
 				break;
 			}
 			if (pBLERemoteCharacteristic->m_notifyCallback != nullptr) {
-				pBLERemoteCharacteristic->m_notifyCallback(pBLERemoteCharacteristic, evtParam->notify.value, evtParam->notify.value_len, evtParam->notify.is_notify);
-			}
+				pBLERemoteCharacteristic->m_notifyCallback(
+					pBLERemoteCharacteristic,
+					evtParam->notify.value,
+					evtParam->notify.value_len,
+					evtParam->notify.is_notify
+				);
+			} // End we have a callback function ...
 			break;
 		} // ESP_GATTC_NOTIFY_EVT
 
@@ -189,12 +199,19 @@ void BLEClient::gattClientEventHandler(
 		// ESP_GATTC_SEARCH_RES_EVT
 		//
 		// search_res:
-		// - uint16_t           conn_id
-		// - esp_gatt_srvc_id_t srvc_id
+		// - uint16_t      conn_id
+		// - uint16_t      start_handle
+		// - uint16_t      end_handle
+		// - esp_gatt_id_t srvc_id
 		//
 		case ESP_GATTC_SEARCH_RES_EVT: {
 			BLEUUID uuid = BLEUUID(evtParam->search_res.srvc_id);
-			BLERemoteService* pRemoteService = new BLERemoteService(evtParam->search_res.srvc_id, this);
+			BLERemoteService* pRemoteService = new BLERemoteService(
+				evtParam->search_res.srvc_id,
+				this,
+				evtParam->search_res.start_handle,
+				evtParam->search_res.end_handle
+			);
 			m_servicesMap.insert(std::pair<std::string, BLERemoteService *>(uuid.toString(), pRemoteService));
 			break;
 		} // ESP_GATTC_SEARCH_RES_EVT
@@ -231,7 +248,12 @@ esp_gatt_if_t BLEClient::getGattcIf() {
 	return m_gattc_if;
 } // getGattcIf
 
-
+BLERemoteService* BLEClient::getService(uint16_t handle) {
+	ESP_LOGD(LOG_TAG, ">> getService: handle: %d", handle);
+	ESP_LOGE(LOG_TAG, "!!! NOT IMPLEMENTED !!!");
+	ESP_LOGD(LOG_TAG, "<< getService");
+	return nullptr;
+}
 
 /**
  * @brief Get the service object corresponding to the uuid.
@@ -262,7 +284,7 @@ BLERemoteService* BLEClient::getService(BLEUUID uuid) {
 	std::string uuidStr = uuid.toString();
 	for (auto &myPair : m_servicesMap) {
 		if (myPair.first == uuidStr) {
-			ESP_LOGD(LOG_TAG, "<< getService: found");
+			ESP_LOGD(LOG_TAG, "<< getService: found the service with uuid: %s", uuid.toString().c_str());
 			return myPair.second;
 		}
 	}

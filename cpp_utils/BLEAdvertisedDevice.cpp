@@ -329,7 +329,7 @@ void BLEAdvertisedDevice::setManufacturerData(std::string manufacturerData) {
 void BLEAdvertisedDevice::setName(std::string name) {
 	m_name     = name;
 	m_haveName = true;
-	ESP_LOGD(LOG_TAG, "- name: %s", m_name.c_str());
+	ESP_LOGD(LOG_TAG, "- setName(): name: %s", m_name.c_str());
 } // setName
 
 
@@ -340,7 +340,7 @@ void BLEAdvertisedDevice::setName(std::string name) {
 void BLEAdvertisedDevice::setRSSI(int rssi) {
 	m_rssi     = rssi;
 	m_haveRSSI = true;
-	ESP_LOGD(LOG_TAG, "- rssi: %d", m_rssi);
+	ESP_LOGD(LOG_TAG, "- setRSSI(): rssi: %d", m_rssi);
 } // setRSSI
 
 
@@ -367,7 +367,7 @@ void BLEAdvertisedDevice::setServiceUUID(const char* serviceUUID) {
 void BLEAdvertisedDevice::setServiceUUID(BLEUUID serviceUUID) {
 	m_serviceUUID     = serviceUUID;
 	m_haveServiceUUID = true;
-	ESP_LOGD(LOG_TAG, "- serviceUUID: %s", serviceUUID.toString().c_str());
+	ESP_LOGD(LOG_TAG, "- setServiceUUID(): serviceUUID: %s", serviceUUID.toString().c_str());
 } // setRSSI
 
 

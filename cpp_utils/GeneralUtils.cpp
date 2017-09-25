@@ -106,6 +106,23 @@ bool GeneralUtils::base64Encode(const std::string &in, std::string *out) {
 } // base64Encode
 
 
+/**
+ * @brief Does the string end with a specific character?
+ * @param [in] str The string to examine.
+ * @param [in] c The character to look form.
+ * @return True if the string ends with the given character.
+ */
+bool GeneralUtils::endsWith(std::string str, char c) {
+	if (str.empty()) {
+		return false;
+	}
+	if (str.at(str.length()-1) == c) {
+		return true;
+	}
+	return false;
+} // endsWidth
+
+
 static int DecodedLength(const std::string &in) {
 	int numEq = 0;
 	int n = in.size();
@@ -385,4 +402,5 @@ const char* GeneralUtils::errorToString(esp_err_t errCode) {
 		}
 	return "Unknown ESP_ERR error";
 } // errorToString
+
 

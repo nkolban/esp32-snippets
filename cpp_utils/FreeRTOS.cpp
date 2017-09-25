@@ -133,11 +133,10 @@ void FreeRTOS::Semaphore::giveFromISR() {
  */
 void FreeRTOS::Semaphore::take(std::string owner)
 {
-
-	ESP_LOGV(LOG_TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
+	ESP_LOGD(LOG_TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
 	xSemaphoreTake(m_semaphore, portMAX_DELAY);
 	m_owner = owner;
-	ESP_LOGV(LOG_TAG, "Semaphore taken:  %s", toString().c_str());
+	ESP_LOGD(LOG_TAG, "Semaphore taken:  %s", toString().c_str());
 } // Semaphore::take
 
 

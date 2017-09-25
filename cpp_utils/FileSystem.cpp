@@ -67,7 +67,7 @@ std::vector<File> FileSystem::getDirectoryContents(std::string path) {
 	struct dirent *pDirent;
 	ESP_LOGD(LOG_TAG, "Directory dump of %s", path.c_str());
 	while((pDirent = readdir(pDir)) != nullptr) {
-		File file(std::string(pDirent->d_name), pDirent->d_type);
+		File file(path +"/" + std::string(pDirent->d_name), pDirent->d_type);
 		ret.push_back(file);
 	}
 	::closedir(pDir);
