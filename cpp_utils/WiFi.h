@@ -103,9 +103,9 @@ private:
  */
 class WiFi {
 private:
-    std::string      ip;
-    std::string      gw;
-    std::string      netmask;
+    uint32_t ip;
+    uint32_t gw;
+    uint32_t netmask;
     WiFiEventHandler *wifiEventHandler;
 
 public:
@@ -113,8 +113,10 @@ public:
     ~WiFi();
     void addDNSServer(const std::string& ip);
     void addDNSServer(const char* ip);
+    void addDNSServer(ip_addr_t ip);
     void setDNSServer(int numdns, const std::string& ip);
     void setDNSServer(int numdns, const char* ip);
+    void setDNSServer(int numdns, ip_addr_t ip);
     struct in_addr getHostByName(const std::string& hostName);
     struct in_addr getHostByName(const char* hostName);
     void connectAP(const std::string& ssid, const std::string& password);
@@ -129,11 +131,8 @@ public:
     std::vector<WiFiAPRecord> scan();
     void startAP(const std::string& ssid, const std::string& passwd);
     void setIPInfo(const std::string& ip, const std::string& gw, const std::string& netmask);
-    void setIPInfo(std::string&& ip, std::string&& gw, std::string&& netmask);
-
-
-
-
+    void setIPInfo(const char* ip, const char* gw, const char* netmask);
+    void setIPInfo(uint32_t ip, uint32_t gw, uint32_t netmask);
 
     /**
      * Set the event handler to use to process detected events.
