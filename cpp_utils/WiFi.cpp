@@ -41,17 +41,13 @@ static void setDNSServer(char *ip) {
 }
 */
 
-
-}
-*/
-
 /**
  * @brief Creates and uses a default event handler
  */
 WiFi::WiFi()
-    : ip("")
-    , gw("")
-    , netmask("")
+    : ip(0)
+    , gw(0)
+    , netmask(0)
     , wifiEventHandler(nullptr)
 {
     wifiEventHandler = new WiFiEventHandler();
@@ -86,10 +82,14 @@ void WiFi::addDNSServer(const std::string& ip) {
 } // addDNSServer
 
 void WiFi::addDNSServer(const char* ip) {
-    ip_addr_t dnsserver;
-    ESP_LOGD(tag, "Setting DNS[%d] to %s", m_dnsCount, ip);
-    inet_pton(AF_INET, ip, &dnsserver);
-    ::dns_setserver(m_dnsCount, &dnsserver);
+    ip_addr_t dns_server;
+    if(inet_pton(AF_INET, ip, &dns_server))
+        addDNSServer(ip);
+} // addDNSServer
+
+void WiFi::addDNSServer(ip_addr_t ip) {
+    ESP_LOGD(tag, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
+    ::dns_setserver(m_dnsCount, &ip);
     m_dnsCount++;
     m_dnsCount %= 2;
 } // addDNSServer
@@ -115,10 +115,14 @@ void WiFi::setDNSServer(int numdns, const std::string& ip) {
 } // setDNSServer
 
 void WiFi::setDNSServer(int numdns, const char* ip) {
-    ip_addr_t dnsserver;
-    ESP_LOGD(tag, "Setting DNS[%d] to %s", numdns, ip);
-    inet_pton(AF_INET, ip, &dnsserver);
-    ::dns_setserver(numdns, &dnsserver);
+    ip_addr_t dns_server;
+    if(inet_pton(AF_INET, ip, &dns_server))
+        setDNSServer(numdns, dns_server);
+} // setDNSServer
+
+void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
+    ESP_LOGD(tag, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
+    ::dns_setserver(numdns, &ip);
 } // setDNSServer
 
 /**
@@ -133,20 +137,19 @@ void WiFi::setDNSServer(int numdns, const char* ip) {
 void WiFi::connectAP(const std::string& ssid, const std::string& password){
     ::nvs_flash_init();
     ::tcpip_adapter_init();
-    if (ip.length() > 0 && gw.length() > 0 && netmask.length() > 0) {
+    if (ip != 0 && gw != 0 && netmask != 0) {
         ::tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA); // Don't run a DHCP client
-        tcpip_adapter_ip_info_t ipInfo;
 
-        inet_pton(AF_INET, ip.data(), &ipInfo.ip);
-        inet_pton(AF_INET, gw.data(), &ipInfo.gw);
-        inet_pton(AF_INET, netmask.data(), &ipInfo.netmask);
+        tcpip_adapter_ip_info_t ipInfo;
+        ipInfo.ip.addr = ip;
+        ipInfo.gw.addr = gw;
+        ipInfo.netmask.addr = netmask;
+
         ::tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
     }
 
 
     ESP_ERROR_CHECK( esp_event_loop_init(wifiEventHandler->getEventHandler(), wifiEventHandler));
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(::esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
     ESP_ERROR_CHECK(::esp_wifi_set_mode(WIFI_MODE_STA));
     wifi_config_t sta_config;
@@ -366,7 +369,8 @@ void WiFi::startAP(const std::string& ssid, const std::string& password) {
 
 
 /**
- * @brief Set the IP info used when connecting as a station to an external access point.
+ * @brief Set the IP info and enable DHCP if ip != 0. If called with ip == 0 then DHCP is enabled.
+ * If called with bad values it will do nothing.
  *
  * Do not call this method if we are being an access point ourselves.
  *
@@ -382,17 +386,43 @@ void WiFi::startAP(const std::string& ssid, const std::string& password) {
  * @return N/A.
  */
 void WiFi::setIPInfo(const std::string& ip, const std::string& gw, const std::string& netmask) {
+    setIPInfo(ip.c_str(), gw.c_str(), netmask.c_str());
+} // setIPInfo
+
+void WiFi::setIPInfo(const char* ip, const char* gw, const char* netmask) {
+    uint32_t new_ip;
+    uint32_t new_gw;
+    uint32_t new_netmask;
+
+    auto success = (bool)inet_pton(AF_INET, ip, &new_ip);
+    success = success && inet_pton(AF_INET, gw, &new_gw);
+    success = success && inet_pton(AF_INET, netmask, &new_netmask);
+
+    if(!success) {
+        return;
+    }
+
+    setIPInfo(new_ip, new_gw, new_netmask);
+} // setIPInfo
+
+void WiFi::setIPInfo(uint32_t ip, uint32_t gw, uint32_t netmask) {
     this->ip = ip;
     this->gw = gw;
     this->netmask = netmask;
-} // setIPInfo
 
-void WiFi::setIPInfo(std::string&& ip, std::string&& gw, std::string&& netmask) {
-    this->ip = std::move(ip);
-    this->gw = std::move(gw);
-    this->netmask = std::move(netmask);
-} // setIPInfo
+    if(ip != 0 && gw != 0 && netmask != 0) {
+        tcpip_adapter_ip_info_t ipInfo;
+        ipInfo.ip.addr = ip;
+        ipInfo.gw.addr = gw;
+        ipInfo.netmask.addr = netmask;
 
+        ::tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA);
+        ::tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
+    } else {
+        ip = 0;
+        ::tcpip_adapter_dhcpc_start(TCPIP_ADAPTER_IF_STA);
+    }
+}
 
 /**
  * @brief Return a string representation of the WiFi access point record.
