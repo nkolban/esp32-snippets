@@ -557,10 +557,12 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
 
     // Because we reached here, it means that we did NOT match a handler.  Now we want to attempt
     // to retrieve the corresponding file content.
-    std::string filePath = httpResponse.getRootPath();
+    std::string filePath;
+    filePath.reserve(httpResponse.getRootPath().length() + message->uri.len + 1);
+    filePath += httpResponse.getRootPath();
     filePath.append(message->uri.p, message->uri.len);
     ESP_LOGD(tag, "Opening file: %s", filePath.c_str());
-    FILE *file = fopen(filePath.c_str(), "r");
+    FILE *file = fopen(filePath.c_str(), "rb");
     if (file != nullptr) {
         fseek(file, 0L, SEEK_END);
         size_t length = ftell(file);
