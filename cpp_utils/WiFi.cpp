@@ -42,13 +42,27 @@ static void setDNSServer(char *ip) {
 */
 
 
-WiFi::WiFi() {
-    ip      = "";
-    gw      = "";
-    netmask = "";
+}
+*/
+
+/**
+ * @brief Creates and uses a default event handler
+ */
+WiFi::WiFi()
+    : ip("")
+    , gw("")
+    , netmask("")
+    , wifiEventHandler(nullptr)
+{
     wifiEventHandler = new WiFiEventHandler();
 }
 
+/**
+ * @brief Deletes the event handler that was used by the class
+ */
+WiFi::~WiFi() {
+    delete wifiEventHandler;
+}
 
 /**
  * @brief Add a reference to a DNS server.

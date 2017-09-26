@@ -110,6 +110,7 @@ private:
 
 public:
     WiFi();
+    ~WiFi();
     void addDNSServer(const std::string& ip);
     void addDNSServer(const char* ip);
     void setDNSServer(int numdns, const std::string& ip);
