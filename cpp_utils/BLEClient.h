@@ -34,14 +34,14 @@ public:
 	std::map<std::string, BLERemoteService*>*  getServices();
 	BLERemoteService*                          getService(const char* uuid);
 	BLERemoteService*                          getService(BLEUUID uuid);
-	BLERemoteService*                          getService(uint16_t handle);
 	void                                       setClientCallbacks(BLEClientCallbacks *pClientCallbacks);
 	std::string                                toString();
 
 private:
 	friend class BLEDevice;
-	friend class BLERemoteCharacteristic;
 	friend class BLERemoteService;
+	friend class BLERemoteCharacteristic;
+	friend class BLERemoteDescriptor;
 
 	void                                       gattClientEventHandler(
 		esp_gattc_cb_event_t event,

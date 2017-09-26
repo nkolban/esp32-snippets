@@ -111,45 +111,6 @@ void BLEClient::gattClientEventHandler(
 	// Execute handler code based on the type of event received.
 	switch(event) {
 		//
-		// ESP_GATTC_NOTIFY_EVT
-		//
-		// notify
-		// - uint16_t           conn_id
-		// - esp_bd_addr_t      remote_bda
-		// - uint16_t           handle
-		// - uint16_t           value_len
-		// - uint8_t*           value
-		// - bool               is_notify
-		//
-		// We have received a notification event which means that the server wishes us to know about a notification
-		// piece of data.  What we must now do is find the characteristic with the associated handle and then
-		// invoke its notification callback (if it has one).
-		//
-		case ESP_GATTC_NOTIFY_EVT: {
-			BLERemoteService* pBLERemoteService = getService(evtParam->notify.handle);
-			if (pBLERemoteService == nullptr) {
-				ESP_LOGE(LOG_TAG, "Could not find service containing handle %d 0x%.2x for notification",
-					evtParam->notify.handle, evtParam->notify.handle);
-				break;
-			}
-			BLERemoteCharacteristic* pBLERemoteCharacteristic = pBLERemoteService->getCharacteristic(evtParam->notify.handle);
-			if (pBLERemoteCharacteristic == nullptr) {
-				ESP_LOGE(LOG_TAG, "Could not find characteristic with handle %d 0x%.2x for notification",
-					evtParam->notify.handle, evtParam->notify.handle);
-				break;
-			}
-			if (pBLERemoteCharacteristic->m_notifyCallback != nullptr) {
-				pBLERemoteCharacteristic->m_notifyCallback(
-					pBLERemoteCharacteristic,
-					evtParam->notify.value,
-					evtParam->notify.value_len,
-					evtParam->notify.is_notify
-				);
-			} // End we have a callback function ...
-			break;
-		} // ESP_GATTC_NOTIFY_EVT
-
-		//
 		// ESP_GATTC_OPEN_EVT
 		//
 		// open:
@@ -222,6 +183,7 @@ void BLEClient::gattClientEventHandler(
 		}
 	} // Switch
 
+	// Pass the request on to all services.
 	for (auto &myPair : m_servicesMap) {
 	   myPair.second->gattClientEventHandler(event, gattc_if, evtParam);
 	}
@@ -232,7 +194,7 @@ void BLEClient::gattClientEventHandler(
 /**
  * @brief Retrieve the address of the peer.
  *
- * Returns the address of the %BLE peer to which this client is connected.
+ * Returns the Bluetooth device address of the %BLE peer to which this client is connected.
  */
 BLEAddress BLEClient::getPeerAddress() {
 	return m_peerAddress;
@@ -248,21 +210,15 @@ esp_gatt_if_t BLEClient::getGattcIf() {
 	return m_gattc_if;
 } // getGattcIf
 
-BLERemoteService* BLEClient::getService(uint16_t handle) {
-	ESP_LOGD(LOG_TAG, ">> getService: handle: %d", handle);
-	ESP_LOGE(LOG_TAG, "!!! NOT IMPLEMENTED !!!");
-	ESP_LOGD(LOG_TAG, "<< getService");
-	return nullptr;
-}
 
 /**
- * @brief Get the service object corresponding to the uuid.
+ * @brief Get the service BLE Remote Service instance corresponding to the uuid.
  * @param [in] uuid The UUID of the service being sought.
  * @return A reference to the Service or nullptr if don't know about it.
  */
 BLERemoteService* BLEClient::getService(const char* uuid) {
     return getService(BLEUUID(uuid));
-}
+} // getService
 
 
 /**

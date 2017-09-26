@@ -15,6 +15,7 @@
 #include <esp_gattc_api.h>
 
 #include "BLERemoteService.h"
+#include "BLERemoteDescriptor.h"
 #include "BLEUUID.h"
 #include "FreeRTOS.h"
 
@@ -26,9 +27,10 @@ class BLERemoteDescriptor;
  */
 class BLERemoteCharacteristic {
 public:
-
+	~BLERemoteCharacteristic();
 
 	// Public member functions
+	BLERemoteDescriptor *getDescriptor(BLEUUID uuid);
 	BLEUUID     getUUID();
 	std::string readValue(void);
 	uint8_t     readUInt8(void);
@@ -44,14 +46,18 @@ private:
 	BLERemoteCharacteristic(uint16_t handle, BLEUUID uuid, esp_gatt_char_prop_t charProp, BLERemoteService* pRemoteService);
 	friend class BLEClient;
 	friend class BLERemoteService;
+	friend class BLERemoteDescriptor;
 
 	// Private member functions
 	void gattClientEventHandler(
 		esp_gattc_cb_event_t      event,
 		esp_gatt_if_t             gattc_if,
 		esp_ble_gattc_cb_param_t* evtParam);
+	void              getDescriptors();
+	uint16_t          getHandle();
+	BLERemoteService* getRemoteService();
+	void              removeDescriptors();
 
-	uint16_t getHandle();
 	// Private properties
 	BLEUUID              m_uuid;
 	esp_gatt_char_prop_t m_charProp;

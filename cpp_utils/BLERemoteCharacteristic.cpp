@@ -17,21 +17,42 @@
 #include <sstream>
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
+#include "BLERemoteDescriptor.h"
 
 
-static const char* LOG_TAG = "BLERemoteCharacteristic";
+static const char* LOG_TAG = "BLERemoteCharacteristic";   // The logging tag for this class.
 
+/**
+ * @brief Constructor.
+ * @param [in] handle The BLE server side handle of this characteristic.
+ * @param [in] uuid The UUID of this characteristic.
+ * @param [in] charProp The properties of this characteristic.
+ * @param [in] pRemoteService A reference to the remote service to which this remote characteristic pertains.
+ */
 BLERemoteCharacteristic::BLERemoteCharacteristic(
 		uint16_t             handle,
 		BLEUUID              uuid,
 		esp_gatt_char_prop_t charProp,
 		BLERemoteService*    pRemoteService) {
+	ESP_LOGD(LOG_TAG, ">> BLERemoteCharacteristic: handle: %d 0x%d, uuid: %s", handle, handle, uuid.toString().c_str());
 	m_handle         = handle;
 	m_uuid           = uuid;
 	m_charProp       = charProp;
 	m_pRemoteService = pRemoteService;
 	m_notifyCallback = nullptr;
+
+	getDescriptors(); // Get the descriptors for this characteristic
+	ESP_LOGD(LOG_TAG, "<< BLERemoteCharacteristic");
 } // BLERemoteCharacteristic
+
+
+/**
+ *@brief Destructor.
+ */
+BLERemoteCharacteristic::~BLERemoteCharacteristic() {
+	removeDescriptors();   // Release resources for any descriptor information we may have allocated.
+} // ~BLERemoteCharacteristic
+
 
 /*
 static bool compareSrvcId(esp_gatt_srvc_id_t id1, esp_gatt_srvc_id_t id2) {
@@ -72,6 +93,36 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 	esp_gatt_if_t             gattc_if,
 	esp_ble_gattc_cb_param_t* evtParam) {
 	switch(event) {
+		//
+		// ESP_GATTC_NOTIFY_EVT
+		//
+		// notify
+		// - uint16_t           conn_id
+		// - esp_bd_addr_t      remote_bda
+		// - uint16_t           handle
+		// - uint16_t           value_len
+		// - uint8_t*           value
+		// - bool               is_notify
+		//
+		// We have received a notification event which means that the server wishes us to know about a notification
+		// piece of data.  What we must now do is find the characteristic with the associated handle and then
+		// invoke its notification callback (if it has one).
+		//
+		case ESP_GATTC_NOTIFY_EVT: {
+			if (evtParam->notify.handle != getHandle()) {
+				break;
+			}
+			if (m_notifyCallback != nullptr) {
+				m_notifyCallback(
+					this,
+					evtParam->notify.value,
+					evtParam->notify.value_len,
+					evtParam->notify.is_notify
+				);
+			} // End we have a callback function ...
+			break;
+		} // ESP_GATTC_NOTIFY_EVT
+
 		//
 		// ESP_GATTC_READ_CHAR_EVT
 		// This event indicates that the server has responded to the read request.
@@ -148,16 +199,127 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 	} // End switch
 }; // gattClientEventHandler
 
+
+/**
+ * @brief Populate the descriptors (if any) for this characteristic.
+ */
+void BLERemoteCharacteristic::getDescriptors() {
+	ESP_LOGD(LOG_TAG, ">> getDescriptors() for characteristic: %s", getUUID().toString().c_str());
+
+	removeDescriptors();   // Remove any existing descriptors.
+
+	/*
+	uint16_t count;
+	esp_gatt_status_t status = ::esp_ble_gattc_get_attr_count(
+		getRemoteService()->getClient()->getGattcIf(),
+		getRemoteService()->getClient()->getConnId(),
+		ESP_GATT_DB_DESCRIPTOR,
+		getRemoteService()->getStartHandle(),
+		getRemoteService()->getEndHandle(),
+		getHandle(), // Characteristic handle ... only used for ESP_GATT_DB_DESCRIPTOR
+		&count
+	);
+	if (status != ESP_GATT_OK) {
+		ESP_LOGE(LOG_TAG, "esp_ble_gattc_get_attr_count: %s", BLEUtils::gattStatusToString(status).c_str());
+	} else {
+		ESP_LOGD(LOG_TAG, "Number of descriptors associated with characteristic is %d", count);
+	}
+	*/
+
+
+	// Loop over each of the descriptors within the service associated with this characteristic.
+	// For each descriptor we find, create a BLERemoteDescriptor instance.
+	uint16_t offset = 0;
+	esp_gattc_descr_elem_t result;
+	while(1) {
+		uint16_t count = 1;
+		esp_gatt_status_t status = ::esp_ble_gattc_get_all_descr(
+			getRemoteService()->getClient()->getGattcIf(),
+			getRemoteService()->getClient()->getConnId(),
+			getHandle(),
+			&result,
+			&count,
+			offset
+		);
+
+		if (status == ESP_GATT_INVALID_OFFSET) {   // We have reached the end of the entries.
+			break;
+		}
+
+		if (status != ESP_GATT_OK) {
+			ESP_LOGE(LOG_TAG, "esp_ble_gattc_get_all_descr: %s", BLEUtils::gattStatusToString(status).c_str());
+			break;
+		}
+
+		if (count == 0) {
+			break;
+		}
+		ESP_LOGD(LOG_TAG, "Found a descriptor: Handle: %d, UUID: %s", result.handle, BLEUUID(result.uuid).toString().c_str());
+
+		// We now have a new characteristic ... let us add that to our set of known characteristics
+		BLERemoteDescriptor *pNewRemoteDescriptor = new BLERemoteDescriptor(
+			result.handle,
+			BLEUUID(result.uuid),
+			this
+		);
+
+		m_descriptorMap.insert(std::pair<std::string, BLERemoteDescriptor*>(pNewRemoteDescriptor->getUUID().toString(), pNewRemoteDescriptor));
+
+		offset++;
+	} // while true
+	//m_haveCharacteristics = true; // Remember that we have received the characteristics.
+	ESP_LOGD(LOG_TAG, "<< getDescriptors(): Found %d descriptors.", offset);
+} // getDescriptors
+
+
+
+/**
+ * @brief Get the handle for this characteristic.
+ * @return The handle for this characteristic.
+ */
 uint16_t BLERemoteCharacteristic::getHandle() {
-	ESP_LOGD(LOG_TAG, ">> getHandle: Characteristic: %s", getUUID().toString().c_str());
-	ESP_LOGD(LOG_TAG, "<< getHandle: %d 0x%.2x", m_handle, m_handle);
+	//ESP_LOGD(LOG_TAG, ">> getHandle: Characteristic: %s", getUUID().toString().c_str());
+	//ESP_LOGD(LOG_TAG, "<< getHandle: %d 0x%.2x", m_handle, m_handle);
 	return m_handle;
-}
+} // getHandle
 
 
+/**
+ * @brief Get the descriptor instance with the given UUID that belongs to this characteristic.
+ * @param [in] uuid The UUID of the descriptor to find.
+ * @return The Remote descriptor (if present) or null if not present.
+ */
+BLERemoteDescriptor* BLERemoteCharacteristic::getDescriptor(BLEUUID uuid) {
+	ESP_LOGD(LOG_TAG, ">> getDescriptor: uuid: %s", uuid.toString().c_str());
+	std::string v = uuid.toString();
+	for (auto &myPair : m_descriptorMap) {
+		if (myPair.first == v) {
+			ESP_LOGD(LOG_TAG, "<< getDescriptor: found");
+			return myPair.second;
+		}
+	}
+	ESP_LOGD(LOG_TAG, "<< getDescriptor: Not found");
+	return nullptr;
+} // getDescriptor
+
+
+/**
+ * @brief Get the remote service associated with this characteristic.
+ * @return The remote service associated with this characteristic.
+ */
+BLERemoteService *BLERemoteCharacteristic::getRemoteService() {
+	return m_pRemoteService;
+} // getRemoteService
+
+
+/**
+ * @brief Get the UUID for this characteristic.
+ * @return The UUID for this characteristic.
+ */
 BLEUUID BLERemoteCharacteristic::getUUID() {
 	return m_uuid;
-}
+} // getUUID
+
 
 /**
  * @brief Read an unsigned 16 bit value
@@ -240,7 +402,7 @@ void BLERemoteCharacteristic::registerForNotify(
 			uint8_t*                 pData,
 			size_t                   length,
 			bool                     isNotify)) {
-	ESP_LOGD(LOG_TAG, ">> registerForNotify()");
+	ESP_LOGD(LOG_TAG, ">> registerForNotify(): %s", toString().c_str());
 
 	m_notifyCallback = notifyCallback;   // Save the notification callback.
 
@@ -273,6 +435,21 @@ void BLERemoteCharacteristic::registerForNotify(
 
 	ESP_LOGD(LOG_TAG, "<< registerForNotify()");
 } // registerForNotify
+
+
+/**
+ * @brief Delete the descriptors in the descriptor map.
+ * We maintain a map called m_descriptorMap that contains pointers to BLERemoteDescriptors
+ * object references.  Since we allocated these in this class, we are also responsible for deleteing
+ * them.  This method does just that.
+ * @return N/A.
+ */
+void BLERemoteCharacteristic::removeDescriptors() {
+	for (auto &myPair : m_descriptorMap) {
+	   delete myPair.second;
+	}
+	m_descriptorMap.empty();
+} // removeCharacteristics
 
 
 /**

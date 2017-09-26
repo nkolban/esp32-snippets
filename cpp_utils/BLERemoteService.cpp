@@ -116,21 +116,15 @@ void BLERemoteService::gattClientEventHandler(
 	}
 } // gattClientEventHandler
 
-BLERemoteCharacteristic* BLERemoteService::getCharacteristic(uint16_t handle) {
-	ESP_LOGD(LOG_TAG, ">> getCharacteristic: handle: %d", handle);
-	ESP_LOGE(LOG_TAG, "!!! NOT IMPLEMENTED !!!");
-	ESP_LOGD(LOG_TAG, "<< getCharacteristic");
-	return nullptr;
-}
 
 /**
- * @brief Get the characteristic object for the UUID.
- * @param [in] uuid Characteristic uuid.
- * @return Reference to the characteristic object.
+ * @brief Get the remote characteristic object for the characteristic UUID.
+ * @param [in] uuid Remote characteristic uuid.
+ * @return Reference to the remote characteristic object.
  */
 BLERemoteCharacteristic* BLERemoteService::getCharacteristic(const char* uuid) {
     return getCharacteristic(BLEUUID(uuid));
-}
+} // getCharacteristic
 	
 	
 /**
@@ -165,9 +159,9 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
 void BLERemoteService::getCharacteristics() {
 
 	ESP_LOGD(LOG_TAG, ">> getCharacteristics() for service: %s", getUUID().toString().c_str());
-/*
-	removeCharacteristics(); // Forget any previous characteristics.
 
+	removeCharacteristics(); // Forget any previous characteristics.
+	/*
 	m_semaphoreGetCharEvt.take("getCharacteristics");
 
 	esp_err_t errRc = ::esp_ble_gattc_get_characteristic(
@@ -187,6 +181,7 @@ void BLERemoteService::getCharacteristics() {
 	*/
 	//ESP_LOGE(LOG_TAG, "!!! NOT IMPLEMENTED !!!");
 	//ESP_LOGD(LOG_TAG, "--- test code ---");
+	/*
 	uint16_t count;
 	esp_gatt_status_t status = ::esp_ble_gattc_get_attr_count(
 		getClient()->getGattcIf(),
@@ -219,12 +214,13 @@ void BLERemoteService::getCharacteristics() {
 	else {
 		ESP_LOGD(LOG_TAG, "%s", BLEUtils::gattcServiceElementToString(&srvcElem).c_str());
 	}
+	*/
 
 	uint16_t offset = 0;
 	esp_gattc_char_elem_t result;
 	while(1) {
-		count = 1;
-		status = ::esp_ble_gattc_get_all_char(
+		uint16_t count = 1;
+		esp_gatt_status_t status = ::esp_ble_gattc_get_all_char(
 			getClient()->getGattcIf(),
 			getClient()->getConnId(),
 			m_startHandle,
@@ -233,17 +229,20 @@ void BLERemoteService::getCharacteristics() {
 			&count,
 			offset
 		);
+
 		if (status == ESP_GATT_INVALID_OFFSET) {   // We have reached the end of the entries.
 			break;
 		}
 
-		if (status != ESP_GATT_OK) {
+		if (status != ESP_GATT_OK) {   // If we got an error, end.
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_get_all_char: %s", BLEUtils::gattStatusToString(status).c_str());
 			break;
 		}
-		if (count == 0) {
+
+		if (count == 0) {   // If we failed to get any new records, end.
 			break;
 		}
+
 		ESP_LOGD(LOG_TAG, "Found a characteristic: Handle: %d, UUID: %s", result.char_handle, BLEUUID(result.uuid).toString().c_str());
 
 		// We now have a new characteristic ... let us add that to our set of known characteristics
@@ -256,7 +255,7 @@ void BLERemoteService::getCharacteristics() {
 
 		m_characteristicMap.insert(std::pair<std::string, BLERemoteCharacteristic*>(pNewRemoteCharacteristic->getUUID().toString(), pNewRemoteCharacteristic));
 
-		offset++;
+		offset++;   // Increment our count of number of descriptors found.
 	}
 	m_haveCharacteristics = true; // Remember that we have received the characteristics.
 	ESP_LOGD(LOG_TAG, "<< getCharacteristics()");
@@ -267,15 +266,23 @@ BLEClient* BLERemoteService::getClient() {
 	return m_pClient;
 }
 
+uint16_t BLERemoteService::getEndHandle() {
+	return m_endHandle;
+}
+
 esp_gatt_id_t* BLERemoteService::getSrvcId() {
 	return &m_srvcId;
+}
+
+uint16_t BLERemoteService::getStartHandle() {
+	return m_startHandle;
 }
 
 uint16_t BLERemoteService::getHandle() {
 	ESP_LOGD(LOG_TAG, ">> getHandle: service: %s", getUUID().toString().c_str());
 	//ESP_LOGE(LOG_TAG, "!!! getHandle:  NOT IMPLEMENTED !!!");
-	ESP_LOGD(LOG_TAG, "<< getHandle: %d 0x%.2x", m_startHandle, m_startHandle);
-	return m_startHandle;
+	ESP_LOGD(LOG_TAG, "<< getHandle: %d 0x%.2x", getStartHandle(), getStartHandle());
+	return getStartHandle();
 }
 
 
@@ -315,6 +322,8 @@ std::string BLERemoteService::toString() {
 	}
 	return ss.str();
 } // toString
+
+
 
 
 
