@@ -540,7 +540,6 @@ void WebServer::HTTPResponse::setStatus(int status) {
 void WebServer::processRequest(struct mg_connection *mgConnection, struct http_message* message) {
     ESP_LOGD(tag, "WebServer::processRequest: Matching: %.*s", (int)message->uri.len, message->uri.p);
     HTTPResponse httpResponse = HTTPResponse(mgConnection);
-    httpResponse.setRootPath(getRootPath());
 
     /*
      * Iterate through each of the path handlers looking for a match with the method and specified path.
