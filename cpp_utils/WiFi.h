@@ -139,6 +139,7 @@ public:
      * @param[in] wifiEventHandler The class that will be used to process events.
      */
     void setWifiEventHandler(WiFiEventHandler *wifiEventHandler) {
+        delete this->wifiEventHandler;
         this->wifiEventHandler = wifiEventHandler;
     }
 private:
