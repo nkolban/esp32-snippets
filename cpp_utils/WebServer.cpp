@@ -740,7 +740,7 @@ std::map<std::string, std::string> WebServer::HTTPRequest::getQuery() const {
                 value = "";
             }
         } // End state = STATE_NAME
-        else if (state == STATE_VALUE) {
+        else { // if (state == STATE_VALUE)
             if (currentChar != '&') {
                 value += currentChar;
             } else {
