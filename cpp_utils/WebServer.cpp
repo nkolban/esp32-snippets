@@ -540,7 +540,6 @@ void WebServer::HTTPResponse::setStatus(int status) {
 void WebServer::processRequest(struct mg_connection *mgConnection, struct http_message* message) {
     ESP_LOGD(tag, "WebServer::processRequest: Matching: %.*s", (int)message->uri.len, message->uri.p);
     HTTPResponse httpResponse = HTTPResponse(mgConnection);
-    httpResponse.setRootPath(getRootPath());
 
     /*
      * Iterate through each of the path handlers looking for a match with the method and specified path.
@@ -557,10 +556,12 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
 
     // Because we reached here, it means that we did NOT match a handler.  Now we want to attempt
     // to retrieve the corresponding file content.
-    std::string filePath = httpResponse.getRootPath();
+    std::string filePath;
+    filePath.reserve(httpResponse.getRootPath().length() + message->uri.len + 1);
+    filePath += httpResponse.getRootPath();
     filePath.append(message->uri.p, message->uri.len);
     ESP_LOGD(tag, "Opening file: %s", filePath.c_str());
-    FILE *file = fopen(filePath.c_str(), "r");
+    FILE *file = fopen(filePath.c_str(), "rb");
     if (file != nullptr) {
         fseek(file, 0L, SEEK_END);
         size_t length = ftell(file);
@@ -738,7 +739,7 @@ std::map<std::string, std::string> WebServer::HTTPRequest::getQuery() const {
                 value = "";
             }
         } // End state = STATE_NAME
-        else if (state == STATE_VALUE) {
+        else { // if (state == STATE_VALUE)
             if (currentChar != '&') {
                 value += currentChar;
             } else {
