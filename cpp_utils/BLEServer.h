@@ -51,9 +51,6 @@ private:
  */
 class BLEServer {
 public:
-	BLEServer();
-
-
 	uint32_t        getConnectedCount();
 	BLEService*     createService(const char* uuid);	
 	BLEService*     createService(BLEUUID uuid);
@@ -63,6 +60,7 @@ public:
 
 
 private:
+	BLEServer();
 	friend class BLEService;
 	friend class BLECharacteristic;
 	friend class BLEDevice;

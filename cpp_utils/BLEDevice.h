@@ -25,7 +25,8 @@
 class BLEDevice {
 public:
 	static void dumpDevices();
-	static BLEClient *createClient();
+	static BLEClient* createClient();
+	static BLEServer* createServer();
 
 	static void init(std::string deviceName);
 	//static void scan(int duration, esp_ble_scan_type_t scan_type = BLE_SCAN_TYPE_PASSIVE);

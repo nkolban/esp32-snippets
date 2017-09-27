@@ -42,6 +42,10 @@ BLEClient* BLEDevice::createClient() {
 	return m_pClient;
 } // createClient
 
+BLEServer* BLEDevice::createServer() {
+	return new BLEServer();
+}
+
 
 /**
  * @brief Handle GATT server events.

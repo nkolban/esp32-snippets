@@ -16,6 +16,7 @@ void SampleNotify(void);
 void SampleClient_Notify(void);
 void SampleClient(void);
 void Sample_MLE_15(void);
+void SampleSensorTag(void);
 
 
 //
@@ -31,4 +32,5 @@ void app_main(void) {
 	//SampleClient();
 	SampleClient_Notify();
 	//Sample_MLE_15();
+	//SampleSensorTag();
 } // app_main

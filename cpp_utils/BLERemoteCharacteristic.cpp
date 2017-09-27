@@ -113,6 +113,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 				break;
 			}
 			if (m_notifyCallback != nullptr) {
+				ESP_LOGD(LOG_TAG, "Invoking callback for notification on characteristic %s", toString().c_str());
 				m_notifyCallback(
 					this,
 					evtParam->notify.value,

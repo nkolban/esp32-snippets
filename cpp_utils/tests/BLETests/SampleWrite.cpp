@@ -36,7 +36,7 @@ class MyCallbacks: public BLECharacteristicCallbacks {
 
 static void run() {
 	BLEDevice::init("MYDEVICE");
-	BLEServer *pServer = new BLEServer();
+	BLEServer *pServer = BLEDevice::createServer();
 
 	BLEService *pService = pServer->createService(BLEUUID(SERVICE_UUID));
 

@@ -37,7 +37,6 @@ class MyClient: public Task {
 			return;
 		}
 
-		pRemoteService->getCharacteristics();
 		BLERemoteCharacteristic* pRemoteCharacteristic = pRemoteService->getCharacteristic(charUUID);
 		if (pRemoteCharacteristic == nullptr) {
 			ESP_LOGD(LOG_TAG, "Failed to find our characteristic UUID: %s", charUUID.toString().c_str());

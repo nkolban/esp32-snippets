@@ -1,13 +1,14 @@
 /**
  * Create a new BLE server.
  */
-#include "BLEUtils.h"
+#include "BLEDevice.h"
 #include "BLEServer.h"
+#include "BLEUtils.h"
 #include "BLE2902.h"
 #include <esp_log.h>
 #include <string>
 #include <Task.h>
-#include "BLEDevice.h"
+
 
 #include "sdkconfig.h"
 
@@ -18,7 +19,7 @@ class MainBLEServer: public Task {
 		ESP_LOGD(LOG_TAG, "Starting BLE work!");
 
 		BLEDevice::init("MYDEVICE");
-		BLEServer* pServer = new BLEServer();
+		BLEServer* pServer = BLEDevice::createServer();
 
 		BLEService* pService = pServer->createService(BLEUUID((uint16_t)0x1234));
 
@@ -28,7 +29,6 @@ class MainBLEServer: public Task {
 			BLECharacteristic::PROPERTY_NOTIFY    | BLECharacteristic::PROPERTY_WRITE |
 			BLECharacteristic::PROPERTY_INDICATE
 		);
-
 
 		pCharacteristic->setValue("Hello World!");
 
@@ -50,7 +50,7 @@ class MainBLEServer: public Task {
 
 void SampleServer(void)
 {
-	esp_log_level_set("*", ESP_LOG_DEBUG);
+	//esp_log_level_set("*", ESP_LOG_DEBUG);
 	MainBLEServer* pMainBleServer = new MainBLEServer();
 	pMainBleServer->setStackSize(20000);
 	pMainBleServer->start();

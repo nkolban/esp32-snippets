@@ -75,7 +75,7 @@ static void run() {
 	BLEDevice::init("MYDEVICE");
 
 	// Create the BLE Server
-	BLEServer *pServer = new BLEServer();
+	BLEServer *pServer = BLEDevice::createServer();
 	pServer->setCallbacks(new MyServerCallbacks());
 
 	// Create the BLE Service
