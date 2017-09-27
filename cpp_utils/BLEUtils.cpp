@@ -635,6 +635,23 @@ void BLEUtils::dumpGapEvent(
 			break;
 		} // ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT
 
+
+		//
+		// ESP_GAP_BLE_SCAN_UPDATE_CONN_PARAMS_EVT
+		//
+		case ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d, bd_addr: %s, min_int: %d, max_int: %d, latency: %d, conn_int: %d, timeout: %d",
+				param->update_conn_params.status,
+				BLEAddress(param->update_conn_params.bda).toString().c_str(),
+				param->update_conn_params.min_int,
+				param->update_conn_params.max_int,
+				param->update_conn_params.latency,
+				param->update_conn_params.conn_int,
+				param->update_conn_params.timeout
+			);
+		} // ESP_GAP_BLE_SCAN_UPDATE_CONN_PARAMS_EVT
+
+
 		default: {
 			ESP_LOGD(LOG_TAG, "*** dumpGapEvent: Logger not coded ***");
 			break;
