@@ -55,6 +55,7 @@ public:
             void setHeaders(std::map<std::string, std::string>&& headers);
             void sendData(const std::string& data);
             void sendData(const uint8_t* pData, size_t length);
+            void sendData(const char* pData, size_t length);
             const std::string& getRootPath() const;
             void setRootPath(const std::string& path);
             void setRootPath(std::string&& path);
