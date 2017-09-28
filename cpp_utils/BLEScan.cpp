@@ -203,13 +203,10 @@ BLEScanResults BLEScan::start(uint32_t duration) {
 	ESP_LOGD(LOG_TAG, ">> start(%d)", duration);
 
 	m_semaphoreScanEnd.take("start");
-	ESP_LOGD(LOG_TAG, "A");
 
-	m_scanResults.m_vectorAdvertisedDevices.empty();
-	ESP_LOGD(LOG_TAG, "B");
+	m_scanResults.m_vectorAdvertisedDevices.clear();
 
 	esp_err_t errRc = ::esp_ble_gap_set_scan_params(&m_scan_params);
-	ESP_LOGD(LOG_TAG, "C");
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_scan_params: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
