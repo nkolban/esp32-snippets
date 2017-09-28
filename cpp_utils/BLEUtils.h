@@ -38,6 +38,7 @@ public:
 	static void registerByAddress(BLEAddress address, BLEClient* pDevice);
 	static void registerByConnId(uint16_t conn_id, BLEClient* pDevice);
 	static std::string gattCharacteristicUUIDToString(uint32_t characteristicUUID);
+	static std::string getMember(uint32_t memberId);
 	static std::string buildPrintData(uint8_t* source, size_t length);
 	static void dumpGattClientEvent(
 		esp_gattc_cb_event_t event,
