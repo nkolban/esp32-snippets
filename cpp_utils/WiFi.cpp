@@ -28,7 +28,7 @@
 #include <Task.h>
 
 
-static char tag[]= "WiFi";
+static const char* LOG_TAG = "WiFi";
 
 
 /*
@@ -48,16 +48,20 @@ WiFi::WiFi()
     : ip(0)
     , gw(0)
     , netmask(0)
-    , wifiEventHandler(nullptr)
+    , m_wifiEventHandler(nullptr)
 {
-    wifiEventHandler = new WiFiEventHandler();
-}
+	::nvs_flash_init();
+	wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT();
+	esp_wifi_init(&config);
+	::tcpip_adapter_init();
+	m_wifiEventHandler = new WiFiEventHandler();
+} // WiFi
 
 /**
  * @brief Deletes the event handler that was used by the class
  */
 WiFi::~WiFi() {
-    delete wifiEventHandler;
+	delete m_wifiEventHandler;
 }
 
 /**
@@ -88,7 +92,7 @@ void WiFi::addDNSServer(const char* ip) {
 } // addDNSServer
 
 void WiFi::addDNSServer(ip_addr_t ip) {
-    ESP_LOGD(tag, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
+    ESP_LOGD(LOG_TAG, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
     ::dns_setserver(m_dnsCount, &ip);
     m_dnsCount++;
     m_dnsCount %= 2;
@@ -121,7 +125,7 @@ void WiFi::setDNSServer(int numdns, const char* ip) {
 } // setDNSServer
 
 void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
-    ESP_LOGD(tag, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
+    ESP_LOGD(LOG_TAG, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
     ::dns_setserver(numdns, &ip);
 } // setDNSServer
 
@@ -135,44 +139,45 @@ void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
  * @return N/A.
  */
 void WiFi::connectAP(const std::string& ssid, const std::string& password){
-    ::nvs_flash_init();
-    ::tcpip_adapter_init();
-    if (ip != 0 && gw != 0 && netmask != 0) {
-        ::tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA); // Don't run a DHCP client
+	ESP_LOGD(LOG_TAG, ">> connectAP");
 
-        tcpip_adapter_ip_info_t ipInfo;
-        ipInfo.ip.addr = ip;
-        ipInfo.gw.addr = gw;
-        ipInfo.netmask.addr = netmask;
+	if (ip != 0 && gw != 0 && netmask != 0) {
+			::tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA); // Don't run a DHCP client
 
-        ::tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
-    }
+			tcpip_adapter_ip_info_t ipInfo;
+			ipInfo.ip.addr = ip;
+			ipInfo.gw.addr = gw;
+			ipInfo.netmask.addr = netmask;
+
+			::tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
+	}
 
 
-    ESP_ERROR_CHECK( esp_event_loop_init(wifiEventHandler->getEventHandler(), wifiEventHandler));
-    ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
-    ESP_ERROR_CHECK(::esp_wifi_set_mode(WIFI_MODE_STA));
-    wifi_config_t sta_config;
-    ::memset(&sta_config, 0, sizeof(sta_config));
-    ::memcpy(sta_config.sta.ssid, ssid.data(), ssid.size());
-    ::memcpy(sta_config.sta.password, password.data(), password.size());
-    sta_config.sta.bssid_set = 0;
-    ESP_ERROR_CHECK(::esp_wifi_set_config(WIFI_IF_STA, &sta_config));
-    ESP_ERROR_CHECK(::esp_wifi_start());
+	ESP_ERROR_CHECK( esp_event_loop_init(m_wifiEventHandler->getEventHandler(), m_wifiEventHandler));
+	ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
+	ESP_ERROR_CHECK(::esp_wifi_set_mode(WIFI_MODE_STA));
+	wifi_config_t sta_config;
+	::memset(&sta_config, 0, sizeof(sta_config));
+	::memcpy(sta_config.sta.ssid, ssid.data(), ssid.size());
+	::memcpy(sta_config.sta.password, password.data(), password.size());
+	sta_config.sta.bssid_set = 0;
+	ESP_ERROR_CHECK(::esp_wifi_set_config(WIFI_IF_STA, &sta_config));
+	ESP_ERROR_CHECK(::esp_wifi_start());
 
-    ESP_ERROR_CHECK(::esp_wifi_connect());
+	ESP_ERROR_CHECK(::esp_wifi_connect());
+	ESP_LOGD(LOG_TAG, "<< connectAP");
 } // connectAP
 
 /**
  * @brief Dump diagnostics to the log.
  */
 void WiFi::dump() {
-    ESP_LOGD(tag, "WiFi Dump");
-    ESP_LOGD(tag, "---------");
+    ESP_LOGD(LOG_TAG, "WiFi Dump");
+    ESP_LOGD(LOG_TAG, "---------");
     char ipAddrStr[30];
     ip_addr_t ip = ::dns_getserver(0);
     inet_ntop(AF_INET, &ip, ipAddrStr, sizeof(ipAddrStr));
-    ESP_LOGD(tag, "DNS Server[0]: %s", ipAddrStr);
+    ESP_LOGD(LOG_TAG, "DNS Server[0]: %s", ipAddrStr);
 } // dump
 
 /**
@@ -227,10 +232,10 @@ struct in_addr WiFi::getHostByName(const char* hostName) {
     struct hostent *he = gethostbyname(hostName);
     if (he == nullptr) {
         retAddr.s_addr = 0;
-        ESP_LOGD(tag, "Unable to resolve %s - %d", hostName, h_errno);
+        ESP_LOGD(LOG_TAG, "Unable to resolve %s - %d", hostName, h_errno);
     } else {
         retAddr = *(struct in_addr *)(he->h_addr_list[0]);
-        ESP_LOGD(tag, "resolved %s to %.8x", hostName, *(uint32_t *)&retAddr);
+        ESP_LOGD(LOG_TAG, "resolved %s to %.8x", hostName, *(uint32_t *)&retAddr);
     }
     return retAddr;
 } // getHostByName
@@ -306,7 +311,7 @@ std::string WiFi::getStaSSID() {
 std::vector<WiFiAPRecord> WiFi::scan() {
     ::nvs_flash_init();
     ::tcpip_adapter_init();
-    ESP_ERROR_CHECK(esp_event_loop_init(wifiEventHandler->getEventHandler(), wifiEventHandler));
+    ESP_ERROR_CHECK(esp_event_loop_init(m_wifiEventHandler->getEventHandler(), m_wifiEventHandler));
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
@@ -317,11 +322,11 @@ std::vector<WiFiAPRecord> WiFi::scan() {
     conf.show_hidden = true;
     esp_err_t rc = ::esp_wifi_scan_start(&conf, true);
     if (rc != ESP_OK) {
-        ESP_LOGE(tag, "esp_wifi_scan_start: %d", rc);
+        ESP_LOGE(LOG_TAG, "esp_wifi_scan_start: %d", rc);
     }
     uint16_t apCount;
     rc = ::esp_wifi_scan_get_ap_num(&apCount);
-    ESP_LOGD(tag, "Count of found access points: %d", apCount);
+    ESP_LOGD(LOG_TAG, "Count of found access points: %d", apCount);
     wifi_ap_record_t *list =
       (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * apCount);
     ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&apCount, list));
@@ -348,7 +353,7 @@ std::vector<WiFiAPRecord> WiFi::scan() {
 void WiFi::startAP(const std::string& ssid, const std::string& password) {
     ::nvs_flash_init();
     ::tcpip_adapter_init();
-    ESP_ERROR_CHECK(esp_event_loop_init(wifiEventHandler->getEventHandler(), wifiEventHandler));
+    ESP_ERROR_CHECK(esp_event_loop_init(m_wifiEventHandler->getEventHandler(), m_wifiEventHandler));
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
@@ -366,6 +371,15 @@ void WiFi::startAP(const std::string& ssid, const std::string& password) {
     ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_AP, &apConfig) );
     ESP_ERROR_CHECK( esp_wifi_start() );
 } // startAP
+
+
+/**
+ * @brief Set the event handler to use to process detected events.
+ * @param[in] wifiEventHandler The class that will be used to process events.
+ */
+void WiFi::setWifiEventHandler(WiFiEventHandler *wifiEventHandler) {
+  this->m_wifiEventHandler = wifiEventHandler;
+} // setWifiEventHandler
 
 
 /**
@@ -389,6 +403,8 @@ void WiFi::setIPInfo(const std::string& ip, const std::string& gw, const std::st
     setIPInfo(ip.c_str(), gw.c_str(), netmask.c_str());
 } // setIPInfo
 
+
+
 void WiFi::setIPInfo(const char* ip, const char* gw, const char* netmask) {
     uint32_t new_ip;
     uint32_t new_gw;
@@ -405,15 +421,22 @@ void WiFi::setIPInfo(const char* ip, const char* gw, const char* netmask) {
     setIPInfo(new_ip, new_gw, new_netmask);
 } // setIPInfo
 
+
+/**
+ * @brief Set the IP Info based on the IP address, gateway and netmask.
+ * @param [in] ip The IP address of our ESP32.
+ * @param [in] gw The gateway we should use.
+ * @param [in] netmask Our TCP/IP netmask value.
+ */
 void WiFi::setIPInfo(uint32_t ip, uint32_t gw, uint32_t netmask) {
-    this->ip = ip;
-    this->gw = gw;
+    this->ip      = ip;
+    this->gw      = gw;
     this->netmask = netmask;
 
     if(ip != 0 && gw != 0 && netmask != 0) {
         tcpip_adapter_ip_info_t ipInfo;
-        ipInfo.ip.addr = ip;
-        ipInfo.gw.addr = gw;
+        ipInfo.ip.addr      = ip;
+        ipInfo.gw.addr      = gw;
         ipInfo.netmask.addr = netmask;
 
         ::tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA);
@@ -422,7 +445,8 @@ void WiFi::setIPInfo(uint32_t ip, uint32_t gw, uint32_t netmask) {
         ip = 0;
         ::tcpip_adapter_dhcpc_start(TCPIP_ADAPTER_IF_STA);
     }
-}
+} // setIPInfo
+
 
 /**
  * @brief Return a string representation of the WiFi access point record.

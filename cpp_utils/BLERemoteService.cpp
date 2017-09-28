@@ -301,8 +301,9 @@ BLEUUID BLERemoteService::getUUID() {
 void BLERemoteService::removeCharacteristics() {
 	for (auto &myPair : m_characteristicMap) {
 	   delete myPair.second;
+	   m_characteristicMap.erase(myPair.first);
 	}
-	m_characteristicMap.empty();
+	m_characteristicMap.clear();   // Clear the map
 } // removeCharacteristics
 
 

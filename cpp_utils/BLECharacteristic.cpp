@@ -131,7 +131,6 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 } // executeCreate
 
 
-
 /**
  * @brief Return the BLE Descriptor for the given UUID if associated with this characteristic.
  * @param [in] descriptorUUID The UUID of the descriptor that we wish to retrieve.
@@ -140,6 +139,7 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 BLEDescriptor* BLECharacteristic::getDescriptorByUUID(const char* descriptorUUID) {
 	return m_descriptorMap.getByUUID(BLEUUID(descriptorUUID));
 } // getDescriptorByUUID
+
 
 /**
  * @brief Return the BLE Descriptor for the given UUID if associated with this characteristic.
@@ -274,7 +274,7 @@ void BLECharacteristic::handleGATTServerEvent(
 				ESP_LOGD(LOG_TAG, " - Response to write event: New value: handle: %.2x, uuid: %s",
 						getHandle(), getUUID().toString().c_str());
 
-				char *pHexData = BLEUtils::buildHexData(nullptr, param->write.value, param->write.len);
+				char* pHexData = BLEUtils::buildHexData(nullptr, param->write.value, param->write.len);
 				ESP_LOGD(LOG_TAG, " - Data: length: %d, data: %s", param->write.len, pHexData);
 				free(pHexData);
 
@@ -421,6 +421,7 @@ void BLECharacteristic::handleGATTServerEvent(
 	}
 
 } // handleGATTServerEvent
+
 
 /**
  * @brief Send an indication.

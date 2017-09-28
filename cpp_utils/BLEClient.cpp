@@ -48,13 +48,28 @@ BLEClient::BLEClient() {
 	m_haveServices     = false;
 } // BLEClient
 
+
 /**
- * @brief Connect to the partner.
+ * @brief Destructor.
+ */
+BLEClient::~BLEClient() {
+	// We may have allocated service references associated with this client.  Before we are finished
+	// with the client, we must release resources.
+	for (auto &myPair : m_servicesMap) {
+	   delete myPair.second;
+	}
+	m_servicesMap.clear();
+} // ~BLEClient
+
+
+/**
+ * @brief Connect to the partner (BLE Server).
  * @param [in] address The address of the partner.
  * @return True on success.
  */
 bool BLEClient::connect(BLEAddress address) {
 	ESP_LOGD(LOG_TAG, ">> connect(%s)", address.toString().c_str());
+
 // We need the connection handle that we get from registering the application.  We register the app
 // and then block on its completion.  When the event has arrived, we will have the handle.
 	m_semaphoreRegEvt.take("connect");
@@ -63,10 +78,12 @@ bool BLEClient::connect(BLEAddress address) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_app_register: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return false;
 	}
+
 	m_semaphoreRegEvt.wait("connect");
 
 	m_peerAddress = address;
 
+	// Perform the open connection request against the target BLE Server.
 	m_semaphoreOpenEvt.take("connect");
 	errRc = ::esp_ble_gattc_open(
 		getGattcIf(),
@@ -243,7 +260,7 @@ BLERemoteService* BLEClient::getService(BLEUUID uuid) {
 			ESP_LOGD(LOG_TAG, "<< getService: found the service with uuid: %s", uuid.toString().c_str());
 			return myPair.second;
 		}
-	}
+	} // End of each of the services.
 	ESP_LOGD(LOG_TAG, "<< getService: not found");
 	return nullptr;
 } // getService
@@ -268,7 +285,7 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
 	esp_err_t errRc = esp_ble_gattc_search_service(
 		getGattcIf(),
 		getConnId(),
-		NULL // Filter UUID
+		nullptr            // Filter UUID
 	);
 	m_semaphoreSearchCmplEvt.take("getServices");
 	if (errRc != ESP_OK) {
@@ -300,7 +317,7 @@ std::string BLEClient::toString() {
 	ss << "\nServices:\n";
 	for (auto &myPair : m_servicesMap) {
 		ss << myPair.second->toString() << "\n";
-	   // myPair.second is the value
+	  // myPair.second is the value
 	}
 	return ss.str();
 } // toString

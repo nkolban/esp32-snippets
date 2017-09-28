@@ -98,7 +98,7 @@ public:
      * @return The next WiFi event handler in the chain or nullptr if there is none.
      */
     WiFiEventHandler *getNextHandler() {
-        return nextHandler;
+        return m_nextHandler;
     }
 
     /**
@@ -106,12 +106,12 @@ public:
      * @param [in] nextHandler The next WiFi event handler in the chain.
      */
     void setNextHandler(WiFiEventHandler* nextHandler) {
-        this->nextHandler = nextHandler;
+        this->m_nextHandler = nextHandler;
     }
 
 private:
-    WiFiEventHandler *nextHandler = nullptr;
-    static esp_err_t eventHandler(void *ctx, system_event_t *event);
+    WiFiEventHandler *m_nextHandler;
+    static esp_err_t eventHandler(void* ctx, system_event_t* event);
 };
 
 #endif /* MAIN_WIFIEVENTHANDLER_H_ */

@@ -70,9 +70,9 @@ public:
     std::string toString();
 
 private:
-    uint8_t m_bssid[6];
-    int8_t m_rssi;
-    std::string m_ssid;
+    uint8_t          m_bssid[6];
+    int8_t           m_rssi;
+    std::string      m_ssid;
     wifi_auth_mode_t m_authMode;
 };
 
@@ -106,7 +106,7 @@ private:
     uint32_t ip;
     uint32_t gw;
     uint32_t netmask;
-    WiFiEventHandler *wifiEventHandler;
+    WiFiEventHandler *m_wifiEventHandler;
 
 public:
     WiFi();
@@ -133,15 +133,7 @@ public:
     void setIPInfo(const std::string& ip, const std::string& gw, const std::string& netmask);
     void setIPInfo(const char* ip, const char* gw, const char* netmask);
     void setIPInfo(uint32_t ip, uint32_t gw, uint32_t netmask);
-
-    /**
-     * Set the event handler to use to process detected events.
-     * @param[in] wifiEventHandler The class that will be used to process events.
-     */
-    void setWifiEventHandler(WiFiEventHandler *wifiEventHandler) {
-        delete this->wifiEventHandler;
-        this->wifiEventHandler = wifiEventHandler;
-    }
+    void setWifiEventHandler(WiFiEventHandler *wifiEventHandler);
 private:
     uint8_t m_dnsCount=0;
     //char *m_dnsServer = nullptr;

@@ -28,6 +28,7 @@ class BLEClientCallbacks;
 class BLEClient {
 public:
 	BLEClient();
+	~BLEClient();
 	bool                                       connect(BLEAddress address);
 	void                                       disconnect();
 	BLEAddress                                 getPeerAddress();

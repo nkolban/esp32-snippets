@@ -446,10 +446,12 @@ void BLERemoteCharacteristic::registerForNotify(
  * @return N/A.
  */
 void BLERemoteCharacteristic::removeDescriptors() {
+	// Iterate through all the descriptors releasing their storage and erasing them from the map.
 	for (auto &myPair : m_descriptorMap) {
+	   m_descriptorMap.erase(myPair.first);
 	   delete myPair.second;
 	}
-	m_descriptorMap.empty();
+	m_descriptorMap.clear();   // Technically not neeeded, but just to be sure.
 } // removeCharacteristics
 
 
