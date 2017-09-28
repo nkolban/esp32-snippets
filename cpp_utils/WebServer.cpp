@@ -478,6 +478,9 @@ void WebServer::HTTPResponse::sendData(const uint8_t* pData, size_t length) {
     m_nc->flags |= MG_F_SEND_AND_CLOSE;
 } // sendData
 
+void WebServer::HTTPResponse::sendData(const char* pData, size_t length) {
+    sendData((uint8_t*) pData, length);
+} // sendData
 
 /**
  * @brief Set the headers to be sent in the HTTP response.
