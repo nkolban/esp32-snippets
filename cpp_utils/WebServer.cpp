@@ -109,7 +109,7 @@ static std::string mongoose_eventToString(int event) {
 
 static void dumpHttpMessage(struct http_message *pHttpMessage) {
     ESP_LOGD(tag, "HTTP Message");
-    ESP_LOGD(tag, "Message: %.*s", (int)pHttpMessage->uri.len, pHttpMessage->message.p);
+    ESP_LOGD(tag, "Message: %.*s", (int)pHttpMessage->message.len, pHttpMessage->message.p);
 }
 
 /*
