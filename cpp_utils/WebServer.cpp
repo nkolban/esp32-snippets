@@ -139,6 +139,13 @@ static void mongoose_event_handler_web_server(
     }
     ESP_LOGD(tag, "Event: %s [%d]", mongoose_eventToString(event).c_str(), mgConnection->sock);
     switch (event) {
+        case MG_EV_SEND: {
+            struct WebServerUserData *pWebServerUserData = (struct WebServerUserData *)mgConnection->user_data;
+            WebServer *pWebServer = pWebServerUserData->pWebServer;
+            pWebServer->continueConnection(mgConnection);
+            break;
+        }
+
         case MG_EV_HTTP_REQUEST: {
             struct http_message *message = (struct http_message *) eventData;
             dumpHttpMessage(message);
@@ -315,9 +322,7 @@ void WebServer::addPathHandler(const std::string& method, const std::string& pat
     m_pathHandlers.push_back(PathHandler(method, pathExpr, handler));
 } // addPathHandler
 
-void WebServer::addPathHandler(std::string&& method, const std::string& pathExpr,
-                               void (* handler)(WebServer::HTTPRequest* pHttpRequest,
-                                                WebServer::HTTPResponse* pHttpResponse)) {
+void WebServer::addPathHandler(std::string&& method, const std::string& pathExpr, void (* handler)(WebServer::HTTPRequest* pHttpRequest, WebServer::HTTPResponse* pHttpResponse)) {
     m_pathHandlers.push_back(PathHandler(std::move(method), pathExpr, handler));
 } // addPathHandler
 
@@ -482,6 +487,27 @@ void WebServer::HTTPResponse::sendData(const char* pData, size_t length) {
     sendData((uint8_t*) pData, length);
 } // sendData
 
+void WebServer::HTTPResponse::sendChunkHead() {
+    if(m_dataSent) {
+        ESP_LOGE(tag, "HTTPResponse: Chunk headers already sent!  Attempt to send again/more.");
+    }
+    m_dataSent = true;
+    mg_send_head(m_nc, m_status, -1, m_headers.c_str());
+}
+
+void WebServer::HTTPResponse::sendChunk(const char* pData, size_t length) {
+    mg_send_http_chunk(m_nc, pData, length);
+} // sendChunkHead
+
+void WebServer::HTTPResponse::closeConnection() {
+    m_nc->flags |= MG_F_SEND_AND_CLOSE;
+}
+
+
+void WebServer::HTTPResponse::sendData(const char* pData, size_t length) {
+    sendData((uint8_t*) pData, length);
+}
+
 /**
  * @brief Set the headers to be sent in the HTTP response.
  * @param [in] headers The complete set of headers to send to the caller.
@@ -564,15 +590,20 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
     filePath += httpResponse.getRootPath();
     filePath.append(message->uri.p, message->uri.len);
     ESP_LOGD(tag, "Opening file: %s", filePath.c_str());
-    FILE *file = fopen(filePath.c_str(), "rb");
+    FILE* file = fopen(filePath.c_str(), "rb");
     if (file != nullptr) {
-        fseek(file, 0L, SEEK_END);
-        size_t length = ftell(file);
-        fseek(file, 0L, SEEK_SET);
-        uint8_t *pData = (uint8_t *)malloc(length);
-        fread(pData, length, 1, file);
-        fclose(file);
-        httpResponse.sendData(pData, length);
+        auto pData = (uint8_t*)malloc(MAX_CHUNK_LENGTH);
+        size_t read = fread(pData, 1, MAX_CHUNK_LENGTH, file);
+
+        if(read >= MAX_CHUNK_LENGTH) {
+            httpResponse.sendChunkHead();
+            httpResponse.sendChunk((char*)pData, read);
+            fclose(unfinishedConnection[mgConnection->sock]);
+            unfinishedConnection[mgConnection->sock] = file;
+        } else {
+            fclose(file);
+            httpResponse.sendData(pData, read);
+        }
         free(pData);
     } else {
         // Handle unable to open file
@@ -580,6 +611,26 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
         httpResponse.sendData("");
     }
 } // processRequest
+
+void WebServer::continueConnection(struct mg_connection* mgConnection) {
+    if(unfinishedConnection.count(mgConnection->sock) == 0) {
+        return;
+    }
+
+    HTTPResponse httpResponse = HTTPResponse(mgConnection);
+
+    FILE* file = unfinishedConnection[mgConnection->sock];
+    auto pData = (char*) malloc(MAX_CHUNK_LENGTH);
+    size_t length = fread(pData, MAX_CHUNK_LENGTH, 1, file);
+
+    httpResponse.sendChunk(pData, length);
+    if(length < MAX_CHUNK_LENGTH) {
+        fclose(file);
+        httpResponse.closeConnection();
+        unfinishedConnection.erase(mgConnection->sock);
+    }
+    free(pData);
+}
 
 
 /**
