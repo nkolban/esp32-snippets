@@ -12,8 +12,11 @@
 #include <regex>
 #include <map>
 #include "sdkconfig.h"
+
 #ifdef CONFIG_MONGOOSE_PRESENT
 #include <mongoose.h>
+
+#define MAX_CHUNK_LENGTH 4090 // 4 kilobytes
 
 class WebServer;
 
@@ -59,6 +62,9 @@ public:
             const std::string& getRootPath() const;
             void setRootPath(const std::string& path);
             void setRootPath(std::string&& path);
+            void sendChunkHead();
+            void sendChunk(const char* pData, size_t length);
+            void closeConnection();
         private:
             struct mg_connection *m_nc;
             std::string m_rootPath;
@@ -90,8 +96,7 @@ public:
      */
     class HTTPMultiPart {
     public:
-        virtual ~HTTPMultiPart() {
-        };
+        virtual ~HTTPMultiPart() = default;
         virtual void begin(const std::string& varName, const std::string& fileName);
         virtual void end();
         virtual void data(const std::string& data);
@@ -191,11 +196,13 @@ public:
     void setWebSocketHandlerFactory(WebSocketHandlerFactory *pWebSocketHandlerFactory);
     void start(unsigned short port = 80);
     void processRequest(struct mg_connection *mgConnection, struct http_message *message);
+    void continueConnection(struct mg_connection* mgConnection);
     HTTPMultiPartFactory *m_pMultiPartFactory;
     WebSocketHandlerFactory *m_pWebSocketHandlerFactory;
 private:
     std::string m_rootPath;
     std::vector<PathHandler> m_pathHandlers;
+    std::map<sock_t, FILE*> unfinishedConnection;
 };
 
 #endif // CONFIG_MONGOOSE_PRESENT
