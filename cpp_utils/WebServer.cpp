@@ -621,13 +621,14 @@ void WebServer::continueConnection(struct mg_connection* mgConnection) {
 
     FILE* file = unfinishedConnection[mgConnection->sock];
     auto pData = (char*) malloc(MAX_CHUNK_LENGTH);
-    size_t length = fread(pData, MAX_CHUNK_LENGTH, 1, file);
+    size_t length = fread(pData, 1, MAX_CHUNK_LENGTH, file);
 
     httpResponse.sendChunk(pData, length);
     if(length < MAX_CHUNK_LENGTH) {
         fclose(file);
         httpResponse.closeConnection();
         unfinishedConnection.erase(mgConnection->sock);
+        httpResponse.sendChunk("", 0);
     }
     free(pData);
 }
