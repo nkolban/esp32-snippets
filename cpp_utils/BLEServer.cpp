@@ -35,7 +35,6 @@ BLEServer::BLEServer() {
 	m_gatts_if         = -1;
 	m_connectedCount   = 0;
 	m_connId           = -1;
-	BLEDevice::m_bleServer   = this;
 	m_pServerCallbacks = nullptr;
 
 	createApp(0);
@@ -349,5 +348,15 @@ void BLEServer::addCharacteristic(BLECharacteristic *characteristic, BLEService 
 	}
 }
 */
+
+void BLEServerCallbacks::onConnect(BLEServer* pServer) {
+	ESP_LOGD("BLEServerCallbacks", ">> onConnect(): Default");
+	ESP_LOGD("BLEServerCallbacks", "<< onConnect()");
+} // onConnect
+
+void BLEServerCallbacks::onDisconnect(BLEServer* pServer) {
+	ESP_LOGD("BLEServerCallbacks", ">> onDisconnect(): Default");
+	ESP_LOGD("BLEServerCallbacks", "<< onDisconnect()");
+} // onDisconnect
 
 #endif // CONFIG_BT_ENABLED

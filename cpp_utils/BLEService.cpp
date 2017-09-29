@@ -57,12 +57,11 @@ void BLEService::executeCreate(BLEServer *pServer) {
 	ESP_LOGD(LOG_TAG, ">> executeCreate() - Creating service (esp_ble_gatts_create_service) service uuid: %s", getUUID().toString().c_str());
 
 	m_pServer          = pServer;
+	m_semaphoreCreateEvt.take("executeCreate"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
+
 	esp_gatt_srvc_id_t srvc_id;
 	srvc_id.id.inst_id = 0;
 	srvc_id.id.uuid    = *m_uuid.getNative();
-
-	m_semaphoreCreateEvt.take("executeCreate"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
-
 	esp_err_t errRc = ::esp_ble_gatts_create_service(getServer()->getGattsIf(), &srvc_id, 10);
 
 	if (errRc != ESP_OK) {
@@ -86,18 +85,6 @@ void BLEService::dump() {
 		m_handle);
 	ESP_LOGD(LOG_TAG, "Characteristics:\n%s", m_characteristicMap.toString().c_str());
 } // dump
-
-/*
-void BLEService::setService(esp_gatt_srvc_id_t srvc_id) {
-	m_srvc_id = srvc_id;
-}
-*/
-
-/*
-esp_gatt_srvc_id_t BLEService::getService() {
-	return m_srvc_id;
-}
-*/
 
 
 /**
@@ -212,6 +199,7 @@ BLECharacteristic* BLEService::createCharacteristic(const char* uuid, uint32_t p
 	return createCharacteristic(BLEUUID(uuid), properties);
 }
 	
+
 /**
  * @brief Create a new BLE Characteristic associated with this service.
  * @param [in] uuid - The UUID of the characteristic.

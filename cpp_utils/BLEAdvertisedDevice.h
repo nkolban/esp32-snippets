@@ -30,7 +30,7 @@ public:
 	BLEAdvertisedDevice();
 
 	BLEAddress  getAddress();
-	uint16_t    getApperance();
+	uint16_t    getAppearance();
 	std::string getManufacturerData();
 	std::string getName();
 	int         getRSSI();

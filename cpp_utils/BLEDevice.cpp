@@ -7,21 +7,20 @@
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 #include <freertos/FreeRTOS.h>
+#include <freertos/event_groups.h>
 #include <freertos/task.h>
 #include <esp_err.h>
 #include <nvs_flash.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/event_groups.h>
-#include <bt.h>              // ESP32 BLE
-#include <esp_bt_main.h>     // ESP32 BLE
-#include <esp_gap_ble_api.h> // ESP32 BLE
-// ESP32 BLE
-#include <esp_gatts_api.h>   // ESP32 BLE
-#include <esp_err.h>         // ESP32 ESP-IDF
-#include <esp_log.h>         // ESP32 ESP-IDF
-#include <map>               // Part of C++ STL
-#include <sstream>
-#include <iomanip>
+#include <bt.h>                // ESP32 BLE
+#include <esp_bt_main.h>       // ESP32 BLE
+#include <esp_gap_ble_api.h>   // ESP32 BLE
+#include <esp_gatts_api.h>     // ESP32 BLE
+#include <esp_gattc_api.h>     // ESP32 BLE
+#include <esp_err.h>           // ESP32 ESP-IDF
+#include <esp_log.h>           // ESP32 ESP-IDF
+#include <map>                 // Part of C++ Standard library
+#include <sstream>             // Part of C++ Standard library
+#include <iomanip>             // Part of C++ Standard library
 
 #include "BLEDevice.h"
 #include "BLEClient.h"
@@ -30,41 +29,54 @@
 
 static const char* LOG_TAG = "BLEDevice";
 
-BLEServer *BLEDevice::m_bleServer = nullptr;
-BLEScan   *BLEDevice::m_pScan     = nullptr;
-BLEClient *BLEDevice::m_pClient   = nullptr;
 
-#include <esp_gattc_api.h>
+/**
+ * Singletons for the BLEDevice.
+ */
+BLEServer* BLEDevice::m_pServer = nullptr;
+BLEScan*   BLEDevice::m_pScan   = nullptr;
+BLEClient* BLEDevice::m_pClient = nullptr;
 
-
+/**
+ * @brief Create a new instance of a client.
+ * @return A new instance of the client.
+ */
 BLEClient* BLEDevice::createClient() {
 	m_pClient = new BLEClient();
 	return m_pClient;
 } // createClient
 
+
+/**
+ * @brief Create a new instance of a server.
+ * @return A new instance of the server.
+ */
 BLEServer* BLEDevice::createServer() {
-	return new BLEServer();
-}
+	m_pServer = new BLEServer();
+	return m_pServer;
+} // createServer
 
 
 /**
  * @brief Handle GATT server events.
  *
- * @param [in] event
- * @param [in] gatts_if
- * @param [in] param
+ * @param [in] event The event that has been newly received.
+ * @param [in] gatts_if The connection to the GATT interface.
+ * @param [in] param Parameters for the event.
  */
 void BLEDevice::gattServerEventHandler(
    esp_gatts_cb_event_t      event,
    esp_gatt_if_t             gatts_if,
-   esp_ble_gatts_cb_param_t *param
+   esp_ble_gatts_cb_param_t* param
 ) {
 	ESP_LOGD(LOG_TAG, "gattServerEventHandler [esp_gatt_if: %d] ... %s",
 		gatts_if,
 		BLEUtils::gattServerEventTypeToString(event).c_str());
+
 	BLEUtils::dumpGattServerEvent(event, gatts_if, param);
-	if (BLEDevice::m_bleServer != nullptr) {
-		BLEDevice::m_bleServer->handleGATTServerEvent(event, gatts_if, param);
+
+	if (BLEDevice::m_pServer != nullptr) {
+		BLEDevice::m_pServer->handleGATTServerEvent(event, gatts_if, param);
 	}
 } // gattServerEventHandler
 
@@ -73,10 +85,6 @@ void BLEDevice::gattServerEventHandler(
  * @brief Handle GATT client events.
  *
  * Handler for the GATT client events.
- * * `ESP_GATTC_OPEN_EVT`       – Invoked when a connection is opened.
- * * `ESP_GATTC_PREP_WRITE_EVT` – Response to write a characteristic.
- * * `ESP_GATTC_READ_CHAR_EVT`  – Response to read a characteristic.
- * * `ESP_GATTC_REG_EVT`        – Invoked when a GATT client has been registered.
  *
  * @param [in] event
  * @param [in] gattc_if
@@ -90,12 +98,13 @@ void BLEDevice::gattClientEventHandler(
 	ESP_LOGD(LOG_TAG, "gattClientEventHandler [esp_gatt_if: %d] ... %s",
 		gattc_if, BLEUtils::gattClientEventTypeToString(event).c_str());
 	BLEUtils::dumpGattClientEvent(event, gattc_if, param);
-
+/*
 	switch(event) {
 		default: {
 			break;
 		}
 	} // switch
+	*/
 
 	// If we have a client registered, call it.
 	if (BLEDevice::m_pClient != nullptr) {
@@ -128,14 +137,26 @@ void BLEDevice::gapEventHandler(
 		}
 	} // switch
 
-	if (BLEDevice::m_bleServer != nullptr) {
-		BLEDevice::m_bleServer->handleGAPEvent(event, param);
+	if (BLEDevice::m_pServer != nullptr) {
+		BLEDevice::m_pServer->handleGAPEvent(event, param);
 	}
 
 	if (BLEDevice::m_pScan != nullptr) {
 		BLEDevice::getScan()->gapEventHandler(event, param);
 	}
 } // gapEventHandler
+
+
+/**
+ * @brief Retrieve the Scan object that we use for scanning.
+ * @return The scanning object reference.
+ */
+BLEScan* BLEDevice::getScan() {
+	if (m_pScan == nullptr) {
+		m_pScan = new BLEScan();
+	}
+	return m_pScan;
+} // getScan
 
 
 /**
@@ -207,20 +228,6 @@ void BLEDevice::init(std::string deviceName) {
 
 	vTaskDelay(200/portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
 } // init
-
-
-
-/**
- * @brief Retrieve the Scan object that we use for scanning.
- * @return The scanning object reference.
- */
-BLEScan* BLEDevice::getScan() {
-	if (m_pScan == nullptr) {
-		m_pScan = new BLEScan();
-	}
-	return m_pScan;
-} // getScan
-
 
 
 #endif // CONFIG_BT_ENABLED

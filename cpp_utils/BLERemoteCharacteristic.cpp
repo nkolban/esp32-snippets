@@ -54,6 +54,60 @@ BLERemoteCharacteristic::~BLERemoteCharacteristic() {
 } // ~BLERemoteCharacteristic
 
 
+/**
+ * @brief Does the characteristic support broadcasting?
+ * @return True if the characteristic supports broadcasting.
+ */
+bool BLERemoteCharacteristic::canBroadcast() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_BROADCAST) != 0;
+} // canBroadcast
+
+
+/**
+ * @brief Does the characteristic support indications?
+ * @return True if the characteristic supports indications.
+ */
+bool BLERemoteCharacteristic::canIndicate() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_INDICATE) != 0;
+} // canIndicate
+
+
+/**
+ * @brief Does the characteristic support notifications?
+ * @return True if the characteristic supports notifications.
+ */
+bool BLERemoteCharacteristic::canNotify() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_NOTIFY) != 0;
+} // canNotify
+
+
+/**
+ * @brief Does the characteristic support reading?
+ * @return True if the characteristic supports reading.
+ */
+bool BLERemoteCharacteristic::canRead() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_READ) != 0;
+} // canRead
+
+
+/**
+ * @brief Does the characteristic support writing?
+ * @return True if the characteristic supports writing.
+ */
+bool BLERemoteCharacteristic::canWrite() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_WRITE) != 0;
+} // canWrite
+
+
+/**
+ * @brief Does the characteristic support writing with no response?
+ * @return True if the characteristic supports writing with no response.
+ */
+bool BLERemoteCharacteristic::canWriteNoResponse() {
+	return (m_charProp & ESP_GATT_CHAR_PROP_BIT_WRITE_NR) != 0;
+} // canWriteNoResponse
+
+
 /*
 static bool compareSrvcId(esp_gatt_srvc_id_t id1, esp_gatt_srvc_id_t id2) {
 	if (id1.id.inst_id != id2.id.inst_id) {
@@ -209,25 +263,6 @@ void BLERemoteCharacteristic::getDescriptors() {
 
 	removeDescriptors();   // Remove any existing descriptors.
 
-	/*
-	uint16_t count;
-	esp_gatt_status_t status = ::esp_ble_gattc_get_attr_count(
-		getRemoteService()->getClient()->getGattcIf(),
-		getRemoteService()->getClient()->getConnId(),
-		ESP_GATT_DB_DESCRIPTOR,
-		getRemoteService()->getStartHandle(),
-		getRemoteService()->getEndHandle(),
-		getHandle(), // Characteristic handle ... only used for ESP_GATT_DB_DESCRIPTOR
-		&count
-	);
-	if (status != ESP_GATT_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_gattc_get_attr_count: %s", BLEUtils::gattStatusToString(status).c_str());
-	} else {
-		ESP_LOGD(LOG_TAG, "Number of descriptors associated with characteristic is %d", count);
-	}
-	*/
-
-
 	// Loop over each of the descriptors within the service associated with this characteristic.
 	// For each descriptor we find, create a BLERemoteDescriptor instance.
 	uint16_t offset = 0;
@@ -308,7 +343,7 @@ BLERemoteDescriptor* BLERemoteCharacteristic::getDescriptor(BLEUUID uuid) {
  * @brief Get the remote service associated with this characteristic.
  * @return The remote service associated with this characteristic.
  */
-BLERemoteService *BLERemoteCharacteristic::getRemoteService() {
+BLERemoteService* BLERemoteCharacteristic::getRemoteService() {
 	return m_pRemoteService;
 } // getRemoteService
 
@@ -371,6 +406,8 @@ std::string BLERemoteCharacteristic::readValue() {
 	m_semaphoreReadCharEvt.take("readValue");
 
 	// Ask the BLE subsystem to retrieve the value for the remote hosted characteristic.
+	// This is an asynchronous request which means that we must block waiting for the response
+	// to become available.
 	esp_err_t errRc = ::esp_ble_gattc_read_char(
 		m_pRemoteService->getClient()->getGattcIf(),
 		m_pRemoteService->getClient()->getConnId(),    // The connection ID to the BLE server
@@ -523,6 +560,5 @@ void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
 void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool response) {
 	writeValue(std::string((char *)data, length), response);
 } // writeValue
-
 
 #endif /* CONFIG_BT_ENABLED */

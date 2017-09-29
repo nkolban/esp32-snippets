@@ -21,10 +21,19 @@ class BLEAdvertisedDeviceCallbacks;
 class BLEClient;
 class BLEScan;
 
+
+/**
+ * @brief The result of having performed a scan.
+ * When a scan completes, we have a set of found devices.  Each device is described
+ * by a BLEAdvertisedDevice object.  The number of items in the set is given by
+ * getCount().  We can retrieve a device by calling getDevice() passing in the
+ * index (starting at 0) of the desired device.
+ */
 class BLEScanResults {
 public:
-	int getCount();
+	int                 getCount();
 	BLEAdvertisedDevice getDevice(uint32_t i);
+
 private:
 	friend BLEScan;
 	std::vector<BLEAdvertisedDevice> m_vectorAdvertisedDevices;
@@ -39,7 +48,6 @@ class BLEScan {
 public:
 	BLEScan();
 
-	//virtual void onResults();
 	void           setActiveScan(bool active);
 	void           setAdvertisedDeviceCallbacks(BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks);
 	void           setInterval(uint16_t intervalMSecs);
@@ -58,9 +66,8 @@ private:
 	esp_ble_scan_params_t         m_scan_params;
 	BLEAdvertisedDeviceCallbacks* m_pAdvertisedDeviceCallbacks;
 	bool                          m_stopped;
-	FreeRTOS::Semaphore m_semaphoreScanEnd = FreeRTOS::Semaphore("ScanEnd");
-	//std::vector<BLEAdvertisedDevice*> m_vectorAvdertisedDevices;
-	BLEScanResults m_scanResults;
+	FreeRTOS::Semaphore           m_semaphoreScanEnd = FreeRTOS::Semaphore("ScanEnd");
+	BLEScanResults                m_scanResults;
 }; // BLEScan
 
 #endif /* CONFIG_BT_ENABLED */

@@ -60,7 +60,7 @@ BLEAddress BLEAdvertisedDevice::getAddress() {
  *
  * @return The appearance of the advertised device.
  */
-uint16_t BLEAdvertisedDevice::getApperance() {
+uint16_t BLEAdvertisedDevice::getAppearance() {
 	return m_appearance;
 }
 
@@ -390,7 +390,7 @@ std::string BLEAdvertisedDevice::toString() {
 	std::stringstream ss;
 	ss << "Name: " << getName() << ", Address: " << getAddress().toString();
 	if (haveAppearance()) {
-		ss << ", appearance: " << getApperance();
+		ss << ", appearance: " << getAppearance();
 	}
 	if (haveManufacturerData()) {
 		char *pHex = BLEUtils::buildHexData(nullptr, (uint8_t*)getManufacturerData().data(), getManufacturerData().length());

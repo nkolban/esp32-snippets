@@ -30,6 +30,12 @@ public:
 	~BLERemoteCharacteristic();
 
 	// Public member functions
+	bool        canBroadcast();
+	bool        canIndicate();
+	bool        canNotify();
+	bool        canRead();
+	bool        canWrite();
+	bool        canWriteNoResponse();
 	BLERemoteDescriptor *getDescriptor(BLEUUID uuid);
 	BLEUUID     getUUID();
 	std::string readValue(void);

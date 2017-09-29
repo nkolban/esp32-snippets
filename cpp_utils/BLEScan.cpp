@@ -21,30 +21,18 @@
 static const char* LOG_TAG = "BLEScan";
 
 
+/**
+ * Constructor
+ */
 BLEScan::BLEScan() {
 	m_scan_params.scan_type          = BLE_SCAN_TYPE_PASSIVE; // Default is a passive scan.
 	m_scan_params.own_addr_type      = BLE_ADDR_TYPE_PUBLIC;
 	m_scan_params.scan_filter_policy = BLE_SCAN_FILTER_ALLOW_ALL;
+	m_pAdvertisedDeviceCallbacks     = nullptr;
+	m_stopped                        = true;
 	setInterval(100);
 	setWindow(100);
-	m_pAdvertisedDeviceCallbacks = nullptr;
-	m_stopped = true;
 } // BLEScan
-
-
-
-/**
- * @brief Clear the history of previously detected advertised devices.
- * @return N/A
- */
-/*
-void BLEScan::clearAdvertisedDevices() {
-	for (int i=0; i<m_vectorAvdertisedDevices.size(); i++) {
-		delete m_vectorAvdertisedDevices[i];
-	}
-	m_vectorAvdertisedDevices.clear();
-} // clearAdvertisedDevices
-*/
 
 
 /**
@@ -90,14 +78,7 @@ void BLEScan::gapEventHandler(
 // ignore it.
 					BLEAddress advertisedAddress(param->scan_rst.bda);
 					bool found = false;
-					/*
-					for (int i=0; i<m_vectorAvdertisedDevices.size(); i++) {
-						if (m_vectorAvdertisedDevices[i]->getAddress().equals(advertisedAddress)) {
-							found = true;
-							break;
-						}
-					}
-					*/
+
 					for (int i=0; i<m_scanResults.getCount(); i++) {
 						if (m_scanResults.getDevice(i).getAddress().equals(advertisedAddress)) {
 							found = true;
@@ -118,7 +99,6 @@ void BLEScan::gapEventHandler(
 					advertisedDevice.parseAdvertisement((uint8_t*)param->scan_rst.ble_adv);
 					advertisedDevice.setScan(this);
 
-					//m_vectorAvdertisedDevices.push_back(pAdvertisedDevice);
 					if (m_pAdvertisedDeviceCallbacks) {
 						m_pAdvertisedDeviceCallbacks->onResult(advertisedDevice);
 					}
@@ -142,14 +122,6 @@ void BLEScan::gapEventHandler(
 		} // default
 	} // End switch
 } // gapEventHandler
-
-
-/*
-void BLEScan::onResults() {
-	ESP_LOGD(LOG_TAG, ">> onResults: default");
-	ESP_LOGD(LOG_TAG, "<< onResults");
-} // onResults
-*/
 
 
 /**
@@ -200,7 +172,7 @@ void BLEScan::setWindow(uint16_t windowMSecs) {
  * @return N/A.
  */
 BLEScanResults BLEScan::start(uint32_t duration) {
-	ESP_LOGD(LOG_TAG, ">> start(%d)", duration);
+	ESP_LOGD(LOG_TAG, ">> start(duration=%d)", duration);
 
 	m_semaphoreScanEnd.take("start");
 
