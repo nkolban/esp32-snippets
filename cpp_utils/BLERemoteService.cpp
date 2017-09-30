@@ -140,7 +140,7 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
 // asked the device about its characteristics, then we do that now.  Once we get the results we can then
 // examine the characteristics map to see if it has the characteristic we are looking for.
 	if (!m_haveCharacteristics) {
-		getCharacteristics();
+		retrieveCharacteristics();
 	}
 	std::string v = uuid.toString();
 	for (auto &myPair : m_characteristicMap) {
@@ -156,7 +156,7 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
  * @brief Retrieve all the characteristics for this service.
  * @return N/A
  */
-void BLERemoteService::getCharacteristics() {
+void BLERemoteService::retrieveCharacteristics() {
 
 	ESP_LOGD(LOG_TAG, ">> getCharacteristics() for service: %s", getUUID().toString().c_str());
 
@@ -259,6 +259,15 @@ void BLERemoteService::getCharacteristics() {
 	}
 	m_haveCharacteristics = true; // Remember that we have received the characteristics.
 	ESP_LOGD(LOG_TAG, "<< getCharacteristics()");
+} // getCharacteristics
+
+
+/**
+ * @brief Retrieve a map of all the characteristics of this service.
+ * @return A map of all the characteristics of this service.
+ */
+std::map<std::string, BLERemoteCharacteristic*>* BLERemoteService::getCharacteristics() {
+	return &m_characteristicMap;
 } // getCharacteristics
 
 

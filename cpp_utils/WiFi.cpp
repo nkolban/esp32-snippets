@@ -41,6 +41,9 @@ static void setDNSServer(char *ip) {
 }
 */
 
+
+
+
 /**
  * @brief Creates and uses a default event handler
  */
@@ -48,20 +51,20 @@ WiFi::WiFi()
     : ip(0)
     , gw(0)
     , netmask(0)
-    , m_wifiEventHandler(nullptr)
+    , m_pWifiEventHandler(nullptr)
 {
 	::nvs_flash_init();
 	wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT();
 	esp_wifi_init(&config);
 	::tcpip_adapter_init();
-	m_wifiEventHandler = new WiFiEventHandler();
+	m_pWifiEventHandler = new WiFiEventHandler();
 } // WiFi
 
 /**
  * @brief Deletes the event handler that was used by the class
  */
 WiFi::~WiFi() {
-	delete m_wifiEventHandler;
+	delete m_pWifiEventHandler;
 }
 
 /**
@@ -134,11 +137,12 @@ void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
  *
  * The event handler will be called back with the outcome of the connection.
  *
- * @param[in] ssid The network SSID of the access point to which we wish to connect.
- * @param[in] password The password of the access point to which we wish to connect.
+ * @param [in] ssid The network SSID of the access point to which we wish to connect.
+ * @param [in] password The password of the access point to which we wish to connect.
+ * @param [in] waitForConnection Block until the connection has an outcome.
  * @return N/A.
  */
-void WiFi::connectAP(const std::string& ssid, const std::string& password){
+void WiFi::connectAP(const std::string& ssid, const std::string& password, bool waitForConnection){
 	ESP_LOGD(LOG_TAG, ">> connectAP");
 
 	if (ip != 0 && gw != 0 && netmask != 0) {
@@ -153,7 +157,8 @@ void WiFi::connectAP(const std::string& ssid, const std::string& password){
 	}
 
 
-	ESP_ERROR_CHECK( esp_event_loop_init(m_wifiEventHandler->getEventHandler(), m_wifiEventHandler));
+	ESP_ERROR_CHECK(esp_event_loop_init(WiFi::eventHandler, this));
+	//ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
 	ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
 	ESP_ERROR_CHECK(::esp_wifi_set_mode(WIFI_MODE_STA));
 	wifi_config_t sta_config;
@@ -164,7 +169,9 @@ void WiFi::connectAP(const std::string& ssid, const std::string& password){
 	ESP_ERROR_CHECK(::esp_wifi_set_config(WIFI_IF_STA, &sta_config));
 	ESP_ERROR_CHECK(::esp_wifi_start());
 
+	m_gotIpEvt.take("connectAP");
 	ESP_ERROR_CHECK(::esp_wifi_connect());
+	m_gotIpEvt.wait("connectAP");
 	ESP_LOGD(LOG_TAG, "<< connectAP");
 } // connectAP
 
@@ -179,6 +186,22 @@ void WiFi::dump() {
     inet_ntop(AF_INET, &ip, ipAddrStr, sizeof(ipAddrStr));
     ESP_LOGD(LOG_TAG, "DNS Server[0]: %s", ipAddrStr);
 } // dump
+
+
+/**
+ * @brief Primary event handler interface.
+ */
+esp_err_t WiFi::eventHandler(void* ctx, system_event_t* event) {
+	WiFi *pWiFi = (WiFi *)ctx;
+	esp_err_t rc = pWiFi->m_pWifiEventHandler->getEventHandler()(pWiFi->m_pWifiEventHandler, event);
+	// If the event we received indicates that we now have an IP address then unlock the mutex that
+	// indicates we are waiting for an IP.
+	if (event->event_id == SYSTEM_EVENT_STA_GOT_IP) {
+		pWiFi->m_gotIpEvt.give();
+	}
+	return rc;
+} // eventHandler
+
 
 /**
  * @brief Get the AP IP Info.
@@ -311,7 +334,7 @@ std::string WiFi::getStaSSID() {
 std::vector<WiFiAPRecord> WiFi::scan() {
     ::nvs_flash_init();
     ::tcpip_adapter_init();
-    ESP_ERROR_CHECK(esp_event_loop_init(m_wifiEventHandler->getEventHandler(), m_wifiEventHandler));
+    ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
@@ -353,7 +376,7 @@ std::vector<WiFiAPRecord> WiFi::scan() {
 void WiFi::startAP(const std::string& ssid, const std::string& password) {
     ::nvs_flash_init();
     ::tcpip_adapter_init();
-    ESP_ERROR_CHECK(esp_event_loop_init(m_wifiEventHandler->getEventHandler(), m_wifiEventHandler));
+    ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
     ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
@@ -378,7 +401,7 @@ void WiFi::startAP(const std::string& ssid, const std::string& password) {
  * @param[in] wifiEventHandler The class that will be used to process events.
  */
 void WiFi::setWifiEventHandler(WiFiEventHandler *wifiEventHandler) {
-  this->m_wifiEventHandler = wifiEventHandler;
+  this->m_pWifiEventHandler = wifiEventHandler;
 } // setWifiEventHandler
 
 

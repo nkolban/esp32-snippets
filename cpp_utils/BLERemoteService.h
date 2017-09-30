@@ -32,6 +32,7 @@ public:
 	// Public methods
 	BLERemoteCharacteristic* getCharacteristic(const char* uuid);	
 	BLERemoteCharacteristic* getCharacteristic(BLEUUID uuid);
+	std::map<std::string, BLERemoteCharacteristic*>* getCharacteristics();
 
 	BLEClient*               getClient(void);
 	BLEUUID                  getUUID(void);
@@ -46,7 +47,7 @@ private:
 	friend class BLERemoteCharacteristic;
 
 	// Private methods
-	void                getCharacteristics(void);
+	void                retrieveCharacteristics(void);
 	uint16_t            getHandle();
 	esp_gatt_id_t*      getSrvcId(void);
 	uint16_t            getStartHandle();

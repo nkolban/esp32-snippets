@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <mdns.h>
+#include "FreeRTOS.h"
 #include "WiFiEventHandler.h"
 
 /**
@@ -103,10 +104,13 @@ private:
  */
 class WiFi {
 private:
+		static esp_err_t eventHandler(void* ctx, system_event_t* event);
     uint32_t ip;
     uint32_t gw;
     uint32_t netmask;
-    WiFiEventHandler *m_wifiEventHandler;
+    WiFiEventHandler*   m_pWifiEventHandler;
+    uint8_t             m_dnsCount=0;
+  	FreeRTOS::Semaphore m_gotIpEvt = FreeRTOS::Semaphore("GotIpEvt");
 
 public:
     WiFi();
@@ -119,7 +123,7 @@ public:
     void setDNSServer(int numdns, ip_addr_t ip);
     struct in_addr getHostByName(const std::string& hostName);
     struct in_addr getHostByName(const char* hostName);
-    void connectAP(const std::string& ssid, const std::string& password);
+    void connectAP(const std::string& ssid, const std::string& password, bool waitForConnection=true);
     void dump();
     static std::string getApMac();
     static tcpip_adapter_ip_info_t getApIpInfo();
@@ -134,10 +138,6 @@ public:
     void setIPInfo(const char* ip, const char* gw, const char* netmask);
     void setIPInfo(uint32_t ip, uint32_t gw, uint32_t netmask);
     void setWifiEventHandler(WiFiEventHandler *wifiEventHandler);
-private:
-    uint8_t m_dnsCount=0;
-    //char *m_dnsServer = nullptr;
-
 };
 
 #endif /* MAIN_WIFI_H_ */

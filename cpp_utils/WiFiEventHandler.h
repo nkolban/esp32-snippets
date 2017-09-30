@@ -110,6 +110,7 @@ public:
     }
 
 private:
+    friend class WiFi;
     WiFiEventHandler *m_nextHandler;
     static esp_err_t eventHandler(void* ctx, system_event_t* event);
 };

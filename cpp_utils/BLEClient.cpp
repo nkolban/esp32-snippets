@@ -281,7 +281,7 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
  * and will culminate with an ESP_GATTC_SEARCH_CMPL_EVT when all have been received.
  */
 	ESP_LOGD(LOG_TAG, ">> getServices");
-	m_servicesMap.empty();
+	m_servicesMap.clear();
 	esp_err_t errRc = esp_ble_gattc_search_service(
 		getGattcIf(),
 		getConnId(),
