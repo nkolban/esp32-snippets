@@ -52,7 +52,10 @@ BLEClient* BLEDevice::createClient() {
  * @return A new instance of the server.
  */
 BLEServer* BLEDevice::createServer() {
+	ESP_LOGD(LOG_TAG, ">> createServer");
 	m_pServer = new BLEServer();
+	m_pServer->createApp(0);
+	ESP_LOGD(LOG_TAG, "<< createServer");
 	return m_pServer;
 } // createServer
 

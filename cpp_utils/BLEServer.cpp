@@ -37,14 +37,14 @@ BLEServer::BLEServer() {
 	m_connId           = -1;
 	m_pServerCallbacks = nullptr;
 
-	createApp(0);
+	//createApp(0);
 } // BLEServer
 
 
 void BLEServer::createApp(uint16_t appId) {
 	m_appId = appId;
 	registerApp();
-}
+} // createApp
 
 
 /**
@@ -198,7 +198,7 @@ void BLEServer::handleGATTServerEvent(
 		case ESP_GATTS_REG_EVT: {
 			m_gatts_if = gatts_if;
 
-			m_semaphoreRegisterAppEvt.give();
+			m_semaphoreRegisterAppEvt.give(); // Unlock the mutex waiting for the registration of the app.
 			break;
 		} // ESP_GATTS_REG_EVT
 

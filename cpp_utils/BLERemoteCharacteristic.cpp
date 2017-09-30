@@ -151,12 +151,12 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 		// ESP_GATTC_NOTIFY_EVT
 		//
 		// notify
-		// - uint16_t           conn_id
-		// - esp_bd_addr_t      remote_bda
-		// - uint16_t           handle
-		// - uint16_t           value_len
-		// - uint8_t*           value
-		// - bool               is_notify
+		// - uint16_t           conn_id    - The connection identifier of the server.
+		// - esp_bd_addr_t      remote_bda - The device address of the BLE server.
+		// - uint16_t           handle     - The handle of the characteristic for which the event is being received.
+		// - uint16_t           value_len  - The length of the received data.
+		// - uint8_t*           value      - The received data.
+		// - bool               is_notify  - True if this is a notify, false if it is an indicate.
 		//
 		// We have received a notification event which means that the server wishes us to know about a notification
 		// piece of data.  What we must now do is find the characteristic with the associated handle and then
@@ -177,6 +177,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 			} // End we have a callback function ...
 			break;
 		} // ESP_GATTC_NOTIFY_EVT
+
 
 		//
 		// ESP_GATTC_READ_CHAR_EVT
@@ -221,10 +222,27 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 				break;
 			}
 
-			// We have process the notify and can unlock the semaphore.
+			// We have processed the notify registration and can unlock the semaphore.
 			m_semaphoreRegForNotifyEvt.give();
 			break;
 		} // ESP_GATTC_REG_FOR_NOTIFY_EVT
+
+
+		//
+		// ESP_GATTC_UNREG_FOR_NOTIFY_EVT
+		//
+		// unreg_for_notify:
+		// - esp_gatt_status_t status
+		// - uint16_t          handle
+		//
+		case ESP_GATTC_UNREG_FOR_NOTIFY_EVT: {
+			if (evtParam->unreg_for_notify.handle != getHandle()) {
+				break;
+			}
+			// We have processed the notify un-registration and can unlock the semaphore.
+			m_semaphoreRegForNotifyEvt.give();
+			break;
+		} // ESP_GATTC_UNREG_FOR_NOTIFY_EVT:
 
 
 		//
@@ -446,7 +464,7 @@ void BLERemoteCharacteristic::registerForNotify(
 
 	m_semaphoreRegForNotifyEvt.take("registerForNotify");
 
-	if (notifyCallback != nullptr) {
+	if (notifyCallback != nullptr) {   // If we have a callback function, then this is a registration.
 		esp_err_t errRc = ::esp_ble_gattc_register_for_notify(
 			m_pRemoteService->getClient()->getGattcIf(),
 			*m_pRemoteService->getClient()->getPeerAddress().getNative(),
@@ -456,8 +474,8 @@ void BLERemoteCharacteristic::registerForNotify(
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_for_notify: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		}
-	} // Register
-	else {
+	} // End Register
+	else {   // If we weren't passed a callback function, then this is an unregistration.
 		esp_err_t errRc = ::esp_ble_gattc_unregister_for_notify(
 			m_pRemoteService->getClient()->getGattcIf(),
 			*m_pRemoteService->getClient()->getPeerAddress().getNative(),
@@ -467,7 +485,7 @@ void BLERemoteCharacteristic::registerForNotify(
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_unregister_for_notify: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		}
-	} // Unregister
+	} // End Unregister
 
 	m_semaphoreRegForNotifyEvt.wait("registerForNotify");
 
