@@ -35,7 +35,6 @@ BLE_FILES= \
 	BLERemoteService.h \
 	BLEScan.cpp \
 	BLEScan.h \
-	BLEServerCallbacks.cpp \
 	BLEServer.cpp \
 	BLEServer.h \
 	BLEService.cpp \
