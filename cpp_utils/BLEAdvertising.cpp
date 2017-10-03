@@ -35,6 +35,20 @@ BLEAdvertising::BLEAdvertising() {
 	m_advData.p_service_uuid      = nullptr;
 	m_advData.flag                = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT);
 
+	m_advDataScanResponse.set_scan_rsp        = true;
+	m_advDataScanResponse.include_name        = false;
+	m_advDataScanResponse.include_txpower     = false;
+	m_advDataScanResponse.min_interval        = 0x20;
+	m_advDataScanResponse.max_interval        = 0x40;
+	m_advDataScanResponse.appearance          = 0x00;
+	m_advDataScanResponse.manufacturer_len    = 0;
+	m_advDataScanResponse.p_manufacturer_data = nullptr;
+	m_advDataScanResponse.service_data_len    = 0;
+	m_advDataScanResponse.p_service_data      = nullptr;
+	m_advDataScanResponse.service_uuid_len    = 0;
+	m_advDataScanResponse.p_service_uuid      = nullptr;
+	m_advDataScanResponse.flag                = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT);
+
 	m_advParams.adv_int_min       = 0x20;
 	m_advParams.adv_int_max       = 0x40;
 	m_advParams.adv_type          = ADV_TYPE_IND;
@@ -83,18 +97,18 @@ void BLEAdvertising::setServiceUUID(BLEUUID serviceUUID) {
 	esp_bt_uuid_t* espUUID = m_serviceUUID.getNative();
 	switch(espUUID->len) {
 		case ESP_UUID_LEN_16: {
-			m_advData.service_uuid_len = 2;
-			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid16);
+			m_advDataScanResponse.service_uuid_len = 2;
+			m_advDataScanResponse.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid16);
 			break;
 		}
 		case ESP_UUID_LEN_32: {
-			m_advData.service_uuid_len = 4;
-			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid32);
+			m_advDataScanResponse.service_uuid_len = 4;
+			m_advDataScanResponse.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid32);
 			break;
 		}
 		case ESP_UUID_LEN_128: {
-			m_advData.service_uuid_len = 16;
-			m_advData.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid128);
+			m_advDataScanResponse.service_uuid_len = 16;
+			m_advDataScanResponse.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid128);
 			break;
 		}
 	} // switch
@@ -110,13 +124,13 @@ void BLEAdvertising::setServiceUUID(BLEUUID serviceUUID) {
 void BLEAdvertising::start() {
 	ESP_LOGD(LOG_TAG, ">> start");
 
-	if (m_advData.service_uuid_len > 0) {
+	if (m_advDataScanResponse.service_uuid_len > 0) {
 		uint8_t hexData[16*2+1];
-		BLEUtils::buildHexData(hexData, m_advData.p_service_uuid, m_advData.service_uuid_len);
+		BLEUtils::buildHexData(hexData, m_advDataScanResponse.p_service_uuid, m_advDataScanResponse.service_uuid_len);
 		ESP_LOGD(LOG_TAG, " - Service: service_uuid_len=%d, p_service_uuid=0x%x (data=%s)",
-			m_advData.service_uuid_len,
-			(uint32_t)m_advData.p_service_uuid,
-			(m_advData.service_uuid_len > 0?(char *)hexData:"N/A")
+				m_advDataScanResponse.service_uuid_len,
+			(uint32_t)m_advDataScanResponse.p_service_uuid,
+			(m_advDataScanResponse.service_uuid_len > 0?(char *)hexData:"N/A")
 		);
 	} // We have a service to advertise
 
@@ -125,6 +139,12 @@ void BLEAdvertising::start() {
 	esp_err_t errRc = ::esp_ble_gap_config_adv_data(&m_advData);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_config_adv_data: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		return;
+	}
+
+	errRc = ::esp_ble_gap_config_adv_data(&m_advDataScanResponse);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gap_config_adv_data (Scan response): rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
 

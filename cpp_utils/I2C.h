@@ -18,46 +18,13 @@
  */
 class I2C {
 private:
-	uint8_t address;
-	i2c_cmd_handle_t cmd;
-	bool directionKnown;
-	gpio_num_t sdaPin;
-	gpio_num_t sclPin;
+	uint8_t          m_address;
+	i2c_cmd_handle_t m_cmd;
+	bool             m_directionKnown;
+	gpio_num_t       m_sdaPin;
+	gpio_num_t       m_sclPin;
 
 public:
-	I2C();
-	void beginTransaction();
-	void endTransaction();
-	/**
-	 * @brief Get the address of the %I2C slave against which we are working.
-	 *
-	 * @return The address of the %I2C slave.
-	 */
-	uint8_t getAddress() const
-	{
-		return address;
-	}
-
-	void init(uint8_t address, gpio_num_t sdaPin = DEFAULT_SDA_PIN, gpio_num_t sclPin = DEFAULT_CLK_PIN);
-	void read(uint8_t *bytes, size_t length, bool ack=true);
-	void read(uint8_t *byte, bool ack=true);
-
-	/**
-	 * @brief Set the address of the %I2C slave against which we will be working.
-	 *
-	 * @param[in] address The address of the %I2C slave.
-	 */
-	void setAddress(uint8_t address)
-	{
-		this->address = address;
-	}
-
-	void setDebug(bool enabled);
-	void scan();
-	void start();
-	void stop();
-	void write(uint8_t byte, bool ack=true);
-	void write(uint8_t *bytes, size_t length, bool ack=true);
 	/**
 	 * @brief The default SDA pin.
 	 */
@@ -66,6 +33,22 @@ public:
 	 * @brief The default Clock pin.
 	 */
 	static const gpio_num_t DEFAULT_CLK_PIN = GPIO_NUM_26;
+
+	I2C();
+	void beginTransaction();
+	void endTransaction();
+	uint8_t getAddress() const;
+	void init(uint8_t address, gpio_num_t sdaPin = DEFAULT_SDA_PIN, gpio_num_t sclPin = DEFAULT_CLK_PIN);
+	void read(uint8_t* bytes, size_t length, bool ack=true);
+	void read(uint8_t* byte, bool ack=true);
+	void scan();
+	void setAddress(uint8_t address);
+	void setDebug(bool enabled);
+	bool slavePresent(uint8_t address);
+	void start();
+	void stop();
+	void write(uint8_t byte, bool ack=true);
+	void write(uint8_t* bytes, size_t length, bool ack=true);
 };
 
 #endif /* MAIN_I2C_H_ */

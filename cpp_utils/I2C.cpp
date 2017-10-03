@@ -22,11 +22,11 @@ static bool debug = false;
  * @return N/A.
  */
 I2C::I2C() {
-	directionKnown = false;
-	address = 0;
-	cmd     = 0;
-	sdaPin  = DEFAULT_SDA_PIN;
-	sclPin  = DEFAULT_CLK_PIN;
+	m_directionKnown = false;
+	m_address = 0;
+	m_cmd     = 0;
+	m_sdaPin  = DEFAULT_SDA_PIN;
+	m_sclPin  = DEFAULT_CLK_PIN;
 } // I2C
 
 
@@ -40,9 +40,9 @@ void I2C::beginTransaction() {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "beginTransaction()");
 	}
-	cmd = ::i2c_cmd_link_create();
-	ESP_ERROR_CHECK(::i2c_master_start(cmd));
-	directionKnown = false;
+	m_cmd = ::i2c_cmd_link_create();
+	ESP_ERROR_CHECK(::i2c_master_start(m_cmd));
+	m_directionKnown = false;
 } // beginTransaction
 
 
@@ -57,11 +57,22 @@ void I2C::endTransaction() {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "endTransaction()");
 	}
-	ESP_ERROR_CHECK(::i2c_master_stop(cmd));
-	ESP_ERROR_CHECK(::i2c_master_cmd_begin(I2C_NUM_0, cmd, 1000/portTICK_PERIOD_MS));
-	::i2c_cmd_link_delete(cmd);
-	directionKnown = false;
+	ESP_ERROR_CHECK(::i2c_master_stop(m_cmd));
+	ESP_ERROR_CHECK(::i2c_master_cmd_begin(I2C_NUM_0, m_cmd, 1000/portTICK_PERIOD_MS));
+	::i2c_cmd_link_delete(m_cmd);
+	m_directionKnown = false;
 } // endTransaction
+
+
+/**
+ * @brief Get the address of the %I2C slave against which we are working.
+ *
+ * @return The address of the %I2C slave.
+ */
+uint8_t I2C::getAddress() const
+{
+	return m_address;
+}
 
 
 /**
@@ -74,9 +85,9 @@ void I2C::endTransaction() {
  */
 void I2C::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin) {
 	ESP_LOGD(LOG_TAG, ">> I2c::init.  address=%d, sda=%d, scl=%d", address, sdaPin, sclPin);
-	this->sdaPin = sdaPin;
-	this->sclPin = sclPin;
-	this->address = address;
+	this->m_sdaPin = sdaPin;
+	this->m_sclPin = sclPin;
+	this->m_address = address;
 	i2c_config_t conf;
 	conf.mode = I2C_MODE_MASTER;
 	conf.sda_io_num       = sdaPin;
@@ -104,11 +115,11 @@ void I2C::read(uint8_t* bytes, size_t length, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "read(size=%d, ack=%d)", length, ack);
 	}
-	if (directionKnown == false) {
-		directionKnown = true;
-		ESP_ERROR_CHECK(::i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_READ, !ack));
+	if (m_directionKnown == false) {
+		m_directionKnown = true;
+		ESP_ERROR_CHECK(::i2c_master_write_byte(m_cmd, (m_address << 1) | I2C_MASTER_READ, !ack));
 	}
-	ESP_ERROR_CHECK(::i2c_master_read(cmd, bytes, length, !ack));
+	ESP_ERROR_CHECK(::i2c_master_read(m_cmd, bytes, length, !ack));
 } // read
 
 
@@ -123,11 +134,11 @@ void I2C::read(uint8_t *byte, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "read(size=1, ack=%d)", ack);
 	}
-	if (directionKnown == false) {
-		directionKnown = true;
-		ESP_ERROR_CHECK(::i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_READ, !ack));
+	if (m_directionKnown == false) {
+		m_directionKnown = true;
+		ESP_ERROR_CHECK(::i2c_master_write_byte(m_cmd, (m_address << 1) | I2C_MASTER_READ, !ack));
 	}
-	ESP_ERROR_CHECK(::i2c_master_read_byte(cmd, byte, !ack));
+	ESP_ERROR_CHECK(::i2c_master_read_byte(m_cmd, byte, !ack));
 } // readByte
 
 
@@ -139,31 +150,33 @@ void I2C::read(uint8_t *byte, bool ack) {
  * @return N/A.
  */
 void I2C::scan() {
-	int i;
-	esp_err_t espRc;
-	printf("Data Pin: %d, Clock Pin: %d\n", this->sdaPin, this->sclPin);
+	uint8_t i;
+	printf("Data Pin: %d, Clock Pin: %d\n", this->m_sdaPin, this->m_sclPin);
 	printf("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\n");
 	printf("00:         ");
-	for (i=3; i< 0x78; i++) {
-		i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-		i2c_master_start(cmd);
-		i2c_master_write_byte(cmd, (i << 1) | I2C_MASTER_WRITE, 1 /* expect ack */);
-		i2c_master_stop(cmd);
-
-		espRc = i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS);
+	for (i=3; i<0x78; i++) {
 		if (i%16 == 0) {
 			printf("\n%.2x:", i);
 		}
-		if (espRc == 0) {
+		if (slavePresent(i)) {
 			printf(" %.2x", i);
 		} else {
 			printf(" --");
 		}
-		//ESP_LOGD(tag, "i=%d, rc=%d (0x%x)", i, espRc, espRc);
-		i2c_cmd_link_delete(cmd);
 	}
 	printf("\n");
 } // scan
+
+
+/**
+ * @brief Set the address of the %I2C slave against which we will be working.
+ *
+ * @param [in] address The address of the %I2C slave.
+ */
+void I2C::setAddress(uint8_t address)
+{
+	this->m_address = address;
+} // setAddress
 
 
 /**
@@ -177,6 +190,23 @@ void I2C::setDebug(bool enabled) {
 
 
 /**
+ * @brief Determine if the slave is present and responding.
+ * @param [in] The address of the slave.
+ * @return True if the slave is present and false otherwise.
+ */
+bool I2C::slavePresent(uint8_t address) {
+	i2c_cmd_handle_t cmd = ::i2c_cmd_link_create();
+	::i2c_master_start(cmd);
+	::i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_WRITE, 1 /* expect ack */);
+	::i2c_master_stop(cmd);
+
+	esp_err_t espRc = ::i2c_master_cmd_begin(I2C_NUM_0, cmd, 100/portTICK_PERIOD_MS);
+	i2c_cmd_link_delete(cmd);
+	return espRc == 0;  // Return true if the slave is present and false otherwise.
+} // slavePresent
+
+
+/**
  * @brief Add an %I2C start request to the command stream.
  * @return N/A.
  */
@@ -184,7 +214,7 @@ void I2C::start() {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "start()");
 	}
-	ESP_ERROR_CHECK(::i2c_master_start(cmd));
+	ESP_ERROR_CHECK(::i2c_master_start(m_cmd));
 } // start
 
 
@@ -196,8 +226,8 @@ void I2C::stop() {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "stop()");
 	}
-	ESP_ERROR_CHECK(::i2c_master_stop(cmd));
-	directionKnown = false;
+	ESP_ERROR_CHECK(::i2c_master_stop(m_cmd));
+	m_directionKnown = false;
 } // stop
 
 
@@ -212,11 +242,11 @@ void I2C::write(uint8_t byte, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "write(val=0x%.2x, ack=%d)", byte, ack);
 	}
-	if (directionKnown == false) {
-		directionKnown = true;
-		ESP_ERROR_CHECK(::i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_WRITE, !ack));
+	if (m_directionKnown == false) {
+		m_directionKnown = true;
+		ESP_ERROR_CHECK(::i2c_master_write_byte(m_cmd, (m_address << 1) | I2C_MASTER_WRITE, !ack));
 	}
-	ESP_ERROR_CHECK(::i2c_master_write_byte(cmd, byte, !ack));
+	ESP_ERROR_CHECK(::i2c_master_write_byte(m_cmd, byte, !ack));
 } // write
 
 
@@ -232,11 +262,11 @@ void I2C::write(uint8_t *bytes, size_t length, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "write(length=%d, ack=%d)", length, ack);
 	}
-	if (directionKnown == false) {
-		directionKnown = true;
-		ESP_ERROR_CHECK(::i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_WRITE, !ack));
+	if (m_directionKnown == false) {
+		m_directionKnown = true;
+		ESP_ERROR_CHECK(::i2c_master_write_byte(m_cmd, (m_address << 1) | I2C_MASTER_WRITE, !ack));
 	}
-	ESP_ERROR_CHECK(::i2c_master_write(cmd, bytes, length, !ack));
+	ESP_ERROR_CHECK(::i2c_master_write(m_cmd, bytes, length, !ack));
 } // write
 
 

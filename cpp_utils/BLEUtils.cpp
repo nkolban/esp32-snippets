@@ -965,18 +965,35 @@ void BLEUtils::dumpGapEvent(
 	switch(event) {
 		//
 		// ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT
+		// adv_data_cmpl
+		// - esp_bt_status_t
 		//
 		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_rsp_data_cmpl.status);
+			ESP_LOGD(LOG_TAG, "[status: %d]",	param->adv_data_cmpl.status);
 			break;
 		} // ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT
 
 
 		//
+		// ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT
+		//
+		// adv_data_raw_cmpl
+		// - esp_bt_status_t status
+		//
+		case ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d]",	param->adv_data_raw_cmpl.status);
+			break;
+		} // ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT
+
+
+		//
 		// ESP_GAP_BLE_ADV_START_COMPLETE_EVT
 		//
+		// adv_start_cmpl
+		// - esp_bt_status_t status
+		//
 		case ESP_GAP_BLE_ADV_START_COMPLETE_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_start_cmpl.status);
+			ESP_LOGD(LOG_TAG, "[status: %d]",	param->adv_start_cmpl.status);
 			break;
 		} // ESP_GAP_BLE_ADV_START_COMPLETE_EVT
 
@@ -984,14 +1001,26 @@ void BLEUtils::dumpGapEvent(
 		//
 		// ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT
 		//
+		// adv_stop_cmpl
+		// - esp_bt_status_t status
+		//
 		case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_stop_cmpl.status);
+			ESP_LOGD(LOG_TAG, "[status: %d]",	param->adv_stop_cmpl.status);
 			break;
 		} // ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT
 
 
 		//
 		// ESP_GAP_BLE_AUTH_CMPL_EVT
+		//
+		// auth_cmpl
+		// - esp_bd_addr_t bd_addr
+		// - bool key_present
+		// - esp_link_key key
+		// - bool success
+		// - uint8_t fail_reason
+		// - esp_bd_addr_type_t addr_type
+		// - esp_bt_dev_type_t dev_type
 		//
 		case ESP_GAP_BLE_AUTH_CMPL_EVT: {
 			ESP_LOGD(LOG_TAG, "[bd_addr: %s, key_present: %d, key: ***, key_type: %d, success: %d, fail_reason: %d, addr_type: ***, dev_type: %s]",
@@ -1004,6 +1033,18 @@ void BLEUtils::dumpGapEvent(
 			);
 			break;
 		} // ESP_GAP_BLE_AUTH_CMPL_EVT
+
+
+		//
+		// ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT
+		//
+		// clear_bond_dev_cmpl
+		// - esp_bt_status_t status
+		//
+		case ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d]",	param->clear_bond_dev_cmpl.status);
+			break;
+		} // ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT
 
 
 		//
@@ -1032,6 +1073,23 @@ void BLEUtils::dumpGapEvent(
 			break;
 		} // ESP_GAP_BLE_NC_REQ_EVT
 
+
+		//
+		// ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
+		//
+		// read_rssi_cmpl
+		// - esp_bt_status_t status
+		// - int8_t rssi
+		// - esp_bd_addr_t remote_addr
+		//
+		case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d, rssi: %d, remote_addr: %s]",
+					param->read_rssi_cmpl.status,
+					param->read_rssi_cmpl.rssi,
+					BLEAddress(param->read_rssi_cmpl.remote_addr).toString().c_str()
+			);
+			break;
+		} // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
 
 		//
 		// ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT
@@ -1091,15 +1149,6 @@ void BLEUtils::dumpGapEvent(
 
 
 		//
-		// ESP_GAP_BLE_SEC_REQ_EVT
-		//
-		case ESP_GAP_BLE_SEC_REQ_EVT: {
-			ESP_LOGD(LOG_TAG, "[bd_addr: %s]", BLEAddress(param->ble_security.ble_req.bd_addr).toString().c_str());
-			break;
-		} // ESP_GAP_BLE_SEC_REQ_EVT
-
-
-		//
 		// ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT
 		//
 		case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT: {
@@ -1124,6 +1173,14 @@ void BLEUtils::dumpGapEvent(
 			break;
 		} // ESP_GAP_BLE_SCAN_UPDATE_CONN_PARAMS_EVT
 
+
+		//
+		// ESP_GAP_BLE_SEC_REQ_EVT
+		//
+		case ESP_GAP_BLE_SEC_REQ_EVT: {
+			ESP_LOGD(LOG_TAG, "[bd_addr: %s]", BLEAddress(param->ble_security.ble_req.bd_addr).toString().c_str());
+			break;
+		} // ESP_GAP_BLE_SEC_REQ_EVT
 
 		default: {
 			ESP_LOGD(LOG_TAG, "*** dumpGapEvent: Logger not coded ***");
@@ -1637,12 +1694,38 @@ const char* BLEUtils::eventTypeToString(esp_ble_evt_type_t eventType) {
  */
 const char* BLEUtils::gapEventToString(uint32_t eventType) {
 	switch(eventType) {
-		case ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT:
-			return "ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT";
 		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
 			return "ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT";
+		case ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT:
+			return "ESP_GAP_BLE_ADV_DATA_RAW_SET_COMPLETE_EVT";
 		case ESP_GAP_BLE_ADV_START_COMPLETE_EVT:
 			return "ESP_GAP_BLE_ADV_START_COMPLETE_EVT";
+		case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:                      /*!< When stop adv complete, the event comes */
+			return "ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT";
+		case ESP_GAP_BLE_AUTH_CMPL_EVT:                              /* Authentication complete indication. */
+			return "ESP_GAP_BLE_AUTH_CMPL_EVT";
+		case ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT:
+			return "ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT";
+		case ESP_GAP_BLE_GET_BOND_DEV_COMPLETE_EVT:
+			return "ESP_GAP_BLE_GET_BOND_DEV_COMPLETE_EVT";
+		case ESP_GAP_BLE_KEY_EVT:                                    /* BLE  key event for peer device keys */
+			return "ESP_GAP_BLE_KEY_EVT";
+		case ESP_GAP_BLE_LOCAL_IR_EVT:                               /* BLE local IR event */
+			return "ESP_GAP_BLE_LOCAL_IR_EVT";
+		case ESP_GAP_BLE_LOCAL_ER_EVT:                               /* BLE local ER event */
+			return "ESP_GAP_BLE_LOCAL_ER_EVT";
+		case ESP_GAP_BLE_NC_REQ_EVT:                                 /* Numeric Comparison request event */
+			return "ESP_GAP_BLE_NC_REQ_EVT";
+		case ESP_GAP_BLE_OOB_REQ_EVT:                                /* OOB request event */
+			return "ESP_GAP_BLE_OOB_REQ_EVT";
+		case ESP_GAP_BLE_PASSKEY_NOTIF_EVT:                          /* passkey notification event */
+			return "ESP_GAP_BLE_PASSKEY_NOTIF_EVT";
+		case ESP_GAP_BLE_PASSKEY_REQ_EVT:                            /* passkey request event */
+			return "ESP_GAP_BLE_PASSKEY_REQ_EVT";
+		case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT:
+			return "ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT";
+		case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT:
+			return "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT";
 		case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT:
 			return "ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT";
 		case ESP_GAP_BLE_SCAN_RESULT_EVT:
@@ -1653,44 +1736,19 @@ const char* BLEUtils::gapEventToString(uint32_t eventType) {
 			return "ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT";
 		case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
 			return "ESP_GAP_BLE_SCAN_START_COMPLETE_EVT";
-		case ESP_GAP_BLE_AUTH_CMPL_EVT:                              /* Authentication complete indication. */
-			return "ESP_GAP_BLE_AUTH_CMPL_EVT";
-		case ESP_GAP_BLE_KEY_EVT:                                    /* BLE  key event for peer device keys */
-			return "ESP_GAP_BLE_KEY_EVT";
-		case ESP_GAP_BLE_SEC_REQ_EVT:                                /* BLE  security request */
-			return "ESP_GAP_BLE_SEC_REQ_EVT";
-		case ESP_GAP_BLE_PASSKEY_NOTIF_EVT:                          /* passkey notification event */
-			return "ESP_GAP_BLE_PASSKEY_NOTIF_EVT";
-		case ESP_GAP_BLE_PASSKEY_REQ_EVT:                            /* passkey request event */
-			return "ESP_GAP_BLE_PASSKEY_REQ_EVT";
-		case ESP_GAP_BLE_OOB_REQ_EVT:                                /* OOB request event */
-			return "ESP_GAP_BLE_OOB_REQ_EVT";
-		case ESP_GAP_BLE_LOCAL_IR_EVT:                               /* BLE local IR event */
-			return "ESP_GAP_BLE_LOCAL_IR_EVT";
-		case ESP_GAP_BLE_LOCAL_ER_EVT:                               /* BLE local ER event */
-			return "ESP_GAP_BLE_LOCAL_ER_EVT";
-		case ESP_GAP_BLE_NC_REQ_EVT:                                 /* Numeric Comparison request event */
-			return "ESP_GAP_BLE_NC_REQ_EVT";
-		case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:                      /*!< When stop adv complete, the event comes */
-			return "ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT";
 		case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
 			return "ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT";
+		case ESP_GAP_BLE_SEC_REQ_EVT:                                /* BLE  security request */
+			return "ESP_GAP_BLE_SEC_REQ_EVT";
+		case ESP_GAP_BLE_SET_LOCAL_PRIVACY_COMPLETE_EVT:
+			return "ESP_GAP_BLE_SET_LOCAL_PRIVACY_COMPLETE_EVT";
+		case ESP_GAP_BLE_SET_PKT_LENGTH_COMPLETE_EVT:
+			return "ESP_GAP_BLE_SET_PKT_LENGTH_COMPLETE_EVT";
 		case ESP_GAP_BLE_SET_STATIC_RAND_ADDR_EVT:
 			return "ESP_GAP_BLE_SET_STATIC_RAND_ADDR_EVT";
 		case ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT:
 			return "ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT";
-		case ESP_GAP_BLE_SET_PKT_LENGTH_COMPLETE_EVT:
-			return "ESP_GAP_BLE_SET_PKT_LENGTH_COMPLETE_EVT";
-		case ESP_GAP_BLE_SET_LOCAL_PRIVACY_COMPLETE_EVT:
-			return "ESP_GAP_BLE_SET_LOCAL_PRIVACY_COMPLETE_EVT";
-		case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT:
-			return "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT";
-		case ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT:
-			return "ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT";
-		case ESP_GAP_BLE_GET_BOND_DEV_COMPLETE_EVT:
-			return "ESP_GAP_BLE_GET_BOND_DEV_COMPLETE_EVT";
-		case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT:
-			return "ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT";
+
 		default:
 			ESP_LOGD(LOG_TAG, "gapEventToString: Unknown event type %d 0x%.2x", eventType, eventType);
 			return "Unknown event type";

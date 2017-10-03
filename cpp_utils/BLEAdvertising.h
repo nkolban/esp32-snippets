@@ -27,6 +27,7 @@ public:
 	void setServiceUUID(BLEUUID serviceUUID);
 private:
 	esp_ble_adv_data_t   m_advData;
+	esp_ble_adv_data_t   m_advDataScanResponse;
 	esp_ble_adv_params_t m_advParams;
 	BLEUUID              m_serviceUUID;
 };
