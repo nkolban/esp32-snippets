@@ -959,8 +959,8 @@ const char* BLEUtils::devTypeToString(esp_bt_dev_type_t type) {
  * @brief Dump the GAP event to the log.
  */
 void BLEUtils::dumpGapEvent(
-	esp_gap_ble_cb_event_t event,
-	esp_ble_gap_cb_param_t *param) {
+	esp_gap_ble_cb_event_t  event,
+	esp_ble_gap_cb_param_t* param) {
 	ESP_LOGD(LOG_TAG, "Received a GAP event: %s", gapEventToString(event));
 	switch(event) {
 		//
@@ -1091,13 +1091,18 @@ void BLEUtils::dumpGapEvent(
 			break;
 		} // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
 
+
 		//
 		// ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT
+		//
+		// scan_param_cmpl.
+		// - esp_bt_status_t status
 		//
 		case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_param_cmpl.status);
 			break;
 		} // ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT
+
 
 		//
 		// ESP_GAP_BLE_SCAN_RESULT_EVT
@@ -1112,6 +1117,7 @@ void BLEUtils::dumpGapEvent(
 		// - ble_adv
 		// - flag
 		// - num_resps
+		//
 		case ESP_GAP_BLE_SCAN_RESULT_EVT: {
 			switch(param->scan_rst.search_evt) {
 				case ESP_GAP_SEARCH_INQ_RES_EVT: {
@@ -1140,8 +1146,22 @@ void BLEUtils::dumpGapEvent(
 
 
 		//
+		// ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT
+		//
+		// scan_rsp_data_cmpl
+		// - esp_bt_status_t status
+		//
+		case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_rsp_data_cmpl.status);
+			break;
+		} // ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT
+
+
+		//
 		// ESP_GAP_BLE_SCAN_START_COMPLETE_EVT
 		//
+		// scan_start_cmpl
+		// - esp_bt_status_t status
 		case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %d]", param->scan_start_cmpl.status);
 			break;
@@ -1151,6 +1171,9 @@ void BLEUtils::dumpGapEvent(
 		//
 		// ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT
 		//
+		// scan_stop_cmpl
+		// - esp_bt_status_t status
+		//
 		case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %d]", param->scan_stop_cmpl.status);
 			break;
@@ -1158,7 +1181,16 @@ void BLEUtils::dumpGapEvent(
 
 
 		//
-		// ESP_GAP_BLE_SCAN_UPDATE_CONN_PARAMS_EVT
+		// ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT
+		//
+		// update_conn_params
+		// - esp_bt_status_t status
+		// - esp_bd_addr_t bda
+		// - uint16_t min_int
+		// - uint16_t max_int
+		// - uint16_t latency
+		// - uint16_t conn_int
+		// - uint16_t timeout
 		//
 		case ESP_GAP_BLE_UPDATE_CONN_PARAMS_EVT: {
 			ESP_LOGD(LOG_TAG, "[status: %d, bd_addr: %s, min_int: %d, max_int: %d, latency: %d, conn_int: %d, timeout: %d]",
@@ -1181,6 +1213,7 @@ void BLEUtils::dumpGapEvent(
 			ESP_LOGD(LOG_TAG, "[bd_addr: %s]", BLEAddress(param->ble_security.ble_req.bd_addr).toString().c_str());
 			break;
 		} // ESP_GAP_BLE_SEC_REQ_EVT
+
 
 		default: {
 			ESP_LOGD(LOG_TAG, "*** dumpGapEvent: Logger not coded ***");

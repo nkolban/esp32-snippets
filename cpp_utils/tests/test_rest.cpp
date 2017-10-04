@@ -1,5 +1,10 @@
 /*
  * Test the REST API client.
+ * This application leverages LibCurl.  You must make that package available
+ * as well as "enable it" from "make menuconfig" and C++ Settings -> libCurl present.
+ * See also:
+ * * https://github.com/nkolban/esp32-snippets/issues/108
+ *
  */
 #include <curl/curl.h>
 #include <esp_log.h>

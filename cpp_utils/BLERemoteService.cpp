@@ -154,6 +154,7 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
 
 /**
  * @brief Retrieve all the characteristics for this service.
+ * This function will not return until we have all the characteristics.
  * @return N/A
  */
 void BLERemoteService::retrieveCharacteristics() {
@@ -256,7 +257,8 @@ void BLERemoteService::retrieveCharacteristics() {
 		m_characteristicMap.insert(std::pair<std::string, BLERemoteCharacteristic*>(pNewRemoteCharacteristic->getUUID().toString(), pNewRemoteCharacteristic));
 
 		offset++;   // Increment our count of number of descriptors found.
-	}
+	} // Loop forever (until we break inside the loop).
+
 	m_haveCharacteristics = true; // Remember that we have received the characteristics.
 	ESP_LOGD(LOG_TAG, "<< getCharacteristics()");
 } // getCharacteristics
@@ -267,6 +269,12 @@ void BLERemoteService::retrieveCharacteristics() {
  * @return A map of all the characteristics of this service.
  */
 std::map<std::string, BLERemoteCharacteristic*>* BLERemoteService::getCharacteristics() {
+	// If is possible that we have not read the characteristics associated with the service so do that
+	// now.  The request to retrieve the characteristics by calling "retrieveCharacteristics" is a blocking
+	// call and does not return until all the characteristics are available.
+	if (!m_haveCharacteristics) {
+		retrieveCharacteristics();
+	}
 	return &m_characteristicMap;
 } // getCharacteristics
 
@@ -275,13 +283,16 @@ BLEClient* BLERemoteService::getClient() {
 	return m_pClient;
 }
 
+
 uint16_t BLERemoteService::getEndHandle() {
 	return m_endHandle;
 }
 
+
 esp_gatt_id_t* BLERemoteService::getSrvcId() {
 	return &m_srvcId;
 }
+
 
 uint16_t BLERemoteService::getStartHandle() {
 	return m_startHandle;
