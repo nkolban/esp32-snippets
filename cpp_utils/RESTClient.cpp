@@ -4,7 +4,9 @@
  *  Created on: Mar 12, 2017
  *      Author: kolban
  */
-#if defined(ESP_HAVE_CURL)
+
+#include "sdkconfig.h"
+#if defined(CONFIG_LIBCURL_PRESENT)
 
 #define _GLIBCXX_USE_C99 // Needed for std::string -> to_string inclusion.
 
@@ -163,4 +165,4 @@ std::string RESTTimings::toString() {
 			"\nTotal: " + std::to_string(m_total);
 	return ret;
 } // toString
-#endif // ESP_HAVE_CURL
+#endif // CONFIG_LIBCURL_PRESENT

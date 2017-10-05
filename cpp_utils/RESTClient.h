@@ -7,7 +7,8 @@
 
 #ifndef MAIN_RESTCLIENT_H_
 #define MAIN_RESTCLIENT_H_
-#if defined(ESP_HAVE_CURL)
+#include "sdkconfig.h"
+#if defined(CONFIG_LIBCURL_PRESENT)
 
 #include <string>
 #include <curl/curl.h>
@@ -120,5 +121,5 @@ private:
 	static size_t handleData(void *buffer, size_t size, size_t nmemb, void *userp);
 	void prepForCall();
 };
-#endif /* ESP_HAVE_CURL */
+#endif /* CONFIG_LIBCURL_PRESENT */
 #endif /* MAIN_RESTCLIENT_H_ */
