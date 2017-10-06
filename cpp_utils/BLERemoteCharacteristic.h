@@ -59,10 +59,11 @@ private:
 		esp_gattc_cb_event_t      event,
 		esp_gatt_if_t             gattc_if,
 		esp_ble_gattc_cb_param_t* evtParam);
-	void              getDescriptors();
+	std::map<std::string, BLERemoteDescriptor *>* getDescriptors();
 	uint16_t          getHandle();
 	BLERemoteService* getRemoteService();
 	void              removeDescriptors();
+	void              retrieveCharacteristics();
 
 	// Private properties
 	BLEUUID              m_uuid;
