@@ -41,7 +41,7 @@ BLERemoteCharacteristic::BLERemoteCharacteristic(
 	m_pRemoteService = pRemoteService;
 	m_notifyCallback = nullptr;
 
-	retrieveCharacteristics(); // Get the descriptors for this characteristic
+	retrieveDescriptors(); // Get the descriptors for this characteristic
 	ESP_LOGD(LOG_TAG, "<< BLERemoteCharacteristic");
 } // BLERemoteCharacteristic
 
@@ -276,8 +276,8 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 /**
  * @brief Populate the descriptors (if any) for this characteristic.
  */
-void BLERemoteCharacteristic::retrieveCharacteristics() {
-	ESP_LOGD(LOG_TAG, ">> retrieveCharacteristics() for characteristic: %s", getUUID().toString().c_str());
+void BLERemoteCharacteristic::retrieveDescriptors() {
+	ESP_LOGD(LOG_TAG, ">> retrieveDescriptors() for characteristic: %s", getUUID().toString().c_str());
 
 	removeDescriptors();   // Remove any existing descriptors.
 
@@ -322,7 +322,7 @@ void BLERemoteCharacteristic::retrieveCharacteristics() {
 		offset++;
 	} // while true
 	//m_haveCharacteristics = true; // Remember that we have received the characteristics.
-	ESP_LOGD(LOG_TAG, "<< getDescriptors(): Found %d descriptors.", offset);
+	ESP_LOGD(LOG_TAG, "<< retrieveDescriptors(): Found %d descriptors.", offset);
 } // getDescriptors
 
 
