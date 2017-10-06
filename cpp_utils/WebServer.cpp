@@ -590,7 +590,10 @@ void WebServer::processRequest(struct mg_connection *mgConnection, struct http_m
     filePath += httpResponse.getRootPath();
     filePath.append(message->uri.p, message->uri.len);
     ESP_LOGD(tag, "Opening file: %s", filePath.c_str());
-    FILE* file = fopen(filePath.c_str(), "rb");
+    FILE* file = nullptr; 
+ 
+    if(strcmp(filePath.c_str(), "/") != 0) 
+        file = fopen(filePath.c_str(), "rb");
     if (file != nullptr) {
         auto pData = (uint8_t*)malloc(MAX_CHUNK_LENGTH);
         size_t read = fread(pData, 1, MAX_CHUNK_LENGTH, file);
