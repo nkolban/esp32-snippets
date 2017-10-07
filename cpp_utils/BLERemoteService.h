@@ -35,6 +35,7 @@ public:
 	std::map<std::string, BLERemoteCharacteristic*>* getCharacteristics();
 
 	BLEClient*               getClient(void);
+	uint16_t                 getHandle();
 	BLEUUID                  getUUID(void);
 	std::string              toString(void);
 
@@ -48,7 +49,6 @@ private:
 
 	// Private methods
 	void                retrieveCharacteristics(void);
-	uint16_t            getHandle();
 	esp_gatt_id_t*      getSrvcId(void);
 	uint16_t            getStartHandle();
 	uint16_t            getEndHandle();

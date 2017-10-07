@@ -38,6 +38,7 @@ public:
 	bool        canWriteNoResponse();
 	BLERemoteDescriptor* getDescriptor(BLEUUID uuid);
 	std::map<std::string, BLERemoteDescriptor *>* getDescriptors();
+	uint16_t    getHandle();
 	BLEUUID     getUUID();
 	std::string readValue(void);
 	uint8_t     readUInt8(void);
@@ -61,7 +62,7 @@ private:
 		esp_gatt_if_t             gattc_if,
 		esp_ble_gattc_cb_param_t* evtParam);
 
-	uint16_t          getHandle();
+
 	BLERemoteService* getRemoteService();
 	void              removeDescriptors();
 	void              retrieveDescriptors();
