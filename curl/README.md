@@ -1,0 +1,2 @@
+## Missing Posix functions
+LibCurl is a moving target and on occassion, is updated to utilize functions that are not part of the ESP-IDF.  For example, at the time of writing, the latest version of LibCurl uses the Posix `access(2)` system call that it previously did not.  This call is not present in ESP-IDF.  To circumvent the problem, a shim file has been provided in `./posix/posix_shims.c` that provides simple implementations for some missing Posix functions.

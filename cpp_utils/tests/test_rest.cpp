@@ -2,6 +2,10 @@
  * Test the REST API client.
  * This application leverages LibCurl.  You must make that package available
  * as well as "enable it" from "make menuconfig" and C++ Settings -> libCurl present.
+ *
+ * You may also have to include "posix_shims.c" in your compilation to provide resolution
+ * for Posix calls expected by libcurl that aren't present in ESP-IDF.
+ *
  * See also:
  * * https://github.com/nkolban/esp32-snippets/issues/108
  *
@@ -37,7 +41,7 @@ class CurlTestTask: public Task {
 
 		RESTTimings *timings = client.getTimings();
 
-		client.setURL("https://httpbin.org/post");
+		client.setURL("http://httpbin.org/post");
 		client.addHeader("Content-Type", "application/json");
 		client.post("hello world!");
 		ESP_LOGD(tag, "Result: %s", client.getResponse().c_str());
