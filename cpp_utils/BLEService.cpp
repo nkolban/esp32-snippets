@@ -248,6 +248,7 @@ void BLEService::handleGATTServerEvent(
 			break;
 		} // ESP_GATTS_ADD_CHAR_EVT
 
+
 		// ESP_GATTS_START_EVT
 		//
 		// start:
