@@ -75,7 +75,7 @@ uint8_t u8g2_esp32_msg_comms_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void
 
 		case U8X8_MSG_BYTE_SEND: {
 			spi_transaction_t trans_desc;
-			trans_desc.address   = 0;
+			trans_desc.addr      = 0;
 			trans_desc.command   = 0;
 			trans_desc.flags     = 0;
 			trans_desc.length    = 8 * arg_int; // Number of bits NOT number of bytes.
