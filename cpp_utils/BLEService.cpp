@@ -222,7 +222,7 @@ void BLEService::handleGATTServerEvent(
 
 
 	switch(event) {
-	  // ESP_GATTS_ADD_CHAR_EVT - Indicate that a characteristic was added to the service.
+		// ESP_GATTS_ADD_CHAR_EVT - Indicate that a characteristic was added to the service.
 		// add_char:
 		// - esp_gatt_status_t status
 		// - uint16_t attr_handle
@@ -238,13 +238,11 @@ void BLEService::handleGATTServerEvent(
 					ESP_LOGE(LOG_TAG, "Expected to find characteristic with UUID: %s, but didnt!",
 							BLEUUID(param->add_char.char_uuid).toString().c_str());
 					dump();
-					m_semaphoreAddCharEvt.give();
 					break;
 				}
 				pCharacteristic->setHandle(param->add_char.attr_handle);
 				m_characteristicMap.setByHandle(param->add_char.attr_handle, pCharacteristic);
 				//ESP_LOGD(tag, "Characteristic map: %s", m_characteristicMap.toString().c_str());
-				m_semaphoreAddCharEvt.give();
 				break;
 			} // Reached the correct service.
 			break;
@@ -288,6 +286,7 @@ void BLEService::handleGATTServerEvent(
 		} // Default
 	} // Switch
 
+	// Invoke the GATTS handler in each of the associated characteristics.
 	m_characteristicMap.handleGATTServerEvent(event, gatts_if, param);
 } // handleGATTServerEvent
 
