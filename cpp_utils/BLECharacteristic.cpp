@@ -94,19 +94,20 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 
 	m_semaphoreCreateEvt.take("executeCreate");
 
-	std::string strValue = m_value.getValue();
-
+	/*
 	esp_attr_value_t value;
-	value.attr_len     = strValue.length();
+	value.attr_len     = m_value.getLength();
 	value.attr_max_len = ESP_GATT_MAX_ATTR_LEN;
-	value.attr_value   = (uint8_t*)strValue.data();
+	value.attr_value   = m_value.getData();
+	*/
 
 	esp_err_t errRc = ::esp_ble_gatts_add_char(
 		m_pService->getHandle(),
 		getUUID().getNative(),
 		static_cast<esp_gatt_perm_t>(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE),
 		getProperties(),
-		&value,
+		//&value,
+		nullptr,
 		&control); // Whether to auto respond or not.
 
 	if (errRc != ESP_OK) {

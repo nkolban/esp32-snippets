@@ -72,6 +72,24 @@ void BLEValue::commit() {
 
 
 /**
+ * @brief Get a pointer to the data.
+ * @return A pointer to the data.
+ */
+uint8_t* BLEValue::getData() {
+	return (uint8_t*)m_value.data();
+}
+
+
+/**
+ * @brief Get the length of the data in bytes.
+ * @return The length of the data in bytes.
+ */
+size_t BLEValue::getLength() {
+	return m_value.length();
+} // getLength
+
+
+/**
  * @brief Get the read offset.
  * @return The read offset into the read.
  */
@@ -113,4 +131,9 @@ void BLEValue::setValue(std::string value) {
 void BLEValue::setValue(uint8_t* pData, size_t length) {
 	m_value = std::string((char*)pData, length);
 } // setValue
+
+
+
+
+
 #endif // CONFIG_BT_ENABLED

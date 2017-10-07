@@ -54,8 +54,8 @@ BLEService::BLEService(BLEUUID uuid) {
  * @return N/A.
  */
 void BLEService::executeCreate(BLEServer *pServer) {
-	ESP_LOGD(LOG_TAG, ">> executeCreate() - Creating service (esp_ble_gatts_create_service) service uuid: %s", getUUID().toString().c_str());
-
+	//ESP_LOGD(LOG_TAG, ">> executeCreate() - Creating service (esp_ble_gatts_create_service) service uuid: %s", getUUID().toString().c_str());
+	getUUID(); // Needed for a weird bug fix
 	m_pServer          = pServer;
 	m_semaphoreCreateEvt.take("executeCreate"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
 
@@ -70,7 +70,6 @@ void BLEService::executeCreate(BLEServer *pServer) {
 	}
 
 	m_semaphoreCreateEvt.wait("executeCreate");
-
 	ESP_LOGD(LOG_TAG, "<< executeCreate");
 } // executeCreate
 
@@ -171,7 +170,7 @@ void BLEService::addCharacteristic(BLECharacteristic* pCharacteristic) {
 // to the map and then ask the service to add the characteristic at the BLE level (ESP-IDF).
 //
 	ESP_LOGD(LOG_TAG, ">> addCharacteristic()");
-	ESP_LOGD(LOG_TAG, "Adding characteristic (esp_ble_gatts_add_char): uuid=%s to service: %s",
+	ESP_LOGD(LOG_TAG, "Adding characteristic: uuid=%s to service: %s",
 		pCharacteristic->getUUID().toString().c_str(),
 		toString().c_str());
 

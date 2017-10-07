@@ -21,6 +21,8 @@ public:
 	void        addPart(uint8_t* pData, size_t length);
 	void        cancel();
 	void        commit();
+	uint8_t*    getData();
+	size_t      getLength();
 	uint16_t    getReadOffset();
 	std::string getValue();
 	void        setReadOffset(uint16_t readOffset);

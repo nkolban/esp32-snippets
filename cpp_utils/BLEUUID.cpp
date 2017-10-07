@@ -35,6 +35,7 @@ static const char* LOG_TAG = "BLEUUID";
  * @param [in] size The number of bytes to copy
  */
 static void memrcpy(uint8_t* target, uint8_t* source, uint32_t size) {
+	assert(size > 0);
 	target+=(size-1); // Point target to the last byte of the target data
 	while (size > 0) {
 		*target = *source;
