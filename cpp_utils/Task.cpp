@@ -27,7 +27,7 @@ static char tag[] = "Task";
 Task::Task(std::string taskName, uint16_t stackSize, uint8_t priority) {
 	m_taskName  = taskName;
 	m_stackSize = stackSize;
-	m_priority	= priority;
+	m_priority  = priority;
 	m_taskData  = nullptr;
 	m_handle    = nullptr;
 } // Task

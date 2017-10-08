@@ -58,7 +58,7 @@ private:
 	static void runTask(void *data);
 	std::string m_taskName;
 	uint16_t    m_stackSize;
-	uint8_t		m_priority;
+	uint8_t     m_priority;
 };
 
 #endif /* COMPONENTS_CPP_UTILS_TASK_H_ */
