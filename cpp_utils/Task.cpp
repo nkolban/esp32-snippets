@@ -24,9 +24,10 @@ static char tag[] = "Task";
  * @param [in] stackSize The size of the stack.
  * @return N/A.
  */
-Task::Task(std::string taskName, uint16_t stackSize) {
+Task::Task(std::string taskName, uint16_t stackSize, uint8_t priority) {
 	m_taskName  = taskName;
 	m_stackSize = stackSize;
+	m_priority	= priority;
 	m_taskData  = nullptr;
 	m_handle    = nullptr;
 } // Task
@@ -55,8 +56,8 @@ void Task::runTask(void* pTaskInstance) {
 	Task* pTask = (Task*)pTaskInstance;
 	ESP_LOGD(tag, ">> runTask: taskName=%s", pTask->m_taskName.c_str());
 	pTask->run(pTask->m_taskData);
-	pTask->stop();
 	ESP_LOGD(tag, "<< runTask: taskName=%s", pTask->m_taskName.c_str());
+	pTask->stop();
 } // runTask
 
 /**
@@ -70,7 +71,7 @@ void Task::start(void* taskData) {
 		ESP_LOGW(tag, "Task::start - There might be a task already running!");
 	}
 	m_taskData = taskData;
-	::xTaskCreate(&runTask, m_taskName.c_str(), m_stackSize, this, 5, &m_handle);
+	::xTaskCreate(&runTask, m_taskName.c_str(), m_stackSize, this, m_priority, &m_handle);
 } // start
 
 
@@ -97,3 +98,23 @@ void Task::stop() {
 void Task::setStackSize(uint16_t stackSize) {
 	m_stackSize = stackSize;
 } // setStackSize
+
+/**
+ * @brief Set the priority of the task.
+ *
+ * @param [in] priority The priority for the task.
+ * @return N/A.
+ */
+void Task::setPriority(uint8_t priority) {
+	m_priority = priority;
+} // setPriority
+
+/**
+ * @brief Set the name of the task.
+ *
+ * @param [in] name The name for the task.
+ * @return N/A.
+ */
+void Task::setName(std::string name) {
+	m_taskName = name;
+} // setName
