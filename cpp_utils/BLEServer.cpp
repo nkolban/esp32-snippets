@@ -66,9 +66,10 @@ BLEService* BLEServer::createService(const char* uuid) {
  * With a %BLE server, we can host one or more services.  Invoking this function causes the creation of a definition
  * of a new service.  Every service must have a unique UUID.
  * @param [in] uuid The UUID of the new service.
+ * @param [in] numHandles The maximum number of handles associated with this service.
  * @return A reference to the new service object.
  */
-BLEService* BLEServer::createService(BLEUUID uuid) {
+BLEService* BLEServer::createService(BLEUUID uuid, uint32_t numHandles) {
 	ESP_LOGD(LOG_TAG, ">> createService - %s", uuid.toString().c_str());
 	m_semaphoreCreateEvt.take("createService");
 
@@ -80,7 +81,7 @@ BLEService* BLEServer::createService(BLEUUID uuid) {
 		return nullptr;
 	}
 
-	BLEService* pService = new BLEService(uuid);
+	BLEService* pService = new BLEService(uuid, numHandles);
 	m_serviceMap.setByUUID(uuid, pService); // Save a reference to this service being on this server.
 	pService->executeCreate(this);          // Perform the API calls to actually create the service.
 
