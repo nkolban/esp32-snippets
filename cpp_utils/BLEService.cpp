@@ -29,21 +29,24 @@ static const char* LOG_TAG = "BLEService"; // Tag for logging.
 /**
  * @brief Construct an instance of the BLEService
  * @param [in] uuid The UUID of the service.
+ * @param [in] numHandles The maximum number of handles associated with the service.
  */
-BLEService::BLEService(const char* uuid) : BLEService(BLEUUID(uuid)) {
+BLEService::BLEService(const char* uuid, uint32_t numHandles) : BLEService(BLEUUID(uuid), numHandles) {
 }
 
 
 /**
  * @brief Construct an instance of the BLEService
  * @param [in] uuid The UUID of the service.
+ * @param [in] numHandles The maximum number of handles associated with the service.
  */
-BLEService::BLEService(BLEUUID uuid) {
-	m_uuid     = uuid;
-	m_handle   = NULL_HANDLE;
-	m_pServer  = nullptr;
+BLEService::BLEService(BLEUUID uuid, uint32_t numHandles) {
+	m_uuid      = uuid;
+	m_handle    = NULL_HANDLE;
+	m_pServer   = nullptr;
 	//m_serializeMutex.setName("BLEService");
 	m_lastCreatedCharacteristic = nullptr;
+	m_numHandles = numHandles;
 } // BLEService
 
 
@@ -62,7 +65,11 @@ void BLEService::executeCreate(BLEServer *pServer) {
 	esp_gatt_srvc_id_t srvc_id;
 	srvc_id.id.inst_id = 0;
 	srvc_id.id.uuid    = *m_uuid.getNative();
-	esp_err_t errRc = ::esp_ble_gatts_create_service(getServer()->getGattsIf(), &srvc_id, 10);
+	esp_err_t errRc = ::esp_ble_gatts_create_service(
+		getServer()->getGattsIf(),
+		&srvc_id,
+		m_numHandles   // The maximum number of handles associated with the service.
+	);
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gatts_create_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));

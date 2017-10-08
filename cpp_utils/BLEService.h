@@ -52,8 +52,8 @@ private:
  */
 class BLEService {
 public:
-	BLEService(const char* uuid);
-	BLEService(BLEUUID uuid);
+	BLEService(const char* uuid, uint32_t numHandles=10);
+	BLEService(BLEUUID uuid, uint32_t numHandles=10);
 
 	void               addCharacteristic(BLECharacteristic* pCharacteristic);
 	BLECharacteristic* createCharacteristic(const char* uuid, uint32_t properties);
@@ -79,9 +79,10 @@ private:
 	BLECharacteristic*   m_lastCreatedCharacteristic;
 	BLEServer*           m_pServer;
 	//FreeRTOS::Semaphore  m_serializeMutex;
-	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
-	FreeRTOS::Semaphore m_semaphoreStartEvt = FreeRTOS::Semaphore("StartEvt");
+	FreeRTOS::Semaphore  m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
+	FreeRTOS::Semaphore  m_semaphoreStartEvt = FreeRTOS::Semaphore("StartEvt");
 	BLEUUID              m_uuid;
+	uint32_t             m_numHandles;
 
 	uint16_t           getHandle();
 	BLECharacteristic* getLastCreatedCharacteristic();

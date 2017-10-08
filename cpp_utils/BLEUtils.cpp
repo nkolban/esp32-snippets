@@ -1542,13 +1542,23 @@ void BLEUtils::dumpGattServerEvent(
 		} // ESP_GATTS_ADD_CHAR_DESCR_EVT
 
 		case ESP_GATTS_ADD_CHAR_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %s, attr_handle: %d 0x%.2x, service_handle: %d 0x%.2x, char_uuid: %s]",
-				gattStatusToString(evtParam->add_char.status).c_str(),
-				evtParam->add_char.attr_handle,
-				evtParam->add_char.attr_handle,
-				evtParam->add_char.service_handle,
-				evtParam->add_char.service_handle,
-				BLEUUID(evtParam->add_char.char_uuid).toString().c_str());
+			if (evtParam->add_char.status == ESP_GATT_OK) {
+				ESP_LOGD(LOG_TAG, "[status: %s, attr_handle: %d 0x%.2x, service_handle: %d 0x%.2x, char_uuid: %s]",
+					gattStatusToString(evtParam->add_char.status).c_str(),
+					evtParam->add_char.attr_handle,
+					evtParam->add_char.attr_handle,
+					evtParam->add_char.service_handle,
+					evtParam->add_char.service_handle,
+					BLEUUID(evtParam->add_char.char_uuid).toString().c_str());
+			} else {
+				ESP_LOGE(LOG_TAG, "[status: %s, attr_handle: %d 0x%.2x, service_handle: %d 0x%.2x, char_uuid: %s]",
+					gattStatusToString(evtParam->add_char.status).c_str(),
+					evtParam->add_char.attr_handle,
+					evtParam->add_char.attr_handle,
+					evtParam->add_char.service_handle,
+					evtParam->add_char.service_handle,
+					BLEUUID(evtParam->add_char.char_uuid).toString().c_str());
+			}
 			break;
 		} // ESP_GATTS_ADD_CHAR_EVT
 
