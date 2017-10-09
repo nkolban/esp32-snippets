@@ -285,6 +285,7 @@ static const member_t members_ids[] = {
 	{0xFEFD, "Gimbal, Inc."},
 	{0xFEFE, "GN ReSound A/S"},
 	{0xFEFF, "GN Netcom"},
+	{0xFFFF, "Reserved"}, /*for testing purposes only*/
 	{0, "" }
 };
 
