@@ -33,9 +33,11 @@
  */
 class Task {
 public:
-	Task(std::string taskName="Task", uint16_t stackSize=10000);
+	Task(std::string taskName="Task", uint16_t stackSize=10000, uint8_t priority=5);
 	virtual ~Task();
 	void setStackSize(uint16_t stackSize);
+	void setPriority(uint8_t priority);
+	void setName(std::string name);
 	void start(void* taskData=nullptr);
 	void stop();
 	/**
@@ -56,6 +58,7 @@ private:
 	static void runTask(void *data);
 	std::string m_taskName;
 	uint16_t    m_stackSize;
+	uint8_t     m_priority;
 };
 
 #endif /* COMPONENTS_CPP_UTILS_TASK_H_ */
