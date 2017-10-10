@@ -30,6 +30,7 @@ private:
 	esp_ble_adv_data_t   m_advDataScanResponse;
 	esp_ble_adv_params_t m_advParams;
 	BLEUUID              m_serviceUUID;
+	BLEUUID              m_serviceUUID128;
 };
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEADVERTISING_H_ */

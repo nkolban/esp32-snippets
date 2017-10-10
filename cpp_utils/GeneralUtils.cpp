@@ -7,6 +7,7 @@
 
 #include "GeneralUtils.h"
 #include <esp_log.h>
+#include <esp_system.h>
 #include <string.h>
 #include <stdio.h>
 #include <string>
@@ -403,4 +404,9 @@ const char* GeneralUtils::errorToString(esp_err_t errCode) {
 	return "Unknown ESP_ERR error";
 } // errorToString
 
-
+/**
+ * @brief Restart the ESP32.
+ */
+void GeneralUtils::restart() {
+	esp_restart();
+} // restart

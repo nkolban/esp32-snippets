@@ -139,6 +139,9 @@ void HttpRequest::close() {
 } // close_cpp
 
 
+
+
+
 /**
  * @brief Dump the HttpRequest for debugging purposes.
  */
@@ -277,6 +280,34 @@ bool HttpRequest::isWebsocket() {
 
 
 /**
+ * @brief Parse the request message as a form.
+ * @return A map containing the names/values of the form elements that were found.
+ */
+std::map<std::string, std::string> HttpRequest::parseForm() {
+	ESP_LOGD(LOG_TAG, ">> parseForm");
+	std::map<std::string, std::string> map;
+	// A form is composed of name=value pairs where each pair is separated with an "&" character.
+	// Our algorithm is to split all the pairs by "&" and then split all the name/value pairs by "=".
+	std::istringstream ss(getBody());         // Get the body of the request.
+	std::string currentEntry;
+	while (std::getline(ss, currentEntry, '&')) {   // For each form entry.
+		ESP_LOGD(LOG_TAG, "Processing: %s", currentEntry.c_str());   // Debug
+		std::istringstream currentPair(currentEntry);   // Prepare to parse the name=value string.
+		std::string name;                               // Declare the name variable.
+		std::string value;                              // Declare the value variable.
+
+		std::getline(currentPair, name, '=');           // Parse the current form entry into name/value.
+		currentPair >> value;                           // The value is what remains.
+		map[name] = urlDecode(value);                   // Decode the field which may have been encoded.
+		ESP_LOGD(LOG_TAG, " %s = %s", name.c_str(), map[name].c_str());   // Debug
+                              // Add the form entry into the map.
+	} // Processed all form entries.
+	ESP_LOGD(LOG_TAG, "<< parseForm");                // Debug
+	return map;                                       // Return the map of form entries.
+} // parseForm
+
+
+/**
  * @brief Return the constituent parts of the path.
  * If we imagine a path as composed of parts separated by slashes, then this function
  * returns a vector composed of the parts.  For example:
@@ -309,3 +340,32 @@ std::vector<std::string> HttpRequest::pathSplit() {
 	return ret;
 } // pathSplit
 
+
+/**
+ * @brief Decode a URL/form
+ * @param [in] str
+ * @return The decoded string.
+ */
+std::string HttpRequest::urlDecode(std::string str) {
+	// https://stackoverflow.com/questions/154536/encode-decode-urls-in-c
+	std::string ret;
+	char ch;
+	int i, ii, len = str.length();
+
+	for (i=0; i < len; i++){
+		if (str[i] != '%'){
+			if (str[i] == '+') {
+				ret += ' ';
+			}
+			else {
+				ret += str[i];
+			}
+		} else {
+			sscanf(str.substr(i + 1, 2).c_str(), "%x", &ii);
+			ch = static_cast<char>(ii);
+			ret += ch;
+			i = i + 2;
+		}
+	}
+	return ret;
+} // urlDecode

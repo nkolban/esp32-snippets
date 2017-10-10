@@ -11,11 +11,13 @@
 #ifndef COMPONENTS_CPP_UTILS_HTTPSERVER_H_
 #define COMPONENTS_CPP_UTILS_HTTPSERVER_H_
 #include <stdint.h>
-#include <regex>
+
 #include <vector>
 #include "SockServ.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "SockServ.h"
+#include <regex>
 
 class HttpServerTask;
 
@@ -61,6 +63,7 @@ public:
 	void        setDirectoryListing(bool use);   // Should we list the content of directories?
 	void        setRootPath(std::string path);   // Set the root of the file system path.
 	void        start(uint16_t portNumber, bool useSSL=false);
+	void        stop();          // Stop a previously started server.
 private:
 	friend class HttpServerTask;
 	friend class WebSocket;
@@ -69,6 +72,7 @@ private:
 	std::string              m_rootPath;           // Root path into the file system.
 	bool                     m_useSSL;             // Is this server listening on an HTTPS port?
 	bool                     m_directoryListing;   // Should we list directory content?
+	SockServ                 m_sockServ;           // Server socket.
 }; // HttpServer
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPSERVER_H_ */

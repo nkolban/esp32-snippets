@@ -35,6 +35,14 @@
 #include <streambuf>
 #include <cstdio>
 #include <cstring>
+#include <exception>
+
+class SocketException: public std::exception {
+public:
+	SocketException(int myErrno);
+private:
+	int m_errno;
+};
 
 /**
  * @brief Encapsulate a socket.

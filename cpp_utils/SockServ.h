@@ -35,13 +35,15 @@ private:
 	static void acceptTask(void*);
 	uint16_t            m_port;
 	Socket              m_serverSocket;
-	FreeRTOS::Semaphore m_clientSemaphore;
+	FreeRTOS::Semaphore m_clientSemaphore = FreeRTOS::Semaphore("clientSemaphore");
 	std::set<Socket>    m_clientSet;
 	QueueHandle_t       m_acceptQueue;
 	bool                m_useSSL;
+
 public:
 	SockServ(uint16_t port);
 	SockServ();
+	~SockServ();
 	int    connectedCount();
 	void   disconnect(Socket s);
 	bool   getSSL();

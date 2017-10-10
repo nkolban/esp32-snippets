@@ -33,30 +33,50 @@ SockServ::SockServ(uint16_t port) : SockServ() {
 
 } // SockServ
 
+
+/**
+ * Constructor
+ */
 SockServ::SockServ() {
-	m_port = 0;
-	m_clientSemaphore.take("SockServ");
+	m_port        = 0;  // Unknown port.
 	m_acceptQueue = xQueueCreate(10, sizeof(Socket));
+	m_useSSL      = false;
+	m_clientSemaphore.take("SockServ");   // Create the queue; deleted in the destructor.
 } // SockServ
+
+
+/**
+ * Destructor
+ */
+SockServ::~SockServ() {
+	vQueueDelete(m_acceptQueue);   // Delete the queue created in the constructor.
+} // ~SockServ
+
 
 /**
  * @brief Accept an incoming connection.
  * @private
  *
- * Block waiting for an incoming connection and accept it when it arrives.
+ * Block waiting for an incoming connection and accept it when it arrives.  The new
+ * socket is placed on a queue and a semaphore signaled that a new client is available.
  */
-void SockServ::acceptTask(void *data) {
-
+/* static */ void SockServ::acceptTask(void* data) {
 	SockServ* pSockServ = (SockServ*)data;
-	while(1) {
-		Socket tempSock = pSockServ->m_serverSocket.accept(pSockServ->getSSL());
-		if (!tempSock.isValid()) {
-			continue;
-		}
+	try {
+		while(1) {
+			Socket tempSock = pSockServ->m_serverSocket.accept(pSockServ->getSSL());
+			if (!tempSock.isValid()) {
+				continue;
+			}
 
-		pSockServ->m_clientSet.insert(tempSock);
-		xQueueSendToBack(pSockServ->m_acceptQueue, &tempSock, portMAX_DELAY);
-		pSockServ->m_clientSemaphore.give();
+			pSockServ->m_clientSet.insert(tempSock);
+			xQueueSendToBack(pSockServ->m_acceptQueue, &tempSock, portMAX_DELAY);
+			pSockServ->m_clientSemaphore.give();
+		}
+	} catch(std::exception e) {
+		ESP_LOGD(LOG_TAG, "acceptTask ending");
+		pSockServ->m_clientSemaphore.give();   // Wake up any waiting clients.
+		FreeRTOS::deleteTask();
 	}
 } // acceptTask
 
@@ -150,7 +170,7 @@ void SockServ::setSSL(bool use) {
 void SockServ::start() {
 	assert(m_port != 0);
 	//m_serverSocket.setSSL(m_useSSL);
-	m_serverSocket.listen(m_port);
+	m_serverSocket.listen(m_port);   // Create a socket and start listening on it.
 	ESP_LOGD(LOG_TAG, "Now listening on port %d", m_port);
 	FreeRTOS::startTask(acceptTask, "acceptTask", this, 16*1024);
 } // start
@@ -160,9 +180,12 @@ void SockServ::start() {
  * @brief Stop listening for new partner connections.
  */
 void SockServ::stop() {
+	ESP_LOGD(LOG_TAG, ">> stop");
+	// By closing the server socket, the task watching on accept() on that socket
+	// will throw an exception which will propagate a clean ending.
+	m_serverSocket.close();   // Close the server socket.
+	ESP_LOGD(LOG_TAG, "<< stop");
 } // stop
-
-
 
 
 Socket SockServ::waitForData(std::set<Socket>& socketSet) {
@@ -206,9 +229,14 @@ Socket SockServ::waitForData(std::set<Socket>& socketSet) {
  */
 Socket SockServ::waitForNewClient() {
 	ESP_LOGD(LOG_TAG, ">> waitForNewClient")
-	m_clientSemaphore.wait("waitForNewClient");
+	m_clientSemaphore.wait("waitForNewClient");                 // Unlocked in acceptTask.
+	m_clientSemaphore.take("waitForNewClient");
 	Socket tempSocket;
-	xQueueReceive(m_acceptQueue, &tempSocket,portMAX_DELAY);
+	BaseType_t rc = xQueueReceive(m_acceptQueue, &tempSocket, 0);   // Read the socket from the queue.
+	if (rc != pdPASS) {
+		ESP_LOGE(LOG_TAG, "No new client from SockServ!");
+		throw new SocketException(0);
+	}
 	ESP_LOGD(LOG_TAG, "<< waitForNewClient");
 	return tempSocket;
 } // waitForNewClient

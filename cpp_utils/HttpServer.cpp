@@ -180,18 +180,21 @@ private:
 	 */
 	void run(void* data) {
 		m_pHttpServer = (HttpServer*)data;             // The passed in data is an instance of an HttpServer.
-
-		SockServ sockServ(m_pHttpServer->getPort());   // Create a socket server on our target port.
-		sockServ.setSSL(m_pHttpServer->getSSL());
-		sockServ.start();                              // Start the socket server listening.
-
+		m_pHttpServer->m_sockServ.setPort(m_pHttpServer->m_portNumber);
+		m_pHttpServer->m_sockServ.setSSL(m_pHttpServer->m_useSSL);
+		m_pHttpServer->m_sockServ.start();
 		ESP_LOGD("HttpServerTask", "Listening on port %d", m_pHttpServer->getPort());
-
+		Socket clientSocket;
 		while(1) {   // Loop forever.
 
 			ESP_LOGD("HttpServerTask", "Waiting for new peer client");
 
-			Socket clientSocket = sockServ.waitForNewClient();   // Block waiting for a new external client connection.
+			try {
+				clientSocket = m_pHttpServer->m_sockServ.waitForNewClient();   // Block waiting for a new external client connection.
+			}
+			catch(std::exception e) {
+				return;
+			}
 
 			ESP_LOGD("HttpServerTask", "HttpServer listening on port %d received a new client connection; sockFd=%d", m_pHttpServer->getPort(), clientSocket.getFD());
 
@@ -299,12 +302,28 @@ void HttpServer::setRootPath(std::string path) {
  * @param [in] useSSL Should we use SSL?
  */
 void HttpServer::start(uint16_t portNumber, bool useSSL) {
+	// Design:
+	// The start of the HTTP server should be as fast as possible.
 	ESP_LOGD(LOG_TAG, ">> start: port: %d, useSSL: %d", portNumber, useSSL);
 	m_useSSL     = useSSL;
 	m_portNumber = portNumber;
+
 	HttpServerTask* pHttpServerTask = new HttpServerTask("HttpServerTask");
 	pHttpServerTask->start(this);
 } // start
+
+
+/**
+ * @brief Shutdown the HTTP server.
+ */
+void HttpServer::stop() {
+	// Shutdown the HTTP Server.  The high level is that we will stop the server socket
+	// that is listening for incoming connections.  That will then shutdown all the other
+	// activities.
+	ESP_LOGD(LOG_TAG, ">> stop");
+	m_sockServ.stop();
+	ESP_LOGD(LOG_TAG, "<< stop");
+} // stop
 
 
 /**

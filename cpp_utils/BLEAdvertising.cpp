@@ -94,24 +94,10 @@ void BLEAdvertising::setServiceUUID(const char* serviceUUID) {
 void BLEAdvertising::setServiceUUID(BLEUUID serviceUUID) {
 	ESP_LOGD(LOG_TAG, ">> setServiceUUID - %s", serviceUUID.toString().c_str());
 	m_serviceUUID = serviceUUID; // Save the new service UUID
-	esp_bt_uuid_t* espUUID = m_serviceUUID.getNative();
-	switch(espUUID->len) {
-		case ESP_UUID_LEN_16: {
-			m_advDataScanResponse.service_uuid_len = 2;
-			m_advDataScanResponse.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid16);
-			break;
-		}
-		case ESP_UUID_LEN_32: {
-			m_advDataScanResponse.service_uuid_len = 4;
-			m_advDataScanResponse.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid32);
-			break;
-		}
-		case ESP_UUID_LEN_128: {
-			m_advDataScanResponse.service_uuid_len = 16;
-			m_advDataScanResponse.p_service_uuid = reinterpret_cast<uint8_t*>(&espUUID->uuid.uuid128);
-			break;
-		}
-	} // switch
+	m_serviceUUID128 = serviceUUID.to128();
+
+	m_advDataScanResponse.service_uuid_len = 16;
+	m_advDataScanResponse.p_service_uuid = reinterpret_cast<uint8_t*>(&m_serviceUUID128.getNative()->uuid.uuid128);
 	ESP_LOGD(LOG_TAG, "<< setServiceUUID");
 } // setServiceUUID
 

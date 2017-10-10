@@ -31,13 +31,13 @@ however, [Cesanta](https://www.cesanta.com/), the makers of Mongoose are still w
 port to the ESP32 which is anticipated to be available before 2017 so we should really wait for that
 to become available.
 
-##GPIO boot override
+## GPIO boot override
 To enable the ability to specify a GPIO pin to override known station information, compile
 the code with `-DBOOTWIFI_OVERRIDE_GPIO=<num>` when `<num>` is a GPIO pin number.  If the
 pin is high at startup, then it will override.  The pin is configured as pull-down low so
 it need not be artificially held low.  The default is no override pin.
 
-##Future enhancements
+## Future enhancements
 There is always room for enhancements:
 
 * Improve the web page shown to the user - Right now it is pretty basic and ideally could be
@@ -55,7 +55,7 @@ dramatically improved.  Features to be added include
   - Network SSID to use when being an access point.
   - Network password to use when being an access point (if any). 
   
-##Design and implementation notes
+## Design and implementation notes
 The parameters for Bootwifi are stored in Non-Volatile Storage (NVS).  The name space in NVS
 is "bootwifi".  The keys are:
 

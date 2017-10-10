@@ -53,6 +53,7 @@ WiFi::WiFi()
     , netmask(0)
     , m_pWifiEventHandler(nullptr)
 {
+	m_eventLoopStarted = false;
 	::nvs_flash_init();
 	wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT();
 	esp_wifi_init(&config);
@@ -157,7 +158,17 @@ void WiFi::connectAP(const std::string& ssid, const std::string& password, bool 
 	}
 
 
-	ESP_ERROR_CHECK(esp_event_loop_init(WiFi::eventHandler, this));
+
+	// If the event loop has already started then change the callback else
+	// start the event loop.
+	if (m_eventLoopStarted) {
+		esp_event_loop_set_cb(WiFi::eventHandler, this);   // Returns the old handler.
+	} else {
+		ESP_ERROR_CHECK(esp_event_loop_init(WiFi::eventHandler, this));  // Initialze the event handler.
+		m_eventLoopStarted = true;
+	}
+
+
 	//ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
 	ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
 	ESP_ERROR_CHECK(::esp_wifi_set_mode(WIFI_MODE_STA));
@@ -374,25 +385,37 @@ std::vector<WiFiAPRecord> WiFi::scan() {
  * @return N/A.
  */
 void WiFi::startAP(const std::string& ssid, const std::string& password) {
-    ::nvs_flash_init();
-    ::tcpip_adapter_init();
-    ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
-    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
-    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_AP) );
-    wifi_config_t apConfig;
-    ::memset(&apConfig, 0, sizeof(apConfig));
-    ::memcpy(apConfig.ap.ssid, ssid.data(), ssid.size());
-    apConfig.ap.ssid_len = ssid.size();
-    ::memcpy(apConfig.ap.password, password.data(), password.size());
-    apConfig.ap.channel = 0;
-    apConfig.ap.authmode = WIFI_AUTH_OPEN;
-    apConfig.ap.ssid_hidden = 0;
-    apConfig.ap.max_connection = 4;
-    apConfig.ap.beacon_interval = 100;
-    ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_AP, &apConfig) );
-    ESP_ERROR_CHECK( esp_wifi_start() );
+	ESP_LOGD(LOG_TAG, ">> startAP: ssid: %s", ssid.c_str());
+	::nvs_flash_init();
+	::tcpip_adapter_init();
+
+	// If we have already started the event loop, then change the handler otherwise
+	// start the event loop.
+	if (m_eventLoopStarted) {
+		esp_event_loop_set_cb(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler);
+	}
+	else {
+		ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
+		m_eventLoopStarted = true;
+	}
+
+	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+	ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+	ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
+	ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_AP) );
+	wifi_config_t apConfig;
+	::memset(&apConfig, 0, sizeof(apConfig));
+	::memcpy(apConfig.ap.ssid, ssid.data(), ssid.size());
+	apConfig.ap.ssid_len = ssid.size();
+	::memcpy(apConfig.ap.password, password.data(), password.size());
+	apConfig.ap.channel         = 0;
+	apConfig.ap.authmode        = WIFI_AUTH_OPEN;
+	apConfig.ap.ssid_hidden     = 0;
+	apConfig.ap.max_connection  = 4;
+	apConfig.ap.beacon_interval = 100;
+	ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_AP, &apConfig) );
+	ESP_ERROR_CHECK( esp_wifi_start() );
+	ESP_LOGD(LOG_TAG, "<< startAP");
 } // startAP
 
 
@@ -400,8 +423,10 @@ void WiFi::startAP(const std::string& ssid, const std::string& password) {
  * @brief Set the event handler to use to process detected events.
  * @param[in] wifiEventHandler The class that will be used to process events.
  */
-void WiFi::setWifiEventHandler(WiFiEventHandler *wifiEventHandler) {
+void WiFi::setWifiEventHandler(WiFiEventHandler* wifiEventHandler) {
+	ESP_LOGD(LOG_TAG, ">> setWifiEventHandler: 0x%d", (uint32_t)wifiEventHandler);
   this->m_pWifiEventHandler = wifiEventHandler;
+  ESP_LOGD(LOG_TAG, "<< setWifiEventHandler");
 } // setWifiEventHandler
 
 

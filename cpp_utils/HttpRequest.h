@@ -65,7 +65,9 @@ public:
 	WebSocket*                         getWebSocket();               // Get the WebSocket reference if this is a web socket.
 	bool                               isClosed();                   // Has the connection been closed?
 	bool                               isWebsocket();                // Is this request to create a web socket?
+	std::map<std::string, std::string> parseForm();                  // Parse the body as a form.
 	std::vector<std::string>           pathSplit();
+	std::string                        urlDecode(std::string str);   // Decode a URL.
 };
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPREQUEST_H_ */

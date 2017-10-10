@@ -65,9 +65,9 @@ Socket Socket::accept(bool useSSL) {
 	socklen_t clientAddressLength = sizeof(clientAddress);
 	int clientSockFD = ::lwip_accept_r(m_sock, (struct sockaddr *)&clientAddress, &clientAddressLength);
 	if (clientSockFD == -1) {
+		SocketException se(errno);
 		ESP_LOGE(LOG_TAG, "accept(): %s, m_sock=%d", strerror(errno), m_sock);
-		Socket newSocket;
-		return newSocket;
+		throw se;
 	}
 
 	ESP_LOGD(LOG_TAG, " - accept: Received new client!: sockFd: %d", clientSockFD);
@@ -609,3 +609,7 @@ SocketInputRecordStreambuf::int_type SocketInputRecordStreambuf::underflow() {
 	setg(m_buffer, m_buffer, m_buffer + bytesRead);
 	return traits_type::to_int_type(*gptr());
 } // underflow
+
+SocketException::SocketException(int myErrno) {
+	m_errno = myErrno;
+}
