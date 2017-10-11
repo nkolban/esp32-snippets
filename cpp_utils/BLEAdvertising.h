@@ -11,6 +11,7 @@
 #if defined(CONFIG_BT_ENABLED)
 #include <esp_gap_ble_api.h>
 #include "BLEUUID.h"
+#include <vector>
 
 /**
  * @brief Perform and manage %BLE advertising.
@@ -20,17 +21,15 @@
 class BLEAdvertising {
 public:
 	BLEAdvertising();
+	void addServiceUUID(BLEUUID serviceUUID);
+	void addServiceUUID(const char* serviceUUID);
 	void start();
 	void stop();
 	void setAppearance(uint16_t appearance);
-	void setServiceUUID(const char* serviceUUID);
-	void setServiceUUID(BLEUUID serviceUUID);
 private:
 	esp_ble_adv_data_t   m_advData;
-	esp_ble_adv_data_t   m_advDataScanResponse;
 	esp_ble_adv_params_t m_advParams;
-	BLEUUID              m_serviceUUID;
-	BLEUUID              m_serviceUUID128;
+	std::vector<BLEUUID> m_serviceUUIDs;
 };
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEADVERTISING_H_ */

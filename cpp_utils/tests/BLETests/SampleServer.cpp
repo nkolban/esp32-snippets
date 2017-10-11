@@ -39,7 +39,8 @@ class MainBLEServer: public Task {
 		pService->start();
 
 		BLEAdvertising* pAdvertising = pServer->getAdvertising();
-		pAdvertising->setServiceUUID(pService->getUUID().to128());
+		pAdvertising->addServiceUUID(pService->getUUID());
+		pAdvertising->addServiceUUID(BLEUUID((uint16_t)0x9876));
 		pAdvertising->start();
 
 		ESP_LOGD(LOG_TAG, "Advertising started!");
