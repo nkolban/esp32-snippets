@@ -11,6 +11,9 @@
 #include "BLECharacteristic.h"
 #include "BLEDescriptor.h"
 #include <esp_gatts_api.h>   // ESP32 BLE
+#ifdef ARDUINO_ARCH_ESP32
+#include "esp32-hal-log.h"
+#endif
 
 /**
  * @brief Return the descriptor by UUID.

@@ -18,6 +18,9 @@
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
 #include "BLERemoteDescriptor.h"
+#ifdef ARDUINO_ARCH_ESP32
+#include "esp32-hal-log.h"
+#endif
 
 
 static const char* LOG_TAG = "BLERemoteCharacteristic";   // The logging tag for this class.

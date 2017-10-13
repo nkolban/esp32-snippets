@@ -10,6 +10,9 @@
 #include "BLERemoteDescriptor.h"
 #include "GeneralUtils.h"
 #include <esp_log.h>
+#ifdef ARDUINO_ARCH_ESP32
+#include "esp32-hal-log.h"
+#endif
 
 static const char* LOG_TAG = "BLERemoteDescriptor";
 

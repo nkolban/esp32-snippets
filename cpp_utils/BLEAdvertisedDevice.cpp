@@ -17,6 +17,9 @@
 #include <sstream>
 #include "BLEAdvertisedDevice.h"
 #include "BLEUtils.h"
+#ifdef ARDUINO_ARCH_ESP32
+#include "esp32-hal-log.h"
+#endif
 static const char* LOG_TAG="BLEAdvertisedDevice";
 
 BLEAdvertisedDevice::BLEAdvertisedDevice() {
