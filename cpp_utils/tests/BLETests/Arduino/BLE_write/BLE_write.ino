@@ -7,8 +7,6 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 
-BLEDevice ble;
-
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
 
@@ -41,9 +39,8 @@ void setup() {
   Serial.println("4- Go to CUSTOM CHARACTERISTIC in CUSTOM SERVICE and write something");
   Serial.println("5- See the magic =)");
 
-  //ble.begin("MyESP32");
-  ble.init("MyESP32");
-  BLEServer *pServer = new BLEServer();
+  BLEDevice::init("MyESP32");
+  BLEServer *pServer = BLEDevice::createServer();
 
   BLEService *pService = pServer->createService(SERVICE_UUID);
 
