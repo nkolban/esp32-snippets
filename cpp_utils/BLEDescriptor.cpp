@@ -16,6 +16,9 @@
 #include "BLEService.h"
 #include "BLEDescriptor.h"
 #include "GeneralUtils.h"
+#ifdef ARDUINO_ARCH_ESP32
+#include "esp32-hal-log.h"
+#endif
 
 static const char* LOG_TAG = "BLEDescriptor";
 

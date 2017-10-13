@@ -18,6 +18,9 @@
 #include <string>
 #include <sstream>
 #include <unordered_set>
+#ifdef ARDUINO_ARCH_ESP32
+#include "esp32-hal-log.h"
+#endif
 
 /*
  * Design
