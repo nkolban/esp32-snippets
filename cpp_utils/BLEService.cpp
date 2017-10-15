@@ -56,9 +56,14 @@ BLEService::BLEService(BLEUUID uuid, uint32_t numHandles) {
  * @param [in] gatts_if The handle of the GATT server interface.
  * @return N/A.
  */
+
 void BLEService::executeCreate(BLEServer *pServer) {
 	//ESP_LOGD(LOG_TAG, ">> executeCreate() - Creating service (esp_ble_gatts_create_service) service uuid: %s", getUUID().toString().c_str());
-	getUUID(); // Needed for a weird bug fix
+	//getUUID(); // Needed for a weird bug fix
+	//char x[1000];
+	//memcpy(x, &m_uuid, sizeof(m_uuid));
+	//char x[10];
+	//memcpy(x, &deleteMe, 10);
 	m_pServer          = pServer;
 	m_semaphoreCreateEvt.take("executeCreate"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
 

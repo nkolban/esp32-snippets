@@ -4,8 +4,9 @@
  *  Created on: Feb 24, 2017
  *      Author: kolban
  */
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <freertos/FreeRTOS.h>   // Include the base FreeRTOS definitions
+#include <freertos/task.h>       // Include the task definitions
+#include <freertos/semphr.h>     // Include the semaphore definitions
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -102,6 +103,9 @@ FreeRTOS::Semaphore::~Semaphore() {
  */
 void FreeRTOS::Semaphore::give() {
 	xSemaphoreGive(m_semaphore);
+#ifdef ARDUINO_ARCH_ESP32
+	FreeRTOS::sleep(10);
+#endif
 	ESP_LOGV(LOG_TAG, "Semaphore giving: %s", toString().c_str());
 	m_owner = "<N/A>";
 } // Semaphore::give

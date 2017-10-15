@@ -51,6 +51,7 @@ BLE_FILES= \
 	GeneralUtils.h \
 	GeneralUtils.cpp 
 
+ARDUINO_LIBS=$(HOME)/Arduino/libraries
 
 build_ble:
 	rm -rf Arduino/ESP32_BLE
@@ -64,3 +65,8 @@ build_ble:
 	rm -rf Arduino/ESP32_BLE
 	@echo "---------------------------------------"
 	@echo "ESP32_BLE.zip Arduino library now built"
+
+install: build_ble
+	rm -rf ${ARDUINO_LIBS}/ESP32_BLE
+	unzip Arduino/ESP32_BLE.zip -d $(ARDUINO_LIBS)
+	

@@ -23,6 +23,14 @@ And here you will find the `ESP32_BLE.zip` that is build from the latest source.
 ## Installing a new version
 If you have previously installed a version of the Arduino BLE Support and need to install a new one, follow the steps above to build yourself a new instance of the `ESP32_BLE.zip` that is ready for installation.  I recommend removing the old one before installing the new one.  To remove the old one, find the directory where the Arduino IDE stores your libraries (on Linux this is commonly `$HOME/Arduino`).  In there you will find a directory called `libraries` and, if you have previously installed the BLE support, you will find a directory called `ESP32_BLE`.  Remove that directory.
 
+## Replacing the version that comes with Arduino-ESP32
+From October 2017 onwards, a build of the BLE libraries is supplied with the Arduino-ESP32 distribition which means that you should just be able to use the function without performing any additional steps.  The intent is to keep the BLE libraries in this project completely in synch with the Arduino-ESP32 distribution.  However, there may be times when a bug fix is needed which you may wish to try before an official distribution in Arduino-ESP32.  That should be extremely rare.  However, just in case it is needed, here is the recipe:
+
+1. Go to `<ArduinoIDE>/hardware/espressif/esp32/libraries`
+2. Delete the directory called `BLE`
+3. Go to your `<Arduino>/libraries` folder
+4. Extract the `ESP32_BLE.zip` file there
+
 ## Switching on debugging
 The BLE support contains extensive internal diagnostics which can be switched on by editing the file called `sdkconfig.h` and finding the lines which read:
 

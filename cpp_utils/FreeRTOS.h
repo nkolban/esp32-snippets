@@ -10,9 +10,9 @@
 #include <stdint.h>
 #include <string>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <freertos/semphr.h>
+#include <freertos/FreeRTOS.h>   // Include the base FreeRTOS definitions
+#include <freertos/task.h>       // Include the task definitions
+#include <freertos/semphr.h>     // Include the semaphore definitions
 
 
 /**
@@ -40,9 +40,9 @@ public:
 		std::string toString();
 	private:
 		SemaphoreHandle_t m_semaphore;
-		std::string m_name;
-		std::string m_owner;
-		uint32_t    m_value;
+		std::string       m_name;
+		std::string       m_owner;
+		uint32_t          m_value;
 	};
 };
 

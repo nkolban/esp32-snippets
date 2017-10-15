@@ -201,7 +201,6 @@ void BLEServer::handleGATTServerEvent(
 		// - uint16_t app_id
 		case ESP_GATTS_REG_EVT: {
 			m_gatts_if = gatts_if;
-
 			m_semaphoreRegisterAppEvt.give(); // Unlock the mutex waiting for the registration of the app.
 			break;
 		} // ESP_GATTS_REG_EVT
