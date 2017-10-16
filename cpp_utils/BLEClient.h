@@ -32,9 +32,14 @@ public:
 	bool                                       connect(BLEAddress address);
 	void                                       disconnect();
 	BLEAddress                                 getPeerAddress();
+	int                                        getRssi();
 	std::map<std::string, BLERemoteService*>*  getServices();
 	BLERemoteService*                          getService(const char* uuid);
 	BLERemoteService*                          getService(BLEUUID uuid);
+	void                                       handleGAPEvent(
+		                                            esp_gap_ble_cb_event_t  event,
+                                                esp_ble_gap_cb_param_t* param);
+	bool                                       isConnected();
 	void                                       setClientCallbacks(BLEClientCallbacks *pClientCallbacks);
 	std::string                                toString();
 
@@ -55,11 +60,13 @@ private:
 	uint16_t      m_conn_id;
 //	int           m_deviceType;
 	esp_gatt_if_t m_gattc_if;
+	bool          m_isConnected;
 
 	BLEClientCallbacks* m_pClientCallbacks;
 	FreeRTOS::Semaphore m_semaphoreRegEvt        = FreeRTOS::Semaphore("RegEvt");
 	FreeRTOS::Semaphore m_semaphoreOpenEvt       = FreeRTOS::Semaphore("OpenEvt");
 	FreeRTOS::Semaphore m_semaphoreSearchCmplEvt = FreeRTOS::Semaphore("SearchCmplEvt");
+	FreeRTOS::Semaphore m_semaphoreRssiCmplEvt   = FreeRTOS::Semaphore("RssiCmplEvt");
 	std::map<std::string, BLERemoteService*> m_servicesMap;
 	bool m_haveServices; // Have we previously obtain the set of services.
 }; // class BLEDevice

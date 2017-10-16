@@ -147,6 +147,10 @@ void BLEDevice::gapEventHandler(
 		BLEDevice::m_pServer->handleGAPEvent(event, param);
 	}
 
+	if (BLEDevice::m_pClient != nullptr) {
+		BLEDevice::m_pClient->handleGAPEvent(event, param);
+	}
+
 	if (BLEDevice::m_pScan != nullptr) {
 		BLEDevice::getScan()->gapEventHandler(event, param);
 	}

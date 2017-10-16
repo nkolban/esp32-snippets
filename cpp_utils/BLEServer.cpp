@@ -123,7 +123,7 @@ uint16_t BLEServer::getGattsIf() {
 }
 
 /**
- * @brief Handle a receiver GAP event.
+ * @brief Handle a received GAP event.
  *
  * @param [in] event
  * @param [in] param

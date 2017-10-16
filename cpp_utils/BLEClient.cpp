@@ -49,6 +49,7 @@ BLEClient::BLEClient() {
 	m_conn_id          = 0;
 	m_gattc_if         = 0;
 	m_haveServices     = false;
+	m_isConnected      = false;  // Initially, we are flagged as not connected.
 } // BLEClient
 
 
@@ -76,7 +77,8 @@ bool BLEClient::connect(BLEAddress address) {
 // We need the connection handle that we get from registering the application.  We register the app
 // and then block on its completion.  When the event has arrived, we will have the handle.
 	m_semaphoreRegEvt.take("connect");
-	esp_err_t errRc = esp_ble_gattc_app_register(0);
+
+	esp_err_t errRc = ::esp_ble_gattc_app_register(0);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_app_register: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return false;
@@ -130,6 +132,22 @@ void BLEClient::gattClientEventHandler(
 
 	// Execute handler code based on the type of event received.
 	switch(event) {
+
+		//
+		// ESP_GATTC_DISCONNECT_EVT
+		//
+		// disconnect:
+		// - esp_gatt_status_t status
+		// - uint16_t          conn_id
+		// - esp_bd_addr_t     remote_bda
+		case ESP_GATTC_DISCONNECT_EVT: {
+				// If we receive a disconnect event, set the class flag that indicates that we are
+				// no longer connected.
+				m_isConnected = false;
+				break;
+		} // ESP_GATTC_DISCONNECT_EVT
+
+
 		//
 		// ESP_GATTC_OPEN_EVT
 		//
@@ -144,6 +162,7 @@ void BLEClient::gattClientEventHandler(
 			if (m_pClientCallbacks != nullptr) {
 				m_pClientCallbacks->onConnect(this);
 			}
+			m_isConnected = true;   // Flag us as connected.
 			m_semaphoreOpenEvt.give();
 			break;
 		} // ESP_GATTC_OPEN_EVT
@@ -211,6 +230,17 @@ void BLEClient::gattClientEventHandler(
 } // gattClientEventHandler
 
 
+uint16_t BLEClient::getConnId() {
+	return m_conn_id;
+} // getConnId
+
+
+
+esp_gatt_if_t BLEClient::getGattcIf() {
+	return m_gattc_if;
+} // getGattcIf
+
+
 /**
  * @brief Retrieve the address of the peer.
  *
@@ -221,14 +251,29 @@ BLEAddress BLEClient::getPeerAddress() {
 } // getAddress
 
 
-uint16_t BLEClient::getConnId() {
-	return m_conn_id;
-} // getConnId
-
-
-esp_gatt_if_t BLEClient::getGattcIf() {
-	return m_gattc_if;
-} // getGattcIf
+/**
+ * @brief Ask the BLE server for the RSSI value.
+ * @return The RSSI value.
+ */
+int BLEClient::getRssi() {
+	ESP_LOGD(LOG_TAG, ">> getRssi()");
+	if (!isConnected()) {
+		ESP_LOGD(LOG_TAG, "<< getRssi(): Not connected");
+		return 0;
+	}
+	// We make the API call to read the RSSI value which is an asynchronous operation.  We expect to receive
+	// an ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT to indicate completion.
+	//
+	m_semaphoreRssiCmplEvt.take("getRssi");
+	esp_err_t rc = ::esp_ble_gap_read_rssi(*getPeerAddress().getNative());
+	if (rc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "<< getRssi: esp_ble_gap_read_rssi: rc=%d %s", rc, GeneralUtils::errorToString(rc));
+		return 0;
+	}
+	int rssiValue = m_semaphoreRssiCmplEvt.wait("getRssi");
+	ESP_LOGD(LOG_TAG, "<< getRssi(): %d", rssiValue);
+	return rssiValue;
+} // getRssi
 
 
 /**
@@ -300,6 +345,44 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
 	ESP_LOGD(LOG_TAG, "<< getServices");
 	return &m_servicesMap;
 } // getServices
+
+/**
+ * @brief Handle a received GAP event.
+ *
+ * @param [in] event
+ * @param [in] param
+ */
+void BLEClient::handleGAPEvent(
+		esp_gap_ble_cb_event_t  event,
+		esp_ble_gap_cb_param_t* param) {
+	ESP_LOGD(LOG_TAG, "BLEClient ... handling GAP event!");
+	switch(event) {
+		//
+		// ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
+		//
+		// read_rssi_cmpl
+		// - esp_bt_status_t status
+		// - int8_t rssi
+		// - esp_bd_addr_t remote_addr
+		//
+		case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT: {
+			m_semaphoreRssiCmplEvt.give((uint32_t)param->read_rssi_cmpl.rssi);
+			break;
+		} // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
+
+		default:
+			break;
+	}
+} // handleGAPEvent
+
+
+/**
+ * @brief Are we connected to a partner?
+ * @return True if we are connected and false if we are not connected.
+ */
+bool BLEClient::isConnected() {
+	return m_isConnected;
+} // isConnected
 
 
 /**
