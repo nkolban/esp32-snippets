@@ -19,13 +19,16 @@ class BootWiFi {
 private:
 	friend BootWifiEventHandler;
 	void bootWiFi2();
-	WiFi       m_wifi;
-	HttpServer m_httpServer;
-	bool       m_httpServerStarted;
+	WiFi        m_wifi;
+	HttpServer  m_httpServer;
+	bool        m_httpServerStarted;
+	std::string m_ssid;
+	std::string m_password;
 	FreeRTOS::Semaphore m_completeSemaphore = FreeRTOS::Semaphore("completeSemaphore");
 
 public:
 	BootWiFi();
+	void setAccessPointCredentials(std::string ssid, std::string password);
 	void boot();
 };
 

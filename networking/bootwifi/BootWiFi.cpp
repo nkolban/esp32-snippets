@@ -222,7 +222,7 @@ void BootWiFi::bootWiFi2() {
 	m_wifi.setWifiEventHandler(new BootWifiEventHandler(this));
 	if (checkOverrideGpio()) {
 		ESP_LOGD(LOG_TAG, "- GPIO override detected");
-		m_wifi.startAP("Duktape", "Duktape");
+		m_wifi.startAP(m_ssid, m_password);
 	} else {
 		// There was NO GPIO override, proceed as normal.  This means we retrieve
 		// our stored access point information of the access point we should connect
@@ -249,12 +249,22 @@ void BootWiFi::bootWiFi2() {
 			// point that serves up a web server and allow a browser user to specify
 			// the details that will be eventually used to allow us to connect
 			// as a station.
-			m_wifi.startAP("Duktape", "Duktape");
+			m_wifi.startAP(m_ssid, m_password);
 		} // We do NOT have connection info
 	}
 	ESP_LOGD(LOG_TAG, "<< bootWiFi2");
 } // bootWiFi2
 
+
+/**
+ * @brief Set the userid/password pair that will be used for the ESP32 access point.
+ * @param [in] ssid The network id of the ESP32 when it becomes an access point.
+ * @param [in] password The password for the ESP32 when it becomes an access point.
+ */
+void BootWiFi::setAccessPointCredentials(std::string ssid, std::string password) {
+	m_ssid     = ssid;
+	m_password = password;
+} // setAccessPointCredentials
 
 
 void BootWiFi::boot() {
@@ -262,6 +272,7 @@ void BootWiFi::boot() {
 	ESP_LOGD(LOG_TAG, " +----------+");
 	ESP_LOGD(LOG_TAG, " | BootWiFi |");
 	ESP_LOGD(LOG_TAG, " +----------+");
+	ESP_LOGD(LOG_TAG, " Access point credentials: %s/%s", m_ssid.c_str(), m_password.c_str());
 	m_completeSemaphore.take("boot");   // Take the semaphore which will be unlocked when we complete booting.
 	bootWiFi2();
 	m_completeSemaphore.wait("boot");   // Wait for the semaphore that indicated we have completed booting.
@@ -270,4 +281,5 @@ void BootWiFi::boot() {
 
 BootWiFi::BootWiFi() {
 	m_httpServerStarted = false;
+	setAccessPointCredentials("esp32", "password");
 }
