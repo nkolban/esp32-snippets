@@ -195,7 +195,7 @@ void Adafruit_SSD1306::begin(uint8_t vccstate, uint8_t i2caddr, bool reset) {
 	dev_config.duty_cycle_pos   = 0;
 	dev_config.cs_ena_posttrans = 0;
 	dev_config.cs_ena_pretrans  = 0;
-	dev_config.clock_speed_hz   = 100000; // 100KHz
+	dev_config.clock_speed_hz   = 1000000; // 1MHz
 	dev_config.spics_io_num     = cs;
 	dev_config.flags            = 0;
 	dev_config.queue_size       = 1;
@@ -393,27 +393,33 @@ void Adafruit_SSD1306::dim(boolean dim) {
 }
 
 void Adafruit_SSD1306::display(void) {
-  ssd1306_command(SSD1306_COLUMNADDR);
-  ssd1306_command(0);   // Column start address (0 = reset)
-  ssd1306_command(SSD1306_LCDWIDTH-1); // Column end address (127 = reset)
 
-  ssd1306_command(SSD1306_PAGEADDR);
-  ssd1306_command(0); // Page start address (0 = reset)
-  #if SSD1306_LCDHEIGHT == 64
-    ssd1306_command(7); // Page end address
-  #endif
-  #if SSD1306_LCDHEIGHT == 32
-    ssd1306_command(3); // Page end address
-  #endif
-  #if SSD1306_LCDHEIGHT == 16
-    ssd1306_command(1); // Page end address
-  #endif
+	gpio_set_level((gpio_num_t)dc, 0);
+    uint8_t cmd_buffer[] = {SSD1306_COLUMNADDR, 0, SSD1306_LCDWIDTH-1, SSD1306_PAGEADDR, 0, (SSD1306_LCDHEIGHT/8-1)};
+	spi_transaction_t trans_desc;
+	trans_desc.addr= 0;
+	trans_desc.cmd   = 0;
+	trans_desc.flags     = 0;
+	trans_desc.length    = 6 * 8;
+	trans_desc.rxlength  = 0;
+	trans_desc.tx_buffer = cmd_buffer;
+	trans_desc.rx_buffer = NULL;
+
+	ESP_ERROR_CHECK(spi_device_transmit(spi_handle, &trans_desc));
 
 	gpio_set_level((gpio_num_t)dc, 1);
 
-	for (uint16_t i=0; i<(SSD1306_LCDWIDTH * SSD1306_LCDHEIGHT/8); i++) {
-		fastSPIwrite(buffer[i]);
-	}
+	//spi_transaction_t trans_desc;
+	trans_desc.addr= 0;
+	trans_desc.cmd   = 0;
+	trans_desc.flags     = 0;
+	trans_desc.length    = SSD1306_LCDHEIGHT * SSD1306_LCDWIDTH;
+	trans_desc.rxlength  = 0;
+	trans_desc.tx_buffer = buffer;
+	trans_desc.rx_buffer = NULL;
+
+	ESP_ERROR_CHECK(spi_device_transmit(spi_handle, &trans_desc));
+
 }
 
 // clear everything
@@ -424,8 +430,8 @@ void Adafruit_SSD1306::clearDisplay(void) {
 
 inline void Adafruit_SSD1306::fastSPIwrite(uint8_t d) {
 	spi_transaction_t trans_desc;
-	trans_desc.address   = 0;
-	trans_desc.command   = 0;
+	trans_desc.addr= 0;
+	trans_desc.cmd   = 0;
 	trans_desc.flags     = 0;
 	trans_desc.length    = 8;
 	trans_desc.rxlength  = 0;
@@ -651,3 +657,15 @@ void Adafruit_SSD1306::drawFastVLineInternal(int16_t x, int16_t __y, int16_t __h
     }
   }
 }
+#ifndef ARDUINO
+void Adafruit_SSD1306::println(char* text){
+	print(text);
+	print((char*)"\n");
+}
+void Adafruit_SSD1306::print(char* text){
+	while(*text != 0) {
+		write(*text);
+		text++;
+	}
+}
+#endif
