@@ -44,8 +44,8 @@ All text above, and the splash screen must be included in any redistribution
     SSD1306_96_16
 
     -----------------------------------------------------------------------*/
-//   #define SSD1306_128_64
-   #define SSD1306_128_32
+   #define SSD1306_128_64
+//   #define SSD1306_128_32
 //   #define SSD1306_96_16
 /*=========================================================================*/
 
@@ -123,7 +123,11 @@ class Adafruit_SSD1306 : public Adafruit_GFX {
 
   void begin(uint8_t switchvcc = SSD1306_SWITCHCAPVCC, uint8_t i2caddr = SSD1306_I2C_ADDRESS, bool reset=true);
   void ssd1306_command(uint8_t c);
-
+  void ssd1306_command(uint8_t *c, uint8_t l);
+#ifndef ARDUINO
+  void print(char*);
+  void println(char*);
+#endif
   void clearDisplay(void);
   void invertDisplay(uint8_t i);
   void display();
