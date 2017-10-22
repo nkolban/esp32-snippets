@@ -12,7 +12,7 @@
 
 //#define DEBUG 1
 
-static char tag[] = "SPI";
+static const char* LOG_TAG = "SPI";
 /**
  * @brief Construct an instance of the class.
  *
@@ -23,14 +23,15 @@ SPI::SPI() {
 	m_host   = HSPI_HOST;
 }
 
+
 /**
  * @brief Class instance destructor.
  */
 SPI::~SPI() {
-  ESP_LOGI(tag, "... Removing device.");
+  ESP_LOGI(LOG_TAG, "... Removing device.");
   ESP_ERROR_CHECK(::spi_bus_remove_device(m_handle));
 
-  ESP_LOGI(tag, "... Freeing bus.");
+  ESP_LOGI(LOG_TAG, "... Freeing bus.");
   ESP_ERROR_CHECK(::spi_bus_free(m_host));
 }
 
@@ -44,7 +45,7 @@ SPI::~SPI() {
  * @return N/A.
  */
 void SPI::init(int mosiPin, int misoPin, int clkPin, int csPin) {
-	ESP_LOGD(tag, "init: mosi=%d, miso=%d, clk=%d, cs=%d", mosiPin, misoPin, clkPin, csPin);
+	ESP_LOGD(LOG_TAG, "init: mosi=%d, miso=%d, clk=%d, cs=%d", mosiPin, misoPin, clkPin, csPin);
 
 	spi_bus_config_t bus_config;
 	bus_config.sclk_io_num     = clkPin;  // CLK
@@ -54,7 +55,7 @@ void SPI::init(int mosiPin, int misoPin, int clkPin, int csPin) {
 	bus_config.quadhd_io_num   = -1;      // Not used
 	bus_config.max_transfer_sz = 0;       // 0 means use default.
 
-	ESP_LOGI(tag, "... Initializing bus; host=%d", m_host);
+	ESP_LOGI(LOG_TAG, "... Initializing bus; host=%d", m_host);
 
 	esp_err_t errRc = ::spi_bus_initialize(
 			m_host,
@@ -63,7 +64,7 @@ void SPI::init(int mosiPin, int misoPin, int clkPin, int csPin) {
 	);
 
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "spi_bus_initialize(): rc=%d", errRc);
+		ESP_LOGE(LOG_TAG, "spi_bus_initialize(): rc=%d", errRc);
 		abort();
 	}
 
@@ -81,10 +82,10 @@ void SPI::init(int mosiPin, int misoPin, int clkPin, int csPin) {
 	dev_config.queue_size       = 1;
 	dev_config.pre_cb           = NULL;
 	dev_config.post_cb          = NULL;
-	ESP_LOGI(tag, "... Adding device bus.");
+	ESP_LOGI(LOG_TAG, "... Adding device bus.");
 	errRc = ::spi_bus_add_device(m_host, &dev_config, &m_handle);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "spi_bus_add_device(): rc=%d", errRc);
+		ESP_LOGE(LOG_TAG, "spi_bus_add_device(): rc=%d", errRc);
 		abort();
 	}
 } // init
@@ -110,7 +111,7 @@ void SPI::transfer(uint8_t* data, size_t dataLen) {
 	assert(dataLen > 0);
 #ifdef DEBUG
 	for (auto i=0; i<dataLen; i++) {
-		ESP_LOGD(tag, "> %2d %.2x", i, data[i]);
+		ESP_LOGD(LOG_TAG, "> %2d %.2x", i, data[i]);
 	}
 #endif
 	spi_transaction_t trans_desc;
@@ -125,7 +126,7 @@ void SPI::transfer(uint8_t* data, size_t dataLen) {
 	//ESP_LOGI(tag, "... Transferring");
 	esp_err_t rc = ::spi_device_transmit(m_handle, &trans_desc);
 	if (rc != ESP_OK) {
-		ESP_LOGE(tag, "transfer:spi_device_transmit: %d", rc);
+		ESP_LOGE(LOG_TAG, "transfer:spi_device_transmit: %d", rc);
 	}
 } // transmit
 

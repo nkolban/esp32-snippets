@@ -10,7 +10,7 @@
 #include "sdkconfig.h"
 #include "WS2812.h"
 
-static char tag[] = "WS2812";
+static const char* LOG_TAG = "WS2812";
 
 /**
  * A NeoPixel is defined by 3 bytes ... red, green and blue.
@@ -80,7 +80,7 @@ static uint8_t getChannelValueByType(char type, pixel_t pixel) {
 		case 'G':
 			return pixel.green;
 	}
-	ESP_LOGW(tag, "Unknown color channel 0x%2x", type);
+	ESP_LOGW(LOG_TAG, "Unknown color channel 0x%2x", type);
 	return 0;
 } // getChannelValueByType
 
@@ -153,7 +153,7 @@ void WS2812::show() {
 				(getChannelValueByType(this->colorOrder[1], this->pixels[i]) << 8)  |
 				(getChannelValueByType(this->colorOrder[2], this->pixels[i]));
 
-		ESP_LOGD(tag, "Pixel value: %x", currentPixel);
+		ESP_LOGD(LOG_TAG, "Pixel value: %x", currentPixel);
 		for (int j=23; j>=0; j--) {
 			// We have 24 bits of data representing the red, green amd blue channels. The value of the
 			// 24 bits to output is in the variable current_pixel.  We now need to stream this value
