@@ -9,6 +9,7 @@
 #define MAIN_FREERTOS_H_
 #include <stdint.h>
 #include <string>
+#include <pthread.h>
 
 #include <freertos/FreeRTOS.h>   // Include the base FreeRTOS definitions
 #include <freertos/task.h>       // Include the task definitions
@@ -40,9 +41,11 @@ public:
 		std::string toString();
 	private:
 		SemaphoreHandle_t m_semaphore;
+		pthread_mutex_t   m_pthread_mutex;
 		std::string       m_name;
 		std::string       m_owner;
 		uint32_t          m_value;
+		bool              m_usePthreads;
 	};
 };
 

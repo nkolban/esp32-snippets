@@ -77,23 +77,44 @@ uint32_t FreeRTOS::getTimeSinceStart() {
  */
 uint32_t FreeRTOS::Semaphore::wait(std::string owner) {
 	ESP_LOGV(LOG_TAG, "Semaphore waiting: %s for %s", toString().c_str(), owner.c_str());
-	xSemaphoreTake(m_semaphore, portMAX_DELAY);
+	if (m_usePthreads) {
+		pthread_mutex_lock(&m_pthread_mutex);
+	} else {
+		xSemaphoreTake(m_semaphore, portMAX_DELAY);
+	}
 	m_owner = owner;
-	xSemaphoreGive(m_semaphore);
+	if (m_usePthreads) {
+		pthread_mutex_unlock(&m_pthread_mutex);
+	} else {
+		xSemaphoreGive(m_semaphore);
+	}
+
 	ESP_LOGV(LOG_TAG, "Semaphore released: %s", toString().c_str());
 	m_owner = "<N/A>";
 	return m_value;
 } // wait
 
+
 FreeRTOS::Semaphore::Semaphore(std::string name) {
-	m_semaphore = xSemaphoreCreateMutex();
+	m_usePthreads = true;
+	if (m_usePthreads) {
+		pthread_mutex_init(&m_pthread_mutex, nullptr);
+	} else {
+		m_semaphore = xSemaphoreCreateMutex();
+	}
+
 	m_name      = name;
 	m_owner     = "<N/A>";
 	m_value     = 0;
 }
 
+
 FreeRTOS::Semaphore::~Semaphore() {
-	vSemaphoreDelete(m_semaphore);
+	if (m_usePthreads) {
+		pthread_mutex_destroy(&m_pthread_mutex);
+	} else {
+		vSemaphoreDelete(m_semaphore);
+	}
 }
 
 
@@ -102,7 +123,11 @@ FreeRTOS::Semaphore::~Semaphore() {
  * The Semaphore is given.
  */
 void FreeRTOS::Semaphore::give() {
-	xSemaphoreGive(m_semaphore);
+	if (m_usePthreads) {
+		pthread_mutex_unlock(&m_pthread_mutex);
+	} else {
+		xSemaphoreGive(m_semaphore);
+	}
 #ifdef ARDUINO_ARCH_ESP32
 	FreeRTOS::sleep(10);
 #endif
@@ -119,7 +144,7 @@ void FreeRTOS::Semaphore::give() {
 void FreeRTOS::Semaphore::give(uint32_t value) {
 	m_value = value;
 	give();
-}
+} // give
 
 
 /**
@@ -127,7 +152,11 @@ void FreeRTOS::Semaphore::give(uint32_t value) {
  */
 void FreeRTOS::Semaphore::giveFromISR() {
 	BaseType_t higherPriorityTaskWoken;
-	xSemaphoreGiveFromISR(m_semaphore, &higherPriorityTaskWoken);
+	if (m_usePthreads) {
+		assert(false);
+	} else {
+		xSemaphoreGiveFromISR(m_semaphore, &higherPriorityTaskWoken);
+	}
 } // giveFromISR
 
 
@@ -138,7 +167,11 @@ void FreeRTOS::Semaphore::giveFromISR() {
 void FreeRTOS::Semaphore::take(std::string owner)
 {
 	ESP_LOGD(LOG_TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
-	xSemaphoreTake(m_semaphore, portMAX_DELAY);
+	if (m_usePthreads) {
+		pthread_mutex_lock(&m_pthread_mutex);
+	} else {
+		xSemaphoreTake(m_semaphore, portMAX_DELAY);
+	}
 	m_owner = owner;
 	ESP_LOGD(LOG_TAG, "Semaphore taken:  %s", toString().c_str());
 } // Semaphore::take
@@ -152,17 +185,23 @@ void FreeRTOS::Semaphore::take(std::string owner)
 void FreeRTOS::Semaphore::take(uint32_t timeoutMs, std::string owner) {
 	ESP_LOGV(LOG_TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
 	m_owner = owner;
-	xSemaphoreTake(m_semaphore, timeoutMs/portTICK_PERIOD_MS);
+	if (m_usePthreads) {
+		assert(false);
+	} else {
+		xSemaphoreTake(m_semaphore, timeoutMs/portTICK_PERIOD_MS);
+	}
 	ESP_LOGV(LOG_TAG, "Semaphore taken:  %s", toString().c_str());
 } // Semaphore::take
+
 
 std::string FreeRTOS::Semaphore::toString() {
 	std::stringstream stringStream;
 	stringStream << "name: "<< m_name << " (0x" << std::hex << std::setfill('0') << (uint32_t)m_semaphore << "), owner: " << m_owner;
 	return stringStream.str();
-}
+} // toString
+
 
 void FreeRTOS::Semaphore::setName(std::string name) {
 	m_name = name;
-}
+} // setName
 

@@ -172,7 +172,7 @@ void SockServ::start() {
 	//m_serverSocket.setSSL(m_useSSL);
 	m_serverSocket.listen(m_port);   // Create a socket and start listening on it.
 	ESP_LOGD(LOG_TAG, "Now listening on port %d", m_port);
-	FreeRTOS::startTask(acceptTask, "acceptTask", this, 16*1024);
+	FreeRTOS::startTask(acceptTask, "acceptTask", this, 8*1024);
 } // start
 
 

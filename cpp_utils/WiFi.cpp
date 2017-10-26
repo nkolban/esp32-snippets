@@ -343,37 +343,49 @@ std::string WiFi::getStaSSID() {
  * @return A vector of WiFiAPRecord instances.
  */
 std::vector<WiFiAPRecord> WiFi::scan() {
-    ::nvs_flash_init();
-    ::tcpip_adapter_init();
-    ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
-    ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
-    ESP_ERROR_CHECK(::esp_wifi_set_mode(WIFI_MODE_STA));
-    ESP_ERROR_CHECK( esp_wifi_start() );
-    wifi_scan_config_t conf;
-    memset(&conf, 0, sizeof(conf));
-    conf.show_hidden = true;
-    esp_err_t rc = ::esp_wifi_scan_start(&conf, true);
-    if (rc != ESP_OK) {
-        ESP_LOGE(LOG_TAG, "esp_wifi_scan_start: %d", rc);
-    }
-    uint16_t apCount;
-    rc = ::esp_wifi_scan_get_ap_num(&apCount);
-    ESP_LOGD(LOG_TAG, "Count of found access points: %d", apCount);
-    wifi_ap_record_t *list =
-      (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * apCount);
-    ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&apCount, list));
-    std::vector<WiFiAPRecord> apRecords;
-    for (auto i=0; i<apCount; i++) {
-        WiFiAPRecord wifiAPRecord;
-        memcpy(wifiAPRecord.m_bssid, list[i].bssid, 6);
-        wifiAPRecord.m_ssid = std::string((char *)list[i].ssid);
-        wifiAPRecord.m_authMode = list[i].authmode;
-        apRecords.push_back(wifiAPRecord);
-    }
-    free(list);
-    return apRecords;
+	ESP_LOGD(LOG_TAG, ">> scan");
+	std::vector<WiFiAPRecord> apRecords;
+
+	::nvs_flash_init();
+	::tcpip_adapter_init();
+
+	ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
+	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+	ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
+	ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
+	ESP_ERROR_CHECK(::esp_wifi_set_mode(WIFI_MODE_STA));
+	ESP_ERROR_CHECK( esp_wifi_start() );
+
+	wifi_scan_config_t conf;
+	memset(&conf, 0, sizeof(conf));
+	conf.show_hidden = true;
+
+	esp_err_t rc = ::esp_wifi_scan_start(&conf, true);
+	if (rc != ESP_OK) {
+			ESP_LOGE(LOG_TAG, "esp_wifi_scan_start: %d", rc);
+			return apRecords;
+	}
+
+	uint16_t apCount;  // Number of access points available.
+	rc = ::esp_wifi_scan_get_ap_num(&apCount);
+	ESP_LOGD(LOG_TAG, "Count of found access points: %d", apCount);
+
+	wifi_ap_record_t* list = (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * apCount);
+	if (list == nullptr) {
+		ESP_LOGE(LOG_TAG, "Failed to allocate memory");
+		return apRecords;
+	}
+	ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&apCount, list));
+
+	for (auto i=0; i<apCount; i++) {
+			WiFiAPRecord wifiAPRecord;
+			memcpy(wifiAPRecord.m_bssid, list[i].bssid, 6);
+			wifiAPRecord.m_ssid = std::string((char *)list[i].ssid);
+			wifiAPRecord.m_authMode = list[i].authmode;
+			apRecords.push_back(wifiAPRecord);
+	}
+	free(list);   // Release the storage allocated to hold the records.
+	return apRecords;
 } // scan
 
 
