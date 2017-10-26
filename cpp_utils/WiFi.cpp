@@ -9,6 +9,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 #include "sdkconfig.h"
 
 
@@ -379,11 +380,15 @@ std::vector<WiFiAPRecord> WiFi::scan() {
 	for (auto i=0; i<apCount; i++) {
 			WiFiAPRecord wifiAPRecord;
 			memcpy(wifiAPRecord.m_bssid, list[i].bssid, 6);
-			wifiAPRecord.m_ssid = std::string((char *)list[i].ssid);
+			wifiAPRecord.m_ssid     = std::string((char *)list[i].ssid);
 			wifiAPRecord.m_authMode = list[i].authmode;
+			wifiAPRecord.m_rssi     = list[i].rssi;
 			apRecords.push_back(wifiAPRecord);
 	}
 	free(list);   // Release the storage allocated to hold the records.
+	std::sort(apRecords.begin(),
+		apRecords.end(),
+		[](const WiFiAPRecord& lhs,const WiFiAPRecord& rhs){ return lhs.m_rssi> rhs.m_rssi;});
 	return apRecords;
 } // scan
 
