@@ -25,7 +25,6 @@
 #include <lwip/sockets.h>
 
 #include <string.h>
-#include <Task.h>
 
 
 static const char* LOG_TAG = "WiFi";
