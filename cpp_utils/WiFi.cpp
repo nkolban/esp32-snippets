@@ -19,6 +19,7 @@
 #include <esp_log.h>
 #include <esp_system.h>
 #include <esp_wifi.h>
+#include "GeneralUtils.h"
 #include <freertos/FreeRTOS.h>
 #include <nvs_flash.h>
 #include <lwip/dns.h>
@@ -164,24 +165,49 @@ void WiFi::connectAP(const std::string& ssid, const std::string& password, bool 
 	if (m_eventLoopStarted) {
 		esp_event_loop_set_cb(WiFi::eventHandler, this);   // Returns the old handler.
 	} else {
-		ESP_ERROR_CHECK(esp_event_loop_init(WiFi::eventHandler, this));  // Initialze the event handler.
+		esp_err_t errRc = ::esp_event_loop_init(WiFi::eventHandler, this);  // Initialze the event handler.
+		if (errRc != ESP_OK) {
+			ESP_LOGE(LOG_TAG, "esp_event_loop_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+			abort();
+		}
 		m_eventLoopStarted = true;
 	}
 
 
 	//ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
-	ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
-	ESP_ERROR_CHECK(::esp_wifi_set_mode(WIFI_MODE_STA));
+	esp_err_t errRc = ::esp_wifi_set_storage(WIFI_STORAGE_RAM);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_set_storage: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
+
+	errRc = ::esp_wifi_set_mode(WIFI_MODE_STA);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_set_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
 	wifi_config_t sta_config;
 	::memset(&sta_config, 0, sizeof(sta_config));
 	::memcpy(sta_config.sta.ssid, ssid.data(), ssid.size());
 	::memcpy(sta_config.sta.password, password.data(), password.size());
 	sta_config.sta.bssid_set = 0;
-	ESP_ERROR_CHECK(::esp_wifi_set_config(WIFI_IF_STA, &sta_config));
-	ESP_ERROR_CHECK(::esp_wifi_start());
+	errRc = ::esp_wifi_set_config(WIFI_IF_STA, &sta_config);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_set_config: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
+	errRc = ::esp_wifi_start();
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_start: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
 
 	m_gotIpEvt.take("connectAP");
-	ESP_ERROR_CHECK(::esp_wifi_connect());
+	errRc = ::esp_wifi_connect();
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_connect: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
 	m_gotIpEvt.wait("connectAP");
 	ESP_LOGD(LOG_TAG, "<< connectAP");
 } // connectAP
@@ -349,12 +375,41 @@ std::vector<WiFiAPRecord> WiFi::scan() {
 	::nvs_flash_init();
 	::tcpip_adapter_init();
 
-	ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
+	// If we have already started the event loop, then change the handler otherwise
+	// start the event loop.
+	if (m_eventLoopStarted) {
+		esp_event_loop_set_cb(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler);
+	}
+	else {
+		esp_err_t errRc = ::esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler);
+		if (errRc != ESP_OK) {
+			ESP_LOGE(LOG_TAG, "esp_event_loop_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+			abort();
+		}
+		m_eventLoopStarted = true;
+	}
+
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-	ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
-	ESP_ERROR_CHECK(::esp_wifi_set_storage(WIFI_STORAGE_RAM));
-	ESP_ERROR_CHECK(::esp_wifi_set_mode(WIFI_MODE_STA));
-	ESP_ERROR_CHECK( esp_wifi_start() );
+	esp_err_t errRc = ::esp_wifi_init(&cfg);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
+	errRc = ::esp_wifi_set_storage(WIFI_STORAGE_RAM);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_set_storage: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
+	errRc = ::esp_wifi_set_mode(WIFI_MODE_STA);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_set_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
+	errRc = ::esp_wifi_start();
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_start: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
 
 	wifi_scan_config_t conf;
 	memset(&conf, 0, sizeof(conf));
@@ -375,7 +430,11 @@ std::vector<WiFiAPRecord> WiFi::scan() {
 		ESP_LOGE(LOG_TAG, "Failed to allocate memory");
 		return apRecords;
 	}
-	ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&apCount, list));
+	errRc = ::esp_wifi_scan_get_ap_records(&apCount, list);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_scan_get_ap_records: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
 
 	for (auto i=0; i<apCount; i++) {
 			WiFiAPRecord wifiAPRecord;
@@ -411,14 +470,30 @@ void WiFi::startAP(const std::string& ssid, const std::string& password) {
 		esp_event_loop_set_cb(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler);
 	}
 	else {
-		ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
+		esp_err_t errRc = ::esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler);
+		if (errRc != ESP_OK) {
+			ESP_LOGE(LOG_TAG, "esp_event_loop_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+			abort();
+		}
 		m_eventLoopStarted = true;
 	}
 
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-	ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
-	ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
-	ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_AP) );
+	esp_err_t errRc = ::esp_wifi_init(&cfg);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
+	errRc = ::esp_wifi_set_storage(WIFI_STORAGE_RAM);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_set_storage: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
+	errRc = ::esp_wifi_set_mode(WIFI_MODE_AP);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_set_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
 	wifi_config_t apConfig;
 	::memset(&apConfig, 0, sizeof(apConfig));
 	::memcpy(apConfig.ap.ssid, ssid.data(), ssid.size());
@@ -429,8 +504,16 @@ void WiFi::startAP(const std::string& ssid, const std::string& password) {
 	apConfig.ap.ssid_hidden     = 0;
 	apConfig.ap.max_connection  = 4;
 	apConfig.ap.beacon_interval = 100;
-	ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_AP, &apConfig) );
-	ESP_ERROR_CHECK( esp_wifi_start() );
+	errRc = ::esp_wifi_set_config(WIFI_IF_AP, &apConfig);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_set_config: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
+	errRc = ::esp_wifi_start();
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_wifi_start: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
 	ESP_LOGD(LOG_TAG, "<< startAP");
 } // startAP
 
@@ -547,7 +630,11 @@ std::string WiFiAPRecord::toString() {
 } // toString
 
 MDNS::MDNS() {
-    ESP_ERROR_CHECK(mdns_init(TCPIP_ADAPTER_IF_STA, &m_mdns_server));
+    esp_err_t errRc = ::mdns_init(TCPIP_ADAPTER_IF_STA, &m_mdns_server);
+   	if (errRc != ESP_OK) {
+   		ESP_LOGE(LOG_TAG, "mdns_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+   		abort();
+   	}
 }
 
 MDNS::~MDNS() {
@@ -615,22 +702,38 @@ void MDNS::setInstance(const std::string& instance) {
  * @return N/A.
  */
 void MDNS::serviceAdd(const char* service, const char* proto, uint16_t port) {
-    ESP_ERROR_CHECK(mdns_service_add(m_mdns_server, service, proto, port));
+	esp_err_t errRc = ::mdns_service_add(m_mdns_server, service, proto, port);
+ 	if (errRc != ESP_OK) {
+ 		ESP_LOGE(LOG_TAG, "mdns_service_add: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+ 		abort();
+ 	}
 } // serviceAdd
 
 
 void MDNS::serviceInstanceSet(const char* service, const char* proto, const char* instance) {
-    ESP_ERROR_CHECK(mdns_service_instance_set(m_mdns_server, service, proto, instance));
+  esp_err_t errRc = ::mdns_service_instance_set(m_mdns_server, service, proto, instance);
+  if (errRc != ESP_OK) {
+  	ESP_LOGE(LOG_TAG, "mdns_service_instance_set: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+  	abort();
+  }
 } // serviceInstanceSet
 
 
 void MDNS::servicePortSet(const char* service, const char* proto, uint16_t port) {
-    ESP_ERROR_CHECK(mdns_service_port_set(m_mdns_server, service, proto, port));
+  esp_err_t errRc = ::mdns_service_port_set(m_mdns_server, service, proto, port);
+  if (errRc != ESP_OK) {
+  	ESP_LOGE(LOG_TAG, "mdns_service_port_set: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+  	abort();
+  }
 } // servicePortSet
 
 
 void MDNS::serviceRemove(const char* service, const char* proto) {
-    ESP_ERROR_CHECK(mdns_service_remove(m_mdns_server, service, proto));
+    esp_err_t errRc = ::mdns_service_remove(m_mdns_server, service, proto);
+    if (errRc != ESP_OK) {
+    	ESP_LOGE(LOG_TAG, "mdns_service_remove: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+    	abort();
+    }
 } // serviceRemove
 
 
@@ -641,7 +744,11 @@ void MDNS::serviceRemove(const char* service, const char* proto) {
  * @return N/A.
  */
 void MDNS::setHostname(const char* hostname) {
-    ESP_ERROR_CHECK(mdns_set_hostname(m_mdns_server,hostname));
+  esp_err_t errRc = ::mdns_set_hostname(m_mdns_server,hostname);
+    if (errRc != ESP_OK) {
+    	ESP_LOGE(LOG_TAG, "mdns_set_hostname: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+    	abort();
+    }
 } // setHostname
 
 
@@ -652,5 +759,9 @@ void MDNS::setHostname(const char* hostname) {
  * @return N/A.
  */
 void MDNS::setInstance(const char* instance) {
-    ESP_ERROR_CHECK(mdns_set_instance(m_mdns_server, instance));
+    esp_err_t errRc = ::mdns_set_instance(m_mdns_server, instance);
+    if (errRc != ESP_OK) {
+    	ESP_LOGE(LOG_TAG, "mdns_set_instance: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+    	abort();
+    }
 } // setInstance
