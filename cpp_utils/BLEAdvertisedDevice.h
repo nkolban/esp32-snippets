@@ -38,6 +38,7 @@ public:
 	BLEUUID     getServiceUUID();
 	int8_t      getTXPower();
 
+	bool		isAdvertisingService(BLEUUID uuid);
 	bool        haveAppearance();
 	bool        haveManufacturerData();
 	bool        haveName();
@@ -79,7 +80,7 @@ private:
 	std::string m_name;
 	BLEScan*    m_pScan;
 	int         m_rssi;
-	BLEUUID     m_serviceUUID;
+	std::vector<BLEUUID> m_serviceUUIDs;
 	int8_t      m_txPower;
 };
 

@@ -18,13 +18,13 @@ class MainBLEServer: public Task {
 	void run(void *data) {
 		ESP_LOGD(LOG_TAG, "Starting BLE work!");
 
-		BLEDevice::init("MYDEVICE");
+		BLEDevice::init("ESP32");
 		BLEServer* pServer = BLEDevice::createServer();
 
-		BLEService* pService = pServer->createService(BLEUUID((uint16_t)0x1234));
+		BLEService* pService = pServer->createService("91bad492-b950-4226-aa2b-4ede9fa42f59");
 
 		BLECharacteristic* pCharacteristic = pService->createCharacteristic(
-			BLEUUID((uint16_t)0x99AA),
+			BLEUUID("0d563a58-196a-48ce-ace2-dfec78acc814"),
 			BLECharacteristic::PROPERTY_BROADCAST | BLECharacteristic::PROPERTY_READ  |
 			BLECharacteristic::PROPERTY_NOTIFY    | BLECharacteristic::PROPERTY_WRITE |
 			BLECharacteristic::PROPERTY_INDICATE
@@ -39,8 +39,7 @@ class MainBLEServer: public Task {
 		pService->start();
 
 		BLEAdvertising* pAdvertising = pServer->getAdvertising();
-		pAdvertising->addServiceUUID(pService->getUUID());
-		pAdvertising->addServiceUUID(BLEUUID((uint16_t)0x9876));
+		pAdvertising->addServiceUUID(BLEUUID(pService->getUUID()));
 		pAdvertising->start();
 
 		ESP_LOGD(LOG_TAG, "Advertising started!");

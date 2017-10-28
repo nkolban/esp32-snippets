@@ -108,10 +108,21 @@ BLEScan* BLEAdvertisedDevice::getScan() {
  * @brief Get the Service UUID.
  * @return The Service UUID of the advertised device.
  */
-BLEUUID BLEAdvertisedDevice::getServiceUUID() {
-	return m_serviceUUID;
+BLEUUID BLEAdvertisedDevice::getServiceUUID() {  //TODO Remove it eventually, is no longer useful
+	return m_serviceUUIDs[0];
 } // getServiceUUID
 
+/**
+ * @brief Check advertised serviced for existence required UUID
+ * @return Return true if service is advertised
+ */
+bool BLEAdvertisedDevice::isAdvertisingService(BLEUUID uuid){
+	for (int i = 0; i < m_serviceUUIDs.size(); ++i) {
+		if(m_serviceUUIDs[i].equals(uuid))
+			return true;
+	}
+	return false;
+}
 
 /**
  * @brief Get the TX Power.
@@ -231,23 +242,19 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 					break;
 				} // ESP_BLE_AD_TYPE_FLAG
 
-				case ESP_BLE_AD_TYPE_16SRV_CMPL: { // Adv Data Type: 0x03
-					setServiceUUID(BLEUUID(*reinterpret_cast<uint16_t*>(payload)));
-					break;
-				} // ESP_BLE_AD_TYPE_16SRV_CMPL
-
+				case ESP_BLE_AD_TYPE_16SRV_CMPL:
 				case ESP_BLE_AD_TYPE_16SRV_PART: { // Adv Data Type: 0x02
-					setServiceUUID(BLEUUID(*reinterpret_cast<uint16_t*>(payload)));
+					for (int var = 0; var < length/2; ++var) {
+						setServiceUUID(BLEUUID(*reinterpret_cast<uint16_t*>(payload+var*2)));
+					}
 					break;
 				} // ESP_BLE_AD_TYPE_16SRV_PART
 
-				case ESP_BLE_AD_TYPE_32SRV_CMPL: { // Adv Data Type: 0x05
-					setServiceUUID(BLEUUID(*reinterpret_cast<uint32_t*>(payload)));
-					break;
-				} // ESP_BLE_AD_TYPE_32SRV_CMPL
-
+				case ESP_BLE_AD_TYPE_32SRV_CMPL:
 				case ESP_BLE_AD_TYPE_32SRV_PART: { // Adv Data Type: 0x04
-					setServiceUUID(BLEUUID(*reinterpret_cast<uint32_t*>(payload)));
+					for (int var = 0; var < length/4; ++var) {
+						setServiceUUID(BLEUUID(*reinterpret_cast<uint16_t*>(payload+var*4)));
+					}
 					break;
 				} // ESP_BLE_AD_TYPE_32SRV_PART
 
@@ -368,9 +375,9 @@ void BLEAdvertisedDevice::setServiceUUID(const char* serviceUUID) {
  * @param [in] serviceUUID The discovered serviceUUID
  */
 void BLEAdvertisedDevice::setServiceUUID(BLEUUID serviceUUID) {
-	m_serviceUUID     = serviceUUID;
+	m_serviceUUIDs.push_back(serviceUUID);
 	m_haveServiceUUID = true;
-	ESP_LOGD(LOG_TAG, "- setServiceUUID(): serviceUUID: %s", serviceUUID.toString().c_str());
+	ESP_LOGD(LOG_TAG, "- addServiceUUID(): serviceUUID: %s", serviceUUID.toString().c_str());
 } // setRSSI
 
 
