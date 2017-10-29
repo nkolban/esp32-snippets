@@ -195,10 +195,13 @@ std::size_t JsonArray::size() {
 	return cJSON_GetArraySize(m_node);
 } // size
 
-
+/**
+ * @brief Constructor
+ */
 JsonObject::JsonObject(cJSON* node) {
 	m_node = node;
-}
+} // JsonObject
+
 
 /**
  * @brief Get the named boolean value from the object.
@@ -268,6 +271,13 @@ bool JsonObject::hasItem(std::string name) {
 } // hasItem
 
 
+/**
+ * @brief Determine if this represents a valid JSON node.
+ * @return True if this is a valid node and false otherwise.
+ */
+bool JsonObject::isValid() {
+	return m_node != nullptr;
+} // isValid
 
 /**
  * @brief Set the named array property.

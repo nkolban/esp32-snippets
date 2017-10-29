@@ -65,6 +65,7 @@ public:
 	JsonObject  getObject(std::string name);
 	std::string getString(std::string name);
 	bool        hasItem(std::string name);
+	bool        isValid();
 	void        setArray(std::string name, JsonArray array);
 	void        setBoolean(std::string name, bool value);
 	void        setDouble(std::string name, double value);
