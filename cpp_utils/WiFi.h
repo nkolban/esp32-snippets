@@ -106,12 +106,14 @@ private:
 class WiFi {
 private:
 		static esp_err_t    eventHandler(void* ctx, system_event_t* event);
+		void                init();
     uint32_t            ip;
     uint32_t            gw;
     uint32_t            netmask;
     WiFiEventHandler*   m_pWifiEventHandler;
     uint8_t             m_dnsCount=0;
     bool                m_eventLoopStarted;
+    bool                m_initCalled;
   	FreeRTOS::Semaphore m_gotIpEvt = FreeRTOS::Semaphore("GotIpEvt");
 
 public:

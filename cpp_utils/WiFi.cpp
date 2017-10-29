@@ -53,10 +53,7 @@ WiFi::WiFi()
     , m_pWifiEventHandler(nullptr)
 {
 	m_eventLoopStarted = false;
-	::nvs_flash_init();
-	wifi_init_config_t config = WIFI_INIT_CONFIG_DEFAULT();
-	esp_wifi_init(&config);
-	::tcpip_adapter_init();
+	m_initCalled = false;
 	m_pWifiEventHandler = new WiFiEventHandler();
 } // WiFi
 
@@ -100,6 +97,7 @@ void WiFi::addDNSServer(const char* ip) {
 
 void WiFi::addDNSServer(ip_addr_t ip) {
 	ESP_LOGD(LOG_TAG, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
+	init();
 	::dns_setserver(m_dnsCount, &ip);
 	m_dnsCount++;
 	m_dnsCount %= 2;
@@ -137,6 +135,7 @@ void WiFi::setDNSServer(int numdns, const char* ip) {
 
 void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
 	ESP_LOGD(LOG_TAG, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
+	init();
 	::dns_setserver(numdns, &ip);
 } // setDNSServer
 
@@ -154,6 +153,8 @@ void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
 void WiFi::connectAP(const std::string& ssid, const std::string& password, bool waitForConnection){
 	ESP_LOGD(LOG_TAG, ">> connectAP");
 
+	init();
+
 	if (ip != 0 && gw != 0 && netmask != 0) {
 			::tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA); // Don't run a DHCP client
 
@@ -165,27 +166,7 @@ void WiFi::connectAP(const std::string& ssid, const std::string& password, bool 
 			::tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
 	}
 
-	// If the event loop has already started then change the callback else
-	// start the event loop.
-	if (m_eventLoopStarted) {
-		esp_event_loop_set_cb(WiFi::eventHandler, this);   // Returns the old handler.
-	} else {
-		esp_err_t errRc = ::esp_event_loop_init(WiFi::eventHandler, this);  // Initialze the event handler.
-		if (errRc != ESP_OK) {
-			ESP_LOGE(LOG_TAG, "esp_event_loop_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-			abort();
-		}
-		m_eventLoopStarted = true;
-	}
-	// Now, one way or another, the event handler is WiFi::eventHandler.
-
-	esp_err_t errRc = ::esp_wifi_set_storage(WIFI_STORAGE_RAM);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_wifi_set_storage: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		abort();
-	}
-
-	errRc = ::esp_wifi_set_mode(WIFI_MODE_STA);
+	esp_err_t errRc = ::esp_wifi_set_mode(WIFI_MODE_STA);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_set_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();
@@ -215,6 +196,7 @@ void WiFi::connectAP(const std::string& ssid, const std::string& password, bool 
 	m_gotIpEvt.wait("connectAP");
 	ESP_LOGD(LOG_TAG, "<< connectAP");
 } // connectAP
+
 
 
 /**
@@ -258,6 +240,7 @@ void WiFi::dump() {
  * @return The AP IP Info.
  */
 tcpip_adapter_ip_info_t WiFi::getApIpInfo() {
+	//init();
 	tcpip_adapter_ip_info_t ipInfo;
 	tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &ipInfo);
 	return ipInfo;
@@ -270,6 +253,7 @@ tcpip_adapter_ip_info_t WiFi::getApIpInfo() {
  */
 std::string WiFi::getApMac() {
 	uint8_t mac[6];
+	//init();
 	esp_wifi_get_mac(WIFI_IF_AP, mac);
 	auto mac_str = (char*) malloc(18);
 	sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
@@ -283,6 +267,7 @@ std::string WiFi::getApMac() {
  */
 std::string WiFi::getApSSID() {
 	wifi_config_t conf;
+	//init();
 	esp_wifi_get_config(WIFI_IF_AP, &conf);
 	return std::string((char *)conf.sta.ssid);
 } // getApSSID
@@ -372,21 +357,9 @@ std::string WiFi::getStaSSID() {
 
 
 /**
- * @brief Perform a WiFi scan looking for access points.
- *
- * An access point scan is performed and a vector of WiFi access point records
- * is built and returned with one record per found scan instance.  The scan is
- * performed in a blocking fashion and will not return until the set of scanned
- * access points has been built.
- *
- * @return A vector of WiFiAPRecord instances.
+ * @brief Initialize WiFi.
  */
-std::vector<WiFiAPRecord> WiFi::scan() {
-	ESP_LOGD(LOG_TAG, ">> scan");
-	std::vector<WiFiAPRecord> apRecords;
-
-	::nvs_flash_init();
-	::tcpip_adapter_init();
+/* PRIVATE */ void WiFi::init() {
 
 	// If we have already started the event loop, then change the handler otherwise
 	// start the event loop.
@@ -402,20 +375,44 @@ std::vector<WiFiAPRecord> WiFi::scan() {
 	}
 	// Now, one way or another, the event handler is WiFi::eventHandler.
 
-	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-	esp_err_t errRc = ::esp_wifi_init(&cfg);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_wifi_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		abort();
-	}
+	if (!m_initCalled) {
+		::nvs_flash_init();
+		::tcpip_adapter_init();
 
-	errRc = ::esp_wifi_set_storage(WIFI_STORAGE_RAM);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_wifi_set_storage: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		abort();
-	}
+		wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+		esp_err_t errRc = ::esp_wifi_init(&cfg);
+		if (errRc != ESP_OK) {
+			ESP_LOGE(LOG_TAG, "esp_wifi_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+			abort();
+		}
 
-	errRc = ::esp_wifi_set_mode(WIFI_MODE_STA);
+		errRc = ::esp_wifi_set_storage(WIFI_STORAGE_RAM);
+		if (errRc != ESP_OK) {
+			ESP_LOGE(LOG_TAG, "esp_wifi_set_storage: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+			abort();
+		}
+	}
+	m_initCalled = true;
+} // init
+
+
+/**
+ * @brief Perform a WiFi scan looking for access points.
+ *
+ * An access point scan is performed and a vector of WiFi access point records
+ * is built and returned with one record per found scan instance.  The scan is
+ * performed in a blocking fashion and will not return until the set of scanned
+ * access points has been built.
+ *
+ * @return A vector of WiFiAPRecord instances.
+ */
+std::vector<WiFiAPRecord> WiFi::scan() {
+	ESP_LOGD(LOG_TAG, ">> scan");
+	std::vector<WiFiAPRecord> apRecords;
+
+	init();
+
+	esp_err_t errRc = ::esp_wifi_set_mode(WIFI_MODE_STA);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_set_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();
@@ -478,41 +475,16 @@ std::vector<WiFiAPRecord> WiFi::scan() {
  */
 void WiFi::startAP(const std::string& ssid, const std::string& password) {
 	ESP_LOGD(LOG_TAG, ">> startAP: ssid: %s", ssid.c_str());
-	::nvs_flash_init();
-	::tcpip_adapter_init();
 
-	// If we have already started the event loop, then change the handler otherwise
-	// start the event loop.
+	init();
 
-	if (m_eventLoopStarted) {
-		esp_event_loop_set_cb(WiFi::eventHandler, this);   // Returns the old handler.
-	} else {
-		esp_err_t errRc = ::esp_event_loop_init(WiFi::eventHandler, this);  // Initialze the event handler.
-		if (errRc != ESP_OK) {
-			ESP_LOGE(LOG_TAG, "esp_event_loop_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-			abort();
-		}
-		m_eventLoopStarted = true;
-	}
-	// Now, one way or another, the event handler is WiFi::eventHandler.
-
-
-	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-	esp_err_t errRc = ::esp_wifi_init(&cfg);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_wifi_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		abort();
-	}
-	errRc = ::esp_wifi_set_storage(WIFI_STORAGE_RAM);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_wifi_set_storage: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-		abort();
-	}
-	errRc = ::esp_wifi_set_mode(WIFI_MODE_AP);
+	esp_err_t errRc = ::esp_wifi_set_mode(WIFI_MODE_AP);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_set_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();
 	}
+
+	// Build the apConfig structure.
 	wifi_config_t apConfig;
 	::memset(&apConfig, 0, sizeof(apConfig));
 	::memcpy(apConfig.ap.ssid, ssid.data(), ssid.size());
@@ -523,11 +495,13 @@ void WiFi::startAP(const std::string& ssid, const std::string& password) {
 	apConfig.ap.ssid_hidden     = 0;
 	apConfig.ap.max_connection  = 4;
 	apConfig.ap.beacon_interval = 100;
+
 	errRc = ::esp_wifi_set_config(WIFI_IF_AP, &apConfig);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_set_config: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();
 	}
+
 	errRc = ::esp_wifi_start();
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_start: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -595,6 +569,8 @@ void WiFi::setIPInfo(const char* ip, const char* gw, const char* netmask) {
  * @param [in] netmask Our TCP/IP netmask value.
  */
 void WiFi::setIPInfo(uint32_t ip, uint32_t gw, uint32_t netmask) {
+	init();
+
 	this->ip      = ip;
 	this->gw      = gw;
 	this->netmask = netmask;
