@@ -79,40 +79,39 @@
  */
 class WiFiEventHandler {
 public:
-    WiFiEventHandler();
-    virtual ~WiFiEventHandler();
-    system_event_cb_t getEventHandler();
-    virtual esp_err_t apStaConnected();
-    virtual esp_err_t apStaDisconnected();
-    virtual esp_err_t apStart();
-    virtual esp_err_t apStop();
-    virtual esp_err_t staConnected();
-    virtual esp_err_t staDisconnected();
-    virtual esp_err_t staGotIp(system_event_sta_got_ip_t event_sta_got_ip);
-    virtual esp_err_t staStart();
-    virtual esp_err_t staStop();
-    virtual esp_err_t wifiReady();
+	WiFiEventHandler();
+	virtual ~WiFiEventHandler();
+	virtual esp_err_t apStaConnected();
+	virtual esp_err_t apStaDisconnected();
+	virtual esp_err_t apStart();
+	virtual esp_err_t apStop();
+	system_event_cb_t getEventHandler();
+	virtual esp_err_t staConnected();
+	virtual esp_err_t staDisconnected();
+	virtual esp_err_t staGotIp(system_event_sta_got_ip_t event_sta_got_ip);
+	virtual esp_err_t staStart();
+	virtual esp_err_t staStop();
+	virtual esp_err_t wifiReady();
 
-    /**
-     * Get the next WiFi event handler in the chain, if there is one.
-     * @return The next WiFi event handler in the chain or nullptr if there is none.
-     */
-    WiFiEventHandler *getNextHandler() {
-        return m_nextHandler;
-    }
-
-    /**
-     * Set the next WiFi event handler in the chain.
-     * @param [in] nextHandler The next WiFi event handler in the chain.
-     */
-    void setNextHandler(WiFiEventHandler* nextHandler) {
-        this->m_nextHandler = nextHandler;
-    }
+	/**
+	 * Get the next WiFi event handler in the chain, if there is one.
+	 * @return The next WiFi event handler in the chain or nullptr if there is none.
+	 */
+	WiFiEventHandler *getNextHandler() {
+		return m_nextHandler;
+	}
+	/**
+	 * Set the next WiFi event handler in the chain.
+	 * @param [in] nextHandler The next WiFi event handler in the chain.
+	 */
+	void setNextHandler(WiFiEventHandler* nextHandler) {
+		this->m_nextHandler = nextHandler;
+	}
 
 private:
-    friend class WiFi;
-    WiFiEventHandler *m_nextHandler;
-    static esp_err_t eventHandler(void* ctx, system_event_t* event);
+	friend class WiFi;
+	WiFiEventHandler *m_nextHandler;
+	static esp_err_t eventHandler(void* ctx, system_event_t* event);
 };
 
 #endif /* MAIN_WIFIEVENTHANDLER_H_ */

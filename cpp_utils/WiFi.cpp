@@ -43,8 +43,6 @@ static void setDNSServer(char *ip) {
 */
 
 
-
-
 /**
  * @brief Creates and uses a default event handler
  */
@@ -69,6 +67,7 @@ WiFi::~WiFi() {
 	delete m_pWifiEventHandler;
 }
 
+
 /**
  * @brief Add a reference to a DNS server.
  *
@@ -87,21 +86,25 @@ WiFi::~WiFi() {
  * @return N/A.
  */
 void WiFi::addDNSServer(const std::string& ip) {
-    addDNSServer(ip.c_str());
+	addDNSServer(ip.c_str());
 } // addDNSServer
+
 
 void WiFi::addDNSServer(const char* ip) {
-    ip_addr_t dns_server;
-    if(inet_pton(AF_INET, ip, &dns_server))
-        addDNSServer(ip);
+	ip_addr_t dns_server;
+	if(inet_pton(AF_INET, ip, &dns_server)) {
+		addDNSServer(ip);
+	}
 } // addDNSServer
 
+
 void WiFi::addDNSServer(ip_addr_t ip) {
-    ESP_LOGD(LOG_TAG, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
-    ::dns_setserver(m_dnsCount, &ip);
-    m_dnsCount++;
-    m_dnsCount %= 2;
+	ESP_LOGD(LOG_TAG, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
+	::dns_setserver(m_dnsCount, &ip);
+	m_dnsCount++;
+	m_dnsCount %= 2;
 } // addDNSServer
+
 
 /**
  * @brief Set a reference to a DNS server.
@@ -120,19 +123,23 @@ void WiFi::addDNSServer(ip_addr_t ip) {
  * @return N/A.
  */
 void WiFi::setDNSServer(int numdns, const std::string& ip) {
-    setDNSServer(numdns, ip.c_str());
+	setDNSServer(numdns, ip.c_str());
 } // setDNSServer
+
 
 void WiFi::setDNSServer(int numdns, const char* ip) {
-    ip_addr_t dns_server;
-    if(inet_pton(AF_INET, ip, &dns_server))
-        setDNSServer(numdns, dns_server);
+	ip_addr_t dns_server;
+	if(inet_pton(AF_INET, ip, &dns_server)) {
+		setDNSServer(numdns, dns_server);
+	}
 } // setDNSServer
 
+
 void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
-    ESP_LOGD(LOG_TAG, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
-    ::dns_setserver(numdns, &ip);
+	ESP_LOGD(LOG_TAG, "Setting DNS[%d] to %d.%d.%d.%d", m_dnsCount, ((uint8_t*)(&ip))[0], ((uint8_t*)(&ip))[1], ((uint8_t*)(&ip))[2], ((uint8_t*)(&ip))[3]);
+	::dns_setserver(numdns, &ip);
 } // setDNSServer
+
 
 /**
  * @brief Connect to an external access point.
@@ -158,8 +165,6 @@ void WiFi::connectAP(const std::string& ssid, const std::string& password, bool 
 			::tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
 	}
 
-
-
 	// If the event loop has already started then change the callback else
 	// start the event loop.
 	if (m_eventLoopStarted) {
@@ -172,9 +177,8 @@ void WiFi::connectAP(const std::string& ssid, const std::string& password, bool 
 		}
 		m_eventLoopStarted = true;
 	}
+	// Now, one way or another, the event handler is WiFi::eventHandler.
 
-
-	//ESP_ERROR_CHECK(esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler));
 	esp_err_t errRc = ::esp_wifi_set_storage(WIFI_STORAGE_RAM);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_set_storage: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -212,25 +216,34 @@ void WiFi::connectAP(const std::string& ssid, const std::string& password, bool 
 	ESP_LOGD(LOG_TAG, "<< connectAP");
 } // connectAP
 
+
 /**
  * @brief Dump diagnostics to the log.
  */
 void WiFi::dump() {
-    ESP_LOGD(LOG_TAG, "WiFi Dump");
-    ESP_LOGD(LOG_TAG, "---------");
-    char ipAddrStr[30];
-    ip_addr_t ip = ::dns_getserver(0);
-    inet_ntop(AF_INET, &ip, ipAddrStr, sizeof(ipAddrStr));
-    ESP_LOGD(LOG_TAG, "DNS Server[0]: %s", ipAddrStr);
+	ESP_LOGD(LOG_TAG, "WiFi Dump");
+	ESP_LOGD(LOG_TAG, "---------");
+	char ipAddrStr[30];
+	ip_addr_t ip = ::dns_getserver(0);
+	inet_ntop(AF_INET, &ip, ipAddrStr, sizeof(ipAddrStr));
+	ESP_LOGD(LOG_TAG, "DNS Server[0]: %s", ipAddrStr);
 } // dump
 
 
 /**
  * @brief Primary event handler interface.
  */
-esp_err_t WiFi::eventHandler(void* ctx, system_event_t* event) {
-	WiFi *pWiFi = (WiFi *)ctx;
+/* STATIC */ esp_err_t WiFi::eventHandler(void* ctx, system_event_t* event) {
+	// This is the common event handler that we have provided for all event processing.  It is called for every event
+	// that is received by the WiFi subsystem.  The "ctx" parameter is an instance of the current WiFi object that we are
+	// processing.  We can then retrieve the specific/custom event handler from within it and invoke that.  This then makes this
+	// an indirection vector to the real caller.
+
+	WiFi *pWiFi = (WiFi *)ctx;   // retrieve the WiFi object from the passed in context.
+
+	// Invoke the event handler.
 	esp_err_t rc = pWiFi->m_pWifiEventHandler->getEventHandler()(pWiFi->m_pWifiEventHandler, event);
+
 	// If the event we received indicates that we now have an IP address then unlock the mutex that
 	// indicates we are waiting for an IP.
 	if (event->event_id == SYSTEM_EVENT_STA_GOT_IP) {
@@ -245,11 +258,10 @@ esp_err_t WiFi::eventHandler(void* ctx, system_event_t* event) {
  * @return The AP IP Info.
  */
 tcpip_adapter_ip_info_t WiFi::getApIpInfo() {
-    tcpip_adapter_ip_info_t ipInfo;
-    tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &ipInfo);
-    return ipInfo;
+	tcpip_adapter_ip_info_t ipInfo;
+	tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &ipInfo);
+	return ipInfo;
 } // getApIpInfo
-
 
 
 /**
@@ -257,11 +269,11 @@ tcpip_adapter_ip_info_t WiFi::getApIpInfo() {
  * @return The MAC address of the AP interface.
  */
 std::string WiFi::getApMac() {
-    uint8_t mac[6];
-    esp_wifi_get_mac(WIFI_IF_AP, mac);
-    auto mac_str = (char*) malloc(18);
-    sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    return std::string(std::move(mac_str));
+	uint8_t mac[6];
+	esp_wifi_get_mac(WIFI_IF_AP, mac);
+	auto mac_str = (char*) malloc(18);
+	sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	return std::string(std::move(mac_str));
 } // getApMac
 
 
@@ -270,9 +282,9 @@ std::string WiFi::getApMac() {
  * @return The AP SSID.
  */
 std::string WiFi::getApSSID() {
-    wifi_config_t conf;
-    esp_wifi_get_config(WIFI_IF_AP, &conf);
-    return std::string((char *)conf.sta.ssid);
+	wifi_config_t conf;
+	esp_wifi_get_config(WIFI_IF_AP, &conf);
+	return std::string((char *)conf.sta.ssid);
 } // getApSSID
 
 
@@ -284,20 +296,21 @@ std::string WiFi::getApSSID() {
  * @return The IP address of the host or 0.0.0.0 if not found.
  */
 struct in_addr WiFi::getHostByName(const std::string& hostName) {
-    return getHostByName(hostName.c_str());
+	return getHostByName(hostName.c_str());
 } // getHostByName
 
+
 struct in_addr WiFi::getHostByName(const char* hostName) {
-    struct in_addr retAddr;
-    struct hostent *he = gethostbyname(hostName);
-    if (he == nullptr) {
-        retAddr.s_addr = 0;
-        ESP_LOGD(LOG_TAG, "Unable to resolve %s - %d", hostName, h_errno);
-    } else {
-        retAddr = *(struct in_addr *)(he->h_addr_list[0]);
-        ESP_LOGD(LOG_TAG, "resolved %s to %.8x", hostName, *(uint32_t *)&retAddr);
-    }
-    return retAddr;
+	struct in_addr retAddr;
+	struct hostent *he = gethostbyname(hostName);
+	if (he == nullptr) {
+		retAddr.s_addr = 0;
+		ESP_LOGD(LOG_TAG, "Unable to resolve %s - %d", hostName, h_errno);
+	} else {
+		retAddr = *(struct in_addr *)(he->h_addr_list[0]);
+		ESP_LOGD(LOG_TAG, "resolved %s to %.8x", hostName, *(uint32_t *)&retAddr);
+	}
+	return retAddr;
 } // getHostByName
 
 
@@ -306,20 +319,20 @@ struct in_addr WiFi::getHostByName(const char* hostName) {
  * @return The WiFi Mode.
  */
 std::string WiFi::getMode() {
-    wifi_mode_t mode;
-    esp_wifi_get_mode(&mode);
-    switch(mode) {
-        case WIFI_MODE_NULL:
-            return "WIFI_MODE_NULL";
-        case WIFI_MODE_STA:
-            return "WIFI_MODE_STA";
-        case WIFI_MODE_AP:
-            return "WIFI_MODE_AP";
-        case WIFI_MODE_APSTA:
-            return "WIFI_MODE_APSTA";
-        default:
-            return "unknown";
-    }
+	wifi_mode_t mode;
+	esp_wifi_get_mode(&mode);
+	switch(mode) {
+		case WIFI_MODE_NULL:
+			return "WIFI_MODE_NULL";
+		case WIFI_MODE_STA:
+			return "WIFI_MODE_STA";
+		case WIFI_MODE_AP:
+			return "WIFI_MODE_AP";
+		case WIFI_MODE_APSTA:
+			return "WIFI_MODE_APSTA";
+		default:
+			return "unknown";
+	}
 } // getMode
 
 
@@ -328,9 +341,9 @@ std::string WiFi::getMode() {
  * @return The STA IP Info.
  */
 tcpip_adapter_ip_info_t WiFi::getStaIpInfo() {
-    tcpip_adapter_ip_info_t ipInfo;
-    tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
-    return ipInfo;
+	tcpip_adapter_ip_info_t ipInfo;
+	tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
+	return ipInfo;
 } // getStaIpInfo
 
 
@@ -339,11 +352,11 @@ tcpip_adapter_ip_info_t WiFi::getStaIpInfo() {
  * @return The MAC address of the STA interface.
  */
 std::string WiFi::getStaMac() {
-    uint8_t mac[6];
-    esp_wifi_get_mac(WIFI_IF_STA, mac);
-    auto mac_str = (char*) malloc(18);
-    sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    return std::string(std::move(mac_str));
+	uint8_t mac[6];
+	esp_wifi_get_mac(WIFI_IF_STA, mac);
+	auto mac_str = (char*) malloc(18);
+	sprintf(mac_str, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	return std::string(std::move(mac_str));
 } // getStaMac
 
 
@@ -352,9 +365,9 @@ std::string WiFi::getStaMac() {
  * @return The STA SSID.
  */
 std::string WiFi::getStaSSID() {
-    wifi_config_t conf;
-    esp_wifi_get_config(WIFI_IF_STA, &conf);
-    return std::string((char *)conf.ap.ssid);
+	wifi_config_t conf;
+	esp_wifi_get_config(WIFI_IF_STA, &conf);
+	return std::string((char *)conf.ap.ssid);
 } // getStaSSID
 
 
@@ -378,16 +391,16 @@ std::vector<WiFiAPRecord> WiFi::scan() {
 	// If we have already started the event loop, then change the handler otherwise
 	// start the event loop.
 	if (m_eventLoopStarted) {
-		esp_event_loop_set_cb(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler);
-	}
-	else {
-		esp_err_t errRc = ::esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler);
+		esp_event_loop_set_cb(WiFi::eventHandler, this);   // Returns the old handler.
+	} else {
+		esp_err_t errRc = ::esp_event_loop_init(WiFi::eventHandler, this);  // Initialze the event handler.
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_event_loop_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 			abort();
 		}
 		m_eventLoopStarted = true;
 	}
+	// Now, one way or another, the event handler is WiFi::eventHandler.
 
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	esp_err_t errRc = ::esp_wifi_init(&cfg);
@@ -395,16 +408,19 @@ std::vector<WiFiAPRecord> WiFi::scan() {
 		ESP_LOGE(LOG_TAG, "esp_wifi_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();
 	}
+
 	errRc = ::esp_wifi_set_storage(WIFI_STORAGE_RAM);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_set_storage: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();
 	}
+
 	errRc = ::esp_wifi_set_mode(WIFI_MODE_STA);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_set_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();
 	}
+
 	errRc = ::esp_wifi_start();
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_start: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -430,6 +446,7 @@ std::vector<WiFiAPRecord> WiFi::scan() {
 		ESP_LOGE(LOG_TAG, "Failed to allocate memory");
 		return apRecords;
 	}
+
 	errRc = ::esp_wifi_scan_get_ap_records(&apCount, list);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_scan_get_ap_records: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -437,12 +454,12 @@ std::vector<WiFiAPRecord> WiFi::scan() {
 	}
 
 	for (auto i=0; i<apCount; i++) {
-			WiFiAPRecord wifiAPRecord;
-			memcpy(wifiAPRecord.m_bssid, list[i].bssid, 6);
-			wifiAPRecord.m_ssid     = std::string((char *)list[i].ssid);
-			wifiAPRecord.m_authMode = list[i].authmode;
-			wifiAPRecord.m_rssi     = list[i].rssi;
-			apRecords.push_back(wifiAPRecord);
+		WiFiAPRecord wifiAPRecord;
+		memcpy(wifiAPRecord.m_bssid, list[i].bssid, 6);
+		wifiAPRecord.m_ssid     = std::string((char *)list[i].ssid);
+		wifiAPRecord.m_authMode = list[i].authmode;
+		wifiAPRecord.m_rssi     = list[i].rssi;
+		apRecords.push_back(wifiAPRecord);
 	}
 	free(list);   // Release the storage allocated to hold the records.
 	std::sort(apRecords.begin(),
@@ -466,17 +483,19 @@ void WiFi::startAP(const std::string& ssid, const std::string& password) {
 
 	// If we have already started the event loop, then change the handler otherwise
 	// start the event loop.
+
 	if (m_eventLoopStarted) {
-		esp_event_loop_set_cb(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler);
-	}
-	else {
-		esp_err_t errRc = ::esp_event_loop_init(m_pWifiEventHandler->getEventHandler(), m_pWifiEventHandler);
+		esp_event_loop_set_cb(WiFi::eventHandler, this);   // Returns the old handler.
+	} else {
+		esp_err_t errRc = ::esp_event_loop_init(WiFi::eventHandler, this);  // Initialze the event handler.
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_event_loop_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 			abort();
 		}
 		m_eventLoopStarted = true;
 	}
+	// Now, one way or another, the event handler is WiFi::eventHandler.
+
 
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	esp_err_t errRc = ::esp_wifi_init(&cfg);
@@ -547,25 +566,25 @@ void WiFi::setWifiEventHandler(WiFiEventHandler* wifiEventHandler) {
  * @return N/A.
  */
 void WiFi::setIPInfo(const std::string& ip, const std::string& gw, const std::string& netmask) {
-    setIPInfo(ip.c_str(), gw.c_str(), netmask.c_str());
+	setIPInfo(ip.c_str(), gw.c_str(), netmask.c_str());
 } // setIPInfo
 
 
 
 void WiFi::setIPInfo(const char* ip, const char* gw, const char* netmask) {
-    uint32_t new_ip;
-    uint32_t new_gw;
-    uint32_t new_netmask;
+	uint32_t new_ip;
+	uint32_t new_gw;
+	uint32_t new_netmask;
 
-    auto success = (bool)inet_pton(AF_INET, ip, &new_ip);
-    success = success && inet_pton(AF_INET, gw, &new_gw);
-    success = success && inet_pton(AF_INET, netmask, &new_netmask);
+	auto success = (bool)inet_pton(AF_INET, ip, &new_ip);
+	success = success && inet_pton(AF_INET, gw, &new_gw);
+	success = success && inet_pton(AF_INET, netmask, &new_netmask);
 
-    if(!success) {
-        return;
-    }
+	if(!success) {
+		return;
+	}
 
-    setIPInfo(new_ip, new_gw, new_netmask);
+	setIPInfo(new_ip, new_gw, new_netmask);
 } // setIPInfo
 
 
@@ -576,22 +595,21 @@ void WiFi::setIPInfo(const char* ip, const char* gw, const char* netmask) {
  * @param [in] netmask Our TCP/IP netmask value.
  */
 void WiFi::setIPInfo(uint32_t ip, uint32_t gw, uint32_t netmask) {
-    this->ip      = ip;
-    this->gw      = gw;
-    this->netmask = netmask;
+	this->ip      = ip;
+	this->gw      = gw;
+	this->netmask = netmask;
 
-    if(ip != 0 && gw != 0 && netmask != 0) {
-        tcpip_adapter_ip_info_t ipInfo;
-        ipInfo.ip.addr      = ip;
-        ipInfo.gw.addr      = gw;
-        ipInfo.netmask.addr = netmask;
-
-        ::tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA);
-        ::tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
-    } else {
-        ip = 0;
-        ::tcpip_adapter_dhcpc_start(TCPIP_ADAPTER_IF_STA);
-    }
+	if(ip != 0 && gw != 0 && netmask != 0) {
+		tcpip_adapter_ip_info_t ipInfo;
+		ipInfo.ip.addr      = ip;
+		ipInfo.gw.addr      = gw;
+		ipInfo.netmask.addr = netmask;
+		::tcpip_adapter_dhcpc_stop(TCPIP_ADAPTER_IF_STA);
+		::tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
+	} else {
+		ip = 0;
+		::tcpip_adapter_dhcpc_start(TCPIP_ADAPTER_IF_STA);
+	}
 } // setIPInfo
 
 
@@ -601,23 +619,23 @@ void WiFi::setIPInfo(uint32_t ip, uint32_t gw, uint32_t netmask) {
  * @return A string representation of the WiFi access point record.
  */
 std::string WiFiAPRecord::toString() {
-    std::string auth;
-    switch(getAuthMode()) {
-    case WIFI_AUTH_OPEN:
-        auth = "WIFI_AUTH_OPEN";
-        break;
-    case WIFI_AUTH_WEP:
-        auth = "WIFI_AUTH_WEP";
-        break;
-    case WIFI_AUTH_WPA_PSK:
-        auth = "WIFI_AUTH_WPA_PSK";
-        break;
-    case WIFI_AUTH_WPA2_PSK:
-        auth = "WIFI_AUTH_WPA2_PSK";
-        break;
-    case WIFI_AUTH_WPA_WPA2_PSK:
-        auth = "WIFI_AUTH_WPA_WPA2_PSK";
-        break;
+	std::string auth;
+	switch(getAuthMode()) {
+		case WIFI_AUTH_OPEN:
+			auth = "WIFI_AUTH_OPEN";
+			break;
+		case WIFI_AUTH_WEP:
+			auth = "WIFI_AUTH_WEP";
+			break;
+		case WIFI_AUTH_WPA_PSK:
+			auth = "WIFI_AUTH_WPA_PSK";
+			break;
+		case WIFI_AUTH_WPA2_PSK:
+			auth = "WIFI_AUTH_WPA2_PSK";
+			break;
+		case WIFI_AUTH_WPA_WPA2_PSK:
+			auth = "WIFI_AUTH_WPA_WPA2_PSK";
+			break;
     default:
         auth = "<unknown>";
         break;
@@ -630,18 +648,18 @@ std::string WiFiAPRecord::toString() {
 } // toString
 
 MDNS::MDNS() {
-    esp_err_t errRc = ::mdns_init(TCPIP_ADAPTER_IF_STA, &m_mdns_server);
-   	if (errRc != ESP_OK) {
-   		ESP_LOGE(LOG_TAG, "mdns_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-   		abort();
-   	}
+	esp_err_t errRc = ::mdns_init(TCPIP_ADAPTER_IF_STA, &m_mdns_server);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "mdns_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		abort();
+	}
 }
 
 MDNS::~MDNS() {
-    if (m_mdns_server != nullptr) {
-        mdns_free(m_mdns_server);
-    }
-    m_mdns_server = nullptr;
+	if (m_mdns_server != nullptr) {
+		mdns_free(m_mdns_server);
+	}
+	m_mdns_server = nullptr;
 }
 
 /**
