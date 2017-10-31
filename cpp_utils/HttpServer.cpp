@@ -12,6 +12,7 @@
 #include <esp_log.h>
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "Memory.h"
 #include "FileSystem.h"
 #include "WebSocket.h"
 #include "GeneralUtils.h"
@@ -232,11 +233,41 @@ private:
  */
 void HttpServer::addPathHandler(
 		std::string method,
-		std::string pathExpr,
+		std::regex* pathExpr,
 		void (*handler)(HttpRequest *pHttpRequest, HttpResponse *pHttpResponse)) {
 
 	// We are maintaining a C++ vector of PathHandler objects.  We add a new entry into that vector.
 	m_pathHandlers.push_back(PathHandler(method, pathExpr, handler));
+} // addPathHandler
+
+
+/**
+ * @brief Register a handler for a path.
+ *
+ * When a browser request arrives, the request will contain a method (GET, POST, etc) and a path
+ * to be accessed.  Using this method we can register a regular expression and, if the incoming method
+ * and path match the expression, the corresponding handler will be called.
+ *
+ * Example:
+ * @code{.cpp}
+ * static void handle_REST_WiFi(WebServer::HttpRequest *pRequest, WebServer::HttpResponse *pResponse) {
+ *    ...
+ * }
+ *
+ * webServer.addPathHandler("GET", "/ESP32/WiFi", handle_REST_WiFi);
+ * @endcode
+ *
+ * @param [in] method The method being used for access ("GET", "POST" etc).
+ * @param [in] path The plain path being accessed.
+ * @param [in] handler The callback function to be invoked when a request arrives.
+ */
+void HttpServer::addPathHandler(
+		std::string method,
+		std::string path,
+		void (*handler)(HttpRequest *pHttpRequest, HttpResponse *pHttpResponse)) {
+
+	// We are maintaining a C++ vector of PathHandler objects.  We add a new entry into that vector.
+	m_pathHandlers.push_back(PathHandler(method, path, handler));
 } // addPathHandler
 
 
@@ -333,15 +364,36 @@ void HttpServer::stop() {
  * @param [in] pathPattern The path pattern to be matched.
  * @param [in] webServerRequestHandler The request handler to be called.
  */
-PathHandler::PathHandler(std::string method, std::string pathPattern,
+PathHandler::PathHandler(std::string method, std::regex *pRegex,
 		void (*pWebServerRequestHandler)
 		(
 			HttpRequest*  pHttpRequest,
 			HttpResponse* pHttpResponse)
 		) {
 	m_method          = method;                  // Save the method we are looking for.
-	m_pattern         = std::regex(pathPattern); // Create the Regex pattern.
-	m_textPattern     = pathPattern;             // The plain text of the regex pattern.
+	m_pRegex          = pRegex;                  // Save the Regex
+	m_textPattern     = "<Regex>";               // The plain text of the regex pattern.
+	m_isRegex         = true;
+	m_pRequestHandler = pWebServerRequestHandler; // The handler to be invoked if the pattern matches.
+} // PathHandler
+
+
+/**
+ * @brief Construct an instance of a PathHandler.
+ *
+ * @param [in] method The method to be matched.
+ * @param [in] pathPattern The path to be matched.  Must be an exact match.
+ * @param [in] webServerRequestHandler The request handler to be called.
+ */
+PathHandler::PathHandler(std::string method, std::string matchPath,
+		void (*pWebServerRequestHandler)
+		(
+			HttpRequest*  pHttpRequest,
+			HttpResponse* pHttpResponse)
+		) {
+	m_method          = method;                  // Save the method we are looking for.
+	m_textPattern     = matchPath;
+	m_isRegex         = false;
 	m_pRequestHandler = pWebServerRequestHandler; // The handler to be invoked if the pattern matches.
 } // PathHandler
 
@@ -354,11 +406,16 @@ PathHandler::PathHandler(std::string method, std::string pathPattern,
  * @return True if the path matches.
  */
 bool PathHandler::match(std::string method, std::string path) {
-	ESP_LOGD("PathHandler", "matching: %s with %s", m_textPattern.c_str(), path.c_str());
 	if (method != m_method) {
 		return false;
 	}
-	return std::regex_search(path, m_pattern);
+	if (m_isRegex) {
+		ESP_LOGD("PathHandler", "regex matching: %s with %s", m_textPattern.c_str(), path.c_str());
+
+		return std::regex_search(path, *m_pRegex);
+	}
+	ESP_LOGD("PathHandler", "plain matching: %s with %s", m_textPattern.c_str(), path.c_str());
+	return m_textPattern.compare(0, m_textPattern.length(), path) ==0;
 } // match
 
 

@@ -24,15 +24,6 @@ static const char kBase64Alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "abcdefghijklmnopqrstuvwxyz"
     "0123456789+/";
 
-GeneralUtils::GeneralUtils() {
-	// TODO Auto-generated constructor stub
-
-}
-
-GeneralUtils::~GeneralUtils() {
-	// TODO Auto-generated destructor stub
-}
-
 static int base64EncodedLength(size_t length) {
 	return (length + 2 - ((length + 2) % 3)) / 3 * 4;
 } // base64EncodedLength
@@ -272,6 +263,7 @@ void GeneralUtils::hexDump(uint8_t* pData, uint32_t length) {
 }
 */
 
+
 /**
  * @brief Dump a representation of binary data to the console.
  *
@@ -314,6 +306,7 @@ void GeneralUtils::hexDump(const uint8_t* pData, uint32_t length) {
 		ESP_LOGD(LOG_TAG, "%.4x %s %s", lineNumber*16, hex, ascii);
 	}
 } // hexDump
+
 
 /**
  * @brief Convert an IP address to string.
@@ -403,6 +396,7 @@ const char* GeneralUtils::errorToString(esp_err_t errCode) {
 		}
 	return "Unknown ESP_ERR error";
 } // errorToString
+
 
 /**
  * @brief Restart the ESP32.

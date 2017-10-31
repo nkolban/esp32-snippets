@@ -242,7 +242,7 @@ void WiFi::dump() {
 tcpip_adapter_ip_info_t WiFi::getApIpInfo() {
 	//init();
 	tcpip_adapter_ip_info_t ipInfo;
-	tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &ipInfo);
+	::tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_AP, &ipInfo);
 	return ipInfo;
 } // getApIpInfo
 

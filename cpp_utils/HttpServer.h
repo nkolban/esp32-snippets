@@ -34,11 +34,20 @@ class PathHandler {
 				HttpRequest*  pHttpRequest,
 				HttpResponse* pHttpResponse)
 			);
+		PathHandler(
+			std::string method,                // The method in the request to be matched.
+			std::regex* pathPattern,           // The pattern in the request to be matched (regex)
+			void (*pWebServerRequestHandler)   // The handler function to be invoked upon a match.
+			(
+				HttpRequest*  pHttpRequest,
+				HttpResponse* pHttpResponse)
+			);
 		bool match(std::string method, std::string path);   // Does the request method and pattern match?
 		void invokePathHandler(HttpRequest* request, HttpResponse* response);
 	private:
 		std::string m_method;
-		std::regex  m_pattern;
+		std::regex* m_pRegex;
+		bool        m_isRegex;
 		std::string m_textPattern;
 		void (*m_pRequestHandler)(HttpRequest* pHttpRequest, HttpResponse* pHttpResponse);
 }; // PathHandler
@@ -52,6 +61,14 @@ public:
 	void        addPathHandler(
 		std::string method,
 		std::string pathExpr,
+		void (*webServerRequestHandler)
+		(
+			HttpRequest*  pHttpRequest,
+			HttpResponse* pHttpResponse)
+		);
+	void        addPathHandler(
+		std::string method,
+		std::regex* pRegex,
 		void (*webServerRequestHandler)
 		(
 			HttpRequest*  pHttpRequest,
