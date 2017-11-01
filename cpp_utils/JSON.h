@@ -46,6 +46,9 @@ public:
 	void        addString(std::string value);
 	std::string toString();
 	std::size_t size();
+private:
+	friend class JSON;
+	friend class JsonObject;
 	/**
 	 * @brief The underlying cJSON node.
 	 */
@@ -59,6 +62,7 @@ public:
 class JsonObject {
 public:
 	JsonObject(cJSON* node);
+	JsonArray   getArray(std::string name);
 	bool        getBoolean(std::string name);
 	double      getDouble(std::string name);
 	int         getInt(std::string name);
@@ -74,6 +78,9 @@ public:
 	void        setString(std::string name, std::string value);
 	std::string toString();
 
+private:
+	friend class JSON;
+	friend class JsonArray;
 	/**
 	 * @brief The underlying cJSON node.
 	 */

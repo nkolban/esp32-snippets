@@ -6,6 +6,8 @@
  */
 
 
+// See: https://github.com/DaveGamble/cJSON
+
 #include <string>
 #include <stdlib.h>
 #include "JSON.h"
@@ -201,6 +203,11 @@ std::size_t JsonArray::size() {
 JsonObject::JsonObject(cJSON* node) {
 	m_node = node;
 } // JsonObject
+
+JsonArray JsonObject::getArray(std::string name) {
+	cJSON *node = cJSON_GetObjectItem(m_node, name.c_str());
+	return JsonArray(node);
+}
 
 
 /**
