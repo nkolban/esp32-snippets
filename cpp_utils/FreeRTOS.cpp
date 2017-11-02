@@ -96,7 +96,7 @@ uint32_t FreeRTOS::Semaphore::wait(std::string owner) {
 
 
 FreeRTOS::Semaphore::Semaphore(std::string name) {
-	m_usePthreads = true;
+	m_usePthreads = false;   	// Are we using pThreads or FreeRTOS?
 	if (m_usePthreads) {
 		pthread_mutex_init(&m_pthread_mutex, nullptr);
 	} else {
