@@ -187,7 +187,7 @@ void BLEDevice::init(std::string deviceName) {
 		return;
 	}
 
-	errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
+	errRc = esp_bt_controller_enable(ESP_BT_MODE_BLE);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
