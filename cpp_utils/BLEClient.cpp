@@ -117,6 +117,7 @@ void BLEClient::disconnect() {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_close: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+	esp_ble_gattc_app_unregister(getGattcIf());
 	m_peerAddress = BLEAddress("00:00:00:00:00:00");
 	ESP_LOGD(LOG_TAG, "<< disconnect()");
 } // disconnect
