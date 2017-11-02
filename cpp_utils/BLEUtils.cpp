@@ -1286,8 +1286,7 @@ void BLEUtils::dumpGattClientEvent(
 		// - uint16_t          conn_id
 		// - esp_bd_addr_t     remote_bda
 		case ESP_GATTC_CONNECT_EVT: {
-			ESP_LOGD(LOG_TAG, "[staus: %s, conn_id: %d, remote_bda: %s]",
-				BLEUtils::gattStatusToString(evtParam->connect.status).c_str(),
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s]",
 				evtParam->connect.conn_id,
 				BLEAddress(evtParam->connect.remote_bda).toString().c_str()
 			);
@@ -1302,8 +1301,7 @@ void BLEUtils::dumpGattClientEvent(
 		// - uint16_t          conn_id
 		// - esp_bd_addr_t     remote_bda
 		case ESP_GATTC_DISCONNECT_EVT: {
-			ESP_LOGD(LOG_TAG, "[staus: %s, conn_id: %d, remote_bda: %s]",
-				BLEUtils::gattStatusToString(evtParam->disconnect.status).c_str(),
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s]",
 				evtParam->disconnect.conn_id,
 				BLEAddress(evtParam->disconnect.remote_bda).toString().c_str()
 			);
@@ -1586,10 +1584,9 @@ void BLEUtils::dumpGattServerEvent(
 		} // ESP_GATTS_CONGEST_EVT
 
 		case ESP_GATTS_CONNECT_EVT: {
-			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s, is_connected: %d]",
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s]",
 				evtParam->connect.conn_id,
-				BLEAddress(evtParam->connect.remote_bda).toString().c_str(),
-				evtParam->connect.is_connected);
+				BLEAddress(evtParam->connect.remote_bda).toString().c_str());
 			break;
 		} // ESP_GATTS_CONNECT_EVT
 
@@ -1603,10 +1600,9 @@ void BLEUtils::dumpGattServerEvent(
 		} // ESP_GATTS_CREATE_EVT
 
 		case ESP_GATTS_DISCONNECT_EVT: {
-			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s, is_connected: %d]",
+			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s]",
 				evtParam->connect.conn_id,
-				BLEAddress(evtParam->connect.remote_bda).toString().c_str(),
-				evtParam->connect.is_connected);
+				BLEAddress(evtParam->connect.remote_bda).toString().c_str());
 			break;
 		} // ESP_GATTS_DISCONNECT_EVT
 
