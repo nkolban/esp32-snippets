@@ -33,7 +33,7 @@ static std::map<uint16_t, BLEClient *> g_connIdMap;
 
 typedef struct {
 	uint32_t    assignedNumber;
-	std::string name;
+	const char* name;
 } member_t;
 
 static const member_t members_ids[] = {
@@ -291,7 +291,7 @@ static const member_t members_ids[] = {
 
 typedef struct {
 	uint32_t    assignedNumber;
-	std::string name;
+	const char* name;
 } gattdescriptor_t;
 
 static const gattdescriptor_t g_descriptor_ids[] = {
@@ -315,7 +315,7 @@ static const gattdescriptor_t g_descriptor_ids[] = {
 
 typedef struct {
 	uint32_t    assignedNumber;
-	std::string name;
+	const char* name;
 } characteristicMap_t;
 
 static const characteristicMap_t g_characteristicsMappings[] = {
@@ -542,8 +542,8 @@ static const characteristicMap_t g_characteristicsMappings[] = {
  * @brief Mapping from service ids to names
  */
 typedef struct {
-	std::string name;
-	std::string type;
+	const char* name;
+	const char* type;
 	uint32_t    assignedNumber;
 } gattService_t;
 
@@ -1821,9 +1821,9 @@ const char* BLEUtils::gapEventToString(uint32_t eventType) {
 
 std::string BLEUtils::gattCharacteristicUUIDToString(uint32_t characteristicUUID) {
 	const characteristicMap_t *p = g_characteristicsMappings;
-	while (p->name.length() > 0) {
+	while (strlen(p->name) > 0) {
 		if (p->assignedNumber == characteristicUUID) {
-			return p->name;
+			return std::string(p->name);
 		}
 		p++;
 	}
@@ -1838,9 +1838,9 @@ std::string BLEUtils::gattCharacteristicUUIDToString(uint32_t characteristicUUID
  */
 std::string BLEUtils::gattDescriptorUUIDToString(uint32_t descriptorUUID) {
 	gattdescriptor_t* p = (gattdescriptor_t *)g_descriptor_ids;
-	while (p->name.length() > 0) {
+	while (strlen(p->name) > 0) {
 		if (p->assignedNumber == descriptorUUID) {
-			return p->name;
+			return std::string(p->name);
 		}
 		p++;
 	}
@@ -1874,9 +1874,9 @@ std::string BLEUtils::gattServiceIdToString(esp_gatt_srvc_id_t srvcId) {
 
 std::string BLEUtils::gattServiceToString(uint32_t serviceId) {
 	gattService_t* p = (gattService_t *)g_gattServices;
-	while (p->name.length() > 0) {
+	while (strlen(p->name) > 0) {
 		if (p->assignedNumber == serviceId) {
-			return p->name;
+			return std::string(p->name);
 		}
 		p++;
 	}
@@ -1988,9 +1988,9 @@ std::string BLEUtils::gattStatusToString(esp_gatt_status_t status) {
 std::string BLEUtils::getMember(uint32_t memberId) {
 	member_t* p = (member_t *)members_ids;
 
-	while (p->name.length() > 0) {
+	while (strlen(p->name) > 0) {
 		if (p->assignedNumber == memberId) {
-				return p->name;
+				return std::string(p->name);
 		}
 		p++;
 	}
