@@ -159,7 +159,8 @@ void BLEDevice::gapEventHandler(
 
 /**
  * @brief Retrieve the Scan object that we use for scanning.
- * @return The scanning object reference.
+ * @return The scanning object reference.  This is a singleton object.  The caller should not
+ * try and release/delete it.
  */
 BLEScan* BLEDevice::getScan() {
 	if (m_pScan == nullptr) {

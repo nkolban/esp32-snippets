@@ -45,30 +45,30 @@ static const char* LOG_TAG="HttpRequest";
 
 //static std::string lineTerminator = "\r\n";
 
-const std::string HttpRequest::HTTP_HEADER_ACCEPT         = "Accept";
-const std::string HttpRequest::HTTP_HEADER_ALLOW          = "Allow";
-const std::string HttpRequest::HTTP_HEADER_CONNECTION     = "Connection";
-const std::string HttpRequest::HTTP_HEADER_CONTENT_LENGTH = "Content-Length";
-const std::string HttpRequest::HTTP_HEADER_CONTENT_TYPE   = "Content-Type";
-const std::string HttpRequest::HTTP_HEADER_COOKIE         = "Cookie";
-const std::string HttpRequest::HTTP_HEADER_HOST           = "Host";
-const std::string HttpRequest::HTTP_HEADER_LAST_MODIFIED  = "Last-Modified";
-const std::string HttpRequest::HTTP_HEADER_ORIGIN         = "Origin";
-const std::string HttpRequest::HTTP_HEADER_SEC_WEBSOCKET_ACCEPT   = "Sec-WebSocket-Accept";
-const std::string HttpRequest::HTTP_HEADER_SEC_WEBSOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
-const std::string HttpRequest::HTTP_HEADER_SEC_WEBSOCKET_KEY      = "Sec-WebSocket-Key";
-const std::string HttpRequest::HTTP_HEADER_SEC_WEBSOCKET_VERSION  = "Sec-WebSocket-Version";
-const std::string HttpRequest::HTTP_HEADER_UPGRADE        = "Upgrade";
-const std::string HttpRequest::HTTP_HEADER_USER_AGENT     = "User-Agent";
+const char HttpRequest::HTTP_HEADER_ACCEPT[]         = "Accept";
+const char HttpRequest::HTTP_HEADER_ALLOW[]          = "Allow";
+const char HttpRequest::HTTP_HEADER_CONNECTION[]     = "Connection";
+const char HttpRequest::HTTP_HEADER_CONTENT_LENGTH[] = "Content-Length";
+const char HttpRequest::HTTP_HEADER_CONTENT_TYPE[]   = "Content-Type";
+const char HttpRequest::HTTP_HEADER_COOKIE[]         = "Cookie";
+const char HttpRequest::HTTP_HEADER_HOST[]           = "Host";
+const char HttpRequest::HTTP_HEADER_LAST_MODIFIED[]  = "Last-Modified";
+const char HttpRequest::HTTP_HEADER_ORIGIN[]         = "Origin";
+const char HttpRequest::HTTP_HEADER_SEC_WEBSOCKET_ACCEPT[]   = "Sec-WebSocket-Accept";
+const char HttpRequest::HTTP_HEADER_SEC_WEBSOCKET_PROTOCOL[] = "Sec-WebSocket-Protocol";
+const char HttpRequest::HTTP_HEADER_SEC_WEBSOCKET_KEY[]      = "Sec-WebSocket-Key";
+const char HttpRequest::HTTP_HEADER_SEC_WEBSOCKET_VERSION[]  = "Sec-WebSocket-Version";
+const char HttpRequest::HTTP_HEADER_UPGRADE[]        = "Upgrade";
+const char HttpRequest::HTTP_HEADER_USER_AGENT[]     = "User-Agent";
 
-const std::string HttpRequest::HTTP_METHOD_CONNECT = "CONNECT";
-const std::string HttpRequest::HTTP_METHOD_DELETE  = "DELETE";
-const std::string HttpRequest::HTTP_METHOD_GET     = "GET";
-const std::string HttpRequest::HTTP_METHOD_HEAD    = "HEAD";
-const std::string HttpRequest::HTTP_METHOD_OPTIONS = "OPTIONS";
-const std::string HttpRequest::HTTP_METHOD_PATCH   = "PATCH";
-const std::string HttpRequest::HTTP_METHOD_POST    = "POST";
-const std::string HttpRequest::HTTP_METHOD_PUT     = "PUT";
+const char HttpRequest::HTTP_METHOD_CONNECT[] = "CONNECT";
+const char HttpRequest::HTTP_METHOD_DELETE[]  = "DELETE";
+const char HttpRequest::HTTP_METHOD_GET[]     = "GET";
+const char HttpRequest::HTTP_METHOD_HEAD[]    = "HEAD";
+const char HttpRequest::HTTP_METHOD_OPTIONS[] = "OPTIONS";
+const char HttpRequest::HTTP_METHOD_PATCH[]   = "PATCH";
+const char HttpRequest::HTTP_METHOD_POST[]    = "POST";
+const char HttpRequest::HTTP_METHOD_PUT[]     = "PUT";
 
 
 
