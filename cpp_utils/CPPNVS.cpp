@@ -6,24 +6,33 @@
  */
 
 #include "CPPNVS.h"
+#include "GeneralUtils.h"
+#include <nvs_flash.h>
 #include <esp_err.h>
 #include <esp_log.h>
 #include <stdlib.h>
 
-const char* LOG_TAG = "CPPNVS";
+static const char LOG_TAG[] = "CPPNVS";
 
 /**
  * @brief Constructor.
  *
  * @param [in] name The namespace to open for access.
- * @param [in] openMode
+ * @param [in] openMode The open mode.  One of NVS_READWRITE (default) or NVS_READONLY.
  */
 NVS::NVS(std::string name, nvs_open_mode openMode) {
+	esp_err_t errRc = ::nvs_flash_init();   // Initialize flash
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "nvs_flash_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+	}
 	m_name = name;
 	::nvs_open(name.c_str(), openMode, &m_handle);
 } // NVS
 
 
+/**
+ * @brief Desctructor
+ */
 NVS::~NVS() {
 	::nvs_close(m_handle);
 } // ~NVS

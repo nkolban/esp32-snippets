@@ -45,18 +45,22 @@ typedef struct {
 	tcpip_adapter_ip_info_t ipInfo; // Optional static IP information
 } connection_info_t;
 
-static bootwifi_callback_t g_callback = NULL; // Callback function to be invoked when we have finished.
+//static bootwifi_callback_t g_callback = NULL; // Callback function to be invoked when we have finished.
 
 
 // Forward declarations
 static void saveConnectionInfo(connection_info_t *pConnectionInfo);
 
-static const char* LOG_TAG = "bootwifi";
+static const char LOG_TAG[] = "bootwifi";
 
 
 static void dumpConnectionInfo(connection_info_t *pConnectionInfo) {
 	ESP_LOGD(LOG_TAG, "connection_info.ssid = %.*s",     SSID_SIZE,     pConnectionInfo->ssid);
 	ESP_LOGD(LOG_TAG, "connection_info.password = %.*s", PASSWORD_SIZE, pConnectionInfo->password);
+	ESP_LOGD(LOG_TAG, "ip: %s, gw: %s, netmask: %s",
+		GeneralUtils::ipToString((uint8_t*)&pConnectionInfo->ipInfo.ip).c_str(),
+		GeneralUtils::ipToString((uint8_t*)&pConnectionInfo->ipInfo.gw).c_str(),
+		GeneralUtils::ipToString((uint8_t*)&pConnectionInfo->ipInfo.netmask).c_str());
 }
 
 
@@ -128,6 +132,7 @@ static void sendForm(HttpRequest* pRequest, HttpResponse* pResponse) {
 	pResponse->close();
 } // sendForm
 
+
 static void copyData(uint8_t* pTarget, size_t targetLength, std::string source) {
 	memset(pTarget, 0, targetLength);
 	size_t copySize = (source.length() > targetLength)? targetLength:source.length();
@@ -135,8 +140,12 @@ static void copyData(uint8_t* pTarget, size_t targetLength, std::string source) 
 	if (copySize < targetLength) {
 		pTarget[copySize] = '\0';
 	}
-}
+} // copyData
 
+
+/**
+ * @brief Process the form response.
+ */
 static void processForm(HttpRequest* pRequest, HttpResponse* pResponse) {
 	ESP_LOGD(LOG_TAG, ">> processForm");
 	std::map<std::string, std::string> formMap = pRequest->parseForm();
@@ -145,20 +154,41 @@ static void processForm(HttpRequest* pRequest, HttpResponse* pResponse) {
 	copyData((uint8_t*)connectionInfo.password, PASSWORD_SIZE, formMap["password"]);
 
 	try {
-		inet_pton(AF_INET, formMap["ip"].c_str(), &connectionInfo.ipInfo.ip);
-	} catch(std::out_of_range e) {
+		std::string ipStr = formMap.at("ip");
+		if (ipStr.empty()) {
+			ESP_LOGD(LOG_TAG, "No IP address using default 0.0.0.0");
+			connectionInfo.ipInfo.ip.addr = 0;
+		} else {
+			inet_pton(AF_INET, ipStr.c_str(), &connectionInfo.ipInfo.ip);
+		}
+	} catch(std::out_of_range& e) {
+		ESP_LOGD(LOG_TAG, "No IP address using default 0.0.0.0");
 		connectionInfo.ipInfo.ip.addr = 0;
 	}
 
 	try {
-		inet_pton(AF_INET, formMap["gw"].c_str(), &connectionInfo.ipInfo.gw);
-	} catch(std::out_of_range e) {
+		std::string gwStr = formMap.at("gw");
+		if (gwStr.empty()) {
+			ESP_LOGD(LOG_TAG, "No GW address using default 0.0.0.0");
+			connectionInfo.ipInfo.gw.addr = 0;
+		} else {
+			inet_pton(AF_INET, gwStr.c_str(), &connectionInfo.ipInfo.gw);
+		}
+	} catch(std::out_of_range& e) {
+		ESP_LOGD(LOG_TAG, "No GW address using default 0.0.0.0");
 		connectionInfo.ipInfo.gw.addr = 0;
 	}
 
 	try {
-		inet_pton(AF_INET, formMap["netmask"].c_str(), &connectionInfo.ipInfo.netmask);
-	} catch(std::out_of_range e) {
+		std::string netmaskStr = formMap.at("netmask");
+		if (netmaskStr.empty()) {
+			ESP_LOGD(LOG_TAG, "No Netmask address using default 0.0.0.0");
+			connectionInfo.ipInfo.netmask.addr = 0;
+		} else {
+			inet_pton(AF_INET, netmaskStr.c_str(), &connectionInfo.ipInfo.netmask);
+		}
+	} catch(std::out_of_range& e) {
+		ESP_LOGD(LOG_TAG, "No Netmask address using default 0.0.0.0");
 		connectionInfo.ipInfo.netmask.addr = 0;
 	}
 
@@ -281,5 +311,5 @@ void BootWiFi::boot() {
 
 BootWiFi::BootWiFi() {
 	m_httpServerStarted = false;
-	setAccessPointCredentials("esp32", "password");
+	setAccessPointCredentials("esp32", "password");   // Default access point credentials
 }

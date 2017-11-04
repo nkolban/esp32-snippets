@@ -299,7 +299,7 @@ std::map<std::string, std::string> HttpRequest::parseForm() {
 		std::getline(currentPair, name, '=');           // Parse the current form entry into name/value.
 		currentPair >> value;                           // The value is what remains.
 		map[name] = urlDecode(value);                   // Decode the field which may have been encoded.
-		ESP_LOGD(LOG_TAG, " %s = %s", name.c_str(), map[name].c_str());   // Debug
+		ESP_LOGD(LOG_TAG, " %s = \"%s\"", name.c_str(), map[name].c_str());   // Debug
                               // Add the form entry into the map.
 	} // Processed all form entries.
 	ESP_LOGD(LOG_TAG, "<< parseForm");                // Debug
