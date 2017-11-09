@@ -9,7 +9,7 @@ What if we take our ESP32 to a new environment where the previously saved access
 
 What if we want to change the access point to which the ESP32 connects even if that access point has been previously saved and is still connectable?  Simple, the ESP32 can check a GPIO pin at startup and, if that pin is high (default low) then that can be used as a manual indication that we should become an access point without even attempting to connect to the network.
 
-This code is supplied in the form of an ESP-IDF module.
+This code is supplied in the form of an ESP-IDF module.  In addition, BootWiFi has a pre-requisite of the `cpp_utils` component also distributed as part of this repoistory.
 
 The logic uses C++ exception handling and hence C++ exception handling must be enabled in `make menuconfig`.
 

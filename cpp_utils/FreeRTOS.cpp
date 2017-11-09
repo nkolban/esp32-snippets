@@ -76,21 +76,25 @@ uint32_t FreeRTOS::getTimeSinceStart() {
  * @return The value associated with the semaphore.
  */
 uint32_t FreeRTOS::Semaphore::wait(std::string owner) {
-	ESP_LOGV(LOG_TAG, "Semaphore waiting: %s for %s", toString().c_str(), owner.c_str());
+	ESP_LOGV(LOG_TAG, ">> wait: Semaphore waiting: %s for %s", toString().c_str(), owner.c_str());
+
+
 	if (m_usePthreads) {
 		pthread_mutex_lock(&m_pthread_mutex);
 	} else {
 		xSemaphoreTake(m_semaphore, portMAX_DELAY);
 	}
+
 	m_owner = owner;
+
 	if (m_usePthreads) {
 		pthread_mutex_unlock(&m_pthread_mutex);
 	} else {
 		xSemaphoreGive(m_semaphore);
 	}
 
-	ESP_LOGV(LOG_TAG, "Semaphore released: %s", toString().c_str());
-	m_owner = "<N/A>";
+	ESP_LOGV(LOG_TAG, "<< wait: Semaphore released: %s", toString().c_str());
+	m_owner = std::string("<N/A>");
 	return m_value;
 } // wait
 
@@ -104,7 +108,7 @@ FreeRTOS::Semaphore::Semaphore(std::string name) {
 	}
 
 	m_name      = name;
-	m_owner     = "<N/A>";
+	m_owner     = std::string("<N/A>");
 	m_value     = 0;
 }
 
@@ -123,6 +127,7 @@ FreeRTOS::Semaphore::~Semaphore() {
  * The Semaphore is given.
  */
 void FreeRTOS::Semaphore::give() {
+	ESP_LOGV(LOG_TAG, "Semaphore giving: %s", toString().c_str());
 	if (m_usePthreads) {
 		pthread_mutex_unlock(&m_pthread_mutex);
 	} else {
@@ -131,8 +136,8 @@ void FreeRTOS::Semaphore::give() {
 #ifdef ARDUINO_ARCH_ESP32
 	FreeRTOS::sleep(10);
 #endif
-	ESP_LOGV(LOG_TAG, "Semaphore giving: %s", toString().c_str());
-	m_owner = "<N/A>";
+
+	m_owner = std::string("<N/A>");
 } // Semaphore::give
 
 
@@ -183,13 +188,15 @@ void FreeRTOS::Semaphore::take(std::string owner)
  * @param [in] timeoutMs Timeout in milliseconds.
  */
 void FreeRTOS::Semaphore::take(uint32_t timeoutMs, std::string owner) {
+
 	ESP_LOGV(LOG_TAG, "Semaphore taking: %s for %s", toString().c_str(), owner.c_str());
-	m_owner = owner;
+
 	if (m_usePthreads) {
 		assert(false);
 	} else {
 		xSemaphoreTake(m_semaphore, timeoutMs/portTICK_PERIOD_MS);
 	}
+	m_owner = owner;
 	ESP_LOGV(LOG_TAG, "Semaphore taken:  %s", toString().c_str());
 } // Semaphore::take
 

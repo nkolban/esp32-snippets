@@ -33,7 +33,7 @@ public:
  */
 class JsonArray {
 public:
-	JsonArray(cJSON* node);
+
 	int         getInt(int item);
 	JsonObject  getObject(int item);
 	std::string getString(int item);
@@ -47,6 +47,7 @@ public:
 	std::string toString();
 	std::size_t size();
 private:
+	JsonArray(cJSON* node);
 	friend class JSON;
 	friend class JsonObject;
 	/**
@@ -61,7 +62,6 @@ private:
  */
 class JsonObject {
 public:
-	JsonObject(cJSON* node);
 	JsonArray   getArray(std::string name);
 	bool        getBoolean(std::string name);
 	double      getDouble(std::string name);
@@ -79,6 +79,7 @@ public:
 	std::string toString();
 
 private:
+	JsonObject(cJSON* node);
 	friend class JSON;
 	friend class JsonArray;
 	/**

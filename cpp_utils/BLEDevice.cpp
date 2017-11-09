@@ -163,9 +163,12 @@ void BLEDevice::gapEventHandler(
  * try and release/delete it.
  */
 BLEScan* BLEDevice::getScan() {
+	//ESP_LOGD(LOG_TAG, ">> getScan");
 	if (m_pScan == nullptr) {
 		m_pScan = new BLEScan();
+		//ESP_LOGD(LOG_TAG, " - creating a new scan object");
 	}
+	//ESP_LOGD(LOG_TAG, "<< getScan: Returning object at 0x%x", (uint32_t)m_pScan);
 	return m_pScan;
 } // getScan
 
