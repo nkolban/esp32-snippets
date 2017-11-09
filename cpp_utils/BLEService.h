@@ -42,7 +42,7 @@ public:
 private:
 	std::map<std::string, BLECharacteristic*> m_uuidMap;
 	std::map<uint16_t, BLECharacteristic*> m_handleMap;
-	std::map<std::string, BLECharacteristic*>::iterator m_iterator;
+	std::map<uint16_t, BLECharacteristic*>::iterator m_iterator;
 };
 
 
@@ -66,6 +66,7 @@ public:
 	BLEServer*         getServer();
 	void               start();
 	std::string        toString();
+	uint16_t           getHandle();
 
 private:
 	friend class BLEServer;
@@ -85,8 +86,8 @@ private:
 	FreeRTOS::Semaphore  m_semaphoreStartEvt  = FreeRTOS::Semaphore("StartEvt");
 
 	uint32_t             m_numHandles;
+	BLECharacteristic*	 p_createCharacteristic;
 
-	uint16_t           getHandle();
 	BLECharacteristic* getLastCreatedCharacteristic();
 	void               handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,

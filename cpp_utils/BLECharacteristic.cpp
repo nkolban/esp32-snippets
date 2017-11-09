@@ -95,7 +95,7 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 	esp_attr_control_t control;
 	control.auto_rsp = ESP_GATT_RSP_BY_APP;
 
-	m_semaphoreCreateEvt.take("executeCreate");
+	//m_semaphoreCreateEvt.take("executeCreate");
 
 	/*
 	esp_attr_value_t value;
@@ -118,7 +118,7 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 		return;
 	}
 
-	m_semaphoreCreateEvt.wait("executeCreate");
+	//m_semaphoreCreateEvt.wait("executeCreate");
 
 	// Now that we have registered the characteristic, we must also register all the descriptors associated with this
 	// characteristic.  We iterate through each of those and invoke the registration call to register them with the
@@ -245,7 +245,7 @@ void BLECharacteristic::handleGATTServerEvent(
 		case ESP_GATTS_ADD_CHAR_EVT: {
 			if (getUUID().equals(BLEUUID(param->add_char.char_uuid)) &&
 					getService()->getHandle()==param->add_char.service_handle) {
-				m_semaphoreCreateEvt.give();
+				//m_semaphoreCreateEvt.give();
 			}
 			break;
 		} // ESP_GATTS_ADD_CHAR_EVT

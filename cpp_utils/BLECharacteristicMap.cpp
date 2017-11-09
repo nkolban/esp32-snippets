@@ -55,8 +55,8 @@ BLECharacteristic* BLECharacteristicMap::getByUUID(BLEUUID uuid) {
  * @return The first characteristic in the map.
  */
 BLECharacteristic* BLECharacteristicMap::getFirst() {
-	m_iterator = m_uuidMap.begin();
-	if (m_iterator == m_uuidMap.end()) {
+	m_iterator = m_handleMap.begin();
+	if (m_iterator == m_handleMap.end()) {
 		return nullptr;
 	}
 	BLECharacteristic* pRet = m_iterator->second;
@@ -70,7 +70,7 @@ BLECharacteristic* BLECharacteristicMap::getFirst() {
  * @return The next characteristic in the map.
  */
 BLECharacteristic* BLECharacteristicMap::getNext() {
-	if (m_iterator == m_uuidMap.end()) {
+	if (m_iterator == m_handleMap.end()) {
 		return nullptr;
 	}
 	BLECharacteristic* pRet = m_iterator->second;
@@ -90,7 +90,7 @@ void BLECharacteristicMap::handleGATTServerEvent(
 		esp_gatt_if_t             gatts_if,
 		esp_ble_gatts_cb_param_t* param) {
 	// Invoke the handler for every Service we have.
-	for (auto &myPair : m_uuidMap) {
+	for (auto &myPair : m_handleMap) {
 		myPair.second->handleGATTServerEvent(event, gatts_if, param);
 	}
 } // handleGATTServerEvent
