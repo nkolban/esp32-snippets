@@ -187,13 +187,15 @@ void WiFi::connectAP(const std::string& ssid, const std::string& password, bool 
 		abort();
 	}
 
-	m_gotIpEvt.take("connectAP");
+	m_connectFinished.take("connectAP");   // Take the semaphore to wait for a connection.
+
 	errRc = ::esp_wifi_connect();
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_connect: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();
 	}
-	m_gotIpEvt.wait("connectAP");
+
+	m_connectFinished.wait("connectAP");   // Wait for the completion of the connection.
 	ESP_LOGD(LOG_TAG, "<< connectAP");
 } // connectAP
 
@@ -226,11 +228,12 @@ void WiFi::dump() {
 	// Invoke the event handler.
 	esp_err_t rc = pWiFi->m_pWifiEventHandler->getEventHandler()(pWiFi->m_pWifiEventHandler, event);
 
-	// If the event we received indicates that we now have an IP address then unlock the mutex that
-	// indicates we are waiting for an IP.
-	if (event->event_id == SYSTEM_EVENT_STA_GOT_IP) {
-		pWiFi->m_gotIpEvt.give();
+	// If the event we received indicates that we now have an IP address or that a connection was disconnected then unlock the mutex that
+	// indicates we are waiting for a connection complete.
+	if (event->event_id == SYSTEM_EVENT_STA_GOT_IP || event->event_id == SYSTEM_EVENT_STA_DISCONNECTED) {
+		pWiFi->m_connectFinished.give();
 	}
+
 	return rc;
 } // eventHandler
 

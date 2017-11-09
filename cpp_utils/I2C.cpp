@@ -97,7 +97,7 @@ uint8_t I2C::getAddress() const
  */
 void I2C::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin, uint32_t clockSpeed, i2c_port_t portNum) {
 	ESP_LOGD(LOG_TAG, ">> I2c::init.  address=%d, sda=%d, scl=%d, clockSpeed=%d, portNum=%d", address, sdaPin, sclPin, clockSpeed, portNum);
-	asser(portNum < I2C_NUM_MAX);
+	assert(portNum < I2C_NUM_MAX);
 	m_portNum = portNum;
 	m_sdaPin  = sdaPin;
 	m_sclPin  = sclPin;

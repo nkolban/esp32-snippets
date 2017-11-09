@@ -114,7 +114,7 @@ private:
     uint8_t             m_dnsCount=0;
     bool                m_eventLoopStarted;
     bool                m_initCalled;
-  	FreeRTOS::Semaphore m_gotIpEvt = FreeRTOS::Semaphore("GotIpEvt");
+  	FreeRTOS::Semaphore m_connectFinished = FreeRTOS::Semaphore("ConnectFinished");
 
 public:
     WiFi();
