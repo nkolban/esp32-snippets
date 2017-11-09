@@ -20,13 +20,14 @@ void SampleScan(void);
 void SampleSensorTag(void);
 void SampleServer(void);
 void SampleWrite(void);
-
+void SampleMultiCharacteristic(void);
 //
 // Un-comment ONE of the following
 //            ---
 void app_main(void) {
 	//Sample_MLE_15();
 	//Sample1();
+	SampleMultiCharacteristic();
 	//SampleClient();
 	//SampleClient_Notify();
 	//SampleClientAndServer();
@@ -36,6 +37,7 @@ void app_main(void) {
 	//SampleRead();
 	//SampleSensorTag();
 	//SampleScan();
-	SampleServer();
+	//SampleServer();
 	//SampleWrite();
 } // app_main
+
