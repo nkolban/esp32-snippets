@@ -35,7 +35,7 @@ void System::getChipInfo(esp_chip_info_t *info) {
  * @brief Retrieve the system wide free heap size.
  * @return The system wide free heap size.
  */
-uint32_t System::getFreeHeapSize() {
+size_t System::getFreeHeapSize() {
 	return heap_caps_get_free_size(MALLOC_CAP_8BIT);
 } // getFreeHeapSize
 
@@ -50,3 +50,10 @@ std::string System::getIDFVersion() {
 } // getIDFVersion
 
 
+/**
+ * @brief Get the smallest heap size seen.
+ * @return The smallest heap size seen.
+ */
+size_t System::getMinimumFreeHeapSize() {
+	return heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT);
+} // getMinimumFreeHeapSize

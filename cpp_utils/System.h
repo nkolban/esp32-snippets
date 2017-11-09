@@ -19,8 +19,9 @@ public:
 	System();
 	virtual ~System();
 	static void getChipInfo(esp_chip_info_t *info);
-	static uint32_t getFreeHeapSize();
+	static size_t getFreeHeapSize();
 	static std::string getIDFVersion();
+	static size_t getMinimumFreeHeapSize();
 };
 
 #endif /* COMPONENTS_CPP_UTILS_SYSTEM_H_ */
