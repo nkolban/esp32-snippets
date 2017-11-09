@@ -31,14 +31,15 @@ public:
 	public:
 		Semaphore(std::string owner = "<Unknown>");
 		~Semaphore();
-		void give();
-		void giveFromISR();
-		void give(uint32_t value);
-		void setName(std::string name);
-		void take(std::string owner="<Unknown>");
-		void take(uint32_t timeoutMs, std::string owner="<Unknown>");
-		uint32_t wait(std::string owner="<Unknown>");
+		void        give();
+		void        give(uint32_t value);
+		void        giveFromISR();
+		void        setName(std::string name);
+		void        take(std::string owner="<Unknown>");
+		void        take(uint32_t timeoutMs, std::string owner="<Unknown>");
 		std::string toString();
+		uint32_t    wait(std::string owner="<Unknown>");
+
 	private:
 		SemaphoreHandle_t m_semaphore;
 		pthread_mutex_t   m_pthread_mutex;

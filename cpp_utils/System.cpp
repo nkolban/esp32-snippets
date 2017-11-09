@@ -8,6 +8,10 @@
 #include "System.h"
 #include <esp_system.h>
 
+extern "C" {
+#include <esp_heap_caps.h>
+}
+
 System::System() {
 	// TODO Auto-generated constructor stub
 
@@ -32,7 +36,7 @@ void System::getChipInfo(esp_chip_info_t *info) {
  * @return The system wide free heap size.
  */
 uint32_t System::getFreeHeapSize() {
-	return esp_get_free_heap_size();
+	return heap_caps_get_free_size(MALLOC_CAP_8BIT);
 } // getFreeHeapSize
 
 

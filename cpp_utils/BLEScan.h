@@ -46,8 +46,6 @@ private:
  */
 class BLEScan {
 public:
-	BLEScan();
-
 	void           setActiveScan(bool active);
 	void           setAdvertisedDeviceCallbacks(BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks);
 	void           setInterval(uint16_t intervalMSecs);
@@ -56,6 +54,7 @@ public:
 	void           stop();
 
 private:
+	BLEScan();   // One doesn't create a new instance instead one asks the BLEDevice for the singleton.
 	friend class BLEDevice;
 	void         gapEventHandler(
 		esp_gap_ble_cb_event_t  event,

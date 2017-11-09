@@ -177,7 +177,7 @@ void BLEScan::setWindow(uint16_t windowMSecs) {
 BLEScanResults BLEScan::start(uint32_t duration) {
 	ESP_LOGD(LOG_TAG, ">> start(duration=%d)", duration);
 
-	m_semaphoreScanEnd.take("start");
+	m_semaphoreScanEnd.take(std::string("start"));
 
 	m_scanResults.m_vectorAdvertisedDevices.clear();
 
@@ -199,8 +199,7 @@ BLEScanResults BLEScan::start(uint32_t duration) {
 
 	m_stopped = false;
 
-	m_semaphoreScanEnd.take("start");
-	m_semaphoreScanEnd.give();
+	m_semaphoreScanEnd.wait("start");   // Wait for the semaphore to release.
 
 	ESP_LOGD(LOG_TAG, "<< start()");
 	return m_scanResults;
