@@ -144,6 +144,7 @@ BLEUUID::BLEUUID(uint16_t uuid) {
 	m_uuid.len         = ESP_UUID_LEN_16;
 	m_uuid.uuid.uuid16 = uuid;
 	m_valueSet         = true;
+
 } // BLEUUID
 
 
@@ -345,4 +346,22 @@ std::string BLEUUID::toString() {
 		std::setw(2) << (int)m_uuid.uuid.uuid128[0];
 	return ss.str();
 } // toString
+
+BLEUUID BLEUUID::fromString(std::string _uuid){
+	uint8_t start = 0;
+	if(strstr(_uuid.c_str(), "0x") != nullptr){
+		start = 2;
+	}
+	uint8_t len = _uuid.length() - start;
+	if(len == 4 ){
+		uint16_t x = strtoul(_uuid.substr(start, len).c_str(), NULL, 16);
+		return BLEUUID(x);
+	}else if(len == 8){
+		uint32_t x = strtoul(_uuid.substr(start, len).c_str(), NULL, 16);
+		return BLEUUID(x);
+	}else if (len == 36){
+		return BLEUUID(_uuid);
+	}
+	return BLEUUID();
+}
 #endif /* CONFIG_BT_ENABLED */

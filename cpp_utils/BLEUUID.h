@@ -28,6 +28,7 @@ public:
 	esp_bt_uuid_t* getNative();
 	BLEUUID        to128();
 	std::string    toString();
+	static BLEUUID fromString(std::string uuid);
 
 private:
 	esp_bt_uuid_t m_uuid;       // The underlying UUID structure that this class wraps.
