@@ -237,7 +237,15 @@ public:
 		m_pBootWiFi->m_wifi.startAP("Duktape", "Duktape");
 		ESP_LOGD("BootWifiEventHandler", "<< staDisconnected");
 		return ESP_OK;
-	}
+	} // staDisconnected
+
+
+	esp_err_t staGotIp(system_event_sta_got_ip_t event_sta_got_ip) {
+		ESP_LOGD("BootWifiEventHandler", ">> staGotIP");
+		m_pBootWiFi->m_completeSemaphore.give();   // If we got an IP address, then we can end the boot process.
+		ESP_LOGD("BootWifiEventHandler", "<< staGotIP");
+		return ESP_OK;
+	} // staGotIp
 
 private:
 	BootWiFi *m_pBootWiFi;
