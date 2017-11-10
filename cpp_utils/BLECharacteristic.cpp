@@ -70,6 +70,7 @@ BLECharacteristic::~BLECharacteristic() {
 void BLECharacteristic::addDescriptor(BLEDescriptor* pDescriptor) {
 	ESP_LOGD(LOG_TAG, ">> addDescriptor(): Adding %s to %s", pDescriptor->toString().c_str(), toString().c_str());
 	m_descriptorMap.setByUUID(pDescriptor->getUUID(), pDescriptor);
+	pDescriptor->executeCreate(this);
 	ESP_LOGD(LOG_TAG, "<< addDescriptor()");
 } // addDescriptor
 
@@ -95,7 +96,7 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 	esp_attr_control_t control;
 	control.auto_rsp = ESP_GATT_RSP_BY_APP;
 
-	//m_semaphoreCreateEvt.take("executeCreate");
+	m_semaphoreCreateEvt.take("executeCreate");
 
 	/*
 	esp_attr_value_t value;
@@ -118,19 +119,19 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 		return;
 	}
 
-	//m_semaphoreCreateEvt.wait("executeCreate");
+	m_semaphoreCreateEvt.wait("executeCreate");
 
 	// Now that we have registered the characteristic, we must also register all the descriptors associated with this
 	// characteristic.  We iterate through each of those and invoke the registration call to register them with the
 	// ESP environment.
-
+/*
 	BLEDescriptor* pDescriptor = m_descriptorMap.getFirst();
 
 	while (pDescriptor != nullptr) {
 		pDescriptor->executeCreate(this);
 		pDescriptor = m_descriptorMap.getNext();
 	} // End while
-
+*/
 	ESP_LOGD(LOG_TAG, "<< executeCreate");
 } // executeCreate
 
@@ -245,8 +246,8 @@ void BLECharacteristic::handleGATTServerEvent(
 		case ESP_GATTS_ADD_CHAR_EVT: {
 			if (getUUID().equals(BLEUUID(param->add_char.char_uuid)) &&
 					getService()->getHandle()==param->add_char.service_handle) {
-				//m_semaphoreCreateEvt.give();
 			}
+			m_semaphoreCreateEvt.give();
 			break;
 		} // ESP_GATTS_ADD_CHAR_EVT
 

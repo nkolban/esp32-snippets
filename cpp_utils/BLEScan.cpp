@@ -229,6 +229,17 @@ void BLEScan::stop() {
 
 
 /**
+ * @brief Dump the scan results to the log.
+ */
+void BLEScanResults::dump() {
+	ESP_LOGD(LOG_TAG, ">> Dump scan results:");
+	for (int i=0; i<getCount(); i++) {
+		ESP_LOGD(LOG_TAG, "- %s", getDevice(i).toString().c_str());
+	}
+} // dump
+
+
+/**
  * @brief Return the count of devices found in the last scan.
  * @return The number of devices found in the last scan.
  */
@@ -246,5 +257,6 @@ int BLEScanResults::getCount() {
 BLEAdvertisedDevice BLEScanResults::getDevice(uint32_t i) {
 	return m_vectorAdvertisedDevices.at(i);
 }
+
 
 #endif /* CONFIG_BT_ENABLED */

@@ -70,7 +70,7 @@ void BLEDescriptor::executeCreate(BLECharacteristic* pCharacteristic) {
 
 	esp_attr_control_t control;
 	control.auto_rsp = ESP_GATT_RSP_BY_APP;
-	m_semaphoreCreateEvt.take("executeCreate");
+	//m_semaphoreCreateEvt.take("executeCreate");
 	esp_err_t errRc = ::esp_ble_gatts_add_char_descr(
 			pCharacteristic->getService()->getHandle(),
 			getUUID().getNative(),
@@ -82,7 +82,7 @@ void BLEDescriptor::executeCreate(BLECharacteristic* pCharacteristic) {
 		return;
 	}
 
-	m_semaphoreCreateEvt.wait("executeCreate");
+	//m_semaphoreCreateEvt.wait("executeCreate");
 	ESP_LOGD(LOG_TAG, "<< executeCreate");
 } // executeCreate
 
@@ -155,11 +155,10 @@ void BLEDescriptor::handleGATTServerEvent(
 					*/
 			if (m_pCharacteristic != nullptr &&
 					m_bleUUID.equals(BLEUUID(param->add_char_descr.char_uuid)) &&
-					m_pCharacteristic->getService()->getHandle() == param->add_char_descr.service_handle &&
-					m_pCharacteristic == m_pCharacteristic->getService()->getLastCreatedCharacteristic()) {
+					m_pCharacteristic->getService()->getHandle() == param->add_char_descr.service_handle) {
 				setHandle(param->add_char_descr.attr_handle);
-				m_semaphoreCreateEvt.give();
 			}
+			m_semaphoreCreateEvt.give();
 			break;
 		} // ESP_GATTS_ADD_CHAR_DESCR_EVT
 
