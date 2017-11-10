@@ -31,6 +31,7 @@ class BLEScan;
  */
 class BLEScanResults {
 public:
+	void                dump();
 	int                 getCount();
 	BLEAdvertisedDevice getDevice(uint32_t i);
 
