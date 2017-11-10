@@ -114,7 +114,7 @@ void BLERemoteService::gattClientEventHandler(
 	} // switch
 
 	// Send the event to each of the characteristics owned by this service.
-	for (auto &myPair : m_characteristicMap) {
+	for (auto &myPair : m_characteristicMapByHandle) {
 	   myPair.second->gattClientEventHandler(event, gattc_if, evtParam);
 	}
 } // gattClientEventHandler
@@ -148,6 +148,25 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
 	std::string v = uuid.toString();
 	for (auto &myPair : m_characteristicMap) {
 		if (myPair.first == v) {
+			return myPair.second;
+		}
+	}
+	return nullptr;
+} // getCharacteristic
+
+BLERemoteCharacteristic* BLERemoteService::getCharacteristic(uint16_t uuid) {
+// Design
+// ------
+// We wish to retrieve the characteristic given its handle.  It is possible that we have not yet asked the
+// device what characteristics it has in which case we have nothing to match against.  If we have not
+// asked the device about its characteristics, then we do that now.  Once we get the results we can then
+// examine the characteristics map to see if it has the characteristic we are looking for.
+	if (!m_haveCharacteristics) {
+		retrieveCharacteristics();
+	}
+	//std::string v = uuid.toString();
+	for (auto &myPair : m_characteristicMapByHandle) {
+		if (myPair.first == uuid) {
 			return myPair.second;
 		}
 	}
@@ -257,6 +276,7 @@ void BLERemoteService::retrieveCharacteristics() {
 			this
 		);
 
+		m_characteristicMapByHandle.insert(std::pair<uint16_t, BLERemoteCharacteristic*>(pNewRemoteCharacteristic->getHandle(), pNewRemoteCharacteristic));
 		m_characteristicMap.insert(std::pair<std::string, BLERemoteCharacteristic*>(pNewRemoteCharacteristic->getUUID().toString(), pNewRemoteCharacteristic));
 
 		offset++;   // Increment our count of number of descriptors found.
@@ -283,6 +303,17 @@ std::map<std::string, BLERemoteCharacteristic*>* BLERemoteService::getCharacteri
 	return &m_characteristicMap;
 } // getCharacteristics
 
+void BLERemoteService::getCharacteristics(std::map<uint16_t, BLERemoteCharacteristic*>* ptr) {
+	ESP_LOGD(LOG_TAG, ">> getCharacteristics() for service: %#04x", getHandle());
+	// If is possible that we have not read the characteristics associated with the service so do that
+	// now.  The request to retrieve the characteristics by calling "retrieveCharacteristics" is a blocking
+	// call and does not return until all the characteristics are available.
+	if (!m_haveCharacteristics) {
+		retrieveCharacteristics();
+	}
+	ESP_LOGD(LOG_TAG, "<< getCharacteristics() for service: %#04x", getHandle());
+	*ptr = m_characteristicMapByHandle;
+} // getCharacteristics
 
 BLEClient* BLERemoteService::getClient() {
 	return m_pClient;
@@ -329,6 +360,12 @@ void BLERemoteService::removeCharacteristics() {
 	   m_characteristicMap.erase(myPair.first);
 	}
 	m_characteristicMap.clear();   // Clear the map
+
+	for (auto &myPair : m_characteristicMapByHandle) {
+	   delete myPair.second;
+	   m_characteristicMapByHandle.erase(myPair.first);
+	}
+	m_characteristicMapByHandle.clear();   // Clear the map
 } // removeCharacteristics
 
 
