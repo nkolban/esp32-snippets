@@ -39,7 +39,7 @@ SockServ::SockServ(uint16_t port) : SockServ() {
  */
 SockServ::SockServ() {
 	m_port        = 0;  // Unknown port.
-	m_acceptQueue = xQueueCreate(10, sizeof(Socket));
+	m_acceptQueue = xQueueCreate(1, sizeof(Socket));
 	m_useSSL      = false;
 	m_clientSemaphore.take("SockServ");   // Create the queue; deleted in the destructor.
 } // SockServ

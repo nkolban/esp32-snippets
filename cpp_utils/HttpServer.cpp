@@ -84,7 +84,7 @@ HttpServer::~HttpServer() {
  */
 class HttpServerTask: public Task {
 public:
-	HttpServerTask(std::string name): Task(name, 12*1024) {
+	HttpServerTask(std::string name): Task(name, 16*1024) {
 		m_pHttpServer = nullptr;
 	};
 
