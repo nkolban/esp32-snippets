@@ -155,11 +155,10 @@ void BLEDescriptor::handleGATTServerEvent(
 					*/
 			if (m_pCharacteristic != nullptr &&
 					m_bleUUID.equals(BLEUUID(param->add_char_descr.char_uuid)) &&
-					m_pCharacteristic->getService()->getHandle() == param->add_char_descr.service_handle &&
-					m_pCharacteristic == m_pCharacteristic->getService()->getLastCreatedCharacteristic()) {
+ -					m_pCharacteristic->getService()->getHandle() == param->add_char_descr.service_handle) {
 				setHandle(param->add_char_descr.attr_handle);
-				m_semaphoreCreateEvt.give();
 			}
+			m_semaphoreCreateEvt.give();
 			break;
 		} // ESP_GATTS_ADD_CHAR_DESCR_EVT
 
