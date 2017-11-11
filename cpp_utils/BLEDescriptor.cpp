@@ -70,7 +70,7 @@ void BLEDescriptor::executeCreate(BLECharacteristic* pCharacteristic) {
 
 	esp_attr_control_t control;
 	control.auto_rsp = ESP_GATT_RSP_BY_APP;
-	//m_semaphoreCreateEvt.take("executeCreate");
+	m_semaphoreCreateEvt.take("executeCreate");
 	esp_err_t errRc = ::esp_ble_gatts_add_char_descr(
 			pCharacteristic->getService()->getHandle(),
 			getUUID().getNative(),
@@ -82,7 +82,7 @@ void BLEDescriptor::executeCreate(BLECharacteristic* pCharacteristic) {
 		return;
 	}
 
-	//m_semaphoreCreateEvt.wait("executeCreate");
+	m_semaphoreCreateEvt.wait("executeCreate");
 	ESP_LOGD(LOG_TAG, "<< executeCreate");
 } // executeCreate
 
