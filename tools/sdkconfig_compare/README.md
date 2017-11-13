@@ -1,0 +1,1 @@
+This is a node.js application which takes as input two files.  Each file should be an ESP-IDF `sdkconfig` file.  The tool compares the two files and logs the logical distinctions between them.  For example, if one file has an entry while the other doesn't, that will be logged.  If one file has an entry with a value that is different from the other, that too will be logged.

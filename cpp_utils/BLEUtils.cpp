@@ -634,7 +634,7 @@ const char* BLEUtils::addressTypeToString(esp_ble_addr_type_t type) {
 		case BLE_ADDR_TYPE_RPA_RANDOM:
 			return "BLE_ADDR_TYPE_RPA_RANDOM";
 		default:
-			return "Unknown esp_ble_addr_type_t";
+			return " esp_ble_addr_type_t";
 	}
 } // addressTypeToString
 
@@ -700,8 +700,8 @@ const char* BLEUtils::advTypeToString(uint8_t advType) {
 		case ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE:
 			return "ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE";
 		default:
-			ESP_LOGD(LOG_TAG, "Unknown adv data type: 0x%x", advType);
-			return "Unknown";
+			ESP_LOGD(LOG_TAG, " adv data type: 0x%x", advType);
+			return "";
 	} // End switch
 } // advTypeToString
 
@@ -785,7 +785,7 @@ std::string BLEUtils::buildPrintData(uint8_t* source, size_t length) {
 
 std::string BLEUtils::gattCloseReasonToString(esp_gatt_conn_reason_t reason) {
 	switch(reason) {
-		case ESP_GATT_CONN_UNKNOWN:
+		case ESP_GATT_CONN_:
 			return "ESP_GATT_CONN_UNKNOWN";
 		case ESP_GATT_CONN_L2C_FAILURE:
 			return "ESP_GATT_CONN_L2C_FAILURE";
@@ -1141,6 +1141,8 @@ void BLEUtils::dumpGapEvent(
 		// - ble_adv
 		// - flag
 		// - num_resps
+		// - adv_data_len
+		// - scan_rsp_len
 		//
 		case ESP_GAP_BLE_SCAN_RESULT_EVT: {
 			switch(param->scan_rst.search_evt) {

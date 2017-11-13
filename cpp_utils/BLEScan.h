@@ -57,7 +57,7 @@ public:
 private:
 	BLEScan();   // One doesn't create a new instance instead one asks the BLEDevice for the singleton.
 	friend class BLEDevice;
-	void         gapEventHandler(
+	void         handleGAPEvent(
 		esp_gap_ble_cb_event_t  event,
 		esp_ble_gap_cb_param_t* param);
 	void parseAdvertisement(BLEClient* pRemoteDevice, uint8_t *payload);
