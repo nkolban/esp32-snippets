@@ -21,6 +21,7 @@
 class BLEUtils {
 public:
 	static const char*        addressTypeToString(esp_ble_addr_type_t type);
+	static std::string        adFlagsToString(uint8_t adFlags);
 	static const char*        advTypeToString(uint8_t advType);
 	static esp_gatt_id_t      buildGattId(esp_bt_uuid_t uuid, uint8_t inst_id=0);
 	static esp_gatt_srvc_id_t buildGattSrvcId(esp_gatt_id_t gattId, bool is_primary=true);
