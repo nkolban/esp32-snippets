@@ -785,7 +785,7 @@ std::string BLEUtils::buildPrintData(uint8_t* source, size_t length) {
 
 std::string BLEUtils::gattCloseReasonToString(esp_gatt_conn_reason_t reason) {
 	switch(reason) {
-		case ESP_GATT_CONN_:
+		case ESP_GATT_CONN_UNKNOWN:
 			return "ESP_GATT_CONN_UNKNOWN";
 		case ESP_GATT_CONN_L2C_FAILURE:
 			return "ESP_GATT_CONN_L2C_FAILURE";
