@@ -254,4 +254,26 @@ void BLEDevice::init(std::string deviceName) {
 } // init
 
 
+/**
+ * @brief Set the transmission power.
+ * The power level can be one of:
+ * * ESP_PWR_LVL_N14
+ * * ESP_PWR_LVL_N11
+ * * ESP_PWR_LVL_N8
+ * * ESP_PWR_LVL_N5
+ * * ESP_PWR_LVL_N2
+ * * ESP_PWR_LVL_P1
+ * * ESP_PWR_LVL_P4
+ * * ESP_PWR_LVL_P7
+ * @param [in] powerLevel.
+ */
+/* STATIC */ void BLEDevice::setPower(esp_power_level_t powerLevel) {
+	ESP_LOGD(LOG_TAG, ">> setPower: %d", powerLevel);
+	esp_err_t errRc = ::esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, powerLevel);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_ble_tx_power_set: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+	};
+	ESP_LOGD(LOG_TAG, "<< setPower");
+} // setPower
+
 #endif // CONFIG_BT_ENABLED
