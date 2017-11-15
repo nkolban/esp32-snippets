@@ -152,7 +152,7 @@ void BLEDevice::gapEventHandler(
 	}
 
 	if (BLEDevice::m_pScan != nullptr) {
-		BLEDevice::getScan()->handleGAPEvent(event, param);
+		BLEDevice::getScan()->gapEventHandler(event, param);
 	}
 } // gapEventHandler
 
@@ -163,12 +163,9 @@ void BLEDevice::gapEventHandler(
  * try and release/delete it.
  */
 BLEScan* BLEDevice::getScan() {
-	//ESP_LOGD(LOG_TAG, ">> getScan");
 	if (m_pScan == nullptr) {
 		m_pScan = new BLEScan();
-		//ESP_LOGD(LOG_TAG, " - creating a new scan object");
 	}
-	//ESP_LOGD(LOG_TAG, "<< getScan: Returning object at 0x%x", (uint32_t)m_pScan);
 	return m_pScan;
 } // getScan
 
@@ -195,7 +192,6 @@ void BLEDevice::init(std::string deviceName) {
 #ifndef CLASSIC_BT_ENABLED
 	//	esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);  //FIXME waiting for response from esp-idf issue
 		errRc = esp_bt_controller_enable(ESP_BT_MODE_BLE);
-		//errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 			return;
@@ -253,27 +249,5 @@ void BLEDevice::init(std::string deviceName) {
 	vTaskDelay(200/portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
 } // init
 
-
-/**
- * @brief Set the transmission power.
- * The power level can be one of:
- * * ESP_PWR_LVL_N14
- * * ESP_PWR_LVL_N11
- * * ESP_PWR_LVL_N8
- * * ESP_PWR_LVL_N5
- * * ESP_PWR_LVL_N2
- * * ESP_PWR_LVL_P1
- * * ESP_PWR_LVL_P4
- * * ESP_PWR_LVL_P7
- * @param [in] powerLevel.
- */
-/* STATIC */ void BLEDevice::setPower(esp_power_level_t powerLevel) {
-	ESP_LOGD(LOG_TAG, ">> setPower: %d", powerLevel);
-	esp_err_t errRc = ::esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, powerLevel);
-	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_ble_tx_power_set: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-	};
-	ESP_LOGD(LOG_TAG, "<< setPower");
-} // setPower
 
 #endif // CONFIG_BT_ENABLED

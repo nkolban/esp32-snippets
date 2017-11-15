@@ -85,6 +85,7 @@ public:
 	static const uint32_t PROPERTY_BROADCAST = 1<<3;
 	static const uint32_t PROPERTY_INDICATE  = 1<<4;
 	static const uint32_t PROPERTY_WRITE_NR  = 1<<5;
+	uint16_t             getHandle();
 
 private:
 	friend class BLEServer;
@@ -99,14 +100,13 @@ private:
 	BLECharacteristicCallbacks* m_pCallbacks;
 	BLEService*                 m_pService;
 	BLEValue                    m_value;
-
 	void handleGATTServerEvent(
 			esp_gatts_cb_event_t      event,
 			esp_gatt_if_t             gatts_if,
 			esp_ble_gatts_cb_param_t* param);
 
 	void                 executeCreate(BLEService* pService);
-	uint16_t             getHandle();
+
 	esp_gatt_char_prop_t getProperties();
 	BLEService*          getService();
 	void                 setHandle(uint16_t handle);

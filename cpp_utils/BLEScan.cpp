@@ -43,7 +43,7 @@ BLEScan::BLEScan() {
  * @param [in] event The event type for this event.
  * @param [in] param Parameter data for this event.
  */
-void BLEScan::handleGAPEvent(
+void BLEScan::gapEventHandler(
 	esp_gap_ble_cb_event_t  event,
 	esp_ble_gap_cb_param_t* param) {
 
@@ -66,21 +66,12 @@ void BLEScan::handleGAPEvent(
 		case ESP_GAP_BLE_SCAN_RESULT_EVT: {
 
 			switch(param->scan_rst.search_evt) {
-				//
-				// ESP_GAP_SEARCH_INQ_CMPL_EVT
-				//
-				// Event that indicates that the duration allowed for the search has completed or that we have been
-				// asked to stop.
 				case ESP_GAP_SEARCH_INQ_CMPL_EVT: {
 					m_stopped = true;
 					m_semaphoreScanEnd.give();
 					break;
 				} // ESP_GAP_SEARCH_INQ_CMPL_EVT
 
-				//
-				// ESP_GAP_SEARCH_INQ_RES_EVT
-				//
-				// Result that has arrived back from a Scan inquiry.
 				case ESP_GAP_SEARCH_INQ_RES_EVT: {
 					if (m_stopped) { // If we are not scanning, nothing to do with the extra results.
 						break;
@@ -186,7 +177,7 @@ void BLEScan::setWindow(uint16_t windowMSecs) {
 BLEScanResults BLEScan::start(uint32_t duration) {
 	ESP_LOGD(LOG_TAG, ">> start(duration=%d)", duration);
 
-	m_semaphoreScanEnd.take(std::string("start"));
+	m_semaphoreScanEnd.take("start");
 
 	m_scanResults.m_vectorAdvertisedDevices.clear();
 
@@ -208,7 +199,8 @@ BLEScanResults BLEScan::start(uint32_t duration) {
 
 	m_stopped = false;
 
-	m_semaphoreScanEnd.wait("start");   // Wait for the semaphore to release.
+	m_semaphoreScanEnd.take("start");
+	m_semaphoreScanEnd.give();
 
 	ESP_LOGD(LOG_TAG, "<< start()");
 	return m_scanResults;
@@ -238,17 +230,6 @@ void BLEScan::stop() {
 
 
 /**
- * @brief Dump the scan results to the log.
- */
-void BLEScanResults::dump() {
-	ESP_LOGD(LOG_TAG, ">> Dump scan results:");
-	for (int i=0; i<getCount(); i++) {
-		ESP_LOGD(LOG_TAG, "- %s", getDevice(i).toString().c_str());
-	}
-} // dump
-
-
-/**
  * @brief Return the count of devices found in the last scan.
  * @return The number of devices found in the last scan.
  */
@@ -266,6 +247,5 @@ int BLEScanResults::getCount() {
 BLEAdvertisedDevice BLEScanResults::getDevice(uint32_t i) {
 	return m_vectorAdvertisedDevices.at(i);
 }
-
 
 #endif /* CONFIG_BT_ENABLED */

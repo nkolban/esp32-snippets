@@ -634,35 +634,9 @@ const char* BLEUtils::addressTypeToString(esp_ble_addr_type_t type) {
 		case BLE_ADDR_TYPE_RPA_RANDOM:
 			return "BLE_ADDR_TYPE_RPA_RANDOM";
 		default:
-			return " esp_ble_addr_type_t";
+			return "Unknown esp_ble_addr_type_t";
 	}
 } // addressTypeToString
-
-
-/**
- * @brief Convert the BLE Advertising Data flags to a string.
- * @param adFlags The flags to convert
- * @return std::string A string representation of the advertising flags.
- */
-std::string BLEUtils::adFlagsToString(uint8_t adFlags) {
-	std::stringstream ss;
-	if (adFlags & (1<<0)) {
-		ss << "[LE Limited Discoverable Mode] ";
-	}
-	if (adFlags & (1<<1)) {
-		ss << "[LE General Discoverable Mode] ";
-	}
-	if (adFlags & (1<<2)) {
-		ss << "[BR/EDR Not Supported] ";
-	}
-	if (adFlags & (1<<3)) {
-		ss << "[Simultaneous LE and BR/EDR to Same Device Capable (Controller)] ";
-	}
-	if (adFlags & (1<<4)) {
-		ss << "[Simultaneous LE and BR/EDR to Same Device Capable (Host)] ";
-	}
-	return ss.str();
-} // adFlagsToString
 
 
 /**
@@ -726,8 +700,8 @@ const char* BLEUtils::advTypeToString(uint8_t advType) {
 		case ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE:
 			return "ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE";
 		default:
-			ESP_LOGD(LOG_TAG, " adv data type: 0x%x", advType);
-			return "";
+			ESP_LOGD(LOG_TAG, "Unknown adv data type: 0x%x", advType);
+			return "Unknown";
 	} // End switch
 } // advTypeToString
 
@@ -1167,13 +1141,11 @@ void BLEUtils::dumpGapEvent(
 		// - ble_adv
 		// - flag
 		// - num_resps
-		// - adv_data_len
-		// - scan_rsp_len
 		//
 		case ESP_GAP_BLE_SCAN_RESULT_EVT: {
 			switch(param->scan_rst.search_evt) {
 				case ESP_GAP_SEARCH_INQ_RES_EVT: {
-					ESP_LOGD(LOG_TAG, "search_evt: %s, bda: %s, dev_type: %s, ble_addr_type: %s, ble_evt_type: %s, rssi: %d, ble_adv: ??, flag: %d (%s), num_resps: %d, adv_data_len: %d, scan_rsp_len: %d",
+					ESP_LOGD(LOG_TAG, "search_evt: %s, bda: %s, dev_type: %s, ble_addr_type: %s, ble_evt_type: %s, rssi: %d, ble_adv: ??, flag: %d, num_resps: %d, adv_data_len: %d, scan_rsp_len: %d",
 						searchEventTypeToString(param->scan_rst.search_evt),
 						BLEAddress(param->scan_rst.bda).toString().c_str(),
 						devTypeToString(param->scan_rst.dev_type),
@@ -1181,7 +1153,6 @@ void BLEUtils::dumpGapEvent(
 						eventTypeToString(param->scan_rst.ble_evt_type),
 						param->scan_rst.rssi,
 						param->scan_rst.flag,
-						adFlagsToString(param->scan_rst.flag).c_str(),
 						param->scan_rst.num_resps,
 						param->scan_rst.adv_data_len,
 						param->scan_rst.scan_rsp_len
