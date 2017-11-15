@@ -114,8 +114,13 @@ void BLERemoteService::gattClientEventHandler(
 	} // switch
 
 	// Send the event to each of the characteristics owned by this service.
+/*<<<<<<< Updated upstream
 	for (auto &myPair : m_characteristicMapByHandle) {
 	   myPair.second->gattClientEventHandler(event, gattc_if, evtParam);
+=======*/
+	for (auto &myPair : m_characteristicMap) {
+	   myPair.first->gattClientEventHandler(event, gattc_if, evtParam);
+//>>>>>>> Stashed changes
 	}
 } // gattClientEventHandler
 
@@ -147,13 +152,13 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
 	}
 	std::string v = uuid.toString();
 	for (auto &myPair : m_characteristicMap) {
-		if (myPair.first == v) {
-			return myPair.second;
+		if (myPair.second == v) {
+			return myPair.first;
 		}
 	}
 	return nullptr;
 } // getCharacteristic
-
+/*
 BLERemoteCharacteristic* BLERemoteService::getCharacteristic(uint16_t uuid) {
 // Design
 // ------
@@ -172,7 +177,7 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(uint16_t uuid) {
 	}
 	return nullptr;
 } // getCharacteristic
-
+*/
 
 /**
  * @brief Retrieve all the characteristics for this service.
@@ -276,8 +281,12 @@ void BLERemoteService::retrieveCharacteristics() {
 			this
 		);
 
+/*<<<<<<< Updated upstream
 		m_characteristicMapByHandle.insert(std::pair<uint16_t, BLERemoteCharacteristic*>(pNewRemoteCharacteristic->getHandle(), pNewRemoteCharacteristic));
 		m_characteristicMap.insert(std::pair<std::string, BLERemoteCharacteristic*>(pNewRemoteCharacteristic->getUUID().toString(), pNewRemoteCharacteristic));
+=======*/
+		m_characteristicMap.insert(std::pair<BLERemoteCharacteristic*, std::string>(pNewRemoteCharacteristic, pNewRemoteCharacteristic->getUUID().toString()));
+//>>>>>>> Stashed changes
 
 		offset++;   // Increment our count of number of descriptors found.
 	} // Loop forever (until we break inside the loop).
@@ -291,7 +300,7 @@ void BLERemoteService::retrieveCharacteristics() {
  * @brief Retrieve a map of all the characteristics of this service.
  * @return A map of all the characteristics of this service.
  */
-std::map<std::string, BLERemoteCharacteristic*>* BLERemoteService::getCharacteristics() {
+std::map<BLERemoteCharacteristic*, std::string>* BLERemoteService::getCharacteristics() {
 	ESP_LOGD(LOG_TAG, ">> getCharacteristics() for service: %s", getUUID().toString().c_str());
 	// If is possible that we have not read the characteristics associated with the service so do that
 	// now.  The request to retrieve the characteristics by calling "retrieveCharacteristics" is a blocking
@@ -302,7 +311,7 @@ std::map<std::string, BLERemoteCharacteristic*>* BLERemoteService::getCharacteri
 	ESP_LOGD(LOG_TAG, "<< getCharacteristics() for service: %s", getUUID().toString().c_str());
 	return &m_characteristicMap;
 } // getCharacteristics
-
+/*
 void BLERemoteService::getCharacteristics(std::map<uint16_t, BLERemoteCharacteristic*>* ptr) {
 	ESP_LOGD(LOG_TAG, ">> getCharacteristics() for service: %#04x", getHandle());
 	// If is possible that we have not read the characteristics associated with the service so do that
@@ -314,7 +323,7 @@ void BLERemoteService::getCharacteristics(std::map<uint16_t, BLERemoteCharacteri
 	ESP_LOGD(LOG_TAG, "<< getCharacteristics() for service: %#04x", getHandle());
 	*ptr = m_characteristicMapByHandle;
 } // getCharacteristics
-
+*/
 BLEClient* BLERemoteService::getClient() {
 	return m_pClient;
 }
@@ -356,7 +365,7 @@ BLEUUID BLERemoteService::getUUID() {
  */
 void BLERemoteService::removeCharacteristics() {
 	for (auto &myPair : m_characteristicMap) {
-	   delete myPair.second;
+	   delete myPair.first;
 	   m_characteristicMap.erase(myPair.first);
 	}
 	m_characteristicMap.clear();   // Clear the map
@@ -380,7 +389,7 @@ std::string BLERemoteService::toString() {
 	ss << ", start_handle: " << std::dec << m_startHandle << " 0x" << std::hex << m_startHandle <<
 			", end_handle: " << std::dec << m_endHandle << " 0x" << std::hex << m_endHandle;
 	for (auto &myPair : m_characteristicMap) {
-		ss << "\n" << myPair.second->toString();
+		ss << "\n" << myPair.first->toString();
 	   // myPair.second is the value
 	}
 	return ss.str();
