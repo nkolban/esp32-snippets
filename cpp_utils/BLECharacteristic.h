@@ -77,6 +77,7 @@ public:
 	void setWriteProperty(bool value);
 	void setWriteNoResponseProperty(bool value);
 	std::string toString();
+	uint16_t getHandle();
 
 
 	static const uint32_t PROPERTY_READ      = 1<<0;
@@ -85,7 +86,6 @@ public:
 	static const uint32_t PROPERTY_BROADCAST = 1<<3;
 	static const uint32_t PROPERTY_INDICATE  = 1<<4;
 	static const uint32_t PROPERTY_WRITE_NR  = 1<<5;
-	uint16_t             getHandle();
 
 private:
 	friend class BLEServer;

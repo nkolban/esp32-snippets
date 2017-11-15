@@ -419,12 +419,7 @@ void BLECharacteristic::handleGATTServerEvent(
 
 	// Give each of the descriptors associated with this characteristic the opportunity to handle the
 	// event.
-	/*
-	BLEDescriptor *pDescriptor = m_descriptorMap.getFirst();
-	while(pDescriptor != nullptr) {
-		pDescriptor->handleGATTServerEvent(event, gatts_if, param);
-		pDescriptor = m_descriptorMap.getNext();
-	}*/
+
 	m_descriptorMap.handleGATTServerEvent(event, gatts_if, param);
 
 } // handleGATTServerEvent

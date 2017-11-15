@@ -134,7 +134,7 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(const char* uuid) {
     return getCharacteristic(BLEUUID(uuid));
 } // getCharacteristic
 	
-	
+
 /**
  * @brief Get the characteristic object for the UUID.
  * @param [in] uuid Characteristic uuid.

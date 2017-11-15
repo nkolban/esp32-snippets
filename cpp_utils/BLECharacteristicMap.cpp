@@ -90,6 +90,7 @@ void BLECharacteristicMap::handleGATTServerEvent(
 		esp_gatt_if_t             gatts_if,
 		esp_ble_gatts_cb_param_t* param) {
 	// Invoke the handler for every Service we have.
+
 	for (auto &myPair : m_uuidMap) {
 		myPair.first->handleGATTServerEvent(event, gatts_if, param);
 	}
