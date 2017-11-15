@@ -13,7 +13,6 @@
 #include <esp_gattc_api.h>   // ESP32 BLE
 #include <map>               // Part of C++ STL
 #include <string>
-#include <bt.h>
 
 #include "BLEServer.h"
 #include "BLEClient.h"
@@ -52,8 +51,6 @@ private:
 	static void gapEventHandler(
 		esp_gap_ble_cb_event_t  event,
 		esp_ble_gap_cb_param_t* param);
-
-	static void setPower(esp_power_level_t powerLevel);
 
 }; // class BLE
 

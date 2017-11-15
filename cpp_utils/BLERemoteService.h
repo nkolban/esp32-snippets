@@ -32,9 +32,7 @@ public:
 	// Public methods
 	BLERemoteCharacteristic* getCharacteristic(const char* uuid);	
 	BLERemoteCharacteristic* getCharacteristic(BLEUUID uuid);
-	BLERemoteCharacteristic* getCharacteristic(uint16_t uuid);
-	std::map<std::string, BLERemoteCharacteristic*>* getCharacteristics();
-	void getCharacteristics(std::map<uint16_t, BLERemoteCharacteristic*>* ptr);
+	std::map<BLERemoteCharacteristic*, std::string>* getCharacteristics();
 
 	BLEClient*               getClient(void);
 	uint16_t                 getHandle();
@@ -63,9 +61,7 @@ private:
 	// Properties
 
 	// We maintain a map of characteristics owned by this service keyed by a string representation of the UUID.
-	std::map<std::string, BLERemoteCharacteristic *> m_characteristicMap;
-	// We maintain a map of characteristics owned by this service keyed by a handle.
-	std::map<uint16_t, BLERemoteCharacteristic *> m_characteristicMapByHandle;
+	std::map<BLERemoteCharacteristic *, std::string> m_characteristicMap;
 
 	bool                m_haveCharacteristics; // Have we previously obtained the characteristics.
 	BLEClient*          m_pClient;
