@@ -244,6 +244,7 @@ void BLECharacteristic::handleGATTServerEvent(
 		// - esp_bt_uuid_t char_uuid
 		case ESP_GATTS_ADD_CHAR_EVT: {
 			if (getUUID().equals(BLEUUID(param->add_char.char_uuid)) &&
+					getHandle() == param->add_char.attr_handle &&
 					getService()->getHandle()==param->add_char.service_handle) {
 				m_semaphoreCreateEvt.give();
 			}
@@ -418,11 +419,8 @@ void BLECharacteristic::handleGATTServerEvent(
 
 	// Give each of the descriptors associated with this characteristic the opportunity to handle the
 	// event.
-	BLEDescriptor *pDescriptor = m_descriptorMap.getFirst();
-	while(pDescriptor != nullptr) {
-		pDescriptor->handleGATTServerEvent(event, gatts_if, param);
-		pDescriptor = m_descriptorMap.getNext();
-	}
+
+	m_descriptorMap.handleGATTServerEvent(event, gatts_if, param);
 
 } // handleGATTServerEvent
 
