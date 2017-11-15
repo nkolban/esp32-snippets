@@ -41,8 +41,8 @@ BLECharacteristic* BLECharacteristicMap::getByUUID(const char* uuid) {
  */
 BLECharacteristic* BLECharacteristicMap::getByUUID(BLEUUID uuid) {
 	for (auto &myPair : m_uuidMap) {
-		if (myPair.second->getUUID().equals(uuid)) {
-			return myPair.second;
+		if (myPair.first->getUUID().equals(uuid)) {
+			return myPair.first;
 		}
 	}
 	//return m_uuidMap.at(uuid.toString());
@@ -59,7 +59,7 @@ BLECharacteristic* BLECharacteristicMap::getFirst() {
 	if (m_iterator == m_uuidMap.end()) {
 		return nullptr;
 	}
-	BLECharacteristic* pRet = m_iterator->second;
+	BLECharacteristic* pRet = m_iterator->first;
 	m_iterator++;
 	return pRet;
 } // getFirst
@@ -73,7 +73,7 @@ BLECharacteristic* BLECharacteristicMap::getNext() {
 	if (m_iterator == m_uuidMap.end()) {
 		return nullptr;
 	}
-	BLECharacteristic* pRet = m_iterator->second;
+	BLECharacteristic* pRet = m_iterator->first;
 	m_iterator++;
 	return pRet;
 } // getNext
@@ -91,7 +91,7 @@ void BLECharacteristicMap::handleGATTServerEvent(
 		esp_ble_gatts_cb_param_t* param) {
 	// Invoke the handler for every Service we have.
 	for (auto &myPair : m_uuidMap) {
-		myPair.second->handleGATTServerEvent(event, gatts_if, param);
+		myPair.first->handleGATTServerEvent(event, gatts_if, param);
 	}
 } // handleGATTServerEvent
 
@@ -115,9 +115,9 @@ void BLECharacteristicMap::setByHandle(uint16_t handle,
  * @return N/A.
  */
 void BLECharacteristicMap::setByUUID(
-		BLEUUID            uuid,
-		BLECharacteristic *pCharacteristic) {
-	m_uuidMap.insert(std::pair<std::string, BLECharacteristic *>(uuid.toString(), pCharacteristic));
+		BLECharacteristic *pCharacteristic,
+		BLEUUID            uuid) {
+	m_uuidMap.insert(std::pair<BLECharacteristic *, std::string>(pCharacteristic, uuid.toString()));
 } // setByUUID
 
 
@@ -134,7 +134,7 @@ std::string BLECharacteristicMap::toString() {
 			stringStream << "\n";
 		}
 		count++;
-		stringStream << "handle: 0x" << std::setw(2) << myPair.second->getHandle() << ", uuid: " + myPair.second->getUUID().toString();
+		stringStream << "handle: 0x" << std::setw(2) << myPair.first->getHandle() << ", uuid: " + myPair.first->getUUID().toString();
 	}
 	return stringStream.str();
 } // toString

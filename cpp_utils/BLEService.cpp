@@ -189,12 +189,12 @@ void BLEService::addCharacteristic(BLECharacteristic* pCharacteristic) {
 	// Check that we don't add the same characteristic twice.
 	if (m_characteristicMap.getByUUID(pCharacteristic->getUUID()) != nullptr) {
 		ESP_LOGE(LOG_TAG, "<< Attempt to add a characteristic but we already have one with this UUID");
-		return;
+		//return;
 	}
 
 	// Remember this characteristic in our map of characteristics.  At this point, we can lookup by UUID
 	// but not by handle.  The handle is allocated to us on the ESP_GATTS_ADD_CHAR_EVT.
-	m_characteristicMap.setByUUID(pCharacteristic->getUUID(), pCharacteristic);
+	m_characteristicMap.setByUUID(pCharacteristic, pCharacteristic->getUUID());
 
 	ESP_LOGD(LOG_TAG, "<< addCharacteristic()");
 } // addCharacteristic
@@ -245,7 +245,7 @@ void BLEService::handleGATTServerEvent(
 		// for that characteristic.
 		case ESP_GATTS_ADD_CHAR_EVT: {
 			if (m_handle == param->add_char.service_handle) {
-				BLECharacteristic *pCharacteristic = getCharacteristic(BLEUUID(param->add_char.char_uuid));
+				BLECharacteristic *pCharacteristic = getLastCreatedCharacteristic();
 				if (pCharacteristic == nullptr) {
 					ESP_LOGE(LOG_TAG, "Expected to find characteristic with UUID: %s, but didnt!",
 							BLEUUID(param->add_char.char_uuid).toString().c_str());
