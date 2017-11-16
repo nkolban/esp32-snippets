@@ -311,6 +311,7 @@ void BLERemoteCharacteristic::retrieveDescriptors() {
 		if (count == 0) {
 			break;
 		}
+		ESP_LOGE(LOG_TAG, "");
 		ESP_LOGD(LOG_TAG, "Found a descriptor: Handle: %d, UUID: %s", result.handle, BLEUUID(result.uuid).toString().c_str());
 
 		// We now have a new characteristic ... let us add that to our set of known characteristics

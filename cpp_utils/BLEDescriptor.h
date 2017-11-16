@@ -37,6 +37,7 @@ public:
 	void setValue(uint8_t* data, size_t size);
 	void setValue(std::string value);
 	std::string toString();
+	uint16_t getHandle();
 
 private:
 	friend class BLEDescriptorMap;
@@ -46,7 +47,6 @@ private:
 	uint16_t             m_handle;
 	BLECharacteristic*   m_pCharacteristic;
 	void executeCreate(BLECharacteristic* pCharacteristic);
-	uint16_t getHandle();
 	void setHandle(uint16_t handle);
 	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
 };

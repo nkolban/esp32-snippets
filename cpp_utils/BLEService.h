@@ -24,8 +24,8 @@ class BLEServer;
  */
 class BLECharacteristicMap {
 public:
-	void setByUUID(const char* uuid, BLECharacteristic* pCharacteristic);
-	void setByUUID(BLEUUID uuid, BLECharacteristic* pCharacteristic);
+	void setByUUID(BLECharacteristic* pCharacteristic, const char* uuid);
+	void setByUUID(BLECharacteristic* pCharacteristic, BLEUUID uuid);
 	void setByHandle(uint16_t handle, BLECharacteristic* pCharacteristic);
 	BLECharacteristic* getByUUID(const char* uuid);	
 	BLECharacteristic* getByUUID(BLEUUID uuid);
@@ -40,9 +40,9 @@ public:
 
 
 private:
-	std::map<std::string, BLECharacteristic*> m_uuidMap;
+	std::map<BLECharacteristic*, std::string> m_uuidMap;
 	std::map<uint16_t, BLECharacteristic*> m_handleMap;
-	std::map<std::string, BLECharacteristic*>::iterator m_iterator;
+	std::map<BLECharacteristic*, std::string>::iterator m_iterator;
 };
 
 
@@ -66,6 +66,7 @@ public:
 	BLEServer*         getServer();
 	void               start();
 	std::string        toString();
+	uint16_t           getHandle();
 
 private:
 	friend class BLEServer;
@@ -86,7 +87,6 @@ private:
 
 	uint32_t             m_numHandles;
 
-	uint16_t           getHandle();
 	BLECharacteristic* getLastCreatedCharacteristic();
 	void               handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,

@@ -77,6 +77,7 @@ public:
 	void setWriteProperty(bool value);
 	void setWriteNoResponseProperty(bool value);
 	std::string toString();
+	uint16_t getHandle();
 
 
 	static const uint32_t PROPERTY_READ      = 1<<0;
@@ -106,7 +107,6 @@ private:
 			esp_ble_gatts_cb_param_t* param);
 
 	void                 executeCreate(BLEService* pService);
-	uint16_t             getHandle();
 	esp_gatt_char_prop_t getProperties();
 	BLEService*          getService();
 	void                 setHandle(uint16_t handle);
