@@ -53,6 +53,7 @@ private:
 		esp_gap_ble_cb_event_t  event,
 		esp_ble_gap_cb_param_t* param);
 
+public:
 	static void setPower(esp_power_level_t powerLevel);
 
 }; // class BLE
