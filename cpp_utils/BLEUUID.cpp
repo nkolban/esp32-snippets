@@ -14,6 +14,9 @@
 #include "BLEUUID.h"
 static const char* LOG_TAG = "BLEUUID";
 
+#ifdef ARDUINO_ARCH_ESP32
+#include "esp32-hal-log.h"
+#endif
 
 /**
  * @brief Copy memory from source to target but in reverse order.

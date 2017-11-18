@@ -32,25 +32,10 @@ From October 2017 onwards, a build of the BLE libraries is supplied with the Ard
 4. Extract the `ESP32_BLE.zip` file there
 
 ## Switching on debugging
-The BLE support contains extensive internal diagnostics which can be switched on by editing the file called `sdkconfig.h` and finding the lines which read:
+The BLE support contains extensive internal diagnostics which can be switched on through the "Tools > Core Debug Level" setting:
 
-```
-#define CONFIG_LOG_DEFAULT_LEVEL 1
-```
+![](../../Documentation/images/arduino_debug.png) 
 
-Change this to:
-
-```
-#define CONFIG_LOG_DEFAULT_LEVEL 5
-```
-
-and rebuild/deploy your project.
-
-This file can be found in your Arduino IDE installation directories at:
-
-```
-<ArduinoIDE>/hardware/espressif/esp32/tools/sdk/include/config
-```
 
 ## Decoding an exception stack trace
 While using the BLE C++ classes there is always the unfortunate possibility that something will go wrong and your application crash.  Fortunately, this results in some debug information being logged to the console.  This is known as a *stack trace*.   Included in the stack trace are a sequence of hexadecimal numbers known as the *back trace* which are the list of addresses of functions that were executed just before the crash was detected.  If we could decode these we would have a lot of great information that could be used to aid in the resolution.   Fortunately there is a fantastic project that makes decoding this information very easy indeed.
