@@ -18,7 +18,6 @@ BLE_FILES= \
 	BLEAdvertising.h \
 	BLECharacteristic.cpp \
 	BLECharacteristic.h \
-	BLECharacteristicCallbacks.cpp \
 	BLECharacteristicMap.cpp \
 	BLEClient.cpp \
 	BLEClient.h \
