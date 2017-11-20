@@ -71,6 +71,7 @@ public:
             int m_status;
             std::map<std::string, std::string> m_headers;
             bool m_dataSent;
+            std::string buildHeaders();
     }; // HTTPResponse
 
     /**

@@ -431,7 +431,36 @@ void WebServer::HTTPResponse::addHeader(const std::string& name, const std::stri
 
 void WebServer::HTTPResponse::addHeader(std::string&& name, std::string&& value) {
     m_headers[std::move(name)] = std::move(value);
-}
+} // addHeader
+
+
+/**
+ * @brief Build a string representation of the headers.
+ * @return A string representation of the headers.
+ */
+std::string WebServer::HTTPResponse::buildHeaders() {
+	std::string headers;
+	unsigned long headers_len = 0;
+
+	for(auto iter = m_headers.begin(); iter != m_headers.end(); iter++) {
+			if(iter != m_headers.begin())
+					headers_len += 2;
+			headers_len += iter->first.length();
+			headers_len += 2;
+			headers_len += iter->second.length();
+	}
+	headers_len += 1;
+	headers.resize(headers_len); // Will not have to resize and recopy during the next loop, we have 2 loops but it still ends up being faster
+
+	for (auto iter = m_headers.begin(); iter != m_headers.end(); iter++) {
+			if(iter != m_headers.begin())
+					headers += "\r\n";
+			headers += iter->first;
+			headers += ": ";
+			headers += iter->second;
+	}
+	return headers;
+} // buildHeaders
 
 /**
  * @brief Send data to the HTTP caller.
@@ -442,6 +471,9 @@ void WebServer::HTTPResponse::addHeader(std::string&& name, std::string&& value)
 void WebServer::HTTPResponse::sendData(const std::string& data) {
     sendData((uint8_t *)data.data(), data.length());
 } // sendData
+
+
+
 
 
 /**
@@ -458,55 +490,47 @@ void WebServer::HTTPResponse::sendData(const uint8_t* pData, size_t length) {
     }
     m_dataSent = true;
 
-    std::string headers;
-    unsigned long headers_len = 0;
-
-    for(auto iter = m_headers.begin(); iter != m_headers.end(); iter++) {
-        if(iter != m_headers.begin())
-            headers_len += 2;
-        headers_len += iter->first.length();
-        headers_len += 2;
-        headers_len += iter->second.length();
-    }
-    headers_len += 1;
-    headers.resize(headers_len); // Will not have to resize and recopy during the next loop, we have 2 loops but it still ends up being faster
-
-    for (auto iter = m_headers.begin(); iter != m_headers.end(); iter++) {
-        if(iter != m_headers.begin())
-            headers += "\r\n";
-        headers += iter->first;
-        headers += ": ";
-        headers += iter->second;
-    }
-    mg_send_head(m_nc, m_status, length, headers.c_str());
+    mg_send_head(m_nc, m_status, length, buildHeaders().c_str());
     mg_send(m_nc, pData, length);
     m_nc->flags |= MG_F_SEND_AND_CLOSE;
 } // sendData
 
+
+/**
+ *
+ */
 void WebServer::HTTPResponse::sendData(const char* pData, size_t length) {
     sendData((uint8_t*) pData, length);
 } // sendData
 
+
+/**
+ *
+ */
 void WebServer::HTTPResponse::sendChunkHead() {
     if(m_dataSent) {
         ESP_LOGE(tag, "HTTPResponse: Chunk headers already sent!  Attempt to send again/more.");
     }
     m_dataSent = true;
-    mg_send_head(m_nc, m_status, -1, m_headers.c_str());
-}
+    mg_send_head(m_nc, m_status, -1, buildHeaders().c_str());
+} // sendChunkHead
 
+
+/**
+ *
+ */
 void WebServer::HTTPResponse::sendChunk(const char* pData, size_t length) {
     mg_send_http_chunk(m_nc, pData, length);
 } // sendChunkHead
 
+
+/**
+ *
+ */
 void WebServer::HTTPResponse::closeConnection() {
     m_nc->flags |= MG_F_SEND_AND_CLOSE;
-}
+} // closeConnection
 
-
-void WebServer::HTTPResponse::sendData(const char* pData, size_t length) {
-    sendData((uint8_t*) pData, length);
-}
 
 /**
  * @brief Set the headers to be sent in the HTTP response.
