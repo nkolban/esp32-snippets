@@ -163,8 +163,10 @@ void BLEClient::gattClientEventHandler(
 			if (m_pClientCallbacks != nullptr) {
 				m_pClientCallbacks->onConnect(this);
 			}
-			m_isConnected = true;   // Flag us as connected.
-			m_semaphoreOpenEvt.give();
+			if (evtParam->open.status == ESP_GATT_OK) {
+				m_isConnected = true;   // Flag us as connected.
+			}
+			m_semaphoreOpenEvt.give(evtParam->open.status);
 			break;
 		} // ESP_GATTC_OPEN_EVT
 
