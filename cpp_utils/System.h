@@ -22,6 +22,7 @@ public:
 	static size_t getFreeHeapSize();
 	static std::string getIDFVersion();
 	static size_t getMinimumFreeHeapSize();
+	static void restart();
 };
 
 #endif /* COMPONENTS_CPP_UTILS_SYSTEM_H_ */

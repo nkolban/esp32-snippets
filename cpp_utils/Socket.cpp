@@ -78,7 +78,7 @@ Socket Socket::accept(bool useSSL) {
 		newSocket.m_sslSock.fd = clientSockFD;
 		newSocket.sslHandshake();
 		ESP_LOGD(LOG_TAG, "DEBUG DEBUG ");
-		uint8_t x;
+		uint8_t x;   // What is going on here???
 		newSocket.receive(&x, 1, 0); // FIX FIX FIX
 	}
 	ESP_LOGD(LOG_TAG, "<< accept: sockFd: %d", clientSockFD);
@@ -226,7 +226,10 @@ void Socket::getBind(struct sockaddr* pAddr) {
 		ESP_LOGE(LOG_TAG, "getBind: Socket is not initialized.");
 	}
 	socklen_t nameLen = sizeof(struct sockaddr);
-	::getsockname(m_sock, pAddr, &nameLen);
+	int rc = ::getsockname(m_sock, pAddr, &nameLen);
+	if (rc != 0) {
+		ESP_LOGE(LOG_TAG, "Error with getsockname in getBind: %s", strerror(errno));
+	}
 } // getBind
 
 

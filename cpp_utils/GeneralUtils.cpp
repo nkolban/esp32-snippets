@@ -398,9 +398,4 @@ const char* GeneralUtils::errorToString(esp_err_t errCode) {
 } // errorToString
 
 
-/**
- * @brief Restart the ESP32.
- */
-void GeneralUtils::restart() {
-	esp_restart();
-} // restart
+

@@ -16,7 +16,9 @@ extern "C" {
 
 class Memory {
 public:
+	static bool checkIntegrity();
 	static void dump();
+	static void dumpRanges();
 	static void dumpHeapChange(std::string tag);
 	static void init(uint32_t recordCount);
 	static void resumeTrace();

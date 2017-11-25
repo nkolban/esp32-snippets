@@ -1,11 +1,13 @@
 # Arduino BLE Support
-As part of this Github project, we provide libraries for Bluetooth Low Energy (BLE) for the ESP32 Arduino environment.  Support for this capability is still in the process of being cooked (as of September 2017).  As such you should not build product based on these functions as changes to the API and implementation are extremely likely over the next couple of months.
+As part of this Github project, we provide libraries for Bluetooth Low Energy (BLE) for the ESP32 Arduino environment.  Support for this capability is still in the process of being cooked (as of November 2017).  As such you should not build product based on these functions as changes to the API and implementation are extremely likely over the next couple of months.
 
 That said, we now have the ability to produce a driver you can use for testing.  This will give you early access to the function while give those who choose to build and maintain the code early feedback on what works, what doesn't and what can be improved from a usage perspective.
 
 When complete, the BLE support for ESP32 Arduino will be available as a single ZIP file.  The file will be called **ESP32_BLE.zip**.  It is this file that will be able to be imported into the Arduino IDE from the `Sketch -> Include Library -> Add .ZIP library`.  When initial development of the library has been completed, this ZIP will be placed under some form of release control so that an ordinary Arduino IDE user can simply download this as a unit and install.
 
-A build of the BLE support for Arduino can be found through the Arduino IDE.  Visit Sketch -> Include Library -> Manage Libraries.  In the library filter, enter "esp32 ble arduino".  The search will narrow and you should see "ESP32 BLE Arduino" available for installation or upgrade.
+Update: As of 2017-11, the BLE support has been included with the Arduino ESP32 base package.
+
+A build of the BLE support for Arduino can be found through the Arduino IDE.  Visit `Sketch -> Include Library -> Manage Libraries`.  In the library filter, enter "esp32 ble arduino".  The search will narrow and you should see "ESP32 BLE Arduino" available for installation or upgrade.
 
 
 
@@ -32,7 +34,7 @@ From October 2017 onwards, a build of the BLE libraries is supplied with the Ard
 4. Extract the `ESP32_BLE.zip` file there
 
 ## Switching on debugging
-The BLE support contains extensive internal diagnostics which can be switched on through the "Tools > Core Debug Level" setting:
+The BLE support contains extensive internal diagnostics which can be switched on through the `Tools > Core Debug Level` setting:
 
 ![](../../Documentation/images/arduino_debug.png) 
 

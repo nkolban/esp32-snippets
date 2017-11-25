@@ -22,7 +22,7 @@ public:
 	static const char* errorToString(esp_err_t errCode);
 	static void        hexDump(const uint8_t* pData, uint32_t length);
 	static std::string ipToString(uint8_t* ip);
-	static void        restart();
+
 };
 
 #endif /* COMPONENTS_CPP_UTILS_GENERALUTILS_H_ */

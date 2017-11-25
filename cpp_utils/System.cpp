@@ -57,3 +57,10 @@ std::string System::getIDFVersion() {
 size_t System::getMinimumFreeHeapSize() {
 	return heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT);
 } // getMinimumFreeHeapSize
+
+/**
+ * @brief Restart the ESP32.
+ */
+void System::restart() {
+	esp_restart();
+} // restart

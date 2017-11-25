@@ -15,6 +15,7 @@
 #include "FileSystem.h"
 #include "WebSocket.h"
 #include "GeneralUtils.h"
+#include "Memory.h"
 static const char* LOG_TAG = "HttpServer";
 
 #undef close
@@ -65,9 +66,9 @@ static void listDirectory(std::string path, HttpResponse& response) {
  * Constructor for HTTP Server
  */
 HttpServer::HttpServer() {
-	m_portNumber = 80;              // The default port number.
-	m_rootPath   = "";             // The default path.
-	m_useSSL     = false;           // Default SSL is no.
+	m_portNumber = 80;            // The default port number.
+	m_rootPath   = "";            // The default path.
+	m_useSSL     = false;         // Default SSL is no.
 	setDirectoryListing(false);   // Default directory listing is no.
 } // HttpServer
 
@@ -188,11 +189,12 @@ private:
 		while(1) {   // Loop forever.
 
 			ESP_LOGD("HttpServerTask", "Waiting for new peer client");
-
+			Memory::checkIntegrity();
 			try {
 				clientSocket = m_pHttpServer->m_sockServ.waitForNewClient();   // Block waiting for a new external client connection.
 			}
-			catch(std::exception e) {
+			catch(std::exception &e) {
+				ESP_LOGE("HttpServerTask", "Caught an exception waiting for new client!");
 				return;
 			}
 
