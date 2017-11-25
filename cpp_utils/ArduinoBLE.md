@@ -36,7 +36,7 @@ From October 2017 onwards, a build of the BLE libraries is supplied with the Ard
 ## Switching on debugging
 The BLE support contains extensive internal diagnostics which can be switched on through the `Tools > Core Debug Level` setting:
 
-![](../../Documentation/images/arduino_debug.png) 
+![](https://github.com/nkolban/esp32-snippets/blob/master/Documentation/images/arduino_debug.png)
 
 
 ## Decoding an exception stack trace
