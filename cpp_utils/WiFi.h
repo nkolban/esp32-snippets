@@ -114,6 +114,7 @@ private:
     uint8_t             m_dnsCount=0;
     bool                m_eventLoopStarted;
     bool                m_initCalled;
+    bool                m_apConnected;   // Are we connected to an access point?
   	FreeRTOS::Semaphore m_connectFinished = FreeRTOS::Semaphore("ConnectFinished");
 
 public:
@@ -127,7 +128,7 @@ public:
     void                      setDNSServer(int numdns, ip_addr_t ip);
     struct in_addr            getHostByName(const std::string& hostName);
     struct in_addr            getHostByName(const char* hostName);
-    void                      connectAP(const std::string& ssid, const std::string& password, bool waitForConnection=true);
+    bool                      connectAP(const std::string& ssid, const std::string& password, bool waitForConnection=true);
     void                      dump();
     static std::string        getApMac();
     static tcpip_adapter_ip_info_t getApIpInfo();

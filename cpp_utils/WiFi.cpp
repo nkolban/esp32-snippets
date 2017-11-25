@@ -52,9 +52,10 @@ WiFi::WiFi()
     , netmask(0)
     , m_pWifiEventHandler(nullptr)
 {
-	m_eventLoopStarted = false;
-	m_initCalled = false;
+	m_eventLoopStarted  = false;
+	m_initCalled        = false;
 	m_pWifiEventHandler = new WiFiEventHandler();
+	m_apConnected       = false;    // Are we connected to an access point?
 } // WiFi
 
 /**
@@ -150,9 +151,10 @@ void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
  * @param [in] waitForConnection Block until the connection has an outcome.
  * @return N/A.
  */
-void WiFi::connectAP(const std::string& ssid, const std::string& password, bool waitForConnection){
+bool WiFi::connectAP(const std::string& ssid, const std::string& password, bool waitForConnection){
 	ESP_LOGD(LOG_TAG, ">> connectAP");
 
+	m_apConnected = false;
 	init();
 
 	if (ip != 0 && gw != 0 && netmask != 0) {
@@ -197,6 +199,7 @@ void WiFi::connectAP(const std::string& ssid, const std::string& password, bool 
 
 	m_connectFinished.wait("connectAP");   // Wait for the completion of the connection.
 	ESP_LOGD(LOG_TAG, "<< connectAP");
+	return m_apConnected;  // Return true if we are now connected and false if not.
 } // connectAP
 
 
@@ -231,6 +234,11 @@ void WiFi::dump() {
 	// If the event we received indicates that we now have an IP address or that a connection was disconnected then unlock the mutex that
 	// indicates we are waiting for a connection complete.
 	if (event->event_id == SYSTEM_EVENT_STA_GOT_IP || event->event_id == SYSTEM_EVENT_STA_DISCONNECTED) {
+		if (event->event_id == SYSTEM_EVENT_STA_GOT_IP) {  // If we connected and have an IP, change the flag.
+			pWiFi->m_apConnected = true;
+		} else {
+			pWiFi->m_apConnected = false;
+		}
 		pWiFi->m_connectFinished.give();
 	}
 
