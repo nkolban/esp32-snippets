@@ -16,7 +16,7 @@
 #include "SockServ.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
-#include "SockServ.h"
+//#include "SockServ.h"
 #include <regex>
 
 class HttpServerTask;
@@ -89,7 +89,8 @@ private:
 	std::string              m_rootPath;           // Root path into the file system.
 	bool                     m_useSSL;             // Is this server listening on an HTTPS port?
 	bool                     m_directoryListing;   // Should we list directory content?
-	SockServ                 m_sockServ;           // Server socket.
+	//SockServ                 m_sockServ;           // Server socket.
+	Socket                   m_socket;
 }; // HttpServer
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPSERVER_H_ */

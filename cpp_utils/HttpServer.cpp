@@ -181,17 +181,16 @@ private:
 	 */
 	void run(void* data) {
 		m_pHttpServer = (HttpServer*)data;             // The passed in data is an instance of an HttpServer.
-		m_pHttpServer->m_sockServ.setPort(m_pHttpServer->m_portNumber);
-		m_pHttpServer->m_sockServ.setSSL(m_pHttpServer->m_useSSL);
-		m_pHttpServer->m_sockServ.start();
+		m_pHttpServer->m_socket.setSSL(m_pHttpServer->m_useSSL);
+		m_pHttpServer->m_socket.listen(m_pHttpServer->m_portNumber);
 		ESP_LOGD("HttpServerTask", "Listening on port %d", m_pHttpServer->getPort());
 		Socket clientSocket;
 		while(1) {   // Loop forever.
 
 			ESP_LOGD("HttpServerTask", "Waiting for new peer client");
-			Memory::checkIntegrity();
+			//Memory::checkIntegrity();
 			try {
-				clientSocket = m_pHttpServer->m_sockServ.waitForNewClient();   // Block waiting for a new external client connection.
+				clientSocket = m_pHttpServer->m_socket.accept();   // Block waiting for a new external client connection.
 			}
 			catch(std::exception &e) {
 				ESP_LOGE("HttpServerTask", "Caught an exception waiting for new client!");
@@ -353,7 +352,7 @@ void HttpServer::stop() {
 	// that is listening for incoming connections.  That will then shutdown all the other
 	// activities.
 	ESP_LOGD(LOG_TAG, ">> stop");
-	m_sockServ.stop();
+	m_socket.close();
 	ESP_LOGD(LOG_TAG, "<< stop");
 } // stop
 

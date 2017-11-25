@@ -56,14 +56,12 @@ Socket::~Socket() {
 /**
  * @brief Accept a new socket.
  */
-Socket Socket::accept(bool useSSL) {
+Socket Socket::accept() {
 	struct sockaddr addr;
 	getBind(&addr);
-	ESP_LOGD(LOG_TAG, ">> accept: Accepting on %s; sockFd: %d, using SSL: %d", addressToString(&addr).c_str(), m_sock, useSSL);
+	ESP_LOGD(LOG_TAG, ">> accept: Accepting on %s; sockFd: %d, using SSL: %d", addressToString(&addr).c_str(), m_sock, getSSL());
 
-	struct sockaddr_in clientAddress;
-	socklen_t clientAddressLength = sizeof(clientAddress);
-	int clientSockFD = ::lwip_accept_r(m_sock, (struct sockaddr *)&clientAddress, &clientAddressLength);
+	int clientSockFD = ::lwip_accept_r(m_sock, nullptr, nullptr);
 	if (clientSockFD == -1) {
 		SocketException se(errno);
 		ESP_LOGE(LOG_TAG, "accept(): %s, m_sock=%d", strerror(errno), m_sock);
@@ -73,7 +71,7 @@ Socket Socket::accept(bool useSSL) {
 	ESP_LOGD(LOG_TAG, " - accept: Received new client!: sockFd: %d", clientSockFD);
 	Socket newSocket;
 	newSocket.m_sock = clientSockFD;
-	if (useSSL) {
+	if (getSSL()) {
 		newSocket.setSSL(true);
 		newSocket.m_sslSock.fd = clientSockFD;
 		newSocket.sslHandshake();
@@ -252,7 +250,7 @@ bool Socket::isValid() {
 /**
  * @brief Create a listening socket.
  * @param [in] port The port number to listen upon.
- * @param [in] isDatagram True if we are listening on a datagram.
+ * @param [in] isDatagram True if we are listening on a datagram.  The default is false.
  */
 void Socket::listen(uint16_t port, bool isDatagram) {
 	ESP_LOGD(LOG_TAG, ">> listen: port: %d, isDatagram: %d", port, isDatagram);

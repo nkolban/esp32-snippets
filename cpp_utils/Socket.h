@@ -56,7 +56,7 @@ public:
 	Socket();
 	virtual ~Socket();
 
-	Socket accept(bool useSSL=false);
+	Socket accept();
 	static std::string addressToString(struct sockaddr* addr);
 	void bind(uint16_t port, uint32_t address);
 	void close();
@@ -99,7 +99,7 @@ public:
 	~SocketInputRecordStreambuf();
 	int_type underflow();
 private:
-	char *m_buffer;
+	char*   m_buffer;
 	Socket  m_socket;
 	size_t  m_dataLength;
 	size_t  m_bufferSize;

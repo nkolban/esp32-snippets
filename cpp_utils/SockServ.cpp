@@ -65,7 +65,7 @@ SockServ::~SockServ() {
 	try {
 		while(1) {
 			ESP_LOGD(LOG_TAG, "Waiting on accept")
-			Socket tempSock = pSockServ->m_serverSocket.accept(pSockServ->getSSL());
+			Socket tempSock = pSockServ->m_serverSocket.accept();
 			if (!tempSock.isValid()) {
 				continue;
 			}
