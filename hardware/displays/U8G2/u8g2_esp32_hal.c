@@ -10,9 +10,11 @@
 #include "u8g2_esp32_hal.h"
 
 static const char *TAG = "u8g2_hal";
+static const unsigned int I2C_TIMEOUT_MS = 1000;
 
-static spi_device_handle_t handle; // SPI handle.
-static u8g2_esp32_hal_t u8g2_esp32_hal; // HAL state data.
+static spi_device_handle_t handle_spi;      // SPI handle.
+static i2c_cmd_handle_t    handle_i2c;      // I2C handle.
+static u8g2_esp32_hal_t    u8g2_esp32_hal;  // HAL state data.
 
 #undef ESP_ERROR_CHECK
 #define ESP_ERROR_CHECK(x)   do { esp_err_t rc = (x); if (rc != ESP_OK) { ESP_LOGE("err", "esp_err_t = %d", rc); assert(0 && #x);} } while(0);
@@ -26,10 +28,10 @@ void u8g2_esp32_hal_init(u8g2_esp32_hal_t u8g2_esp32_hal_param) {
 
 /*
  * HAL callback function as prescribed by the U8G2 library.  This callback is invoked
- * to handle callbacks for communications.
+ * to handle SPI communications.
  */
-uint8_t u8g2_esp32_msg_comms_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
-	//ESP_LOGD(tag, "msg_comms_cb: Received a msg: %d: %s", msg, msgToString(msg, arg_int, arg_ptr));
+uint8_t u8g2_esp32_spi_byte_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
+	ESP_LOGD(TAG, "spi_byte_cb: Received a msg: %d, arg_int: %d, arg_ptr: %p", msg, arg_int, arg_ptr);
 	switch(msg) {
 		case U8X8_MSG_BYTE_SET_DC:
 			if (u8g2_esp32_hal.dc != U8G2_ESP32_HAL_UNDEFINED) {
@@ -50,7 +52,7 @@ uint8_t u8g2_esp32_msg_comms_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void
 		  bus_config.miso_io_num   = -1; // MISO
 		  bus_config.quadwp_io_num = -1; // Not used
 		  bus_config.quadhd_io_num = -1; // Not used
-		  //ESP_LOGI(tag, "... Initializing bus.");
+		  //ESP_LOGI(TAG, "... Initializing bus.");
 		  ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &bus_config, 1));
 
 		  spi_device_interface_config_t dev_config;
@@ -67,8 +69,8 @@ uint8_t u8g2_esp32_msg_comms_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void
 		  dev_config.queue_size       = 200;
 		  dev_config.pre_cb           = NULL;
 		  dev_config.post_cb          = NULL;
-		  //ESP_LOGI(tag, "... Adding device bus.");
-		  ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &dev_config, &handle));
+		  //ESP_LOGI(TAG, "... Adding device bus.");
+		  ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &dev_config, &handle_spi));
 
 		  break;
 		}
@@ -76,36 +78,35 @@ uint8_t u8g2_esp32_msg_comms_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void
 		case U8X8_MSG_BYTE_SEND: {
 			spi_transaction_t trans_desc;
 			trans_desc.addr      = 0;
-			trans_desc.command   = 0;
+			trans_desc.cmd   	 = 0;
 			trans_desc.flags     = 0;
 			trans_desc.length    = 8 * arg_int; // Number of bits NOT number of bytes.
 			trans_desc.rxlength  = 0;
 			trans_desc.tx_buffer = arg_ptr;
 			trans_desc.rx_buffer = NULL;
 
-			//ESP_LOGI(tag, "... Transmitting %d bytes.", arg_int);
-			ESP_ERROR_CHECK(spi_device_transmit(handle, &trans_desc));
+			//ESP_LOGI(TAG, "... Transmitting %d bytes.", arg_int);
+			ESP_ERROR_CHECK(spi_device_transmit(handle_spi, &trans_desc));
 			break;
 		}
 	}
 	return 0;
-} // u8g2_esp32_msg_comms_cb
+} // u8g2_esp32_spi_byte_cb
 
 /*
  * HAL callback function as prescribed by the U8G2 library.  This callback is invoked
- * to handle callbacks for communications.
+ * to handle I2C communications.
  */
-uint8_t u8g2_esp32_msg_i2c_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
-
-	ESP_LOGD(TAG, "msg_i2c_cb: Received a msg: %d %d", msg, arg_int);
-	//ESP_LOGD(tag, "msg_i2c_cb: Received a msg: %d: %s", msg, msgToString(msg, arg_int, arg_ptr));
+uint8_t u8g2_esp32_i2c_byte_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
+	ESP_LOGD(TAG, "i2c_cb: Received a msg: %d, arg_int: %d, arg_ptr: %p", msg, arg_int, arg_ptr);
 
 	switch(msg) {
-		case U8X8_MSG_BYTE_SET_DC:
+		case U8X8_MSG_BYTE_SET_DC: {
 			if (u8g2_esp32_hal.dc != U8G2_ESP32_HAL_UNDEFINED) {
 				gpio_set_level(u8g2_esp32_hal.dc, arg_int);
 			}
 			break;
+		}
 
 		case U8X8_MSG_BYTE_INIT: {
 			if (u8g2_esp32_hal.sda == U8G2_ESP32_HAL_UNDEFINED ||
@@ -127,108 +128,47 @@ uint8_t u8g2_esp32_msg_i2c_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *
 		    ESP_ERROR_CHECK(i2c_param_config(I2C_MASTER_NUM, &conf));
 			ESP_LOGI(TAG, "i2c_driver_install %d", I2C_MASTER_NUM);
 		    ESP_ERROR_CHECK(i2c_driver_install(I2C_MASTER_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
-/*
-			i2c_cmd_handle_t cmd = i2c_cmd_link_create(); // dummy write
-			ESP_ERROR_CHECK(i2c_master_start(cmd));
-			ESP_ERROR_CHECK(i2c_master_write_byte(cmd, 0x00 | I2C_MASTER_WRITE, ACK_CHECK_DIS));
-			ESP_ERROR_CHECK(i2c_master_stop(cmd));
-			ESP_LOGI(TAG, "i2c_master_cmd_begin %d", I2C_MASTER_NUM);
-			ESP_ERROR_CHECK(i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS));
-			i2c_cmd_link_delete(cmd);
-*/
-
 			break;
 		}
 
 		case U8X8_MSG_BYTE_SEND: {
-			uint8_t *data;
-			uint8_t cmddata;
-			i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-			ESP_ERROR_CHECK(i2c_master_start(cmd));
-//			ESP_LOGI(TAG, "I2CAddress %02X", u8x8_GetI2CAddress(u8x8)>>1);
-			ESP_ERROR_CHECK(i2c_master_write_byte(cmd, u8x8_GetI2CAddress(u8x8) | I2C_MASTER_WRITE, ACK_CHECK_EN));
-		    data = (uint8_t *)arg_ptr;
-			if (arg_int==1) {
-				cmddata=0;
-				ESP_ERROR_CHECK(i2c_master_write(cmd, &cmddata, 1, ACK_CHECK_EN));
-//				   printf("0x%02X ",zerodata);
-			} else {
-				cmddata=0x40;
-				ESP_ERROR_CHECK(i2c_master_write(cmd, &cmddata, 1, ACK_CHECK_EN));
-				//bzero(arg_ptr,arg_int);
-				//*data=0x40;
-			}
-			//ESP_ERROR_CHECK(i2c_master_write(cmd, arg_ptr, arg_int, ACK_CHECK_EN));
+			uint8_t* data_ptr = (uint8_t*)arg_ptr;
+			ESP_LOG_BUFFER_HEXDUMP(TAG, data_ptr, arg_int, ESP_LOG_VERBOSE);
 
-		    while( arg_int > 0 ) {
-			   ESP_ERROR_CHECK(i2c_master_write_byte(cmd, *data, ACK_CHECK_EN));
-//			   printf("0x%02X ",*data);
-			   data++;
+			while( arg_int > 0 ) {
+			   ESP_ERROR_CHECK(i2c_master_write_byte(handle_i2c, *data_ptr, ACK_CHECK_EN));
+			   data_ptr++;
 			   arg_int--;
-		    }
-//			printf("\n");
+			}
+			break;
+		}
 
-			ESP_ERROR_CHECK(i2c_master_stop(cmd));
-//			ESP_LOGI(TAG, "i2c_master_cmd_begin %d", I2C_MASTER_NUM);
-			ESP_ERROR_CHECK(i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS));
-			i2c_cmd_link_delete(cmd);
+		case U8X8_MSG_BYTE_START_TRANSFER: {
+			uint8_t i2c_address = u8x8_GetI2CAddress(u8x8);
+			handle_i2c = i2c_cmd_link_create();
+			ESP_LOGD(TAG, "Start I2C transfer to %02X.", i2c_address>>1);
+			ESP_ERROR_CHECK(i2c_master_start(handle_i2c));
+			ESP_ERROR_CHECK(i2c_master_write_byte(handle_i2c, i2c_address | I2C_MASTER_WRITE, ACK_CHECK_EN));
+			break;
+		}
+
+		case U8X8_MSG_BYTE_END_TRANSFER: {
+			ESP_LOGD(TAG, "End I2C transfer.");
+			ESP_ERROR_CHECK(i2c_master_stop(handle_i2c));
+			ESP_ERROR_CHECK(i2c_master_cmd_begin(I2C_MASTER_NUM, handle_i2c, I2C_TIMEOUT_MS / portTICK_RATE_MS));
+			i2c_cmd_link_delete(handle_i2c);
 			break;
 		}
 	}
 	return 0;
-} // u8g2_esp32_msg_i2c_cb
+} // u8g2_esp32_i2c_byte_cb
 
 /*
  * HAL callback function as prescribed by the U8G2 library.  This callback is invoked
  * to handle callbacks for GPIO and delay functions.
  */
-uint8_t u8g2_esp32_msg_gpio_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
-	//ESP_LOGD(tag, "msg_gpio_and_delay_cb: Received a msg: %d: %s", msg, msgToString(msg, arg_int, arg_ptr));
-	switch(msg) {
-
-	// Initialize the GPIO and DELAY HAL functions.  If the pins for DC and RESET have been
-	// specified then we define those pins as GPIO outputs.
-		case U8X8_MSG_GPIO_AND_DELAY_INIT: {
-			uint64_t bitmask = 0;
-			if (u8g2_esp32_hal.dc != U8G2_ESP32_HAL_UNDEFINED) {
-				bitmask = bitmask | (1<<u8g2_esp32_hal.dc);
-			}
-			if (u8g2_esp32_hal.reset != U8G2_ESP32_HAL_UNDEFINED) {
-				bitmask = bitmask | (1<<u8g2_esp32_hal.reset);
-			}
-
-			gpio_config_t gpioConfig;
-			gpioConfig.pin_bit_mask = bitmask;
-			gpioConfig.mode         = GPIO_MODE_OUTPUT;
-			gpioConfig.pull_up_en   = GPIO_PULLUP_DISABLE;
-			gpioConfig.pull_down_en = GPIO_PULLDOWN_ENABLE;
-			gpioConfig.intr_type    = GPIO_INTR_DISABLE;
-			gpio_config(&gpioConfig);
-			break;
-		}
-
-	// Set the GPIO reset pin to the value passed in through arg_int.
-		case U8X8_MSG_GPIO_RESET:
-			if (u8g2_esp32_hal.reset != U8G2_ESP32_HAL_UNDEFINED) {
-				gpio_set_level(u8g2_esp32_hal.reset, arg_int);
-			}
-			break;
-
-	// Delay for the number of milliseconds passed in through arg_int.
-		case U8X8_MSG_DELAY_MILLI:
-			vTaskDelay(arg_int/portTICK_PERIOD_MS);
-			break;
-	}
-	return 0;
-} // u8g2_esp32_msg_gpio_and_delay_cb
-
-/*
- * HAL callback function as prescribed by the U8G2 library.  This callback is invoked
- * to handle callbacks for I²C and delay functions.
- */
-uint8_t u8g2_esp32_msg_i2c_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
-
-	ESP_LOGD(TAG, "msg_i2c_and_delay_cb: Received a msg: %d", msg);
+uint8_t u8g2_esp32_gpio_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr) {
+	ESP_LOGD(TAG, "gpio_and_delay_cb: Received a msg: %d, arg_int: %d, arg_ptr: %p", msg, arg_int, arg_ptr);
 
 	switch(msg) {
 	// Initialize the GPIO and DELAY HAL functions.  If the pins for DC and RESET have been
@@ -244,12 +184,7 @@ uint8_t u8g2_esp32_msg_i2c_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_i
 			if (u8g2_esp32_hal.cs != U8G2_ESP32_HAL_UNDEFINED) {
 				bitmask = bitmask | (1<<u8g2_esp32_hal.cs);
 			}
-			if (u8g2_esp32_hal.sda != U8G2_ESP32_HAL_UNDEFINED) {
-				//bitmask = bitmask | (1<<u8g2_esp32_hal.sda);
-			}
-			if (u8g2_esp32_hal.scl != U8G2_ESP32_HAL_UNDEFINED) {
-				//bitmask = bitmask | (1<<u8g2_esp32_hal.scl);
-			}
+
             if (bitmask==0) {
             	break;
             }
@@ -296,4 +231,4 @@ uint8_t u8g2_esp32_msg_i2c_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_i
 			break;
 	}
 	return 0;
-} // u8g2_esp32_msg_gpio_and_delay_cb
+} // u8g2_esp32_gpio_and_delay_cb
