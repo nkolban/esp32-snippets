@@ -7,7 +7,7 @@
 
 #ifndef COMPONENTS_CPP_UTILS_SOCKET_H_
 #define COMPONENTS_CPP_UTILS_SOCKET_H_
-
+#include "sdkconfig.h"
 #include <mbedtls/platform.h>
 
 #include <mbedtls/ctr_drbg.h>
@@ -36,6 +36,11 @@
 #include <cstdio>
 #include <cstring>
 #include <exception>
+
+
+#if CONFIG_CXX_EXCEPTIONS != 1
+#error "C++ exception handling must be enabled within make menuconfig. See Compiler Options > Enable C++ Exceptions."
+#endif
 
 class SocketException: public std::exception {
 public:
