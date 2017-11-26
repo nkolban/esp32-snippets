@@ -40,16 +40,16 @@ void task_test_SSD1306(void *ignore) {
 	u8g2_Setup_ssd1306_128x64_noname_f(
 		&u8g2,
 		U8G2_R0,
-		u8g2_esp32_msg_comms_cb,
-		u8g2_esp32_msg_gpio_and_delay_cb);  // init u8g2 structure
+		u8g2_esp32_spi_byte_cb,
+		u8g2_esp32_gpio_and_delay_cb);  // init u8g2 structure
 
 	u8g2_InitDisplay(&u8g2); // send init sequence to the display, display is in sleep mode after this,
 
 	u8g2_SetPowerSave(&u8g2, 0); // wake up display
 	u8g2_ClearBuffer(&u8g2);
 	u8g2_DrawBox(&u8g2, 10,20, 20, 30);
-  u8g2_SetFont(&u8g2, u8g2_font_ncenB14_tr);
-  u8g2_DrawStr(&u8g2, 0,15,"Hello World!");
+	u8g2_SetFont(&u8g2, u8g2_font_ncenB14_tr);
+	u8g2_DrawStr(&u8g2, 0,15,"Hello World!");
 	u8g2_SendBuffer(&u8g2);
 
 	ESP_LOGD(tag, "All done!");
