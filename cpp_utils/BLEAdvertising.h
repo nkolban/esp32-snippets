@@ -13,6 +13,25 @@
 #include "BLEUUID.h"
 #include <vector>
 
+
+/**
+ * @brief Advertisement data set by the programmer to be published by the %BLE server.
+ */
+class BLEAdvertisementData {
+public:
+	void setCompleteServices(BLEUUID uuid);
+	void setFlags(uint8_t);
+	void setName(std::string name);
+	void setPartialServices(BLEUUID uuid);
+	void setShortName(std::string name);
+private:
+	friend class BLEAdvertising;
+	std::string m_payload;   // The payload of the advertisement.
+	void addData(std::string data);  // Add data to the payload.
+	std::string getPayload();
+};   // BLEAdvertisementData
+
+
 /**
  * @brief Perform and manage %BLE advertising.
  *
@@ -26,10 +45,14 @@ public:
 	void start();
 	void stop();
 	void setAppearance(uint16_t appearance);
+	void setAdvertisementData(BLEAdvertisementData& advertisementData);
+	void setScanResponseData(BLEAdvertisementData& advertisementData);
 private:
 	esp_ble_adv_data_t   m_advData;
 	esp_ble_adv_params_t m_advParams;
 	std::vector<BLEUUID> m_serviceUUIDs;
+	bool                 m_customAdvData;  // Are we using custom advertising data?
+	bool                 m_customScanResponseData;  // Are we using custom scan response data?
 };
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEADVERTISING_H_ */

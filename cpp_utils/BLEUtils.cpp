@@ -1264,6 +1264,15 @@ void BLEUtils::dumpGapEvent(
 
 
 		//
+		// ESP_GAP_BLE_SCAN_RSP_DATA_RAW_SET_COMPLETE_EVT
+		//
+		case ESP_GAP_BLE_SCAN_RSP_DATA_RAW_SET_COMPLETE_EVT: {
+			ESP_LOGD(LOG_TAG, "[status: %d]",	param->scan_rsp_data_raw_cmpl.status);
+			break;
+		} // ESP_GAP_BLE_SCAN_RSP_DATA_RAW_SET_COMPLETE_EVT
+
+
+		//
 		// ESP_GAP_BLE_SCAN_START_COMPLETE_EVT
 		//
 		// scan_start_cmpl

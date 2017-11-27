@@ -189,6 +189,32 @@ BLEUUID::BLEUUID() {
 
 
 /**
+ * @brief Get the number of bits in this uuid.
+ * @return The number of bits in the UUID.  One of 16, 32 or 128.
+ */
+int BLEUUID::bitSize() {
+	if (m_valueSet == false) {
+		return 0;
+	}
+	switch(m_uuid.len) {
+		case ESP_UUID_LEN_16: {
+			return 16;
+		}
+		case ESP_UUID_LEN_32: {
+			return 32;
+		}
+		case ESP_UUID_LEN_128: {
+			return 128;
+		}
+		default: {
+			ESP_LOGE(LOG_TAG, "Unknown UUID length: %d", m_uuid.len);
+			return 0;
+		}
+	} // End of switch
+} // bitSize
+
+
+/**
  * @brief Compare a UUID against this UUID.
  *
  * @param [in] uuid The UUID to compare against.
