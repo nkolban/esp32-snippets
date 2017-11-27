@@ -19,8 +19,10 @@
  */
 class BLEAdvertisementData {
 public:
+	void setAppearance(uint16_t appearance);
 	void setCompleteServices(BLEUUID uuid);
 	void setFlags(uint8_t);
+	void setManufacturerData(std::string data);
 	void setName(std::string name);
 	void setPartialServices(BLEUUID uuid);
 	void setShortName(std::string name);

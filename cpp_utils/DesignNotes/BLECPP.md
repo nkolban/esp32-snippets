@@ -40,6 +40,8 @@ The following advertising types are supported:
 |0x07|Complete list of 128 bit service UUIDs
 |0x08|Shortened local name
 |0x09|Complete local name
+|0x19|Appearance
+|0xFF|Manufacturer data
 
 
 
@@ -54,8 +56,10 @@ See also:
 |-|-
 |0x01|`setFlags(uint8_t flag)`
 |0x02, 0x04, 0x06|`setPartialServices(vector<BLEUUID>)`
-|0x02, 0x04, 0x06|`setPartialServices(BLEUUID`)
+|0x02, 0x04, 0x06|`setPartialServices(BLEUUID)`
 |0x03, 0x05, 0x07|`setCompleteServices(vector<BLEUUID>)`
-|0x03, 0x05, 0x07|`setCompleteServices(BLEUUID`)
+|0x03, 0x05, 0x07|`setCompleteServices(BLEUUID)`
 |0x08|`setShortName(std::string)`
 |0x09|`setName(std::string)`
+|0x19|`setAppearance(uint16_t)`
+|0xFF|`setManufacturerData(std::string)`

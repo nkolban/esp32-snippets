@@ -219,6 +219,20 @@ void BLEAdvertisementData::addData(std::string data) {
 } // addData
 
 
+/**
+ * @brief Set the appearance.
+ * @param [in] appearance The appearance code value.
+ *
+ * See also:
+ * https://www.bluetooth.com/specifications/gatt/viewer?attributeXmlFile=org.bluetooth.characteristic.gap.appearance.xml
+ */
+void BLEAdvertisementData::setAppearance(uint16_t appearance) {
+	char cdata[2];
+	cdata[0] = 3;
+	cdata[1] = ESP_BLE_AD_TYPE_APPEARANCE;
+	addData(std::string(cdata, 2) + std::string((char *)&appearance,2));
+} // setAppearance
+
 
 /**
  * @brief Set the complete services.
@@ -275,6 +289,21 @@ void BLEAdvertisementData::setFlags(uint8_t flag) {
 	cdata[2] = flag;
 	addData(std::string(cdata, 3));
 } // setFlag
+
+
+
+/**
+ * @brief Set manufacturer specific data.
+ * @param [in] data Manufacturer data.
+ */
+void BLEAdvertisementData::setManufacturerData(std::string data) {
+	ESP_LOGD("BLEAdvertisementData", ">> setManufacturerData");
+	char cdata[2];
+	cdata[0] = data.length() + 1;
+	cdata[1] = ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE;
+	addData(std::string(cdata, 2)  + data);
+	ESP_LOGD("BLEAdvertisementData", "<< setManufacturerData");
+} // setManufacturerData
 
 
 /**
@@ -340,6 +369,7 @@ void BLEAdvertisementData::setShortName(std::string name) {
 	addData(std::string(cdata, 2)  + name);
 	ESP_LOGD("BLEAdvertisementData", "<< setShortName");
 } // setShortName
+
 
 
 /**
