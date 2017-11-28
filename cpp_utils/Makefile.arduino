@@ -26,6 +26,8 @@ BLE_FILES= \
 	BLEDescriptorMap.cpp \
 	BLEDevice.cpp \
 	BLEDevice.h \
+	BLEExceptions.cpp \
+	BLEExceptions.h \
 	BLERemoteCharacteristic.cpp \
 	BLERemoteCharacteristic.h \
 	BLERemoteDescriptor.cpp \

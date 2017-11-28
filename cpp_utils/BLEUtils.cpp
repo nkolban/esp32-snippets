@@ -838,28 +838,52 @@ std::string BLEUtils::buildPrintData(uint8_t* source, size_t length) {
 } // buildPrintData
 
 
+/**
+ * @brief Convert a close/disconnect reason to a string.
+ * @param [in] reason The close reason.
+ * @return A string representation of the reason.
+ */
 std::string BLEUtils::gattCloseReasonToString(esp_gatt_conn_reason_t reason) {
 	switch(reason) {
-		case ESP_GATT_CONN_UNKNOWN:
+		case ESP_GATT_CONN_UNKNOWN: {
 			return "ESP_GATT_CONN_UNKNOWN";
-		case ESP_GATT_CONN_L2C_FAILURE:
+		}
+
+		case ESP_GATT_CONN_L2C_FAILURE: {
 			return "ESP_GATT_CONN_L2C_FAILURE";
-		case ESP_GATT_CONN_TIMEOUT:
+		}
+
+		case ESP_GATT_CONN_TIMEOUT: {
 			return "ESP_GATT_CONN_TIMEOUT";
-		case ESP_GATT_CONN_TERMINATE_PEER_USER:
+		}
+
+		case ESP_GATT_CONN_TERMINATE_PEER_USER: {
 			return "ESP_GATT_CONN_TERMINATE_PEER_USER";
-		case ESP_GATT_CONN_TERMINATE_LOCAL_HOST:
+		}
+
+		case ESP_GATT_CONN_TERMINATE_LOCAL_HOST: {
 			return "ESP_GATT_CONN_TERMINATE_LOCAL_HOST";
-		case ESP_GATT_CONN_FAIL_ESTABLISH:
+		}
+
+		case ESP_GATT_CONN_FAIL_ESTABLISH: {
 			return "ESP_GATT_CONN_FAIL_ESTABLISH";
-		case ESP_GATT_CONN_LMP_TIMEOUT:
+		}
+
+		case ESP_GATT_CONN_LMP_TIMEOUT: {
 			return "ESP_GATT_CONN_LMP_TIMEOUT";
-		case ESP_GATT_CONN_CONN_CANCEL:
+		}
+
+		case ESP_GATT_CONN_CONN_CANCEL: {
 			return "ESP_GATT_CONN_CONN_CANCEL";
-		case ESP_GATT_CONN_NONE:
+		}
+
+		case ESP_GATT_CONN_NONE: {
 			return "ESP_GATT_CONN_NONE";
-		default:
+		}
+
+		default: {
 			return "Unknown";
+		}
 	}
 } // gattCloseReasonToString
 
@@ -1388,11 +1412,12 @@ void BLEUtils::dumpGattClientEvent(
 		// ESP_GATTC_DISCONNECT_EVT
 		//
 		// disconnect:
-		// - esp_gatt_status_t status
-		// - uint16_t          conn_id
-		// - esp_bd_addr_t     remote_bda
+		// - esp_gatt_conn_reason_t reason
+		// - uint16_t               conn_id
+		// - esp_bd_addr_t          remote_bda
 		case ESP_GATTC_DISCONNECT_EVT: {
-			ESP_LOGD(LOG_TAG, "[conn_id: %d, remote_bda: %s]",
+			ESP_LOGD(LOG_TAG, "[reason: %s, conn_id: %d, remote_bda: %s]",
+				BLEUtils::gattCloseReasonToString(evtParam->disconnect.reason).c_str(),
 				evtParam->disconnect.conn_id,
 				BLEAddress(evtParam->disconnect.remote_bda).toString().c_str()
 			);

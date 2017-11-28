@@ -15,6 +15,7 @@
 #include <string.h>
 #include <map>
 #include <string>
+#include "BLEExceptions.h"
 #include "BLERemoteService.h"
 #include "BLEService.h"
 #include "BLEAddress.h"
@@ -68,6 +69,7 @@ private:
 	FreeRTOS::Semaphore m_semaphoreSearchCmplEvt = FreeRTOS::Semaphore("SearchCmplEvt");
 	FreeRTOS::Semaphore m_semaphoreRssiCmplEvt   = FreeRTOS::Semaphore("RssiCmplEvt");
 	std::map<std::string, BLERemoteService*> m_servicesMap;
+	void clearServices();   // Clear any existing services.
 	bool m_haveServices; // Have we previously obtain the set of services.
 }; // class BLEDevice
 
@@ -79,6 +81,7 @@ class BLEClientCallbacks {
 public:
 	virtual ~BLEClientCallbacks() {};
 	virtual void onConnect(BLEClient *pClient) = 0;
+	virtual void onDisconnect(BLEClient *pClient) = 0;
 };
 
 #endif // CONFIG_BT_ENABLED

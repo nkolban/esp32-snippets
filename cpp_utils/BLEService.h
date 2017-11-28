@@ -80,8 +80,7 @@ private:
 	BLECharacteristic*   m_lastCreatedCharacteristic;
 	BLEServer*           m_pServer;
 	BLEUUID              m_uuid;
-	char                 deleteMe[10];
-	//FreeRTOS::Semaphore  m_serializeMutex;
+
 	FreeRTOS::Semaphore  m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
 	FreeRTOS::Semaphore  m_semaphoreStartEvt  = FreeRTOS::Semaphore("StartEvt");
 

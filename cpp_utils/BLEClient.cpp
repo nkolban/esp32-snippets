@@ -67,6 +67,21 @@ BLEClient::~BLEClient() {
 
 
 /**
+ * @brief Clear any existing services.
+ *
+ */
+void BLEClient::clearServices() {
+	ESP_LOGD(LOG_TAG, ">> clearServices");
+	// Delete all the services.
+	for (auto &myPair : m_servicesMap) {
+	   delete myPair.second;
+	}
+	m_servicesMap.clear();
+	ESP_LOGD(LOG_TAG, "<< clearServices");
+} // clearServices
+
+
+/**
  * @brief Connect to the partner (BLE Server).
  * @param [in] address The address of the partner.
  * @return True on success.
@@ -77,6 +92,8 @@ bool BLEClient::connect(BLEAddress address) {
 // We need the connection handle that we get from registering the application.  We register the app
 // and then block on its completion.  When the event has arrived, we will have the handle.
 	m_semaphoreRegEvt.take("connect");
+
+	clearServices(); // Delete any services that may exist.
 
 	esp_err_t errRc = ::esp_ble_gattc_app_register(0);
 	if (errRc != ESP_OK) {
@@ -144,6 +161,9 @@ void BLEClient::gattClientEventHandler(
 		case ESP_GATTC_DISCONNECT_EVT: {
 				// If we receive a disconnect event, set the class flag that indicates that we are
 				// no longer connected.
+				if (m_pClientCallbacks != nullptr) {
+					m_pClientCallbacks->onDisconnect(this);
+				}
 				m_isConnected = false;
 				break;
 		} // ESP_GATTC_DISCONNECT_EVT
@@ -332,7 +352,9 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
  * and will culminate with an ESP_GATTC_SEARCH_CMPL_EVT when all have been received.
  */
 	ESP_LOGD(LOG_TAG, ">> getServices");
-	m_servicesMap.clear();
+
+	clearServices(); // Clear any services that may exist.
+
 	esp_err_t errRc = esp_ble_gattc_search_service(
 		getGattcIf(),
 		getConnId(),
