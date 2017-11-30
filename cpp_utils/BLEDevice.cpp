@@ -12,6 +12,7 @@
 #include <esp_err.h>
 #include <nvs_flash.h>
 #include <bt.h>                // ESP32 BLE
+#include <esp_bt_device.h>     // ESP32 BLE
 #include <esp_bt_main.h>       // ESP32 BLE
 #include <esp_gap_ble_api.h>   // ESP32 BLE
 #include <esp_gatts_api.h>     // ESP32 BLE
@@ -155,6 +156,18 @@ void BLEDevice::gapEventHandler(
 		BLEDevice::getScan()->handleGAPEvent(event, param);
 	}
 } // gapEventHandler
+
+
+/**
+ * @brief Get the BLE device address.
+ * @return The BLE device address.
+ */
+/* STATIC*/ BLEAddress BLEDevice::getAddress() {
+	const uint8_t* bdAddr = esp_bt_dev_get_address();
+	esp_bd_addr_t addr;
+	memcpy(addr, bdAddr, sizeof(addr));
+	return BLEAddress(addr);
+} // getAddress
 
 
 /**

@@ -29,6 +29,7 @@ public:
 	static BLEClient* createClient();
 	static BLEServer* createServer();
 	static void       dumpDevices();
+	static BLEAddress getAddress();
 	static BLEScan*   getScan();
 	static void       init(std::string deviceName);
 
