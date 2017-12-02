@@ -33,7 +33,7 @@
  */
 PWM::PWM(int gpioNum, uint32_t frequency, ledc_timer_bit_t bitSize, ledc_timer_t timer, ledc_channel_t channel) {
 	ledc_timer_config_t timer_conf;
-	timer_conf.bit_num    = bitSize;
+	timer_conf.duty_resolution    = bitSize;
 	timer_conf.freq_hz    = frequency;
 	timer_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
 	timer_conf.timer_num  = timer;
