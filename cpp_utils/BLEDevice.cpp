@@ -40,12 +40,14 @@ static const char* LOG_TAG = "BLEDevice";
 BLEServer* BLEDevice::m_pServer = nullptr;
 BLEScan*   BLEDevice::m_pScan   = nullptr;
 BLEClient* BLEDevice::m_pClient = nullptr;
-bool initialized = false;
+bool       initialized          = false;   // Have we been initialized?
+
+
 /**
  * @brief Create a new instance of a client.
  * @return A new instance of the client.
  */
-BLEClient* BLEDevice::createClient() {
+/* STATIC */ BLEClient* BLEDevice::createClient() {
 	m_pClient = new BLEClient();
 	return m_pClient;
 } // createClient
@@ -55,7 +57,7 @@ BLEClient* BLEDevice::createClient() {
  * @brief Create a new instance of a server.
  * @return A new instance of the server.
  */
-BLEServer* BLEDevice::createServer() {
+/* STATIC */ BLEServer* BLEDevice::createServer() {
 	ESP_LOGD(LOG_TAG, ">> createServer");
 	m_pServer = new BLEServer();
 	m_pServer->createApp(0);
@@ -71,7 +73,7 @@ BLEServer* BLEDevice::createServer() {
  * @param [in] gatts_if The connection to the GATT interface.
  * @param [in] param Parameters for the event.
  */
-void BLEDevice::gattServerEventHandler(
+/* STATIC */ void BLEDevice::gattServerEventHandler(
    esp_gatts_cb_event_t      event,
    esp_gatt_if_t             gatts_if,
    esp_ble_gatts_cb_param_t* param
@@ -97,7 +99,7 @@ void BLEDevice::gattServerEventHandler(
  * @param [in] gattc_if
  * @param [in] param
  */
-void BLEDevice::gattClientEventHandler(
+/* STATIC */ void BLEDevice::gattClientEventHandler(
 	esp_gattc_cb_event_t      event,
 	esp_gatt_if_t             gattc_if,
 	esp_ble_gattc_cb_param_t* param) {
@@ -124,7 +126,7 @@ void BLEDevice::gattClientEventHandler(
 /**
  * @brief Handle GAP events.
  */
-void BLEDevice::gapEventHandler(
+/* STATIC */ void BLEDevice::gapEventHandler(
 	esp_gap_ble_cb_event_t event,
 	esp_ble_gap_cb_param_t *param) {
 
@@ -175,7 +177,7 @@ void BLEDevice::gapEventHandler(
  * @return The scanning object reference.  This is a singleton object.  The caller should not
  * try and release/delete it.
  */
-BLEScan* BLEDevice::getScan() {
+/* STATIC */ BLEScan* BLEDevice::getScan() {
 	//ESP_LOGD(LOG_TAG, ">> getScan");
 	if (m_pScan == nullptr) {
 		m_pScan = new BLEScan();
@@ -190,9 +192,10 @@ BLEScan* BLEDevice::getScan() {
  * @brief Initialize the %BLE environment.
  * @param deviceName The device name of the device.
  */
-void BLEDevice::init(std::string deviceName) {
+/* STATIC */ void BLEDevice::init(std::string deviceName) {
 	if(!initialized){
-		initialized = true;
+		initialized = true;   // Set the initialization flag to ensure we are only initialized once.
+
 		esp_err_t errRc = ::nvs_flash_init();
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "nvs_flash_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -205,6 +208,7 @@ void BLEDevice::init(std::string deviceName) {
 			ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 			return;
 		}
+
 #ifndef CLASSIC_BT_ENABLED
 	//	esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);  //FIXME waiting for response from esp-idf issue
 		errRc = esp_bt_controller_enable(ESP_BT_MODE_BLE);
@@ -220,6 +224,7 @@ void BLEDevice::init(std::string deviceName) {
 			return;
 		}
 #endif
+
 		errRc = esp_bluedroid_init();
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -288,5 +293,16 @@ void BLEDevice::init(std::string deviceName) {
 	};
 	ESP_LOGD(LOG_TAG, "<< setPower");
 } // setPower
+
+
+/**
+ * @brief Return a string representation of the nature of this device.
+ * @return A string representation of the nature of this device.
+ */
+/* STATIC */ std::string BLEDevice::toString() {
+	std::ostringstream oss;
+	oss << "BD Address: " << getAddress().toString();
+	return oss.str();
+} // toString
 
 #endif // CONFIG_BT_ENABLED

@@ -11,6 +11,8 @@
 #include <sstream>
 #include <iomanip>
 #include <stdio.h>
+#include <assert.h>
+#include <stdlib.h>
 #include "BLEUUID.h"
 static const char* LOG_TAG = "BLEUUID";
 
@@ -243,6 +245,35 @@ bool BLEUUID::equals(BLEUUID uuid) {
 
 
 /**
+ * Create a BLEUUID from a string of the form:
+ * 0xNNNN
+ * 0xNNNNNNNN
+ * 0x<UUID>
+ * NNNN
+ * NNNNNNNN
+ * <UUID>
+ */
+BLEUUID BLEUUID::fromString(std::string _uuid){
+	uint8_t start = 0;
+	if (strstr(_uuid.c_str(), "0x") != nullptr) { // If the string starts with 0x, skip those characters.
+		start = 2;
+	}
+	uint8_t len = _uuid.length() - start; // Calculate the length of the string we are going to use.
+
+	if( len == 4) {
+		uint16_t x = strtoul(_uuid.substr(start, len).c_str(), NULL, 16);
+		return BLEUUID(x);
+	} else if (len == 8) {
+		uint32_t x = strtoul(_uuid.substr(start, len).c_str(), NULL, 16);
+		return BLEUUID(x);
+	} else if (len == 36) {
+		return BLEUUID(_uuid);
+	}
+	return BLEUUID();
+} // fromString
+
+
+/**
  * @brief Get the native UUID value.
  *
  * @return The native UUID value or NULL if not set.
@@ -376,21 +407,4 @@ std::string BLEUUID::toString() {
 	return ss.str();
 } // toString
 
-BLEUUID BLEUUID::fromString(std::string _uuid){
-	uint8_t start = 0;
-	if(strstr(_uuid.c_str(), "0x") != nullptr){
-		start = 2;
-	}
-	uint8_t len = _uuid.length() - start;
-	if(len == 4 ){
-		uint16_t x = strtoul(_uuid.substr(start, len).c_str(), NULL, 16);
-		return BLEUUID(x);
-	}else if(len == 8){
-		uint32_t x = strtoul(_uuid.substr(start, len).c_str(), NULL, 16);
-		return BLEUUID(x);
-	}else if (len == 36){
-		return BLEUUID(_uuid);
-	}
-	return BLEUUID();
-}
 #endif /* CONFIG_BT_ENABLED */

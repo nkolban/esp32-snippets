@@ -321,7 +321,6 @@ void BLECharacteristic::handleGATTServerEvent(
 		// - bool          need_rsp
 		//
 		case ESP_GATTS_READ_EVT: {
-			ESP_LOGD(LOG_TAG, "- Testing: 0x%.2x == 0x%.2x", param->read.handle, m_handle);
 			if (param->read.handle == m_handle) {
 
 				if (m_pCallbacks != nullptr) {

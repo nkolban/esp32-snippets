@@ -18,6 +18,9 @@
  * @brief Advertisement data set by the programmer to be published by the %BLE server.
  */
 class BLEAdvertisementData {
+	// Only a subset of the possible BLE architected advertisement fields are currently exposed.  Others will
+	// be exposed on demand/request or as time permits.
+	//
 public:
 	void setAppearance(uint16_t appearance);
 	void setCompleteServices(BLEUUID uuid);
@@ -26,11 +29,13 @@ public:
 	void setName(std::string name);
 	void setPartialServices(BLEUUID uuid);
 	void setShortName(std::string name);
+
 private:
 	friend class BLEAdvertising;
 	std::string m_payload;   // The payload of the advertisement.
-	void addData(std::string data);  // Add data to the payload.
-	std::string getPayload();
+
+	void        addData(std::string data);  // Add data to the payload.
+	std::string getPayload();               // Retrieve the current advert payload.
 };   // BLEAdvertisementData
 
 
@@ -49,6 +54,7 @@ public:
 	void setAppearance(uint16_t appearance);
 	void setAdvertisementData(BLEAdvertisementData& advertisementData);
 	void setScanResponseData(BLEAdvertisementData& advertisementData);
+
 private:
 	esp_ble_adv_data_t   m_advData;
 	esp_ble_adv_params_t m_advParams;

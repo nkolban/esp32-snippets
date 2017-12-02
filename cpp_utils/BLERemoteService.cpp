@@ -124,6 +124,7 @@ void BLERemoteService::gattClientEventHandler(
  * @brief Get the remote characteristic object for the characteristic UUID.
  * @param [in] uuid Remote characteristic uuid.
  * @return Reference to the remote characteristic object.
+ * @throws BLEUuidNotFoundException
  */
 BLERemoteCharacteristic* BLERemoteService::getCharacteristic(const char* uuid) {
     return getCharacteristic(BLEUUID(uuid));
@@ -134,6 +135,7 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(const char* uuid) {
  * @brief Get the characteristic object for the UUID.
  * @param [in] uuid Characteristic uuid.
  * @return Reference to the characteristic object.
+ * @throws BLEUuidNotFoundException
  */
 BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
 // Design
@@ -151,7 +153,7 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
 			return myPair.second;
 		}
 	}
-	return nullptr;
+	throw new BLEUuidNotFoundException();
 } // getCharacteristic
 
 
@@ -265,6 +267,17 @@ BLEUUID BLERemoteService::getUUID() {
 	return m_uuid;
 }
 
+/**
+ * @brief Read the value of a characteristic associated with this service.
+ */
+std::string BLERemoteService::getValue(BLEUUID characteristicUuid) {
+	ESP_LOGD(LOG_TAG, ">> readValue: uuid: %s", characteristicUuid.toString().c_str());
+	std::string ret =  getCharacteristic(characteristicUuid)->readValue();
+	ESP_LOGD(LOG_TAG, "<< readValue");
+	return ret;
+} // readValue
+
+
 
 /**
  * @brief Delete the characteristics in the characteristics map.
@@ -282,6 +295,18 @@ void BLERemoteService::removeCharacteristics() {
 } // removeCharacteristics
 
 
+/**
+ * @brief Set the value of a characteristic.
+ * @param [in] characteristicUuid The characteristic to set.
+ * @param [in] value The value to set.
+ * @throws BLEUuidNotFound
+ */
+void BLERemoteService::setValue(BLEUUID characteristicUuid, std::string value) {
+	ESP_LOGD(LOG_TAG, ">> setValue: uuid: %s", characteristicUuid.toString().c_str());
+	getCharacteristic(characteristicUuid)->writeValue(value);
+	ESP_LOGD(LOG_TAG, "<< setValue");
+} // setValue
+
 
 /**
  * @brief Create a string representation of this remote service.
@@ -298,9 +323,6 @@ std::string BLERemoteService::toString() {
 	}
 	return ss.str();
 } // toString
-
-
-
 
 
 #endif /* CONFIG_BT_ENABLED */

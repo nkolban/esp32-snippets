@@ -178,90 +178,62 @@ void BLEServer::handleGATTServerEvent(
 	m_serviceMap.handleGATTServerEvent(event, gatts_if, param);
 
 	switch(event) {
+		// ESP_GATTS_ADD_CHAR_EVT - Indicate that a characteristic was added to the service.
+		// add_char:
+		// - esp_gatt_status_t status
+		// - uint16_t          attr_handle
+		// - uint16_t          service_handle
+		// - esp_bt_uuid_t     char_uuid
+		//
+		case ESP_GATTS_ADD_CHAR_EVT: {
+			break;
+		} // ESP_GATTS_ADD_CHAR_EVT
 
 
 		// ESP_GATTS_CONNECT_EVT
 		// connect:
-		// - uint16_t conn_id
+		// - uint16_t      conn_id
 		// - esp_bd_addr_t remote_bda
-		// - bool is_connected
+		// - bool          is_connected
+		//
 		case ESP_GATTS_CONNECT_EVT: {
 			m_connId = param->connect.conn_id; // Save the connection id.
 			if (m_pServerCallbacks != nullptr) {
 				m_pServerCallbacks->onConnect(this);
 			}
-			m_connectedCount++;
+			m_connectedCount++;   // Increment the number of connected devices count.
 			break;
 		} // ESP_GATTS_CONNECT_EVT
-
-
-		// ESP_GATTS_REG_EVT
-		// reg:
-		// - esp_gatt_status_t status
-		// - uint16_t app_id
-		case ESP_GATTS_REG_EVT: {
-			m_gatts_if = gatts_if;
-			m_semaphoreRegisterAppEvt.give(); // Unlock the mutex waiting for the registration of the app.
-			break;
-		} // ESP_GATTS_REG_EVT
 
 
 		// ESP_GATTS_CREATE_EVT
 		// Called when a new service is registered as having been created.
 		//
 		// create:
-		// * esp_gatt_status_t status
-		// * uint16_t service_handle
+		// * esp_gatt_status_t  status
+		// * uint16_t           service_handle
 		// * esp_gatt_srvc_id_t service_id
 		//
 		case ESP_GATTS_CREATE_EVT: {
 			BLEService* pService = m_serviceMap.getByUUID(param->create.service_id.id.uuid);
 			m_serviceMap.setByHandle(param->create.service_handle, pService);
-			//pService->setHandle(param->create.service_handle);
 			m_semaphoreCreateEvt.give();
 			break;
 		} // ESP_GATTS_CREATE_EVT
 
 
-		// ESP_GATTS_READ_EVT - A request to read the value of a characteristic has arrived.
-		//
-		// read:
-		// - uint16_t conn_id
-		// - uint32_t trans_id
-		// - esp_bd_addr_t bda
-		// - uint16_t handle
-		// - uint16_t offset
-		// - bool is_long
-		// - bool need_rsp
-		//
-		case ESP_GATTS_READ_EVT: {
-			break;
-		} // ESP_GATTS_READ_EVT
-
-
-		// ESP_GATTS_WRITE_EVT - A request to write the value of a characteristic has arrived.
-		//
-		// write:
-		// - uint16_t conn_id
-		// - uint16_t trans_id
-		// - esp_bd_addr_t bda
-		// - uint16_t handle
-		// - uint16_t offset
-		// - bool need_rsp
-		// - bool is_prep
-		// - uint16_t len
-		// - uint8_t *value
-
-		case ESP_GATTS_WRITE_EVT: {
-			break;
-		}
-
 		// ESP_GATTS_DISCONNECT_EVT
+		//
+		// disconnect
+		// - uint16_t      conn_id
+		// - esp_bd_addr_t remote_bda
+		// - bool          is_connected
+		//
 		// If we receive a disconnect event then invoke the callback for disconnects (if one is present).
 		// we also want to start advertising again.
 		case ESP_GATTS_DISCONNECT_EVT: {
-			m_connectedCount--;
-			if (m_pServerCallbacks != nullptr) {
+			m_connectedCount--;                          // Decrement the number of connected devices count.
+			if (m_pServerCallbacks != nullptr) {         // If we have callbacks, call now.
 				m_pServerCallbacks->onDisconnect(this);
 			}
 			startAdvertising();
@@ -269,16 +241,50 @@ void BLEServer::handleGATTServerEvent(
 		} // ESP_GATTS_DISCONNECT_EVT
 
 
-		// ESP_GATTS_ADD_CHAR_EVT - Indicate that a characteristic was added to the service.
-		// add_char:
-		// - esp_gatt_status_t status
-		// - uint16_t attr_handle
-		// - uint16_t service_handle
-		// - esp_bt_uuid_t char_uuid
-		case ESP_GATTS_ADD_CHAR_EVT: {
+		// ESP_GATTS_READ_EVT - A request to read the value of a characteristic has arrived.
+		//
+		// read:
+		// - uint16_t      conn_id
+		// - uint32_t      trans_id
+		// - esp_bd_addr_t bda
+		// - uint16_t      handle
+		// - uint16_t      offset
+		// - bool          is_long
+		// - bool          need_rsp
+		//
+		case ESP_GATTS_READ_EVT: {
 			break;
-		} // ESP_GATTS_ADD_CHAR_EVT
+		} // ESP_GATTS_READ_EVT
 
+
+		// ESP_GATTS_REG_EVT
+		// reg:
+		// - esp_gatt_status_t status
+		// - uint16_t app_id
+		//
+		case ESP_GATTS_REG_EVT: {
+			m_gatts_if = gatts_if;
+			m_semaphoreRegisterAppEvt.give(); // Unlock the mutex waiting for the registration of the app.
+			break;
+		} // ESP_GATTS_REG_EVT
+
+
+		// ESP_GATTS_WRITE_EVT - A request to write the value of a characteristic has arrived.
+		//
+		// write:
+		// - uint16_t      conn_id
+		// - uint16_t      trans_id
+		// - esp_bd_addr_t bda
+		// - uint16_t      handle
+		// - uint16_t      offset
+		// - bool          need_rsp
+		// - bool          is_prep
+		// - uint16_t      len
+		// - uint8_t*      value
+		//
+		case ESP_GATTS_WRITE_EVT: {
+			break;
+		}
 
 		default: {
 			break;
@@ -303,7 +309,7 @@ void BLEServer::registerApp() {
 
 
 /**
- * @brief Set the callbacks.
+ * @brief Set the server callbacks.
  *
  * As a %BLE server operates, it will generate server level events such as a new client connecting or a previous client
  * disconnecting.  This function can be called to register a callback handler that will be invoked when these
@@ -329,36 +335,15 @@ void BLEServer::startAdvertising() {
 } // startAdvertising
 
 
-/*
-void BLEServer::addCharacteristic(BLECharacteristic *characteristic, BLEService *pService) {
-	ESP_LOGD(tag, "Adding characteristic (esp_ble_gatts_add_char): uuid=%s, serviceHandle=0x%.2x",
-		characteristic->m_bleUUID.toString().c_str(),
-		pService->getHandle());
-
-	m_characteristicMap.setByUUID(characteristic->m_bleUUID, characteristic);
-
-	esp_err_t errRc = ::esp_ble_gatts_add_char(
-		pService->getHandle(),
-		characteristic->getUUID().getNative(),
-		(esp_gatt_perm_t)(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE),
-		characteristic->getProperties(),
-		&characteristic->m_value,
-		NULL);
-
-	if (errRc != ESP_OK) {
-		ESP_LOGE(tag, "esp_ble_gatts_add_char: rc=%d %s", errRc, espToString(errRc));
-		return;
-	}
-}
-*/
-
 void BLEServerCallbacks::onConnect(BLEServer* pServer) {
 	ESP_LOGD("BLEServerCallbacks", ">> onConnect(): Default");
+	ESP_LOGD("BLEServerCallbacks", "Device: %s", BLEDevice::toString().c_str());
 	ESP_LOGD("BLEServerCallbacks", "<< onConnect()");
 } // onConnect
 
 void BLEServerCallbacks::onDisconnect(BLEServer* pServer) {
 	ESP_LOGD("BLEServerCallbacks", ">> onDisconnect(): Default");
+	ESP_LOGD("BLEServerCallbacks", "Device: %s", BLEDevice::toString().c_str());
 	ESP_LOGD("BLEServerCallbacks", "<< onDisconnect()");
 } // onDisconnect
 

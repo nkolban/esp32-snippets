@@ -39,6 +39,8 @@ public:
 	BLEClient*               getClient(void);
 	uint16_t                 getHandle();
 	BLEUUID                  getUUID(void);
+	std::string              getValue(BLEUUID characteristicUuid);
+	void                     setValue(BLEUUID characteristicUuid, std::string value);
 	std::string              toString(void);
 
 private:

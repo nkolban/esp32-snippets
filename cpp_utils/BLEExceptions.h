@@ -22,4 +22,10 @@ class BLEDisconnectedException : public std::exception {
 	}
 };
 
+class BLEUuidNotFoundException : public std::exception {
+	const char *what() const throw () {
+		return "No such UUID";
+	}
+};
+
 #endif /* COMPONENTS_CPP_UTILS_BLEEXCEPTIONS_H_ */

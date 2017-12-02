@@ -26,12 +26,13 @@
 class BLEDevice {
 public:
 
-	static BLEClient* createClient();
-	static BLEServer* createServer();
-	static void       dumpDevices();
-	static BLEAddress getAddress();
-	static BLEScan*   getScan();
-	static void       init(std::string deviceName);
+	static BLEClient*  createClient();
+	static BLEServer*  createServer();
+	static BLEAddress  getAddress();
+	static BLEScan*    getScan();
+	static void        init(std::string deviceName);
+	static void        setPower(esp_power_level_t powerLevel);
+	static std::string toString();
 
 private:
 	static BLEServer *m_pServer;
@@ -53,9 +54,6 @@ private:
 	static void gapEventHandler(
 		esp_gap_ble_cb_event_t  event,
 		esp_ble_gap_cb_param_t* param);
-
-public:
-	static void setPower(esp_power_level_t powerLevel);
 
 }; // class BLE
 
