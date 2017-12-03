@@ -45,6 +45,7 @@ BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
 	m_handle     = NULL_HANDLE;
 	m_properties = (esp_gatt_char_prop_t)0;
 	m_pCallbacks = nullptr;
+	m_bConnected = false;
 
 	setBroadcastProperty((properties & PROPERTY_BROADCAST) !=0);
 	setReadProperty((properties & PROPERTY_READ) !=0);
@@ -321,6 +322,7 @@ void BLECharacteristic::handleGATTServerEvent(
 		// - bool          need_rsp
 		//
 		case ESP_GATTS_READ_EVT: {
+			ESP_LOGD(LOG_TAG, "- Testing: 0x%.2x == 0x%.2x", param->read.handle, m_handle);
 			if (param->read.handle == m_handle) {
 
 				if (m_pCallbacks != nullptr) {
@@ -409,6 +411,16 @@ void BLECharacteristic::handleGATTServerEvent(
 			m_semaphoreConfEvt.give();
 			break;
 		}
+
+		case ESP_GATTS_CONNECT_EVT:
+			m_semaphoreConfEvt.give();
+			m_bConnected = true;
+			break;
+
+		case ESP_GATTS_DISCONNECT_EVT:
+			m_semaphoreConfEvt.give();
+			m_bConnected = false;
+			break;
 
 		default: {
 			break;
@@ -518,6 +530,8 @@ void BLECharacteristic::notify() {
 		length = 20;
 	}
 
+	m_semaphoreConfEvt.take("notify");
+
 	esp_err_t errRc = ::esp_ble_gatts_send_indicate(
 			getService()->getServer()->getGattsIf(),
 			getService()->getServer()->getConnId(),
@@ -526,6 +540,8 @@ void BLECharacteristic::notify() {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_send_indicate: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+
+	m_semaphoreConfEvt.wait("notify");
 
 	ESP_LOGD(LOG_TAG, "<< notify");
 } // Notify
@@ -675,6 +691,16 @@ void BLECharacteristic::setWriteProperty(bool value) {
 	}
 } // setWriteProperty
 
+  /**
+  * @brief, non-blocking check, whether API is ready to receive data
+  * @return true - if connected and sempahore is not yet taken
+  */
+bool BLECharacteristic::isReadyForData()
+{
+	bool bTaken = m_semaphoreConfEvt.isTaken();
+	ESP_LOGV(LOG_TAG, " = %d", !bTaken && m_bConnected);
+	return !bTaken && m_bConnected;
+}
 
 /**
  * @brief Return a string representation of the characteristic.

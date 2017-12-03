@@ -133,9 +133,9 @@ void FreeRTOS::Semaphore::give() {
 	} else {
 		xSemaphoreGive(m_semaphore);
 	}
-#ifdef ARDUINO_ARCH_ESP32
-	FreeRTOS::sleep(10);
-#endif
+// #ifdef ARDUINO_ARCH_ESP32
+// 	FreeRTOS::sleep(10); 
+// #endif
 
 	m_owner = std::string("<N/A>");
 } // Semaphore::give
@@ -200,6 +200,24 @@ void FreeRTOS::Semaphore::take(uint32_t timeoutMs, std::string owner) {
 	ESP_LOGV(LOG_TAG, "Semaphore taken:  %s", toString().c_str());
 } // Semaphore::take
 
+/**
+ * @brief non blocking check, if a semaphore is already taken by another thread
+ * @return true - if sempahore has already been taken by another thread.
+ */
+bool FreeRTOS::Semaphore::isTaken() {
+	bool bTaken = true;
+	ESP_LOGV(LOG_TAG, "Semaphore taken check" );
+
+	if (m_usePthreads) {
+		assert(false);
+	  ESP_LOGV(LOG_TAG, "Semaphore::IsTaken illegal mode usePthreads");
+	} else {
+		if( ( bTaken = xSemaphoreTake(m_semaphore, 0) ) )
+			xSemaphoreGive( m_semaphore );
+		ESP_LOGV(LOG_TAG, "Semaphore taken:  %d", !bTaken);
+	}
+	return !bTaken;
+} // Semaphore::isTaken
 
 std::string FreeRTOS::Semaphore::toString() {
 	std::stringstream stringStream;

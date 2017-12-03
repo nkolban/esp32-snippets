@@ -40,6 +40,7 @@ public:
 		void        take(uint32_t timeoutMs, std::string owner="<Unknown>");
 		std::string toString();
 		uint32_t    wait(std::string owner="<Unknown>");
+		bool        isTaken();
 
 	private:
 		SemaphoreHandle_t m_semaphore;
