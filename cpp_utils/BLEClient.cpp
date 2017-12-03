@@ -117,7 +117,7 @@ bool BLEClient::connect(BLEAddress address) {
 		return false;
 	}
 
-	uint32_t rc = m_semaphoreOpenEvt.wait("connect");
+	uint32_t rc = m_semaphoreOpenEvt.wait("connect");   // Wait for the connection to complete.
 	ESP_LOGD(LOG_TAG, "<< connect(), rc=%d", rc==ESP_GATT_OK);
 	return rc == ESP_GATT_OK;
 } // connect
@@ -313,6 +313,7 @@ BLERemoteService* BLEClient::getService(const char* uuid) {
  * @brief Get the service object corresponding to the uuid.
  * @param [in] uuid The UUID of the service being sought.
  * @return A reference to the Service or nullptr if don't know about it.
+ * @throws BLEUuidNotFound
  */
 BLERemoteService* BLEClient::getService(BLEUUID uuid) {
 	ESP_LOGD(LOG_TAG, ">> getService: uuid: %s", uuid.toString().c_str());
@@ -333,7 +334,7 @@ BLERemoteService* BLEClient::getService(BLEUUID uuid) {
 		}
 	} // End of each of the services.
 	ESP_LOGD(LOG_TAG, "<< getService: not found");
-	return nullptr;
+	throw new BLEUuidNotFoundException;
 } // getService
 
 
@@ -370,6 +371,21 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
 	ESP_LOGD(LOG_TAG, "<< getServices");
 	return &m_servicesMap;
 } // getServices
+
+
+/**
+ * @brief Get the value of a specific characteristic associated with a specific service.
+ * @param [in] serviceUUID The service that owns the characteristic.
+ * @param [in] characteristicUUID The characteristic whose value we wish to read.
+ * @throws BLEUuidNotFound
+ */
+std::string BLEClient::getValue(BLEUUID serviceUUID, BLEUUID characteristicUUID) {
+	ESP_LOGD(LOG_TAG, ">> getValue: serviceUUID: %s, characteristicUUID: %s", serviceUUID.toString().c_str(), characteristicUUID.toString().c_str());
+	std::string ret = getService(serviceUUID)->getCharacteristic(characteristicUUID)->readValue();
+	ESP_LOGD(LOG_TAG, "<<getValue");
+	return ret;
+} // getValue
+
 
 /**
  * @brief Handle a received GAP event.
@@ -410,12 +426,27 @@ bool BLEClient::isConnected() {
 } // isConnected
 
 
+
+
 /**
  * @brief Set the callbacks that will be invoked.
  */
 void BLEClient::setClientCallbacks(BLEClientCallbacks* pClientCallbacks) {
 	m_pClientCallbacks = pClientCallbacks;
 } // setClientCallbacks
+
+
+/**
+ * @brief Set the value of a specific characteristic associated with a specific service.
+ * @param [in] serviceUUID The service that owns the characteristic.
+ * @param [in] characteristicUUID The characteristic whose value we wish to write.
+ * @throws BLEUuidNotFound
+ */
+void BLEClient::setValue(BLEUUID serviceUUID, BLEUUID characteristicUUID, std::string value) {
+	ESP_LOGD(LOG_TAG, ">> setValue: serviceUUID: %s, characteristicUUID: %s", serviceUUID.toString().c_str(), characteristicUUID.toString().c_str());
+	getService(serviceUUID)->getCharacteristic(characteristicUUID)->writeValue(value);
+	ESP_LOGD(LOG_TAG, "<< setValue");
+} // setValue
 
 
 /**
@@ -432,5 +463,6 @@ std::string BLEClient::toString() {
 	}
 	return ss.str();
 } // toString
+
 
 #endif // CONFIG_BT_ENABLED

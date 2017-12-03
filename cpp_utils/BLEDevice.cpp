@@ -189,6 +189,23 @@ bool       initialized          = false;   // Have we been initialized?
 
 
 /**
+ * @brief Get the value of a characteristic of a service on a remote device.
+ * @param [in] bdAddress
+ * @param [in] serviceUUID
+ * @param [in] characteristicUUID
+ */
+/* STATIC */ std::string BLEDevice::getValue(BLEAddress bdAddress, BLEUUID serviceUUID, BLEUUID characteristicUUID) {
+	ESP_LOGD(LOG_TAG, ">> getValue: bdAddress: %s, serviceUUID: %s, characteristicUUID: %s", bdAddress.toString().c_str(), serviceUUID.toString().c_str(), characteristicUUID.toString().c_str());
+	BLEClient *pClient = createClient();
+	pClient->connect(bdAddress);
+	std::string ret = pClient->getValue(serviceUUID, characteristicUUID);
+	pClient->disconnect();
+	ESP_LOGD(LOG_TAG, "<< getValue");
+	return ret;
+} // getValue
+
+
+/**
  * @brief Initialize the %BLE environment.
  * @param deviceName The device name of the device.
  */
@@ -293,6 +310,21 @@ bool       initialized          = false;   // Have we been initialized?
 	};
 	ESP_LOGD(LOG_TAG, "<< setPower");
 } // setPower
+
+
+/**
+ * @brief Set the value of a characteristic of a service on a remote device.
+ * @param [in] bdAddress
+ * @param [in] serviceUUID
+ * @param [in] characteristicUUID
+ */
+/* STATIC */ void BLEDevice::setValue(BLEAddress bdAddress, BLEUUID serviceUUID, BLEUUID characteristicUUID, std::string value) {
+	ESP_LOGD(LOG_TAG, ">> setValue: bdAddress: %s, serviceUUID: %s, characteristicUUID: %s", bdAddress.toString().c_str(), serviceUUID.toString().c_str(), characteristicUUID.toString().c_str());
+	BLEClient *pClient = createClient();
+	pClient->connect(bdAddress);
+	pClient->setValue(serviceUUID, characteristicUUID, value);
+	pClient->disconnect();
+} // setValue
 
 
 /**

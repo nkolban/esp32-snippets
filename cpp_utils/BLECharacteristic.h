@@ -63,10 +63,11 @@ public:
 	BLEDescriptor* getDescriptorByUUID(BLEUUID descriptorUUID);
 	//size_t         getLength();
 	BLEUUID        getUUID();
-	std::string    getValue();
+
 
 	void indicate();
 	void notify();
+	std::string    getValue();
 	void setBroadcastProperty(bool value);
 	void setCallbacks(BLECharacteristicCallbacks* pCallbacks);
 	void setIndicateProperty(bool value);
