@@ -114,18 +114,24 @@ void TFTP::TFTP_Transaction::processRRQ() {
 		return;
 	}
 
-	uint8_t buf[TFTP_DATA_SIZE + 2 + 2]; // Buffer data size is packet size (512) + 2 bytes for opcode + 2 bytes for blocknumber.
+	struct {
+		uint16_t opCode;
+		uint16_t blockNumber;
+		uint8_t buf[TFTP_DATA_SIZE];
+	} record;
 
-	*(uint16_t *)(&buf[0]) = htons(TFTP_OPCODE_DATA); // Set the op code to be DATA.
+	record.opCode = htons(TFTP_OPCODE_DATA); // Set the op code to be DATA.
+
 	while(!finished) {
-		*(uint16_t *)(&buf[2]) = htons(blockNumber);
 
-		int sizeRead = fread(&buf[4], 1, TFTP_DATA_SIZE, file);
+		record.blockNumber = htons(blockNumber);
+
+		int sizeRead = fread(record.buf, 1, TFTP_DATA_SIZE, file);
 
 		ESP_LOGD(tag, "Sending data to %s, blockNumber=%d, size=%d",
 				Socket::addressToString(&m_partnerAddress).c_str(), blockNumber, sizeRead);
 
-		m_partnerSocket.sendTo(buf, sizeRead+4, &m_partnerAddress);
+		m_partnerSocket.sendTo((uint8_t*)&record, sizeRead+4, &m_partnerAddress);
 
 
 		if (sizeRead < TFTP_DATA_SIZE) {
@@ -327,17 +333,20 @@ uint16_t TFTP::TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
  * RRQ/  | 01/02 |  Filename  |   0  |    Mode    |   0  |
  * WRQ    -----------------------------------------------
  */
-	uint8_t buf[TFTP_DATA_SIZE];
+	union {
+		uint8_t buf[TFTP_DATA_SIZE];
+		uint16_t opCode;
+	} record;
 	size_t length = 100;
 
 	ESP_LOGD(tag, "TFTP: Waiting for a request");
-	pServerSocket->receiveFrom(buf, length, &m_partnerAddress);
+	pServerSocket->receiveFrom(record.buf, length, &m_partnerAddress);
 
 	// Save the filename, mode and op code.
 
-	m_filename = std::string((char *)(buf+2));
-	m_mode     = std::string((char *)(buf + 3 + m_filename.length()));
-	m_opCode   = ntohs(*(uint16_t *)buf);
+	m_filename = std::string((char *)(record.buf + 2));
+	m_mode     = std::string((char *)(record.buf + 3 + m_filename.length()));
+	m_opCode   = ntohs(record.opCode);
 	switch(m_opCode) {
 
 		// Handle the Write Request command.
