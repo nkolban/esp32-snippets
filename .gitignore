@@ -1,3 +1,4 @@
 .project
 .cproject
 .settings/
+/esp32-snippets/.vs
