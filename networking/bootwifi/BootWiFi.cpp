@@ -19,6 +19,7 @@
 #include <string.h>
 #include <string>
 #include <HttpServer.h>
+#include <System.h>
 #include <GeneralUtils.h>
 #include "BootWiFi.h"
 #include "sdkconfig.h"
@@ -201,7 +202,7 @@ static void processForm(HttpRequest* pRequest, HttpResponse* pResponse) {
 	//pResponse->sendData(std::string((char*)selectAP_html, selectAP_html_len));
 	pResponse->close();
 	FreeRTOS::sleep(500);
-	GeneralUtils::restart();
+	System::restart();
 	ESP_LOGD(LOG_TAG, "<< processForm");
 } // processForm
 
