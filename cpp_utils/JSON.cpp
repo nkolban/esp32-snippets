@@ -97,7 +97,7 @@ void JsonArray::addDouble(double value) {
  * @param [in] value The int value to add to the array.
  */
 void JsonArray::addInt(int value) {
-	cJSON_AddItemToArray(m_node, cJSON_CreateDouble((double)value, value));
+	cJSON_AddItemToArray(m_node, cJSON_CreateNumber((double)value));
 } // addInt
 
 
@@ -326,7 +326,7 @@ void JsonObject::setDouble(std::string name, double value) {
  * @return N/A.
  */
 void JsonObject::setInt(std::string name, int value) {
-	cJSON_AddItemToObject(m_node, name.c_str(), cJSON_CreateDouble((double)value, value));
+	cJSON_AddItemToObject(m_node, name.c_str(), cJSON_CreateNumber((double)value));
 } // setInt
 
 
