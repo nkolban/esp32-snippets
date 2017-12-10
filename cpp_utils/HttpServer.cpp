@@ -170,9 +170,9 @@ private:
 		// RAM at one time.  Instead what we have to do is ensure that we only have enough data in RAM to be sent.
 		HttpResponse response(&request);
 		response.setStatus(HttpResponse::HTTP_STATUS_OK, "OK");
-		uint8_t *pData = new uint8_t[1000];
+		uint8_t *pData = new uint8_t[m_pHttpServer->getFileBufferSize()];
 		while(!ifStream.eof()) {
-			ifStream.read((char *)pData, 1000);
+			ifStream.read((char *)pData, m_pHttpServer->getFileBufferSize());
 			response.sendData(pData, ifStream.gcount());
 		}
 		delete[] pData;
