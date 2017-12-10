@@ -66,10 +66,11 @@ static void listDirectory(std::string path, HttpResponse& response) {
  * Constructor for HTTP Server
  */
 HttpServer::HttpServer() {
+	m_fileBufferSize = 4*1024;    // Default size of the file buffer.
 	m_portNumber = 80;            // The default port number.
 	m_rootPath   = "";            // The default path.
 	m_useSSL     = false;         // Default SSL is no.
-	setDirectoryListing(false);   // Default directory listing is no.
+	setDirectoryListing(false);   // Default directory listing is disabled.
 } // HttpServer
 
 
@@ -100,6 +101,7 @@ private:
 	 *
 	 * If we didn't find a handler, then we are going to behave as a Web Server and try and serve up the
 	 * content from the file on the "file system".
+	 *
 	 * @param [in] request The HTTP request to process.
 	 */
 	void processRequest(HttpRequest &request) {
@@ -134,7 +136,7 @@ private:
 		}
 
 		// Serve up the content from the file on the file system ... if found ...
-		std::ifstream ifStream;
+
 		std::string fileName = m_pHttpServer->getRootPath() + request.getPath(); // Build the absolute file name to read.
 
 		// If the file name ends with a '/' then remove it ... we are normalizing to NO trailing slashes.
@@ -151,6 +153,7 @@ private:
 		} // Path was a directory.
 
 		ESP_LOGD("HttpServerTask", "Opening file: %s", fileName.c_str());
+		std::ifstream ifStream;
 		ifStream.open(fileName, std::ifstream::in | std::ifstream::binary);      // Attempt to open the file for reading.
 
 		// If we failed to open the requested file, then it probably didn't exist so return a not found.
@@ -163,11 +166,16 @@ private:
 		}
 
 		// We now have an open file and want to push the content of that file through to the browser.
+		// because of defect #252 we have to do some pretty important re-work here.  Specifically, we can't host the whole file in
+		// RAM at one time.  Instead what we have to do is ensure that we only have enough data in RAM to be sent.
 		HttpResponse response(&request);
 		response.setStatus(HttpResponse::HTTP_STATUS_OK, "OK");
-		std::stringstream ss;
-		ss << ifStream.rdbuf();
-		response.sendData(ss.str());
+		uint8_t *pData = new uint8_t[1000];
+		while(!ifStream.eof()) {
+			ifStream.read((char *)pData, 1000);
+			response.sendData(pData, ifStream.gcount());
+		}
+		delete[] pData;
 		ifStream.close();
 
 	} // processRequest
@@ -272,6 +280,18 @@ void HttpServer::addPathHandler(
 
 
 /**
+ * @brief Get the size of the file buffer.
+ * When serving up a file from the file system, we can't afford to read the whole file into RAM before
+ * sending it.  As such, we must read the file in chunks.  The buffer size is the size of a chunk to be
+ * transmitted before the next chunk is read.
+ * @return The file buffer size.
+ */
+size_t HttpServer::getFileBufferSize() {
+	return m_fileBufferSize;
+} // getFileBufferSize
+
+
+/**
  * @brief Get the port number on which the HTTP Server is listening.
  * @return The port number on which the HTTP server is listening.
  */
@@ -301,6 +321,18 @@ bool HttpServer::getSSL() {
 void HttpServer::setDirectoryListing(bool use) {
 	m_directoryListing = use;
 } // setDirectoryListening
+
+
+/**
+ * @brief Set the size of the file buffer.
+ * When serving up a file from the file system, we can't afford to read the whole file into RAM before
+ * sending it.  As such, we must read the file in chunks.  The buffer size is the size of a chunk to be
+ * transmitted before the next chunk is read.
+ * @param [in] fileBufferSize How large should the file buffer size be?
+ */
+void HttpServer::setFileBufferSize(size_t fileBufferSize) {
+	m_fileBufferSize = fileBufferSize;
+} // setFileBufferSize
 
 
 /**
@@ -394,6 +426,7 @@ PathHandler::PathHandler(std::string method, std::string matchPath,
 	m_method          = method;                  // Save the method we are looking for.
 	m_textPattern     = matchPath;
 	m_isRegex         = false;
+	m_pRegex          = nullptr;
 	m_pRequestHandler = pWebServerRequestHandler; // The handler to be invoked if the pattern matches.
 } // PathHandler
 
@@ -428,5 +461,7 @@ bool PathHandler::match(std::string method, std::string path) {
 void PathHandler::invokePathHandler(HttpRequest* request, HttpResponse *response) {
 	m_pRequestHandler(request, response);
 } // invokePathHandler
+
+
 
 

@@ -88,9 +88,10 @@ std::map<std::string, std::string> HttpResponse::getHeaders() {
  * @param [in] data The data to send to the partner.
  */
 void HttpResponse::sendData(std::string data) {
+	ESP_LOGD(LOG_TAG, ">> sendData");
 	// If the request is already closed, nothing further to do.
 	if (m_request->isClosed()) {
-		ESP_LOGE(LOG_TAG, "Request to send more data but the request/response is already closed");
+		ESP_LOGE(LOG_TAG, "<< sendData: Request to send more data but the request/response is already closed");
 		return;
 	}
 
@@ -101,8 +102,26 @@ void HttpResponse::sendData(std::string data) {
 
 	// Send the payload data.
 	m_request->getSocket().send(data);
+	ESP_LOGE(LOG_TAG, "<< sendData");
 } // sendData
 
+void HttpResponse::sendData(uint8_t* pData, size_t size) {
+	ESP_LOGD(LOG_TAG, ">> sendData: 0x%x, size: %d", (uint32_t) pData, size);
+	// If the request is already closed, nothing further to do.
+	if (m_request->isClosed()) {
+		ESP_LOGE(LOG_TAG, "<< sendData: Request to send more data but the request/response is already closed");
+		return;
+	}
+
+	// If we haven't yet sent the header of the data, send that now.
+	if (m_headerCommitted == false) {
+		sendHeader();
+	}
+
+	// Send the payload data.
+	m_request->getSocket().send(pData, size);
+	ESP_LOGD(LOG_TAG, "<< sendData");
+} // sendData
 
 /**
  * @brief Send the header
@@ -137,4 +156,5 @@ void HttpResponse::setStatus(const int status, const std::string message) {
 	m_status        = status;
 	m_statusMessage = message;
 } // setStatus
+
 

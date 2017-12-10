@@ -120,12 +120,9 @@ std::pair<std::string, std::string> parseHeader(std::string &line) {
 
 
 HttpParser::HttpParser() {
-	// TODO Auto-generated constructor stub
-
 }
 
 HttpParser::~HttpParser() {
-	// TODO Auto-generated destructor stub
 }
 
 
@@ -191,6 +188,7 @@ bool HttpParser::hasHeader(const std::string& name) {
  * @param [in] s The socket from which to retrieve data.
  */
 void HttpParser::parse(Socket s) {
+	ESP_LOGD(LOG_TAG, ">> parse: socket: %s", s.toString().c_str());
 	std::string line;
 	line = s.readToDelim(lineTerminator);
 	parseRequestLine(line);
@@ -201,6 +199,7 @@ void HttpParser::parse(Socket s) {
 	}
 	// Only PUT and POST requests have a body
 	if (getMethod() != "POST" && getMethod() != "PUT") {
+		ESP_LOGD(LOG_TAG, "<< parse");
 		return;
 	}
 
@@ -218,7 +217,7 @@ void HttpParser::parse(Socket s) {
 		int rc = s.receive(data, sizeof(data));
 		m_body = std::string((char *)data, rc);
 	}
-	ESP_LOGD(LOG_TAG, "Size of body: %d", m_body.length());
+	ESP_LOGD(LOG_TAG, "<< parse: Size of body: %d", m_body.length());
 } // parse
 
 

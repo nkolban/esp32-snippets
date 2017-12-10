@@ -74,23 +74,26 @@ public:
 			HttpRequest*  pHttpRequest,
 			HttpResponse* pHttpResponse)
 		);
-	uint16_t    getPort();       // Get the port on which the Http server is listening.
-	std::string getRootPath();   // Get the root of the file system path.
-	bool        getSSL();        // Are we using SSL?
-	void        setDirectoryListing(bool use);   // Should we list the content of directories?
-	void        setRootPath(std::string path);   // Set the root of the file system path.
+	size_t      getFileBufferSize();  // Get the current size of the file buffer.
+	uint16_t    getPort();            // Get the port on which the Http server is listening.
+	std::string getRootPath();        // Get the root of the file system path.
+	bool        getSSL();             // Are we using SSL?
+	void        setDirectoryListing(bool use);             // Should we list the content of directories?
+	void        setFileBufferSize(size_t fileBufferSize);  // Set the size of the file buffer
+	void        setRootPath(std::string path);             // Set the root of the file system path.
 	void        start(uint16_t portNumber, bool useSSL=false);
 	void        stop();          // Stop a previously started server.
+
 private:
 	friend class HttpServerTask;
 	friend class WebSocket;
-	uint16_t                 m_portNumber;         // Port number on which server is listening.
-	std::vector<PathHandler> m_pathHandlers;       // Vector of path handlers.
-	std::string              m_rootPath;           // Root path into the file system.
-	bool                     m_useSSL;             // Is this server listening on an HTTPS port?
+	size_t                   m_fileBufferSize;     // Size of the file buffer.
 	bool                     m_directoryListing;   // Should we list directory content?
-	//SockServ                 m_sockServ;           // Server socket.
+	std::vector<PathHandler> m_pathHandlers;       // Vector of path handlers.
+	uint16_t                 m_portNumber;         // Port number on which server is listening.
+	std::string              m_rootPath;           // Root path into the file system.
 	Socket                   m_socket;
+	bool                     m_useSSL;             // Is this server listening on an HTTPS port?
 }; // HttpServer
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPSERVER_H_ */
