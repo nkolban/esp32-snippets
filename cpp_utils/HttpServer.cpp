@@ -20,47 +20,7 @@ static const char* LOG_TAG = "HttpServer";
 
 #undef close
 
-/**
- * Send a directory listing back to the browser.
- * @param [in] path The path of the directory to list.
- * @param [in] response The response object to use to send data back to the browser.
- */
-static void listDirectory(std::string path, HttpResponse& response) {
-	// If path ends with a "/" then remove it.
-	if (GeneralUtils::endsWith(path, '/')) {
-		path = path.substr(0, path.length()-1);
-	}
-	response.addHeader("Content-Type", "text/html");
-	response.setStatus(HttpResponse::HTTP_STATUS_OK, "OK");
-	response.sendData("<html><head>");
-	if (!GeneralUtils::endsWith(path, '/')) {
-		response.sendData("<base href='" + path + "/' />");
-	}
-	response.sendData("</head><body>");
-	response.sendData("<h1>" + path + "</h1>");
-	response.sendData("<hr/>");
-	response.sendData("<p><a href='..'>[To Parent Directory]</a></p>");
-	response.sendData("<table style='font-family: monospace;'>");
-	auto files = FileSystem::getDirectoryContents(path);
-	for (auto it = files.begin(); it != files.end(); ++it) {
-		std::stringstream ss;
-		ss << "<tr><td><a href='" << it->getName() << "'>" << it->getName() << "</a></td>";
-		if (it->isDirectory()) {
-			ss << "<td>&lt;dir&gt;</td>";
-		}
-		else {
-			ss << "<td>" << it->length() << "</td>";
-		}
 
-		ss << "</tr>";
-		response.sendData(ss.str());
-		ESP_LOGD(LOG_TAG, "file: %s", ss.str().c_str());
-	}
-	response.sendData("</table>");
-	response.sendData("<hr/>");
-	response.sendData("</body></html>");
-	response.close();
-} // listDirectory
 
 /**
  * Constructor for HTTP Server
@@ -109,7 +69,7 @@ private:
 			request.getMethod().c_str(), request.getPath().c_str());
 
 		// Loop over all the path handlers we have looking for the first one that matches.  Note that none of them
-		// may match.  If we find one that does, then invoke the handler and that is the end of processing.
+		// need to match.  If we find one that does, then invoke the handler and that is the end of processing.
 		for (auto pathHandlerIterartor = m_pHttpServer->m_pathHandlers.begin();
 				pathHandlerIterartor != m_pHttpServer->m_pathHandlers.end();
 				++pathHandlerIterartor) {
@@ -148,7 +108,7 @@ private:
 		if (FileSystem::isDirectory(fileName)) {
 			ESP_LOGD(LOG_TAG, "Path %s is a directory", fileName.c_str());
 			HttpResponse response(&request);
-			listDirectory(fileName, response);
+			m_pHttpServer->listDirectory(fileName, response);   // List the contents of the directory.
 			return;
 		} // Path was a directory.
 
@@ -309,10 +269,65 @@ std::string HttpServer::getRootPath() {
 } // getRootPath
 
 
+/**
+ * @brief Return whether or not we are using SSL.
+ * @return True if we are using SSL.
+ */
 bool HttpServer::getSSL() {
 	return m_useSSL;
 } // getSSL
 
+
+/**
+ * Send a directory listing back to the browser.
+ * @param [in] path The path of the directory to list.
+ * @param [in] response The response object to use to send data back to the browser.
+ */
+void HttpServer::listDirectory(std::string path, HttpResponse& response) {
+	// If path ends with a "/" then remove it.
+	if (GeneralUtils::endsWith(path, '/')) {
+		path = path.substr(0, path.length()-1);
+	}
+
+	// The url path may not be the same as path which is the path on the file system.
+	// They will differ if we are using a root path.  We check to see if the file system path
+	// starts with the root path, if it does, we remove the root path from the url path.
+	std::string urlPath = path;
+	if (urlPath.compare(0, getRootPath().length(), getRootPath()) == 0) {
+		urlPath = urlPath.substr(getRootPath().length());
+	}
+
+	response.addHeader("Content-Type", "text/html");
+	response.setStatus(HttpResponse::HTTP_STATUS_OK, "OK");
+	response.sendData("<html><head>");
+	if (!GeneralUtils::endsWith(path, '/')) {
+		response.sendData("<base href='" + urlPath + "/' />");
+	}
+	response.sendData("</head><body>");
+	response.sendData("<h1>" + path + "</h1>");
+	response.sendData("<hr/>");
+	response.sendData("<p><a href='..'>[To Parent Directory]</a></p>");
+	response.sendData("<table style='font-family: monospace;'>");
+	auto files = FileSystem::getDirectoryContents(path);
+	for (auto it = files.begin(); it != files.end(); ++it) {
+		std::stringstream ss;
+		ss << "<tr><td><a href='" << it->getName() << "'>" << it->getName() << "</a></td>";
+		if (it->isDirectory()) {
+			ss << "<td>&lt;dir&gt;</td>";
+		}
+		else {
+			ss << "<td>" << it->length() << "</td>";
+		}
+
+		ss << "</tr>";
+		response.sendData(ss.str());
+		ESP_LOGD(LOG_TAG, "file: %s", ss.str().c_str());
+	}
+	response.sendData("</table>");
+	response.sendData("<hr/>");
+	response.sendData("</body></html>");
+	response.close();
+} // listDirectory
 
 /**
  * @brief Set whether or not we will list directories.
@@ -353,6 +368,12 @@ void HttpServer::setFileBufferSize(size_t fileBufferSize) {
  * @return N/A.
  */
 void HttpServer::setRootPath(std::string path) {
+
+	// Should the user have supplied a path that ends in a "/" remove the trailing slash.  This also
+	// means that "/" becomes "".
+	if (GeneralUtils::endsWith(path, '/')) {
+		path = path.substr(0, path.length()-1);
+	}
 	m_rootPath = path;
 } // setRootPath
 

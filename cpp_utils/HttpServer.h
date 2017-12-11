@@ -87,6 +87,7 @@ public:
 private:
 	friend class HttpServerTask;
 	friend class WebSocket;
+	void                     listDirectory(std::string path, HttpResponse& response);
 	size_t                   m_fileBufferSize;     // Size of the file buffer.
 	bool                     m_directoryListing;   // Should we list directory content?
 	std::vector<PathHandler> m_pathHandlers;       // Vector of path handlers.
