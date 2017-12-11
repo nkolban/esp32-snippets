@@ -102,7 +102,7 @@ void HttpResponse::sendData(std::string data) {
 
 	// Send the payload data.
 	m_request->getSocket().send(data);
-	ESP_LOGE(LOG_TAG, "<< sendData");
+	ESP_LOGD(LOG_TAG, "<< sendData");
 } // sendData
 
 void HttpResponse::sendData(uint8_t* pData, size_t size) {
