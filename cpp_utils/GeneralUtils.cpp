@@ -17,6 +17,8 @@
 #include <esp_err.h>
 #include <nvs.h>
 #include <esp_wifi.h>
+#include <esp_heap_caps.h>
+#include <esp_system.h>
 
 static const char* LOG_TAG = "GeneralUtils";
 
@@ -96,6 +98,23 @@ bool GeneralUtils::base64Encode(const std::string &in, std::string *out) {
 
 	return (enc_len == out->size());
 } // base64Encode
+
+
+/**
+ * @brief Dump general info to the log.
+ * Data includes:
+ * * Amount of free RAM
+ */
+void GeneralUtils::dumpInfo() {
+	size_t freeHeap = heap_caps_get_free_size(MALLOC_CAP_8BIT);
+	esp_chip_info_t chipInfo;
+	esp_chip_info(&chipInfo);
+	ESP_LOGD(LOG_TAG, "--- dumpInfo ---");
+	ESP_LOGD(LOG_TAG, "Free heap: %d", freeHeap);
+	ESP_LOGD(LOG_TAG, "Chip Info: Model: %d, cores: %d, revision: %d", chipInfo.model, chipInfo.cores, chipInfo.revision);
+	ESP_LOGD(LOG_TAG, "ESP-IDF version: %s", esp_get_idf_version());
+	ESP_LOGD(LOG_TAG, "---");
+} // dumpInfo
 
 
 /**
@@ -396,6 +415,5 @@ const char* GeneralUtils::errorToString(esp_err_t errCode) {
 		}
 	return "Unknown ESP_ERR error";
 } // errorToString
-
 
 
