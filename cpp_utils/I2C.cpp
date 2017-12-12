@@ -248,6 +248,7 @@ void I2C::start() {
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "i2c_master_start: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 	}
+	m_directionKnown = false;
 } // start
 
 
