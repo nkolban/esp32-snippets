@@ -24,7 +24,6 @@
 #include <BLE2902.h>
 
 BLEServer *pServer = NULL;
-BLECharacteristic *pCharacteristic;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 uint8_t value = 0;
@@ -62,7 +61,7 @@ void setup() {
   BLEService *pService = pServer->createService(SERVICE_UUID);
 
   // Create a BLE Characteristic
-  pCharacteristic = pService->createCharacteristic(
+  BLECharacteristic * pCharacteristic = pService->createCharacteristic(
                       CHARACTERISTIC_UUID,
                       BLECharacteristic::PROPERTY_READ   |
                       BLECharacteristic::PROPERTY_WRITE  |
@@ -84,7 +83,7 @@ void setup() {
 
 void loop() {
     // notify changed value
-    if (pCharacteristic->isReadyForData()) {
+    if (deviceConnected) {
         pCharacteristic->setValue(&value, 1);
         pCharacteristic->notify();
         value++;

@@ -45,7 +45,6 @@ BLECharacteristic::BLECharacteristic(BLEUUID uuid, uint32_t properties) {
 	m_handle     = NULL_HANDLE;
 	m_properties = (esp_gatt_char_prop_t)0;
 	m_pCallbacks = nullptr;
-	m_bConnected = false;
 
 	setBroadcastProperty((properties & PROPERTY_BROADCAST) !=0);
 	setReadProperty((properties & PROPERTY_READ) !=0);
@@ -414,12 +413,10 @@ void BLECharacteristic::handleGATTServerEvent(
 
 		case ESP_GATTS_CONNECT_EVT:
 			m_semaphoreConfEvt.give();
-			m_bConnected = true;
 			break;
 
 		case ESP_GATTS_DISCONNECT_EVT:
 			m_semaphoreConfEvt.give();
-			m_bConnected = false;
 			break;
 
 		default: {
@@ -690,17 +687,6 @@ void BLECharacteristic::setWriteProperty(bool value) {
 		m_properties = (esp_gatt_char_prop_t)(m_properties & ~ESP_GATT_CHAR_PROP_BIT_WRITE);
 	}
 } // setWriteProperty
-
-  /**
-  * @brief, non-blocking check, whether API is ready to receive data
-  * @return true - if connected and sempahore is not yet taken
-  */
-bool BLECharacteristic::isReadyForData()
-{
-	bool bTaken = m_semaphoreConfEvt.isTaken();
-	ESP_LOGV(LOG_TAG, " = %d", !bTaken && m_bConnected);
-	return !bTaken && m_bConnected;
-}
 
 /**
  * @brief Return a string representation of the characteristic.
