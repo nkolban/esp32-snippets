@@ -78,7 +78,6 @@ public:
 	void setWriteNoResponseProperty(bool value);
 	std::string toString();
 	uint16_t getHandle();
-	bool isReadyForData();
 
 	static const uint32_t PROPERTY_READ      = 1<<0;
 	static const uint32_t PROPERTY_WRITE     = 1<<1;
@@ -100,7 +99,6 @@ private:
 	BLECharacteristicCallbacks* m_pCallbacks;
 	BLEService*                 m_pService;
 	BLEValue                    m_value;
-	volatile bool               m_bConnected;
 
 	void handleGATTServerEvent(
 			esp_gatts_cb_event_t      event,
