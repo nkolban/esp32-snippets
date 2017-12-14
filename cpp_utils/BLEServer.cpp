@@ -236,7 +236,7 @@ void BLEServer::handleGATTServerEvent(
 			if (m_pServerCallbacks != nullptr) {         // If we have callbacks, call now.
 				m_pServerCallbacks->onDisconnect(this);
 			}
-			// startAdvertising(); - do this with some delay from the loop() 
+			startAdvertising(); //- do this with some delay from the loop()
 			break;
 		} // ESP_GATTS_DISCONNECT_EVT
 

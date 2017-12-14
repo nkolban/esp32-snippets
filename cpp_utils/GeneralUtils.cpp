@@ -417,3 +417,29 @@ const char* GeneralUtils::errorToString(esp_err_t errCode) {
 } // errorToString
 
 
+/**
+ * @brief Convert a string to lower case.
+ * @param [in] value The string to convert to lower case.
+ * @return A lower case representation of the string.
+ */
+std::string GeneralUtils::toLower(std::string& value) {
+	// Question: Could this be improved with a signature of:
+	// std::string& GeneralUtils::toLower(std::string& value)
+	std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+	return value;
+} // toLower
+
+
+/**
+ * @brief Remove white space from a string.
+ */
+std::string GeneralUtils::trim(const std::string& str)
+{
+    size_t first = str.find_first_not_of(' ');
+    if (std::string::npos == first)
+    {
+        return str;
+    }
+    size_t last = str.find_last_not_of(' ');
+    return str.substr(first, (last - first + 1));
+} // trim
