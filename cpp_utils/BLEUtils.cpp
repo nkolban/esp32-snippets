@@ -14,7 +14,7 @@
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
-#include <bt.h>              // ESP32 BLE
+#include <esp_bt.h>              // ESP32 BLE
 #include <esp_bt_main.h>     // ESP32 BLE
 #include <esp_gap_ble_api.h> // ESP32 BLE
 #include <esp_gattc_api.h>   // ESP32 BLE

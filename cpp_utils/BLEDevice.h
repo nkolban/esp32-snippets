@@ -13,7 +13,7 @@
 #include <esp_gattc_api.h>   // ESP32 BLE
 #include <map>               // Part of C++ STL
 #include <string>
-#include <bt.h>
+#include <esp_bt.h>
 
 #include "BLEServer.h"
 #include "BLEClient.h"

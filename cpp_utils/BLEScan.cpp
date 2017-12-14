@@ -33,6 +33,7 @@ BLEScan::BLEScan() {
 	m_scan_params.scan_filter_policy = BLE_SCAN_FILTER_ALLOW_ALL;
 	m_pAdvertisedDeviceCallbacks     = nullptr;
 	m_stopped                        = true;
+	m_wantDuplicates                 = false;
 	setInterval(100);
 	setWindow(100);
 } // BLEScan
@@ -97,7 +98,7 @@ void BLEScan::handleGAPEvent(
 							break;
 						}
 					}
-					if (found) {
+					if (found && !m_wantDuplicates) {  // If we found a previous entry AND we don't want duplicates, then we are done.
 						ESP_LOGD(LOG_TAG, "Ignoring %s, already seen it.", advertisedAddress.toString().c_str());
 						break;
 					}
@@ -115,7 +116,9 @@ void BLEScan::handleGAPEvent(
 						m_pAdvertisedDeviceCallbacks->onResult(advertisedDevice);
 					}
 
-					m_scanResults.m_vectorAdvertisedDevices.push_back(advertisedDevice);
+					if (!found) {   // If we have previously seen this device, don't record it again.
+						m_scanResults.m_vectorAdvertisedDevices.push_back(advertisedDevice);
+					}
 
 					break;
 				} // ESP_GAP_SEARCH_INQ_RES_EVT
@@ -154,8 +157,10 @@ void BLEScan::setActiveScan(bool active) {
 /**
  * @brief Set the call backs to be invoked.
  * @param [in] pAdvertisedDeviceCallbacks Call backs to be invoked.
+ * @param [in] wantDuplicates  True if we wish to be called back with duplicates.  Default is false.
  */
-void BLEScan::setAdvertisedDeviceCallbacks(BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks) {
+void BLEScan::setAdvertisedDeviceCallbacks(BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks, bool wantDuplicates) {
+	m_wantDuplicates = wantDuplicates;
 	m_pAdvertisedDeviceCallbacks = pAdvertisedDeviceCallbacks;
 } // setAdvertisedDeviceCallbacks
 

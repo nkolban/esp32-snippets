@@ -48,7 +48,9 @@ private:
 class BLEScan {
 public:
 	void           setActiveScan(bool active);
-	void           setAdvertisedDeviceCallbacks(BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks);
+	void           setAdvertisedDeviceCallbacks(
+			              BLEAdvertisedDeviceCallbacks* pAdvertisedDeviceCallbacks,
+										bool wantDuplicates = false);
 	void           setInterval(uint16_t intervalMSecs);
 	void           setWindow(uint16_t windowMSecs);
 	BLEScanResults start(uint32_t duration);
@@ -68,6 +70,7 @@ private:
 	bool                          m_stopped;
 	FreeRTOS::Semaphore           m_semaphoreScanEnd = FreeRTOS::Semaphore("ScanEnd");
 	BLEScanResults                m_scanResults;
+	bool                          m_wantDuplicates;
 }; // BLEScan
 
 #endif /* CONFIG_BT_ENABLED */

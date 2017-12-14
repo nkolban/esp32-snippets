@@ -11,6 +11,7 @@
 #include <sys/time.h>
 #include <sstream>
 #include "BLEDevice.h"
+#include "GeneralUtils.h"
 
 #include "sdkconfig.h"
 
@@ -35,6 +36,7 @@ class MyCallbacks: public BLECharacteristicCallbacks {
 
 
 static void run() {
+	GeneralUtils::dumpInfo();
 	BLEDevice::init("MYDEVICE");
 	BLEServer *pServer = BLEDevice::createServer();
 

@@ -11,7 +11,7 @@
 #include <freertos/task.h>
 #include <esp_err.h>
 #include <nvs_flash.h>
-#include <bt.h>                // ESP32 BLE
+#include <esp_bt.h>            // ESP32 BLE
 #include <esp_bt_device.h>     // ESP32 BLE
 #include <esp_bt_main.h>       // ESP32 BLE
 #include <esp_gap_ble_api.h>   // ESP32 BLE
