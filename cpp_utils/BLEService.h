@@ -52,9 +52,6 @@ private:
  */
 class BLEService {
 public:
-	BLEService(const char* uuid, uint32_t numHandles=10);
-	BLEService(BLEUUID uuid, uint32_t numHandles=10);
-
 	void               addCharacteristic(BLECharacteristic* pCharacteristic);
 	BLECharacteristic* createCharacteristic(const char* uuid, uint32_t properties);
 	BLECharacteristic* createCharacteristic(BLEUUID uuid, uint32_t properties);
@@ -69,6 +66,8 @@ public:
 	uint16_t           getHandle();
 
 private:
+	BLEService(const char* uuid, uint32_t numHandles);
+	BLEService(BLEUUID uuid, uint32_t numHandles);
 	friend class BLEServer;
 	friend class BLEServiceMap;
 	friend class BLEDescriptor;

@@ -87,6 +87,7 @@ public:
 	static const uint32_t PROPERTY_WRITE_NR  = 1<<5;
 
 private:
+
 	friend class BLEServer;
 	friend class BLEService;
 	friend class BLEDescriptor;

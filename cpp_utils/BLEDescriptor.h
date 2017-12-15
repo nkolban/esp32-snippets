@@ -42,6 +42,7 @@ public:
 	std::string toString();
 
 private:
+
 	friend class BLEDescriptorMap;
 	friend class BLECharacteristic;
 	BLEUUID              m_bleUUID;
