@@ -105,8 +105,6 @@ void BLEScan::handleGAPEvent(
 
 					// We now construct a model of the advertised device that we have just found for the first
 					// time.
-					FreeRTOS::sleep(50);
-					break;
 					BLEAdvertisedDevice advertisedDevice;
 					advertisedDevice.setAddress(advertisedAddress);
 					advertisedDevice.setRSSI(param->scan_rst.rssi);
