@@ -482,9 +482,16 @@ std::vector<WiFiAPRecord> WiFi::scan() {
  *
  * @param[in] ssid The SSID to use to advertize for stations.
  * @param[in] password The password to use for station connections.
+ * @param[in] auth The authorization mode for access to this access point.  Options are:
+ * * WIFI_AUTH_OPEN
+ * * WIFI_AUTH_WPA_PSK
+ * * WIFI_AUTH_WPA2_PSK
+ * * WIFI_AUTH_WPA_WPA2_PSK
+ * * WIFI_AUTH_WPA2_ENTERPRISE
+ * * WIFI_AUTH_WEP
  * @return N/A.
  */
-void WiFi::startAP(const std::string& ssid, const std::string& password) {
+void WiFi::startAP(const std::string& ssid, const std::string& password, wifi_auth_mode_t auth) {
 	ESP_LOGD(LOG_TAG, ">> startAP: ssid: %s", ssid.c_str());
 
 	init();
@@ -518,6 +525,12 @@ void WiFi::startAP(const std::string& ssid, const std::string& password) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_start: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();
 	}
+
+	errRc = tcpip_adapter_dhcps_start(TCPIP_ADAPTER_IF_AP);
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "tcpip_adapter_dhcps_start: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+	}
+
 	ESP_LOGD(LOG_TAG, "<< startAP");
 } // startAP
 

@@ -138,7 +138,7 @@ public:
     static std::string        getStaMac();
     static std::string        getStaSSID();
     std::vector<WiFiAPRecord> scan();
-    void                      startAP(const std::string& ssid, const std::string& passwd);
+    void                      startAP(const std::string& ssid, const std::string& passwd, wifi_auth_mode_t auth = WIFI_AUTH_OPEN);
     void                      setIPInfo(const std::string& ip, const std::string& gw, const std::string& netmask);
     void                      setIPInfo(const char* ip, const char* gw, const char* netmask);
     void                      setIPInfo(uint32_t ip, uint32_t gw, uint32_t netmask);

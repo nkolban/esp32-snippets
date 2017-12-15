@@ -37,10 +37,22 @@ esp_err_t WiFiEventHandler::eventHandler(void* ctx, system_event_t* event) {
 			rc =  pWiFiEventHandler->apStart();
 			break;
 		}
+
 		case SYSTEM_EVENT_AP_STOP: {
 			rc = pWiFiEventHandler->apStop();
 			break;
 		}
+
+		case SYSTEM_EVENT_AP_STACONNECTED: {
+			rc = pWiFiEventHandler->apStaConnected();
+			break;
+		}
+
+		case SYSTEM_EVENT_AP_STADISCONNECTED: {
+			rc = pWiFiEventHandler->apStaDisconnected();
+			break;
+		}
+
 		case SYSTEM_EVENT_STA_CONNECTED: {
 			rc = pWiFiEventHandler->staConnected();
 			break;
