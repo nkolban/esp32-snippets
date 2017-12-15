@@ -44,22 +44,32 @@ esp_err_t WiFiEventHandler::eventHandler(void* ctx, system_event_t* event) {
 		}
 
 		case SYSTEM_EVENT_AP_STACONNECTED: {
-			rc = pWiFiEventHandler->apStaConnected();
+			rc = pWiFiEventHandler->apStaConnected(event->event_info.sta_connected);
 			break;
 		}
 
 		case SYSTEM_EVENT_AP_STADISCONNECTED: {
-			rc = pWiFiEventHandler->apStaDisconnected();
+			rc = pWiFiEventHandler->apStaDisconnected(event->event_info.sta_disconnected);
+			break;
+		}
+
+		case SYSTEM_EVENT_SCAN_DONE: {
+			rc = pWiFiEventHandler->staScanDone(event->event_info.scan_done);
+			break;
+		}
+
+		case SYSTEM_EVENT_STA_AUTHMODE_CHANGE: {
+			rc = pWiFiEventHandler->staAuthChange(event->event_info.auth_change);
 			break;
 		}
 
 		case SYSTEM_EVENT_STA_CONNECTED: {
-			rc = pWiFiEventHandler->staConnected();
+			rc = pWiFiEventHandler->staConnected(event->event_info.connected);
 			break;
 		}
 
 		case SYSTEM_EVENT_STA_DISCONNECTED: {
-			rc = pWiFiEventHandler->staDisconnected();
+			rc = pWiFiEventHandler->staDisconnected(event->event_info.disconnected);
 			break;
 		}
 
@@ -123,7 +133,7 @@ system_event_cb_t WiFiEventHandler::getEventHandler() {
  * @param [in] event_sta_got_ip The Station Got IP event.
  * @return An indication of whether or not we processed the event successfully.
  */
-esp_err_t WiFiEventHandler::staGotIp(system_event_sta_got_ip_t event_sta_got_ip) {
+esp_err_t WiFiEventHandler::staGotIp(system_event_sta_got_ip_t info) {
     ESP_LOGD(LOG_TAG, "default staGotIp");
     return ESP_OK;
 } // staGotIp
@@ -169,28 +179,76 @@ esp_err_t WiFiEventHandler::staStop() {
 } // staStop
 
 
-esp_err_t WiFiEventHandler::staConnected() {
+/**
+ * @brief Handle the Station Connected event.
+ * Handle having connected to remote AP.
+ * @param [in] event_connected system_event_sta_connected_t.
+ * @return An indication of whether or not we processed the event successfully.
+ */
+esp_err_t WiFiEventHandler::staConnected(system_event_sta_connected_t info) {
     ESP_LOGD(LOG_TAG, "default staConnected");
     return ESP_OK;
 } // staConnected
 
 
-esp_err_t WiFiEventHandler::staDisconnected() {
+/**
+ * @brief Handle the Station Disconnected event.
+ * Handle having disconnected from remote AP.
+ * @param [in] event_disconnected system_event_sta_disconnected_t.
+ * @return An indication of whether or not we processed the event successfully.
+ */
+esp_err_t WiFiEventHandler::staDisconnected(system_event_sta_disconnected_t info) {
     ESP_LOGD(LOG_TAG, "default staDisconnected");
     return ESP_OK;
 } // staDisconnected
 
 
-esp_err_t WiFiEventHandler::apStaConnected() {
+/**
+ * @brief Handle a Station Connected to AP event.
+ * Handle having a station connected to ESP32 soft-AP.
+ * @param [in] event_sta_connected system_event_ap_staconnected_t.
+ * @return An indication of whether or not we processed the event successfully.
+ */
+esp_err_t WiFiEventHandler::apStaConnected(system_event_ap_staconnected_t info) {
     ESP_LOGD(LOG_TAG, "default apStaConnected");
     return ESP_OK;
 } // apStaConnected
 
 
-esp_err_t WiFiEventHandler::apStaDisconnected() {
+/**
+ * @brief Handle a Station Disconnected from AP event.
+ * Handle having a station disconnected from ESP32 soft-AP.
+ * @param [in] event_sta_disconnected system_event_ap_stadisconnected_t.
+ * @return An indication of whether or not we processed the event successfully.
+ */
+esp_err_t WiFiEventHandler::apStaDisconnected(system_event_ap_stadisconnected_t info) {
     ESP_LOGD(LOG_TAG, "default apStaDisconnected");
     return ESP_OK;
 } // apStaDisconnected
+
+
+/**
+ * @brief Handle a Scan for APs done event.
+ * Handle having an ESP32 station scan (APs) done.
+ * @param [in] event_scan_done system_event_sta_scan_done_t.
+ * @return An indication of whether or not we processed the event successfully.
+ */
+esp_err_t WiFiEventHandler::staScanDone(system_event_sta_scan_done_t info) {
+    ESP_LOGD(LOG_TAG, "default staScanDone");
+    return ESP_OK;
+} // staScanDone
+
+
+/**
+ * @brief Handle the auth mode of APs change event.
+ * Handle having the auth mode of AP ESP32 station connected to changed.
+ * @param [in] event_auth_change system_event_sta_authmode_change_t.
+ * @return An indication of whether or not we processed the event successfully.
+ */
+esp_err_t WiFiEventHandler::staAuthChange(system_event_sta_authmode_change_t info) {
+    ESP_LOGD(LOG_TAG, "default staAuthChange");
+    return ESP_OK;
+} // staAuthChange
 
 
 WiFiEventHandler::~WiFiEventHandler() {

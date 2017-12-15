@@ -23,14 +23,14 @@ esp_err_t NeoPixelWiFiEventHandler::apStart() {
 	return ESP_OK;
 }
 
-esp_err_t NeoPixelWiFiEventHandler::staConnected() {
+esp_err_t NeoPixelWiFiEventHandler::staConnected(system_event_sta_connected_t info) {
 	printf("XXX staConnected\n");
 	ws2812->setPixel(0, 57, 89, 66);
 	ws2812->show();
 	return ESP_OK;
 }
 
-esp_err_t NeoPixelWiFiEventHandler::staDisconnected() {
+esp_err_t NeoPixelWiFiEventHandler::staDisconnected(system_event_sta_disconnected_t info) {
 	printf("XXX staDisconnected\n");
 	ws2812->setPixel(0, 64, 0, 0);
 	ws2812->show();
@@ -44,7 +44,7 @@ esp_err_t NeoPixelWiFiEventHandler::staStart() {
 	return ESP_OK;
 }
 
-esp_err_t NeoPixelWiFiEventHandler::staGotIp(system_event_sta_got_ip_t event_sta_got_ip) {
+esp_err_t NeoPixelWiFiEventHandler::staGotIp(system_event_sta_got_ip_t info) {
 	printf("XXX staGotIp\n");
 	ws2812->setPixel(0, 0, 64, 0);
 	ws2812->show();
