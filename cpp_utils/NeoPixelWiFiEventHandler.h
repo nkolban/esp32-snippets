@@ -23,9 +23,9 @@ public:
 	virtual ~NeoPixelWiFiEventHandler();
 
 	esp_err_t apStart() override;
-	esp_err_t staConnected() override;
-	esp_err_t staGotIp(system_event_sta_got_ip_t event_sta_got_ip) override;
-	esp_err_t staDisconnected() override;
+	esp_err_t staConnected(system_event_sta_connected_t info) override;
+	esp_err_t staGotIp(system_event_sta_got_ip_t info) override;
+	esp_err_t staDisconnected(system_event_sta_disconnected_t info) override;
 	esp_err_t wifiReady() override;
 	esp_err_t staStart() override;
 private:
