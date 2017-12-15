@@ -509,7 +509,7 @@ void WiFi::startAP(const std::string& ssid, const std::string& password, wifi_au
 	apConfig.ap.ssid_len = ssid.size();
 	::memcpy(apConfig.ap.password, password.data(), password.size());
 	apConfig.ap.channel         = 0;
-	apConfig.ap.authmode        = WIFI_AUTH_OPEN;
+	apConfig.ap.authmode        = auth;
 	apConfig.ap.ssid_hidden     = 0;
 	apConfig.ap.max_connection  = 4;
 	apConfig.ap.beacon_interval = 100;
