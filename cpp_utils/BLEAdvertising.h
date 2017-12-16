@@ -13,6 +13,33 @@
 #include "BLEUUID.h"
 #include <vector>
 
+/**
+ * @brief Representation of a beacon.
+ * See:
+ * * https://en.wikipedia.org/wiki/IBeacon
+ */
+class BLEBeacon {
+private:
+	struct {
+		uint16_t manufacturerId;
+		uint8_t  subType;
+		uint8_t  subTypeLength;
+		uint8_t  proximityUUID[16];
+		uint16_t major;
+		uint16_t minor;
+		uint8_t  signalPower;
+	} m_beaconData;
+public:
+	BLEBeacon();
+	void setManufacturerId(uint16_t manufacturerId);
+	//void setSubType(uint8_t subType);
+	void setProximityUUID(BLEUUID uuid);
+	void setMajor(uint16_t major);
+	void setMinor(uint16_t minor);
+	void setSignalPower(uint16_t signalPower);
+	std::string getData();
+}; // BLEBeacon
+
 
 /**
  * @brief Advertisement data set by the programmer to be published by the %BLE server.
