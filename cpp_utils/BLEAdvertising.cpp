@@ -382,11 +382,12 @@ std::string BLEAdvertisementData::getPayload() {
 
 
 BLEBeacon::BLEBeacon() {
-	m_beaconData.subType       = 0x02;
-	m_beaconData.subTypeLength = 0x15;
-	m_beaconData.major         = 0;
-	m_beaconData.minor         = 0;
-	m_beaconData.signalPower   = 0;
+	m_beaconData.manufacturerId = 0x4c00;
+	m_beaconData.subType        = 0x02;
+	m_beaconData.subTypeLength  = 0x15;
+	m_beaconData.major          = 0;
+	m_beaconData.minor          = 0;
+	m_beaconData.signalPower    = 0;
 	memset(m_beaconData.proximityUUID, 0, sizeof(m_beaconData.proximityUUID));
 } // BLEBeacon
 
