@@ -36,6 +36,8 @@ public:
 	static void        setPower(esp_power_level_t powerLevel);  // Set our power level.
 	static void        setValue(BLEAddress bdAddress, BLEUUID serviceUUID, BLEUUID characteristicUUID, std::string value);   // Set the value of a characteristic on a service on a server.
 	static std::string toString();        // Return a string representation of our device.
+	static void        whiteListAdd(BLEAddress address);    // Add an entry to the BLE white list.
+	static void        whiteListRemove(BLEAddress address); // Remove an entry from the BLE white list.
 
 private:
 	static BLEServer *m_pServer;

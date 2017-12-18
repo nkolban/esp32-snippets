@@ -93,6 +93,36 @@ void BLEAdvertising::setAppearance(uint16_t appearance) {
 
 
 /**
+ * @brief Set the filtering for the scan filter.
+ * @param [in] scanRequestWhitelistOnly If true, only allow scan requests from those on the white list.
+ * @param [in] connectWhitelistOnly If true, only allow connections from those on the white list.
+ */
+void BLEAdvertising::setScanFilter(bool scanRequestWhitelistOnly,	bool connectWhitelistOnly) {
+	ESP_LOGD(LOG_TAG, ">> setScanFilter: scanRequestWhitelistOnly: %d, connectWhitelistOnly: %d", scanRequestWhitelistOnly, connectWhitelistOnly);
+	if (!scanRequestWhitelistOnly && !connectWhitelistOnly) {
+		m_advParams.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY;
+		ESP_LOGD(LOG_TAG, "<< setScanFilter");
+		return;
+	}
+	if (scanRequestWhitelistOnly && !connectWhitelistOnly) {
+		m_advParams.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_ANY;
+		ESP_LOGD(LOG_TAG, "<< setScanFilter");
+		return;
+	}
+	if (!scanRequestWhitelistOnly && connectWhitelistOnly) {
+		m_advParams.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_WLST;
+		ESP_LOGD(LOG_TAG, "<< setScanFilter");
+		return;
+	}
+	if (scanRequestWhitelistOnly && connectWhitelistOnly) {
+		m_advParams.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
+		ESP_LOGD(LOG_TAG, "<< setScanFilter");
+		return;
+	}
+} // setScanFilter
+
+
+/**
  * @brief Set the advertisement data that is to be published in a regular advertisement.
  * @param [in] advertisementData The data to be advertised.
  */
@@ -382,11 +412,12 @@ std::string BLEAdvertisementData::getPayload() {
 
 
 BLEBeacon::BLEBeacon() {
-	m_beaconData.subType       = 0x02;
-	m_beaconData.subTypeLength = 0x15;
-	m_beaconData.major         = 0;
-	m_beaconData.minor         = 0;
-	m_beaconData.signalPower   = 0;
+	m_beaconData.manufacturerId = 0x4c00;
+	m_beaconData.subType        = 0x02;
+	m_beaconData.subTypeLength  = 0x15;
+	m_beaconData.major          = 0;
+	m_beaconData.minor          = 0;
+	m_beaconData.signalPower    = 0;
 	memset(m_beaconData.proximityUUID, 0, sizeof(m_beaconData.proximityUUID));
 } // BLEBeacon
 
@@ -414,6 +445,7 @@ void BLEBeacon::setProximityUUID(BLEUUID uuid) {
 void BLEBeacon::setSignalPower(uint16_t signalPower) {
 	m_beaconData.signalPower = signalPower;
 } // setSignalPower
+
 
 
 #endif /* CONFIG_BT_ENABLED */

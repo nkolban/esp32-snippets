@@ -80,6 +80,7 @@ public:
 	void stop();
 	void setAppearance(uint16_t appearance);
 	void setAdvertisementData(BLEAdvertisementData& advertisementData);
+	void setScanFilter(bool scanRequertWhitelistOnly, bool connectWhitelistOnly);
 	void setScanResponseData(BLEAdvertisementData& advertisementData);
 
 private:

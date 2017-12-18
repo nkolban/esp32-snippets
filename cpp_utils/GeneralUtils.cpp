@@ -340,6 +340,24 @@ std::string GeneralUtils::ipToString(uint8_t *ip) {
 
 
 /**
+ * @brief Split a string into parts based on a delimiter.
+ * @param [in] source The source string to split.
+ * @param [in] delimiter The delimiter characters.
+ * @return A vector of strings that are the split of the input.
+ */
+std::vector<std::string> GeneralUtils::split(std::string source, char delimiter) {
+	// See also: https://stackoverflow.com/questions/5167625/splitting-a-c-stdstring-using-tokens-e-g
+	std::vector<std::string> strings;
+	std::istringstream iss(source);
+	std::string s;
+	while(std::getline(iss, s, delimiter)) {
+		strings.push_back(trim(s));
+	}
+	return strings;
+} // split
+
+
+/**
  * @brief Convert an ESP error code to a string.
  * @param [in] errCode The errCode to be converted.
  * @return A string representation of the error code.
@@ -443,3 +461,5 @@ std::string GeneralUtils::trim(const std::string& str)
     size_t last = str.find_last_not_of(' ');
     return str.substr(first, (last - first + 1));
 } // trim
+
+
