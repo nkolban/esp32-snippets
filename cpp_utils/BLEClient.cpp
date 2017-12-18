@@ -168,6 +168,14 @@ void BLEClient::gattClientEventHandler(
 				break;
 		} // ESP_GATTC_DISCONNECT_EVT
 
+		case ESP_GATTS_CONNECT_EVT: {
+			//m_connId = param->connect.conn_id; // Save the connection id.
+			if(m_securityLevel){
+				esp_ble_set_encryption(evtParam->connect.remote_bda, m_securityLevel);
+				//memcpy(m_remote_bda, param->connect.remote_bda, sizeof(m_remote_bda));
+			}
+			break;
+		} // ESP_GATTS_CONNECT_EVT
 
 		//
 		// ESP_GATTC_OPEN_EVT
@@ -411,6 +419,41 @@ void BLEClient::handleGAPEvent(
 			break;
 		} // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
 
+	    case ESP_GAP_BLE_PASSKEY_REQ_EVT:                           /* passkey request event */
+	        ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_PASSKEY_REQ_EVT: ");
+	       // esp_log_buffer_hex(LOG_TAG, m_remote_bda, sizeof(m_remote_bda));
+	    	assert(m_securityCallbacks!=nullptr);
+	       // esp_ble_passkey_reply(m_remote_bda, true, m_securityCallbacks->onPassKeyRequest());
+	        break;
+
+		/*
+		 * TODO should we add white/black list comparison?
+		 */
+	    case ESP_GAP_BLE_SEC_REQ_EVT:
+	        /* send the positive(true) security response to the peer device to accept the security request.
+	        If not accept the security request, should sent the security response with negative(false) accept value*/
+	    	if(m_securityCallbacks!=nullptr)
+	    		esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, m_securityCallbacks->onSecurityRequest());
+        	else
+	        	esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, false);
+        	break;
+	        /*
+	         *
+	         */
+	    case ESP_GAP_BLE_PASSKEY_NOTIF_EVT:  ///the app will receive this evt when the IO  has Output capability and the peer device IO has Input capability.
+	        ///show the passkey number to the user to input it in the peer deivce.
+	    	if(m_securityCallbacks!=nullptr)
+	    		m_securityCallbacks->onPassKeyNotify(param->ble_security.key_notif.passkey);
+	        break;
+	    case ESP_GAP_BLE_KEY_EVT:
+	        //shows the ble key info share with peer device to the user.
+	        ESP_LOGI(LOG_TAG, "key type = %s", BLESecurity::esp_key_type_to_str(param->ble_security.ble_key.key_type));
+	        break;
+	    case ESP_GAP_BLE_AUTH_CMPL_EVT:
+	        if(m_securityCallbacks!=nullptr)
+	        	m_securityCallbacks->onAuthenticationComplete(param->ble_security.auth_cmpl);
+	        break;
+
 		default:
 			break;
 	}
@@ -448,6 +491,13 @@ void BLEClient::setValue(BLEUUID serviceUUID, BLEUUID characteristicUUID, std::s
 	ESP_LOGD(LOG_TAG, "<< setValue");
 } // setValue
 
+void BLEClient::setEncryptionLevel(esp_ble_sec_act_t level) {
+	m_securityLevel = level;
+}
+
+void BLEClient::setSecurityCallbacks(BLESecurityCallbacks* callbacks) {
+	m_securityCallbacks = callbacks;
+}
 
 /**
  * @brief Return a string representation of this client.
