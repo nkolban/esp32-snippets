@@ -337,4 +337,32 @@ bool       initialized          = false;   // Have we been initialized?
 	return oss.str();
 } // toString
 
+
+/**
+ * @brief Add an entry to the BLE white list.
+ * @param [in] address The address to add to the white list.
+ */
+void BLEDevice::whiteListAdd(BLEAddress address) {
+	ESP_LOGD(LOG_TAG, ">> whiteListAdd: %s", address.toString().c_str());
+	esp_err_t errRc = esp_ble_gap_update_whitelist(true, *address.getNative());  // True to add an entry.
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_update_whitelist: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+	}
+	ESP_LOGD(LOG_TAG, "<< whiteListAdd");
+} // whiteListAdd
+
+
+/**
+ * @brief Remove an entry from the BLE white list.
+ * @param [in] address The address to remove from the white list.
+ */
+void BLEDevice::whiteListRemove(BLEAddress address) {
+	ESP_LOGD(LOG_TAG, ">> whiteListRemove: %s", address.toString().c_str());
+	esp_err_t errRc = esp_ble_gap_update_whitelist(false, *address.getNative());  // False to remove an entry.
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_ble_gap_update_whitelist: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+	}
+	ESP_LOGD(LOG_TAG, "<< whiteListRemove");
+} // whiteListRemove
+
 #endif // CONFIG_BT_ENABLED
