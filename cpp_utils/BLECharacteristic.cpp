@@ -107,7 +107,7 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 	esp_err_t errRc = ::esp_ble_gatts_add_char(
 		m_pService->getHandle(),
 		getUUID().getNative(),
-		static_cast<esp_gatt_perm_t>(ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE),
+		static_cast<esp_gatt_perm_t>(m_permissions),
 		getProperties(),
 		//&value,
 		nullptr,
@@ -163,6 +163,9 @@ uint16_t BLECharacteristic::getHandle() {
 	return m_handle;
 } // getHandle
 
+void BLECharacteristic::setAccessPermissions(esp_gatt_perm_t perm) {
+	m_permissions = perm;
+}
 
 esp_gatt_char_prop_t BLECharacteristic::getProperties() {
 	return m_properties;
@@ -348,12 +351,17 @@ void BLECharacteristic::handleGATTServerEvent(
 // The following code has deliberately not been factored to make it fewer statements because this would cloud the
 // the logic flow comprehension.
 //
+				uint16_t maxOffset = m_mtu - 1;
+				if (m_mtu > 512)
+					maxOffset = 512;
+				ESP_LOGI(LOG_TAG, "%d", m_mtu);
+				ESP_LOGI(LOG_TAG, "%d", maxOffset);
 				if (param->read.need_rsp) {
 					ESP_LOGD(LOG_TAG, "Sending a response (esp_ble_gatts_send_response)");
 					esp_gatt_rsp_t rsp;
 					std::string value = m_value.getValue();
 					if (param->read.is_long) {
-						if (value.length() - m_value.getReadOffset() < 22) {
+						if (value.length() - m_value.getReadOffset() < maxOffset) {
 							// This is the last in the chain
 							rsp.attr_value.len    = value.length() - m_value.getReadOffset();
 							rsp.attr_value.offset = m_value.getReadOffset();
@@ -361,16 +369,16 @@ void BLECharacteristic::handleGATTServerEvent(
 							m_value.setReadOffset(0);
 						} else {
 							// There will be more to come.
-							rsp.attr_value.len    = 22;
+							rsp.attr_value.len    = maxOffset;
 							rsp.attr_value.offset = m_value.getReadOffset();
 							memcpy(rsp.attr_value.value, value.data() + rsp.attr_value.offset, rsp.attr_value.len);
-							m_value.setReadOffset(rsp.attr_value.offset + 22);
+							m_value.setReadOffset(rsp.attr_value.offset + maxOffset);
 						}
 					} else {
-						if (value.length() > 21) {
+						if (value.length()+1 > maxOffset) {
 							// Too big for a single shot entry.
-							m_value.setReadOffset(22);
-							rsp.attr_value.len    = 22;
+							m_value.setReadOffset(maxOffset);
+							rsp.attr_value.len    = maxOffset;
 							rsp.attr_value.offset = 0;
 							memcpy(rsp.attr_value.value, value.data(), rsp.attr_value.len);
 						} else {
@@ -412,11 +420,16 @@ void BLECharacteristic::handleGATTServerEvent(
 		}
 
 		case ESP_GATTS_CONNECT_EVT:
+			m_mtu = 23;
 			m_semaphoreConfEvt.give();
 			break;
 
 		case ESP_GATTS_DISCONNECT_EVT:
 			m_semaphoreConfEvt.give();
+			break;
+
+		case ESP_GATTS_MTU_EVT :
+			m_mtu = param->mtu.mtu;
 			break;
 
 		default: {

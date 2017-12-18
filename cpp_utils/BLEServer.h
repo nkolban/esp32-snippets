@@ -18,6 +18,7 @@
 #include "BLEAdvertising.h"
 #include "BLECharacteristic.h"
 #include "BLEService.h"
+#include "BLESecurity.h"
 #include "FreeRTOS.h"
 
 class BLEServerCallbacks;
@@ -57,6 +58,9 @@ public:
 	BLEAdvertising* getAdvertising();
 	void            setCallbacks(BLEServerCallbacks* pCallbacks);
 	void            startAdvertising();
+	void			setEncryptionLevel(esp_ble_sec_act_t level);
+	uint32_t		getPassKey();
+	void 			setSecurityCallbacks(BLESecurityCallbacks* pCallbacks);
 
 
 private:
@@ -74,6 +78,10 @@ private:
 	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
 	BLEServiceMap       m_serviceMap;
 	BLEServerCallbacks* m_pServerCallbacks;
+	esp_ble_sec_act_t 	m_securityLevel = (esp_ble_sec_act_t)0;
+	esp_bd_addr_t m_remote_bda;
+	uint32_t m_securityPassKey;
+	BLESecurityCallbacks* m_securityCallbacks;
 
 	void            createApp(uint16_t appId);
 	uint16_t        getConnId();

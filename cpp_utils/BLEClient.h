@@ -49,6 +49,8 @@ public:
 
 	void                                       setClientCallbacks(BLEClientCallbacks *pClientCallbacks);
 	void                                       setValue(BLEUUID serviceUUID, BLEUUID characteristicUUID, std::string value);   // Set the value of a given characteristic at a given service.
+	void 									   setEncryptionLevel(esp_ble_sec_act_t level);
+	void 									   setSecurityCallbacks(BLESecurityCallbacks* pCallbacks);
 
 	std::string                                toString();                    // Return a string representation of this client.
 
@@ -80,6 +82,8 @@ private:
 	FreeRTOS::Semaphore m_semaphoreRssiCmplEvt   = FreeRTOS::Semaphore("RssiCmplEvt");
 	std::map<std::string, BLERemoteService*> m_servicesMap;
 	void clearServices();   // Clear any existing services.
+	esp_ble_sec_act_t 	m_securityLevel = (esp_ble_sec_act_t)0;
+	BLESecurityCallbacks* m_securityCallbacks = 0;
 
 }; // class BLEDevice
 
