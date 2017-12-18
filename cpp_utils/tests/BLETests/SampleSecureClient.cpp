@@ -56,7 +56,7 @@ class MyClient: public Task {
 	void run(void* data) {
 		BLESecurity *pSecurity = new BLESecurity();
 		pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_MITM);
-		pSecurity->setCapability(ESP_IO_CAP_OUT);
+		pSecurity->setCapability(ESP_IO_CAP_KBDISP);
 		pSecurity->setRespEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
 
 		BLEAddress* pAddress = (BLEAddress*)data;
