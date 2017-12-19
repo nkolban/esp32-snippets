@@ -12,6 +12,7 @@
 #include <esp_gap_ble_api.h>
 #include "BLEUUID.h"
 #include <vector>
+#define ENDIAN_CHANGE_U16(x) ((((x)&0xFF00)>>8) + (((x)&0xFF)<<8))
 
 /**
  * @brief Representation of a beacon.
@@ -27,8 +28,8 @@ private:
 		uint8_t  proximityUUID[16];
 		uint16_t major;
 		uint16_t minor;
-		uint8_t  signalPower;
-	} m_beaconData;
+		int8_t  signalPower;
+	} __attribute__((packed))m_beaconData;
 public:
 	BLEBeacon();
 	void setManufacturerId(uint16_t manufacturerId);
@@ -36,7 +37,7 @@ public:
 	void setProximityUUID(BLEUUID uuid);
 	void setMajor(uint16_t major);
 	void setMinor(uint16_t minor);
-	void setSignalPower(uint16_t signalPower);
+	void setSignalPower(int8_t signalPower);
 	std::string getData();
 }; // BLEBeacon
 
