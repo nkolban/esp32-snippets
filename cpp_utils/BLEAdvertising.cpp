@@ -426,15 +426,15 @@ std::string BLEBeacon::getData() {
 } // getData
 
 void BLEBeacon::setMajor(uint16_t major) {
-	m_beaconData.major = major;
+	m_beaconData.major = ENDIAN_CHANGE_U16(major);
 } // setMajor
 
 void BLEBeacon::setManufacturerId(uint16_t manufacturerId) {
-	m_beaconData.manufacturerId = manufacturerId;
+	m_beaconData.manufacturerId = ENDIAN_CHANGE_U16(manufacturerId);
 } // setManufacturerId
 
 void BLEBeacon::setMinor(uint16_t minor) {
-	m_beaconData.minor = minor;
+	m_beaconData.minor = ENDIAN_CHANGE_U16(minor);
 } // setMinior
 
 void BLEBeacon::setProximityUUID(BLEUUID uuid) {
@@ -442,7 +442,7 @@ void BLEBeacon::setProximityUUID(BLEUUID uuid) {
 	memcpy(m_beaconData.proximityUUID, uuid.getNative()->uuid.uuid128, 16);
 } // setProximityUUID
 
-void BLEBeacon::setSignalPower(uint16_t signalPower) {
+void BLEBeacon::setSignalPower(int8_t signalPower) {
 	m_beaconData.signalPower = signalPower;
 } // setSignalPower
 
