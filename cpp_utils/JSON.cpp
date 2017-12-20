@@ -190,6 +190,18 @@ std::string JsonArray::toString() {
 
 
 /**
+ * @brief Build an unformatted string representation.
+ * @return A string representation.
+ */
+std::string JsonArray::toStringUnformatted() {
+	char *data = cJSON_PrintUnformatted(m_node);
+	std::string ret(data);
+	free(data);
+	return ret;
+} // toStringUnformatted
+
+
+/**
  * @brief Get the number of elements from the array.
  * @return The int value that represents the number of elements.
  */
@@ -363,3 +375,14 @@ std::string JsonObject::toString() {
 	return ret;
 } // toString
 
+
+/**
+ * @brief Build an unformatted string representation.
+ * @return A string representation.
+ */
+std::string JsonObject::toStringUnformatted() {
+	char *data = cJSON_PrintUnformatted(m_node);
+	std::string ret(data);
+	free(data);
+	return ret;
+} // toStringUnformatted

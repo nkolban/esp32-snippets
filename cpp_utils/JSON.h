@@ -45,6 +45,7 @@ public:
 	void        addObject(JsonObject value);
 	void        addString(std::string value);
 	std::string toString();
+	std::string toStringUnformatted();
 	std::size_t size();
 private:
 	JsonArray(cJSON* node);
@@ -77,6 +78,7 @@ public:
 	void        setObject(std::string name, JsonObject value);
 	void        setString(std::string name, std::string value);
 	std::string toString();
+	std::string toStringUnformatted();
 
 private:
 	JsonObject(cJSON* node);
