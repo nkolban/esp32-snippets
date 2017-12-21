@@ -29,6 +29,7 @@ BLEAdvertisedDevice::BLEAdvertisedDevice() {
 	m_manufacturerData = "";
 	m_name             = "";
 	m_rssi             = -9999;
+	m_serviceData      = "";
 	m_txPower          = 0;
 	m_pScan            = nullptr;
 
@@ -36,6 +37,7 @@ BLEAdvertisedDevice::BLEAdvertisedDevice() {
 	m_haveManufacturerData = false;
 	m_haveName             = false;
 	m_haveRSSI             = false;
+	m_haveServiceData      = false;
 	m_haveServiceUUID      = false;
 	m_haveTXPower          = false;
 
@@ -65,7 +67,7 @@ BLEAddress BLEAdvertisedDevice::getAddress() {
  */
 uint16_t BLEAdvertisedDevice::getAppearance() {
 	return m_appearance;
-}
+} // getAppearance
 
 
 /**
@@ -74,7 +76,7 @@ uint16_t BLEAdvertisedDevice::getAppearance() {
  */
 std::string BLEAdvertisedDevice::getManufacturerData() {
 	return m_manufacturerData;
-}
+} // getManufacturerData
 
 
 /**
@@ -105,6 +107,15 @@ BLEScan* BLEAdvertisedDevice::getScan() {
 
 
 /**
+ * @brief Get the service data.
+ * @return The ServiceData of the advertised device.
+ */
+std::string BLEAdvertisedDevice::getServiceData() {
+	return m_serviceData;
+} //getServiceData
+
+
+/**
  * @brief Get the Service UUID.
  * @return The Service UUID of the advertised device.
  */
@@ -132,13 +143,7 @@ int8_t BLEAdvertisedDevice::getTXPower() {
 	return m_txPower;
 } // getTXPower
 
-/**
- * @brief Get the service data.
- * @return The ServiceData of the advertised device.
- */
-uint8_t* BLEAdvertisedDevice::getServiceData() {
-	return m_serviceData;
-} //getServiceData
+
 
 /**
  * @brief Does this advertisement have an appearance value?
@@ -174,6 +179,15 @@ bool BLEAdvertisedDevice::haveName() {
 bool BLEAdvertisedDevice::haveRSSI() {
 	return m_haveRSSI;
 } // haveRSSI
+
+
+/**
+ * @brief Does this advertisement have a service data value?
+ * @return True if there is a service data value present.
+ */
+bool BLEAdvertisedDevice::haveServiceData() {
+	return m_haveServiceData;
+} // haveServiceData
 
 
 /**
@@ -213,8 +227,8 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 	bool finished = false;
 
 	while(!finished) {
-		length = *payload; // Retrieve the length of the record.
-		payload++; // Skip to type
+		length = *payload;          // Retrieve the length of the record.
+		payload++;                  // Skip to type
 		sizeConsumed += 1 + length; // increase the size consumed.
 
 		if (length != 0) { // A length of 0 indicates that we have reached the end.
@@ -227,15 +241,13 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 					ad_type, BLEUtils::advTypeToString(ad_type), length, pHex);
 			free(pHex);
 
-
-
 			switch(ad_type) {
-				case ESP_BLE_AD_TYPE_NAME_CMPL: { // Adv Data Type: 0x09
+				case ESP_BLE_AD_TYPE_NAME_CMPL: {   // Adv Data Type: 0x09
 					setName(std::string(reinterpret_cast<char*>(payload), length));
 					break;
 				} // ESP_BLE_AD_TYPE_NAME_CMPL
 
-				case ESP_BLE_AD_TYPE_TX_PWR: { // Adv Data Type: 0x0A
+				case ESP_BLE_AD_TYPE_TX_PWR: {      // Adv Data Type: 0x0A
 					setTXPower(*payload);
 					break;
 				} // ESP_BLE_AD_TYPE_TX_PWR
@@ -245,13 +257,13 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 					break;
 				} // ESP_BLE_AD_TYPE_APPEARANCE
 
-				case ESP_BLE_AD_TYPE_FLAG: { // Adv Data Type: 0x01
+				case ESP_BLE_AD_TYPE_FLAG: {        // Adv Data Type: 0x01
 					setAdFlag(*payload);
 					break;
 				} // ESP_BLE_AD_TYPE_FLAG
 
 				case ESP_BLE_AD_TYPE_16SRV_CMPL:
-				case ESP_BLE_AD_TYPE_16SRV_PART: { // Adv Data Type: 0x02
+				case ESP_BLE_AD_TYPE_16SRV_PART: {   // Adv Data Type: 0x02
 					for (int var = 0; var < length/2; ++var) {
 						setServiceUUID(BLEUUID(*reinterpret_cast<uint16_t*>(payload+var*2)));
 					}
@@ -259,7 +271,7 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 				} // ESP_BLE_AD_TYPE_16SRV_PART
 
 				case ESP_BLE_AD_TYPE_32SRV_CMPL:
-				case ESP_BLE_AD_TYPE_32SRV_PART: { // Adv Data Type: 0x04
+				case ESP_BLE_AD_TYPE_32SRV_PART: {   // Adv Data Type: 0x04
 					for (int var = 0; var < length/4; ++var) {
 						setServiceUUID(BLEUUID(*reinterpret_cast<uint32_t*>(payload+var*4)));
 					}
@@ -282,8 +294,8 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 					break;
 				} // ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE
 
-				case ESP_BLE_AD_TYPE_SERVICE_DATA: {
-					setServiceData(payload);
+				case ESP_BLE_AD_TYPE_SERVICE_DATA: {  // Adv Data Type: 0x16 (Service Data)
+					setServiceData(std::string(reinterpret_cast<char*>(payload), length));
 					break;
 				} //ESP_BLE_AD_TYPE_SERVICE_DATA
 
@@ -397,6 +409,16 @@ void BLEAdvertisedDevice::setServiceUUID(BLEUUID serviceUUID) {
 
 
 /**
+ * @brief Set the ServiceData value.
+ * @param [in] data ServiceData value.
+ */
+void BLEAdvertisedDevice::setServiceData(std::string serviceData) {
+	m_haveServiceData = true;         // Set the flag that indicates we have service data.
+	m_serviceData     = serviceData;  // Save the service data that we received.
+} //setServiceData
+
+
+/**
  * @brief Set the power level for this device.
  * @param [in] txPower The discovered power level.
  */
@@ -406,13 +428,6 @@ void BLEAdvertisedDevice::setTXPower(int8_t txPower) {
 	ESP_LOGD(LOG_TAG, "- txPower: %d", m_txPower);
 } // setTXPower
 
-/**
- * @brief Set the ServiceData value.
- * @param [in] data ServiceData value.
- */
-void BLEAdvertisedDevice::setServiceData(uint8_t* data) {
-	m_serviceData = data;
-} //setServiceData
 
 /**
  * @brief Create a string representation of this device.
