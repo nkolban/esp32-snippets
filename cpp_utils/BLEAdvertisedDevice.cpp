@@ -133,6 +133,14 @@ int8_t BLEAdvertisedDevice::getTXPower() {
 } // getTXPower
 
 /**
+ * @brief Get the service data.
+ * @return The ServiceData of the advertised device.
+ */
+uint8_t* BLEAdvertisedDevice::getServiceData() {
+	return m_serviceData;
+} //getServiceData
+
+/**
  * @brief Does this advertisement have an appearance value?
  * @return True if there is an appearance value present.
  */
@@ -274,6 +282,11 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 					break;
 				} // ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE
 
+				case ESP_BLE_AD_TYPE_SERVICE_DATA: {
+					setServiceData(payload);
+					break;
+				} //ESP_BLE_AD_TYPE_SERVICE_DATA
+
 				default: {
 					ESP_LOGD(LOG_TAG, "Unhandled type: adType: %d - 0x%.2x", ad_type, ad_type);
 					break;
@@ -393,6 +406,13 @@ void BLEAdvertisedDevice::setTXPower(int8_t txPower) {
 	ESP_LOGD(LOG_TAG, "- txPower: %d", m_txPower);
 } // setTXPower
 
+/**
+ * @brief Set the ServiceData value.
+ * @param [in] data ServiceData value.
+ */
+void BLEAdvertisedDevice::setServiceData(uint8_t* data) {
+	m_serviceData = data;
+} //setServiceData
 
 /**
  * @brief Create a string representation of this device.
