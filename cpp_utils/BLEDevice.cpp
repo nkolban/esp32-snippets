@@ -48,7 +48,13 @@ bool       initialized          = false;   // Have we been initialized?
  * @return A new instance of the client.
  */
 /* STATIC */ BLEClient* BLEDevice::createClient() {
+	ESP_LOGD(LOG_TAG, ">> createClient");
+#ifndef CONFIG_GATTC_ENABLE  // Check that BLE GATTC is enabled in make menuconfig
+	ESP_LOGE(LOG_TAG, "BLE GATTC is not enabled - CONFIG_GATTC_ENABLE not defined");
+	abort();
+#endif  // CONFIG_GATTC_ENABLE
 	m_pClient = new BLEClient();
+	ESP_LOGD(LOG_TAG, "<< createClient");
 	return m_pClient;
 } // createClient
 
@@ -59,6 +65,10 @@ bool       initialized          = false;   // Have we been initialized?
  */
 /* STATIC */ BLEServer* BLEDevice::createServer() {
 	ESP_LOGD(LOG_TAG, ">> createServer");
+#ifndef CONFIG_GATTS_ENABLE  // Check that BLE GATTS is enabled in make menuconfig
+	ESP_LOGE(LOG_TAG, "BLE GATTS is not enabled - CONFIG_GATTS_ENABLE not defined");
+	abort();
+#endif // CONFIG_GATTS_ENABLE
 	m_pServer = new BLEServer();
 	m_pServer->createApp(0);
 	ESP_LOGD(LOG_TAG, "<< createServer");
@@ -260,17 +270,21 @@ bool       initialized          = false;   // Have we been initialized?
 			return;
 		}
 
+#ifdef CONFIG_GATTC_ENABLE   // Check that BLE client is configured in make menuconfig
 		errRc = esp_ble_gattc_register_callback(BLEDevice::gattClientEventHandler);
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 			return;
 		}
+#endif   // CONFIG_GATTC_ENABLE
 
+#ifdef CONFIG_GATTS_ENABLE  // Check that BLE server is configured in make menuconfig
 		errRc = esp_ble_gatts_register_callback(BLEDevice::gattServerEventHandler);
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gatts_register_callback: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 			return;
 		}
+#endif   // CONFIG_GATTS_ENABLE
 
 		errRc = ::esp_ble_gap_set_device_name(deviceName.c_str());
 		if (errRc != ESP_OK) {
