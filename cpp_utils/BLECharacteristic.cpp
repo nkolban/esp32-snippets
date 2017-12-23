@@ -324,7 +324,6 @@ void BLECharacteristic::handleGATTServerEvent(
 		// - bool          need_rsp
 		//
 		case ESP_GATTS_READ_EVT: {
-			ESP_LOGD(LOG_TAG, "- Testing: 0x%.2x == 0x%.2x", param->read.handle, m_handle);
 			if (param->read.handle == m_handle) {
 
 				if (m_pCallbacks != nullptr) {
@@ -352,10 +351,9 @@ void BLECharacteristic::handleGATTServerEvent(
 // the logic flow comprehension.
 //
 				uint16_t maxOffset = m_mtu - 1;
-				if (m_mtu > 512)
+				if (m_mtu > 512) {
 					maxOffset = 512;
-				ESP_LOGI(LOG_TAG, "%d", m_mtu);
-				ESP_LOGI(LOG_TAG, "%d", maxOffset);
+				}
 				if (param->read.need_rsp) {
 					ESP_LOGD(LOG_TAG, "Sending a response (esp_ble_gatts_send_response)");
 					esp_gatt_rsp_t rsp;

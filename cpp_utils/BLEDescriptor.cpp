@@ -37,12 +37,12 @@ BLEDescriptor::BLEDescriptor(const char* uuid) : BLEDescriptor(BLEUUID(uuid)) {
  */
 BLEDescriptor::BLEDescriptor(BLEUUID uuid) {
 	m_bleUUID            = uuid;
-	m_value.attr_value   = (uint8_t *)malloc(ESP_GATT_MAX_ATTR_LEN); // Allocate storage for the value.
-	m_value.attr_len     = 0;
-	m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN;
-	m_handle             = NULL_HANDLE;
-	m_pCharacteristic    = nullptr;   // No initial characteristic.
-	m_pCallback          = nullptr;   // No initial callback.
+	m_value.attr_value   = (uint8_t *)malloc(ESP_GATT_MAX_ATTR_LEN);  // Allocate storage for the value.
+	m_value.attr_len     = 0;                                         // Initial length is 0.
+	m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN;                     // Maximum length of the data.
+	m_handle             = NULL_HANDLE;                               // Handle is initially unknown.
+	m_pCharacteristic    = nullptr;                                   // No initial characteristic.
+	m_pCallback          = nullptr;                                   // No initial callback.
 
 } // BLEDescriptor
 
@@ -51,7 +51,7 @@ BLEDescriptor::BLEDescriptor(BLEUUID uuid) {
  * @brief BLEDescriptor destructor.
  */
 BLEDescriptor::~BLEDescriptor() {
-	free(m_value.attr_value);
+	free(m_value.attr_value);   // Release the storage we created in the constructor.
 } // ~BLEDescriptor
 
 
