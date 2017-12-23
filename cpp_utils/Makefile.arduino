@@ -28,6 +28,8 @@ BLE_FILES= \
 	BLEDevice.h \
 	BLEExceptions.cpp \
 	BLEExceptions.h \
+	BLEHIDDevice.cpp \
+	BLEHIDDevice.h \
 	BLERemoteCharacteristic.cpp \
 	BLERemoteCharacteristic.h \
 	BLERemoteDescriptor.cpp \
@@ -41,6 +43,8 @@ BLE_FILES= \
 	BLEService.cpp \
 	BLEService.h \
 	BLEServiceMap.cpp \
+	BLESecurity.cpp \
+	BLESecurity.h \
 	BLEUtils.cpp \
 	BLEUtils.h \
 	BLEUUID.cpp \
@@ -50,7 +54,9 @@ BLE_FILES= \
 	FreeRTOS.h \
 	FreeRTOS.cpp \
 	GeneralUtils.h \
-	GeneralUtils.cpp 
+	GeneralUtils.cpp \
+	HIDTypes.h \
+	HIDKeyboardTypes.h
 
 ARDUINO_LIBS=$(HOME)/Arduino/libraries
 

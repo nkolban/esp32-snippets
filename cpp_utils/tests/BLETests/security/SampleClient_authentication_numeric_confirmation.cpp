@@ -2,7 +2,7 @@
  * SampleClient_authentication_numeric_confirmation.cpp
  *
  *  Created on: Dec 23, 2017
- *      Author: esp32
+ *      Author: chegewara
  */
 
 
@@ -71,7 +71,7 @@ class MyClient: public Task {
 
 		BLESecurity *pSecurity = new BLESecurity();
 		pSecurity->setKeySize();
-//		pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY);
+		pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY);
 		pSecurity->setCapability(ESP_IO_CAP_IO);
 		pSecurity->setRespEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
 		// Connect to the remove BLE Server.
