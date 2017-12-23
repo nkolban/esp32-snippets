@@ -17,7 +17,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
 
-  BLEDevice::init("MyESP32");
+  BLEDevice::init("ESP32");
   /*
    * Here we have implemented simplest security. This kind security does not provide authentication
    */
