@@ -39,6 +39,7 @@ public:
 	void setCallbacks(BLEDescriptorCallbacks* pCallbacks);
 	void setValue(uint8_t* data, size_t size);
 	void setValue(std::string value);
+	void setAccessPermissions(esp_gatt_perm_t perm);
 	std::string toString();
 
 private:
@@ -53,6 +54,7 @@ private:
 	void executeCreate(BLECharacteristic* pCharacteristic);
 	void setHandle(uint16_t handle);
 	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
+	esp_gatt_perm_t				m_permissions = ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE;
 };
 
 /**

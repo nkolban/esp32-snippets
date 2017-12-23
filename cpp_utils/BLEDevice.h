@@ -38,11 +38,15 @@ public:
 	static std::string toString();        // Return a string representation of our device.
 	static void        whiteListAdd(BLEAddress address);    // Add an entry to the BLE white list.
 	static void        whiteListRemove(BLEAddress address); // Remove an entry from the BLE white list.
+	static void		   setEncryptionLevel(esp_ble_sec_act_t level);
+	static void		   setSecurityCallbacks(BLESecurityCallbacks* pCallbacks);
 
 private:
 	static BLEServer *m_pServer;
 	static BLEScan   *m_pScan;
 	static BLEClient *m_pClient;
+	static esp_ble_sec_act_t 	m_securityLevel;
+	static BLESecurityCallbacks* m_securityCallbacks;
 
 	static esp_gatt_if_t getGattcIF();
 
