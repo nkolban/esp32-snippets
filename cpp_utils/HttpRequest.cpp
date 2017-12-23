@@ -205,6 +205,7 @@ std::string HttpRequest::getPath() {
 
 #define STATE_NAME  0
 #define STATE_VALUE 1
+
 /**
  * @brief Get the query part of the request.
  * The query is a set of name = value pairs.  The return is a map keyed by the name items.
@@ -215,7 +216,15 @@ std::map<std::string, std::string> HttpRequest::getQuery() {
 	// Walk through all the characters in the query string maintaining a simple state machine
 	// that lets us know what we are parsing.
 	std::map<std::string, std::string> queryMap;
-	std::string queryString = "";
+
+	std::string possibleQueryString = getPath();
+	int qindex = possibleQueryString.find_first_of("?") ;
+	if (qindex < 0) {
+		ESP_LOGD(LOG_TAG, "No query string present") ;
+		return queryMap ;
+	}
+	std::string queryString = possibleQueryString.substr(qindex + 1, -1) ;
+	ESP_LOGD(LOG_TAG, "query string: %s", queryString.c_str()) ;
 
 	/*
 	 * We maintain a simple state machine with states of:
