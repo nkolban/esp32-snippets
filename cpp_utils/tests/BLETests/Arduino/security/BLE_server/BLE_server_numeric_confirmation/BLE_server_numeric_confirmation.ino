@@ -41,7 +41,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
 
-  BLEDevice::init("MyESP32");
+  BLEDevice::init("ESP32");
   BLEDevice::setEncryptionLevel(ESP_BLE_SEC_ENCRYPT);
   /*
    * Required in authentication process to provide displaying and/or input passkey or yes/no butttons confirmation
