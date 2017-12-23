@@ -2,7 +2,7 @@
  * SampleServer_authentication_passkey.cpp
  *
  *  Created on: Dec 23, 2017
- *      Author: esp32
+ *      Author: chegewara
  */
 
 /**
@@ -23,22 +23,15 @@ static char LOG_TAG[] = "SampleServer";
 
 class MySecurity : public BLESecurityCallbacks {
 
-	/*
-	 * @return value is a pass key from input panel and displayed on peer device
-	 */
 	uint32_t onPassKeyRequest(){
         ESP_LOGI(LOG_TAG, "PassKeyRequest");
 		return 123456;
 	}
-	/*
-	 * pass_key should be displayed to end user to authenticate with peer device
-	 */
+
 	void onPassKeyNotify(uint32_t pass_key){
         ESP_LOGI(LOG_TAG, "On passkey Notify number:%d", pass_key);
 	}
-	/*
-	 * here we can
-	 */
+
 	bool onSecurityRequest(){
 	    ESP_LOGI(LOG_TAG, "On Security Request");
 		return true;
@@ -109,7 +102,6 @@ class MainBLEServer: public Task {
 		pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY);
 		pSecurity->setCapability(ESP_IO_CAP_OUT);
 		pSecurity->setInitEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
-		pSecurity->setRespEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
 
 		pAdvertising->start();
 

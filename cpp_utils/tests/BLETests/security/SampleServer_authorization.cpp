@@ -2,7 +2,7 @@
  * SampleServer_authorization.cpp
  *
  *  Created on: Dec 23, 2017
- *      Author: esp32
+ *      Author: chegewara
  */
 
 
@@ -32,7 +32,7 @@ class MySecurity : public BLESecurityCallbacks {
         ESP_LOGI(LOG_TAG, "On passkey Notify number:%d", pass_key);
 	}
 	bool onConfirmPIN(uint32_t){
-		return false;
+		return true;
 	}
 	bool onSecurityRequest(){
 	    ESP_LOGI(LOG_TAG, "On Security Request");
@@ -107,11 +107,10 @@ class MainBLEServer: public Task {
 		pAdvertising->addServiceUUID(BLEUUID(pService->getUUID()));
 
 		BLESecurity *pSecurity = new BLESecurity();
-//		pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY);
-		pSecurity->setCapability(ESP_IO_CAP_OUT);
-/*		pSecurity->setInitEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
-		pSecurity->setRespEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
-*/
+		pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY);
+		pSecurity->setCapability(ESP_IO_CAP_NONE);
+		pSecurity->setInitEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
+
 		pAdvertising->start();
 
 		ESP_LOGD(LOG_TAG, "Advertising started!");

@@ -2,7 +2,7 @@
  * SampleClient_authentication_passkey.cpp
  *
  *  Created on: Dec 23, 2017
- *      Author: esp32
+ *      Author: chegewara
  */
 
 #include <esp_log.h>
@@ -69,8 +69,8 @@ class MyClient: public Task {
 		BLEDevice::setSecurityCallbacks(new MySecurity());
 
 		BLESecurity *pSecurity = new BLESecurity();
-//		pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY);
-		pSecurity->setCapability(ESP_IO_CAP_IO);
+		pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_ONLY);
+		pSecurity->setCapability(ESP_IO_CAP_OUT);
 		pSecurity->setRespEncryptionKey(ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK);
 		// Connect to the remove BLE Server.
 		pClient->connect(*pAddress);
