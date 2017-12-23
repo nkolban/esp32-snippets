@@ -301,6 +301,9 @@ void BLEDescriptor::setValue(std::string value) {
 	setValue((uint8_t *)value.data(), value.length());
 } // setValue
 
+void BLEDescriptor::setAccessPermissions(esp_gatt_perm_t perm) {
+	m_permissions = perm;
+}
 
 /**
  * @brief Return a string representation of the descriptor.

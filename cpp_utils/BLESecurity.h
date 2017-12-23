@@ -15,8 +15,9 @@ public:
 	virtual ~BLESecurity();
 	void setAuthenticationMode(esp_ble_auth_req_t auth_req);
 	void setCapability(esp_ble_io_cap_t iocap);
-	void setInitEncryptionKey(uint8_t init_key, uint8_t key_size = 16);
-	void setRespEncryptionKey(uint8_t resp_key, uint8_t key_size = 16);
+	void setInitEncryptionKey(uint8_t init_key);
+	void setRespEncryptionKey(uint8_t resp_key);
+	void setKeySize(uint8_t key_size = 16);
 	static char* esp_key_type_to_str(esp_ble_key_type_t key_type);
 
 private:
@@ -55,6 +56,8 @@ public:
 	 * Provide us information when authentication process is completed
 	 */
 	virtual void onAuthenticationComplete(esp_ble_auth_cmpl_t);
+
+	virtual bool onConfirmPIN(uint32_t pin);
 };
 
 #endif /* COMPONENTS_CPP_UTILS_BLESECURITY_H_ */

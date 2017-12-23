@@ -33,7 +33,6 @@
 
 static const char* LOG_TAG = "BLEDevice";
 
-
 /**
  * Singletons for the BLEDevice.
  */
@@ -41,6 +40,8 @@ BLEServer* BLEDevice::m_pServer = nullptr;
 BLEScan*   BLEDevice::m_pScan   = nullptr;
 BLEClient* BLEDevice::m_pClient = nullptr;
 bool       initialized          = false;   // Have we been initialized?
+esp_ble_sec_act_t 	BLEDevice::m_securityLevel = (esp_ble_sec_act_t)0;
+BLESecurityCallbacks* BLEDevice::m_securityCallbacks = nullptr;
 
 
 /**
@@ -94,6 +95,20 @@ bool       initialized          = false;   // Have we been initialized?
 
 	BLEUtils::dumpGattServerEvent(event, gatts_if, param);
 
+	switch(event) {
+		case ESP_GATTS_CONNECT_EVT: {
+			if(BLEDevice::m_securityLevel){
+				esp_ble_set_encryption(param->connect.remote_bda, BLEDevice::m_securityLevel);
+			}
+			break;
+		} // ESP_GATTS_CONNECT_EVT
+
+		default: {
+			break;
+		}
+	} // switch
+
+
 	if (BLEDevice::m_pServer != nullptr) {
 		BLEDevice::m_pServer->handleGATTServerEvent(event, gatts_if, param);
 	}
@@ -117,13 +132,20 @@ bool       initialized          = false;   // Have we been initialized?
 	ESP_LOGD(LOG_TAG, "gattClientEventHandler [esp_gatt_if: %d] ... %s",
 		gattc_if, BLEUtils::gattClientEventTypeToString(event).c_str());
 	BLEUtils::dumpGattClientEvent(event, gattc_if, param);
-/*
+
 	switch(event) {
+		case ESP_GATTC_CONNECT_EVT: {
+			if(BLEDevice::m_securityLevel){
+				esp_ble_set_encryption(param->connect.remote_bda, BLEDevice::m_securityLevel);
+			}
+			break;
+		} // ESP_GATTC_CONNECT_EVT
+
 		default: {
 			break;
 		}
 	} // switch
-	*/
+
 
 	// If we have a client registered, call it.
 	if (BLEDevice::m_pClient != nullptr) {
@@ -143,14 +165,63 @@ bool       initialized          = false;   // Have we been initialized?
 	BLEUtils::dumpGapEvent(event, param);
 
 	switch(event) {
-		case ESP_GAP_BLE_SEC_REQ_EVT: {
-			esp_err_t errRc = ::esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, true);
-			if (errRc != ESP_OK) {
-				ESP_LOGE(LOG_TAG, "esp_ble_gap_security_rsp: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+
+		 case ESP_GAP_BLE_OOB_REQ_EVT:                                /* OOB request event */
+			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_OOB_REQ_EVT");
+			 break;
+		 case ESP_GAP_BLE_LOCAL_IR_EVT:                               /* BLE local IR event */
+			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_LOCAL_IR_EVT");
+			 break;
+		 case ESP_GAP_BLE_LOCAL_ER_EVT:                               /* BLE local ER event */
+			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_LOCAL_ER_EVT");
+			 break;
+		 case ESP_GAP_BLE_NC_REQ_EVT:
+			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_NC_REQ_EVT");
+			if(BLEDevice::m_securityCallbacks!=nullptr){
+			 	 esp_ble_confirm_reply(param->ble_security.ble_req.bd_addr, BLEDevice::m_securityCallbacks->onConfirmPIN(param->ble_security.key_notif.passkey));
+			}
+			 break;
+		 case ESP_GAP_BLE_PASSKEY_REQ_EVT:                           /* passkey request event */
+			ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_PASSKEY_REQ_EVT: ");
+			// esp_log_buffer_hex(LOG_TAG, m_remote_bda, sizeof(m_remote_bda));
+			if(BLEDevice::m_securityCallbacks!=nullptr){
+				esp_ble_passkey_reply(param->ble_security.ble_req.bd_addr, true, BLEDevice::m_securityCallbacks->onPassKeyRequest());
 			}
 			break;
-		}
-
+			/*
+			 * TODO should we add white/black list comparison?
+			 */
+		 case ESP_GAP_BLE_SEC_REQ_EVT:
+			 /* send the positive(true) security response to the peer device to accept the security request.
+			 If not accept the security request, should sent the security response with negative(false) accept value*/
+			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_SEC_REQ_EVT");
+			if(BLEDevice::m_securityCallbacks!=nullptr){
+				esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, BLEDevice::m_securityCallbacks->onSecurityRequest());
+			}
+			else{
+				esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, true);
+			}
+			break;
+			 /*
+			  *
+			  */
+		 case ESP_GAP_BLE_PASSKEY_NOTIF_EVT:  ///the app will receive this evt when the IO  has Output capability and the peer device IO has Input capability.
+			 ///show the passkey number to the user to input it in the peer deivce.
+			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_PASSKEY_NOTIF_EVT");
+			if(BLEDevice::m_securityCallbacks!=nullptr){
+				ESP_LOGI(LOG_TAG, "passKey = %d", param->ble_security.key_notif.passkey);
+				BLEDevice::m_securityCallbacks->onPassKeyNotify(param->ble_security.key_notif.passkey);
+			}
+			 break;
+		 case ESP_GAP_BLE_KEY_EVT:
+			 //shows the ble key type info share with peer device to the user.
+			 ESP_LOGI(LOG_TAG, "key type = %s", BLESecurity::esp_key_type_to_str(param->ble_security.ble_key.key_type));
+			 break;
+		 case ESP_GAP_BLE_AUTH_CMPL_EVT:
+			 if(BLEDevice::m_securityCallbacks!=nullptr){
+				 BLEDevice::m_securityCallbacks->onAuthenticationComplete(param->ble_security.auth_cmpl);
+			 }
+			 break;
 		default: {
 			break;
 		}
@@ -167,6 +238,12 @@ bool       initialized          = false;   // Have we been initialized?
 	if (BLEDevice::m_pScan != nullptr) {
 		BLEDevice::getScan()->handleGAPEvent(event, param);
 	}
+
+	/*
+	 * Security events:
+	 */
+
+
 } // gapEventHandler
 
 
@@ -379,4 +456,11 @@ void BLEDevice::whiteListRemove(BLEAddress address) {
 	ESP_LOGD(LOG_TAG, "<< whiteListRemove");
 } // whiteListRemove
 
+void BLEDevice::setEncryptionLevel(esp_ble_sec_act_t level) {
+	BLEDevice::m_securityLevel = level;
+}
+
+void BLEDevice::setSecurityCallbacks(BLESecurityCallbacks* callbacks) {
+	BLEDevice::m_securityCallbacks = callbacks;
+}
 #endif // CONFIG_BT_ENABLED

@@ -31,23 +31,29 @@ void BLESecurity::setCapability(esp_ble_io_cap_t iocap) {
  * @brief Init encryption key by server
  * @param key_size is value between 7 and 16
  */
-void BLESecurity::setInitEncryptionKey(uint8_t init_key, uint8_t key_size) {
+void BLESecurity::setInitEncryptionKey(uint8_t init_key) {
 	m_initKey = init_key;
-	m_keySize = key_size;
 	esp_ble_gap_set_security_param(ESP_BLE_SM_SET_INIT_KEY, &m_initKey, sizeof(uint8_t));
-	esp_ble_gap_set_security_param(ESP_BLE_SM_MAX_KEY_SIZE, &key_size, sizeof(uint8_t));		// <--- setup encryption key max size
 }
 
 /*
  * @brief Init encryption key by client
  * @param key_size is value between 7 and 16
  */
-void BLESecurity::setRespEncryptionKey(uint8_t resp_key, uint8_t key_size) {
+void BLESecurity::setRespEncryptionKey(uint8_t resp_key) {
 	m_respKey = resp_key;
-	m_keySize = key_size;
 	esp_ble_gap_set_security_param(ESP_BLE_SM_SET_RSP_KEY, &m_respKey, sizeof(uint8_t));
-	esp_ble_gap_set_security_param(ESP_BLE_SM_MAX_KEY_SIZE, &key_size, sizeof(uint8_t));		// <--- setup encryption key max size
 }
+
+/*
+ *
+ *
+ */
+void BLESecurity::setKeySize(uint8_t key_size) {
+	m_keySize = key_size;
+	esp_ble_gap_set_security_param(ESP_BLE_SM_MAX_KEY_SIZE, &m_keySize, sizeof(uint8_t));
+}
+
 /*
  * @brief Debug function to display what keys are exchanged by peers
  */
