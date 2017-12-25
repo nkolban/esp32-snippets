@@ -1611,13 +1611,15 @@ void BLEUtils::dumpGattClientEvent(
 		// - esp_gatt_status_t status
 		// - uint16_t          conn_id
 		// - uint16_t          handle
+		// - uint16_t          offset
 		//
 		case ESP_GATTC_WRITE_CHAR_EVT: {
-			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, handle: %d 0x%.2x]",
+			ESP_LOGD(LOG_TAG, "[status: %s, conn_id: %d, handle: %d 0x%.2x, offset: %d]",
 				BLEUtils::gattStatusToString(evtParam->write.status).c_str(),
 				evtParam->write.conn_id,
 				evtParam->write.handle,
-				evtParam->write.handle
+				evtParam->write.handle,
+				evtParam->write.offset
 			);
 			break;
 		} // ESP_GATTC_WRITE_CHAR_EVT

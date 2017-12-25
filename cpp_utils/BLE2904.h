@@ -15,7 +15,7 @@
 struct BLE2904_Data {
 	uint8_t  m_format;
 	int8_t   m_exponent;
-	uint16_t m_unit;
+	uint16_t m_unit;      // See https://www.bluetooth.com/specifications/assigned-numbers/units
 	uint8_t  m_namespace;
 	uint16_t m_description;
 
