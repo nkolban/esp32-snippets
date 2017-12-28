@@ -15,6 +15,7 @@
 #include <esp_err.h>
 #include "BLECharacteristic.h"
 #include "BLEService.h"
+#include "BLEDevice.h"
 #include "BLEUtils.h"
 #include "BLE2902.h"
 #include "GeneralUtils.h"
@@ -350,8 +351,9 @@ void BLECharacteristic::handleGATTServerEvent(
 // The following code has deliberately not been factored to make it fewer statements because this would cloud the
 // the logic flow comprehension.
 //
-				uint16_t maxOffset = m_mtu - 1;
-				if (m_mtu > 512) {
+				// TODO requires some more research to confirm that 512 is max PDU like in bluetooth specs
+				uint16_t maxOffset = BLEDevice::getMTU() - 1;
+				if (BLEDevice::getMTU() > 512) {
 					maxOffset = 512;
 				}
 				if (param->read.need_rsp) {
@@ -418,16 +420,11 @@ void BLECharacteristic::handleGATTServerEvent(
 		}
 
 		case ESP_GATTS_CONNECT_EVT:
-			m_mtu = 23;
 			m_semaphoreConfEvt.give();
 			break;
 
 		case ESP_GATTS_DISCONNECT_EVT:
 			m_semaphoreConfEvt.give();
-			break;
-
-		case ESP_GATTS_MTU_EVT :
-			m_mtu = param->mtu.mtu;
 			break;
 
 		default: {
@@ -473,14 +470,11 @@ void BLECharacteristic::indicate() {
 		return;
 	}
 
-	if (m_value.getValue().length() > 20) {
-		ESP_LOGD(LOG_TAG, "- Truncating to 20 bytes (maximum notify size)");
+	if (m_value.getValue().length() > (BLEDevice::getMTU() - 3)) {
+		ESP_LOGI(LOG_TAG, "- Truncating to %d bytes (maximum indicate size)", BLEDevice::getMTU() - 3);
 	}
 
 	size_t length = m_value.getValue().length();
-	if (length > 20) {
-		length = 20;
-	}
 
 	m_semaphoreConfEvt.take("indicate");
 
@@ -529,14 +523,11 @@ void BLECharacteristic::notify() {
 		return;
 	}
 
-	if (m_value.getValue().length() > 20) {
-		ESP_LOGD(LOG_TAG, "- Truncating to 20 bytes (maximum notify size)");
+	if (m_value.getValue().length() > (BLEDevice::getMTU() - 3)) {
+		ESP_LOGI(LOG_TAG, "- Truncating to %d bytes (maximum notify size)", BLEDevice::getMTU() - 3);
 	}
 
 	size_t length = m_value.getValue().length();
-	if (length > 20) {
-		length = 20;
-	}
 
 	m_semaphoreConfEvt.take("notify");
 
