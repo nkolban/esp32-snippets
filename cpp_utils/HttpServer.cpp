@@ -28,6 +28,7 @@ static const char* LOG_TAG = "HttpServer";
 HttpServer::HttpServer() {
 	m_fileBufferSize = 4*1024;    // Default size of the file buffer.
 	m_portNumber = 80;            // The default port number.
+	m_clientTimeout = 5;            // The default timeout 5 seconds.
 	m_rootPath   = "";            // The default path.
 	m_useSSL     = false;         // Default SSL is no.
 	setDirectoryListing(false);   // Default directory listing is disabled.
@@ -159,6 +160,7 @@ private:
 			//Memory::checkIntegrity();
 			try {
 				clientSocket = m_pHttpServer->m_socket.accept();   // Block waiting for a new external client connection.
+				clientSocket.setTimeout(m_pHttpServer->getClientTimeout());
 			}
 			catch(std::exception &e) {
 				ESP_LOGE("HttpServerTask", "Caught an exception waiting for new client!");
@@ -328,6 +330,22 @@ void HttpServer::listDirectory(std::string path, HttpResponse& response) {
 	response.sendData("</body></html>");
 	response.close();
 } // listDirectory
+
+/**
+ * @brief Set different socket timeout for new connections.
+ * @param [in] use Set to true to enable directory listing.
+ */
+void HttpServer::setClientTimeout(uint32_t timeout) {
+	m_clientTimeout = timeout;
+}
+
+/**
+ * @brief Get current socket's timeout for new connections.
+ * @param [in] use Set to true to enable directory listing.
+ */
+uint32_t HttpServer::getClientTimeout() {
+	return m_clientTimeout;
+}
 
 /**
  * @brief Set whether or not we will list directories.

@@ -81,6 +81,8 @@ public:
 	void        setDirectoryListing(bool use);             // Should we list the content of directories?
 	void        setFileBufferSize(size_t fileBufferSize);  // Set the size of the file buffer
 	void        setRootPath(std::string path);             // Set the root of the file system path.
+	void 		setClientTimeout(uint32_t timeout);			// Set client's socket timeout
+	uint32_t	getClientTimeout();							// Get client's socket timeout
 	void        start(uint16_t portNumber, bool useSSL=false);
 	void        stop();          // Stop a previously started server.
 
@@ -95,6 +97,7 @@ private:
 	std::string              m_rootPath;           // Root path into the file system.
 	Socket                   m_socket;
 	bool                     m_useSSL;             // Is this server listening on an HTTPS port?
+	uint32_t				 m_clientTimeout;	   // Default Timeout
 }; // HttpServer
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPSERVER_H_ */

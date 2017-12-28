@@ -60,8 +60,10 @@ Socket Socket::accept() {
 	struct sockaddr addr;
 	getBind(&addr);
 	ESP_LOGD(LOG_TAG, ">> accept: Accepting on %s; sockFd: %d, using SSL: %d", addressToString(&addr).c_str(), m_sock, getSSL());
-
-	int clientSockFD = ::lwip_accept_r(m_sock, nullptr, nullptr);
+	struct sockaddr_in client_addr;
+	socklen_t sin_size;
+	int clientSockFD = ::lwip_accept_r(m_sock,  (struct sockaddr *)&client_addr, &sin_size);
+	printf("------> new connection client %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 	if (clientSockFD == -1) {
 		SocketException se(errno);
 		ESP_LOGE(LOG_TAG, "accept(): %s, m_sock=%d", strerror(errno), m_sock);
@@ -270,6 +272,30 @@ void Socket::listen(uint16_t port, bool isDatagram) {
 
 bool Socket::operator <(const Socket& other) const {
 	return m_sock < other.m_sock;
+}
+
+int Socket::setSocketOption(int option, char* value, size_t len)
+{
+    int res = setsockopt(m_sock, SOL_SOCKET, option, value, len);
+    if(res < 0) {
+    	ESP_LOGE(LOG_TAG, "%X : %d", option, errno);
+    }
+    return res;
+}
+
+/**
+ * @brief Socket timeout.
+ * @param [in] seconds to wait.
+ */
+int Socket::setTimeout(uint32_t seconds)
+{
+    struct timeval tv;
+    tv.tv_sec = seconds;
+    tv.tv_usec = 0;
+    if(setSocketOption(SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval)) < 0) {
+        return -1;
+    }
+    return setSocketOption(SO_SNDTIMEO, (char *)&tv, sizeof(struct timeval));
 }
 
 
