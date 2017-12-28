@@ -143,7 +143,7 @@ void I2C::read(uint8_t* bytes, size_t length, bool ack) {
 			ESP_LOGE(LOG_TAG, "i2c_master_write_byte: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		}
 	}
-	esp_err_t errRc = ::i2c_master_read(m_cmd, bytes, length, !ack);
+	esp_err_t errRc = ::i2c_master_read(m_cmd, bytes, length, ack?I2C_MASTER_ACK:I2C_MASTER_NACK);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "i2c_master_read: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 	}
@@ -168,7 +168,7 @@ void I2C::read(uint8_t *byte, bool ack) {
 			ESP_LOGE(LOG_TAG, "i2c_master_write_byte: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		}
 	}
-	ESP_ERROR_CHECK(::i2c_master_read_byte(m_cmd, byte, !ack));
+	ESP_ERROR_CHECK(::i2c_master_read_byte(m_cmd, byte, ack?I2C_MASTER_ACK:I2C_MASTER_NACK));
 } // readByte
 
 
