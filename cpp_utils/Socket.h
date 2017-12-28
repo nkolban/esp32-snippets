@@ -68,6 +68,8 @@ public:
 	int  connect(struct in_addr address, uint16_t port);
 	int  connect(char* address, uint16_t port);
 	int  createSocket(bool isDatagram = false);
+	int  setSocketOption(int option, char* value, size_t len);
+	int  setTimeout(uint32_t seconds);
 	void getBind(struct sockaddr* pAddr);
 	int  getFD() const;
 	bool getSSL() const;
