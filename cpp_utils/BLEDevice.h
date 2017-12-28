@@ -40,6 +40,8 @@ public:
 	static void        whiteListRemove(BLEAddress address); // Remove an entry from the BLE white list.
 	static void		   setEncryptionLevel(esp_ble_sec_act_t level);
 	static void		   setSecurityCallbacks(BLESecurityCallbacks* pCallbacks);
+	static esp_err_t   setMTU(uint16_t mtu);
+	static uint16_t	   getMTU();
 
 private:
 	static BLEServer *m_pServer;
@@ -47,6 +49,7 @@ private:
 	static BLEClient *m_pClient;
 	static esp_ble_sec_act_t 	m_securityLevel;
 	static BLESecurityCallbacks* m_securityCallbacks;
+	static uint16_t		m_localMTU;
 
 	static esp_gatt_if_t getGattcIF();
 

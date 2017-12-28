@@ -17,6 +17,7 @@
 #include <esp_gap_ble_api.h>   // ESP32 BLE
 #include <esp_gatts_api.h>     // ESP32 BLE
 #include <esp_gattc_api.h>     // ESP32 BLE
+#include <esp_gatt_common_api.h>// ESP32 BLE
 #include <esp_err.h>           // ESP32 ESP-IDF
 #include <esp_log.h>           // ESP32 ESP-IDF
 #include <map>                 // Part of C++ Standard library
@@ -42,7 +43,7 @@ BLEClient* BLEDevice::m_pClient = nullptr;
 bool       initialized          = false;   // Have we been initialized?
 esp_ble_sec_act_t 	BLEDevice::m_securityLevel = (esp_ble_sec_act_t)0;
 BLESecurityCallbacks* BLEDevice::m_securityCallbacks = nullptr;
-
+uint16_t   BLEDevice::m_localMTU = 23;
 
 /**
  * @brief Create a new instance of a client.
@@ -103,6 +104,11 @@ BLESecurityCallbacks* BLEDevice::m_securityCallbacks = nullptr;
 			break;
 		} // ESP_GATTS_CONNECT_EVT
 
+		case ESP_GATTS_MTU_EVT: {
+			BLEDevice::m_localMTU = param->mtu.mtu;
+	        ESP_LOGI(LOG_TAG, "ESP_GATTS_MTU_EVT, MTU %d", BLEDevice::m_localMTU);
+	        break;
+		}
 		default: {
 			break;
 		}
@@ -135,6 +141,9 @@ BLESecurityCallbacks* BLEDevice::m_securityCallbacks = nullptr;
 
 	switch(event) {
 		case ESP_GATTC_CONNECT_EVT: {
+			if(BLEDevice::getMTU() != 23){
+				esp_err_t err = esp_ble_gattc_send_mtu_req(gattc_if, param->connect.conn_id);
+			}
 			if(BLEDevice::m_securityLevel){
 				esp_ble_set_encryption(param->connect.remote_bda, BLEDevice::m_securityLevel);
 			}
@@ -456,11 +465,42 @@ void BLEDevice::whiteListRemove(BLEAddress address) {
 	ESP_LOGD(LOG_TAG, "<< whiteListRemove");
 } // whiteListRemove
 
+/*
+ * @brief Set encryption level that will be negotiated with peer device durng connection
+ * @param [in] level Requested encryption level
+ */
 void BLEDevice::setEncryptionLevel(esp_ble_sec_act_t level) {
 	BLEDevice::m_securityLevel = level;
 }
 
+/*
+ * @brief Set callbacks that will be used to handle encryption negotiation events and authentication events
+ * @param [in] cllbacks Pointer to BLESecurityCallbacks class callback
+ */
 void BLEDevice::setSecurityCallbacks(BLESecurityCallbacks* callbacks) {
 	BLEDevice::m_securityCallbacks = callbacks;
+}
+
+/*
+ * @brief Setup local mtu that will be used to negotiate mtu during request from client peer
+ * @param [in] mtu Value to set local mtu, should be larger than 23 and lower or equal to 517
+ */
+esp_err_t BLEDevice::setMTU(uint16_t mtu) {
+	ESP_LOGD(LOG_TAG, ">> setLocalMTU: %d", mtu);
+	esp_err_t err = esp_ble_gatt_set_local_mtu(mtu);
+	if(err == ESP_OK){
+		m_localMTU = mtu;
+	} else {
+		ESP_LOGE(LOG_TAG, "can't set local mtu value: %d", mtu);
+	}
+	ESP_LOGD(LOG_TAG, "<< setLocalMTU");
+	return err;
+}
+
+/*
+ * @brief Get local MTU value set during mtu request or default value
+ */
+uint16_t BLEDevice::getMTU() {
+	return m_localMTU;
 }
 #endif // CONFIG_BT_ENABLED
