@@ -171,6 +171,9 @@ private:
 
 
 			HttpRequest request(clientSocket);   // Build the HTTP Request from the socket.
+			if (request.isWebsocket()) {        // If this is a WebSocket
+				clientSocket.setTimeout(0);     //   Clear the timeout.
+			}
 			request.dump();                      // debug.
 			processRequest(request);             // Process the request.
 			if (!request.isWebsocket()) {        // If this is NOT a WebSocket, then close it as the request
