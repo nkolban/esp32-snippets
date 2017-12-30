@@ -1,5 +1,10 @@
 /*
  * HttpServer.cpp
+ * Design:
+ * This class represents an HTTP server.  We create an instance of the class and then it is configured.
+ * When the user has completed the configuration, they execute the start() method which starts it running.
+ * A subsequent call to stop() will stop it.  When start() is called, a new task is created which listens
+ * for incoming messages.
  *
  *  Created on: Aug 30, 2017
  *      Author: kolban
@@ -157,7 +162,7 @@ private:
 		while(1) {   // Loop forever.
 
 			ESP_LOGD("HttpServerTask", "Waiting for new peer client");
-			//Memory::checkIntegrity();
+
 			try {
 				clientSocket = m_pHttpServer->m_socket.accept();   // Block waiting for a new external client connection.
 				clientSocket.setTimeout(m_pHttpServer->getClientTimeout());
@@ -167,8 +172,7 @@ private:
 				return;
 			}
 
-			ESP_LOGD("HttpServerTask", "HttpServer listening on port %d received a new client connection; sockFd=%d", m_pHttpServer->getPort(), clientSocket.getFD());
-
+			ESP_LOGD("HttpServerTask", "HttpServer listening on port %d has received a new client connection; sockFd=%d", m_pHttpServer->getPort(), clientSocket.getFD());
 
 			HttpRequest request(clientSocket);   // Build the HTTP Request from the socket.
 			if (request.isWebsocket()) {        // If this is a WebSocket
