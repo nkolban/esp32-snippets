@@ -13,6 +13,7 @@
 #undef close
 #undef send
 class WebSocketReader;
+class WebSocket;
 
 // +-------------------------------+
 // | WebSocketInputStreambuf |
@@ -45,7 +46,7 @@ class WebSocketHandler {
 public:
 	virtual ~WebSocketHandler();
 	virtual void onClose();
-	virtual void onMessage(WebSocketInputStreambuf *pWebSocketInputStreambuf);
+	virtual void onMessage(WebSocketInputStreambuf *pWebSocketInputStreambuf, WebSocket *pWebSocket);
 	virtual void onError(std::string error);
 };
 
