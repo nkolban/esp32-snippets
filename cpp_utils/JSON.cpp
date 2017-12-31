@@ -229,10 +229,7 @@ JsonArray JsonObject::getArray(std::string name) {
  */
 bool JsonObject::getBoolean(std::string name) {
 	cJSON *node = cJSON_GetObjectItem(m_node, name.c_str());
-	if (node->valueint == 0) {
-		return false;
-	}
-	return true;
+	return cJSON_IsTrue(node);
 } // getBoolean
 
 
@@ -316,7 +313,7 @@ void JsonObject::setArray(std::string name, JsonArray array) {
  * @return N/A.
  */
 void JsonObject::setBoolean(std::string name, bool value) {
-	cJSON_AddItemToObject(m_node, name.c_str(), cJSON_CreateBool(value));
+	cJSON_AddItemToObject(m_node, name.c_str(), value?cJSON_CreateTrue():cJSON_CreateFalse());
 } // setBoolean
 
 
