@@ -4,6 +4,10 @@
  *  Created on: Dec 18, 2017
  *      Author: chegewara
  */
+
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
+
 //#include "BLEUUID.h"
 #include "BLEHIDDevice.h"
 
@@ -152,3 +156,5 @@ BLEDescriptor*		BLEHIDDevice::featureReport() {
 BLEDescriptor*		BLEHIDDevice::batteryLevel() {
 	return m_batteryLevelDescriptor;
 }
+
+#endif // CONFIG_BT_ENABLED

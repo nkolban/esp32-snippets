@@ -142,7 +142,10 @@ uint16_t   BLEDevice::m_localMTU = 23;
 	switch(event) {
 		case ESP_GATTC_CONNECT_EVT: {
 			if(BLEDevice::getMTU() != 23){
-				esp_err_t err = esp_ble_gattc_send_mtu_req(gattc_if, param->connect.conn_id);
+				esp_err_t errRc = esp_ble_gattc_send_mtu_req(gattc_if, param->connect.conn_id);
+				if (errRc != ESP_OK) {
+					ESP_LOGE(LOG_TAG, "esp_ble_gattc_send_mtu_req: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+				}
 			}
 			if(BLEDevice::m_securityLevel){
 				esp_ble_set_encryption(param->connect.remote_bda, BLEDevice::m_securityLevel);

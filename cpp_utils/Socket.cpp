@@ -63,7 +63,7 @@ Socket Socket::accept() {
 	struct sockaddr_in client_addr;
 	socklen_t sin_size;
 	int clientSockFD = ::lwip_accept_r(m_sock,  (struct sockaddr *)&client_addr, &sin_size);
-	printf("------> new connection client %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+	//printf("------> new connection client %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 	if (clientSockFD == -1) {
 		SocketException se(errno);
 		ESP_LOGE(LOG_TAG, "accept(): %s, m_sock=%d", strerror(errno), m_sock);

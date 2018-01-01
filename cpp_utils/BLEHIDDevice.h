@@ -7,6 +7,10 @@
 
 #ifndef _BLEHIDDEVICE_H_
 #define _BLEHIDDEVICE_H_
+
+#include "sdkconfig.h"
+#if defined(CONFIG_BT_ENABLED)
+
 #include "BLECharacteristic.h"
 #include "BLEService.h"
 #include "BLEDescriptor.h"
@@ -83,5 +87,5 @@ private:
 	BLE2902*			m_batteryLevelNotifications;	//0x2902
 
 };
-
+#endif // CONFIG_BT_ENABLED
 #endif /* _BLEHIDDEVICE_H_ */
