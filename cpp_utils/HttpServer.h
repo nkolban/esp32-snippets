@@ -16,7 +16,7 @@
 #include "SockServ.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
-//#include "SockServ.h"
+#include "FreeRTOS.h"
 #include <regex>
 
 class HttpServerTask;
@@ -74,15 +74,15 @@ public:
 			HttpRequest*  pHttpRequest,
 			HttpResponse* pHttpResponse)
 		);
+	uint32_t    getClientTimeout();							// Get client's socket timeout
 	size_t      getFileBufferSize();  // Get the current size of the file buffer.
 	uint16_t    getPort();            // Get the port on which the Http server is listening.
 	std::string getRootPath();        // Get the root of the file system path.
 	bool        getSSL();             // Are we using SSL?
+	void        setClientTimeout(uint32_t timeout);			   // Set client's socket timeout
 	void        setDirectoryListing(bool use);             // Should we list the content of directories?
 	void        setFileBufferSize(size_t fileBufferSize);  // Set the size of the file buffer
 	void        setRootPath(std::string path);             // Set the root of the file system path.
-	void 		setClientTimeout(uint32_t timeout);			// Set client's socket timeout
-	uint32_t	getClientTimeout();							// Get client's socket timeout
 	void        start(uint16_t portNumber, bool useSSL=false);
 	void        stop();          // Stop a previously started server.
 
@@ -97,7 +97,8 @@ private:
 	std::string              m_rootPath;           // Root path into the file system.
 	Socket                   m_socket;
 	bool                     m_useSSL;             // Is this server listening on an HTTPS port?
-	uint32_t				 m_clientTimeout;	   // Default Timeout
+	uint32_t                 m_clientTimeout;      // Default Timeout
+	FreeRTOS::Semaphore      m_semaphoreServerStarted = FreeRTOS::Semaphore("ServerStarted");
 }; // HttpServer
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPSERVER_H_ */

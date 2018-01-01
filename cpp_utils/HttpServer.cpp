@@ -169,10 +169,11 @@ private:
 			}
 			catch(std::exception &e) {
 				ESP_LOGE("HttpServerTask", "Caught an exception waiting for new client!");
+				m_pHttpServer->m_semaphoreServerStarted.give();  // Release the semaphore .. we are now no longer running.
 				return;
 			}
 
-			ESP_LOGD("HttpServerTask", "HttpServer listening on port %d has received a new client connection; sockFd=%d", m_pHttpServer->getPort(), clientSocket.getFD());
+			ESP_LOGD("HttpServerTask", "HttpServer that was listening on port %d has received a new client connection; sockFd=%d", m_pHttpServer->getPort(), clientSocket.getFD());
 
 			HttpRequest request(clientSocket);   // Build the HTTP Request from the socket.
 			if (request.isWebsocket()) {        // If this is a WebSocket
@@ -414,11 +415,20 @@ void HttpServer::start(uint16_t portNumber, bool useSSL) {
 	// Design:
 	// The start of the HTTP server should be as fast as possible.
 	ESP_LOGD(LOG_TAG, ">> start: port: %d, useSSL: %d", portNumber, useSSL);
+
+	// Take the semaphore that says that we are now running.  If we are already running, then end here as
+	// there is nothing further to do.
+	if (m_semaphoreServerStarted.take(100, "start") == false) {
+		ESP_LOGD(LOG_TAG, "<< start: Already running");
+		return;
+	}
+
 	m_useSSL     = useSSL;
 	m_portNumber = portNumber;
 
 	HttpServerTask* pHttpServerTask = new HttpServerTask("HttpServerTask");
 	pHttpServerTask->start(this);
+	ESP_LOGD(LOG_TAG, "<< start");
 } // start
 
 
@@ -430,7 +440,8 @@ void HttpServer::stop() {
 	// that is listening for incoming connections.  That will then shutdown all the other
 	// activities.
 	ESP_LOGD(LOG_TAG, ">> stop");
-	m_socket.close();
+	m_socket.close();                      // Close the socket that is being used to watch for incoming requests.
+	m_semaphoreServerStarted.wait("stop"); // Wait for the server to stop.
 	ESP_LOGD(LOG_TAG, "<< stop");
 } // stop
 
