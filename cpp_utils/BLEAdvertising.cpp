@@ -259,7 +259,7 @@ void BLEAdvertisementData::addData(std::string data) {
 void BLEAdvertisementData::setAppearance(uint16_t appearance) {
 	char cdata[2];
 	cdata[0] = 3;
-	cdata[1] = ESP_BLE_AD_TYPE_APPEARANCE;
+	cdata[1] = ESP_BLE_AD_TYPE_APPEARANCE; // 0x19
 	addData(std::string(cdata, 2) + std::string((char *)&appearance,2));
 } // setAppearance
 
@@ -274,7 +274,7 @@ void BLEAdvertisementData::setCompleteServices(BLEUUID uuid) {
 		case 16: {
 			// [Len] [0x02] [LL] [HH]
 			cdata[0] = 3;
-			cdata[1] = ESP_BLE_AD_TYPE_16SRV_CMPL;
+			cdata[1] = ESP_BLE_AD_TYPE_16SRV_CMPL;  // 0x03
 			addData(std::string(cdata, 2) + std::string((char *)&uuid.getNative()->uuid.uuid16,2));
 			break;
 		}
@@ -282,7 +282,7 @@ void BLEAdvertisementData::setCompleteServices(BLEUUID uuid) {
 		case 32: {
 			// [Len] [0x04] [LL] [LL] [HH] [HH]
 			cdata[0] = 5;
-			cdata[1] = ESP_BLE_AD_TYPE_32SRV_CMPL;
+			cdata[1] = ESP_BLE_AD_TYPE_32SRV_CMPL;  // 0x05
 			addData(std::string(cdata, 2) + std::string((char *)&uuid.getNative()->uuid.uuid32,4));
 			break;
 		}
@@ -290,7 +290,7 @@ void BLEAdvertisementData::setCompleteServices(BLEUUID uuid) {
 		case 128: {
 			// [Len] [0x04] [0] [1] ... [15]
 			cdata[0] = 17;
-			cdata[1] = ESP_BLE_AD_TYPE_128SRV_CMPL;
+			cdata[1] = ESP_BLE_AD_TYPE_128SRV_CMPL;  // 0x07
 			addData(std::string(cdata, 2) + std::string((char *)uuid.getNative()->uuid.uuid128,16));
 			break;
 		}
@@ -315,7 +315,7 @@ void BLEAdvertisementData::setCompleteServices(BLEUUID uuid) {
 void BLEAdvertisementData::setFlags(uint8_t flag) {
 	char cdata[3];
 	cdata[0] = 2;
-	cdata[1] = ESP_BLE_AD_TYPE_FLAG;
+	cdata[1] = ESP_BLE_AD_TYPE_FLAG;  // 0x01
 	cdata[2] = flag;
 	addData(std::string(cdata, 3));
 } // setFlag
@@ -330,7 +330,7 @@ void BLEAdvertisementData::setManufacturerData(std::string data) {
 	ESP_LOGD("BLEAdvertisementData", ">> setManufacturerData");
 	char cdata[2];
 	cdata[0] = data.length() + 1;
-	cdata[1] = ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE;
+	cdata[1] = ESP_BLE_AD_MANUFACTURER_SPECIFIC_TYPE;  // 0xff
 	addData(std::string(cdata, 2)  + data);
 	ESP_LOGD("BLEAdvertisementData", "<< setManufacturerData");
 } // setManufacturerData
@@ -344,7 +344,7 @@ void BLEAdvertisementData::setName(std::string name) {
 	ESP_LOGD("BLEAdvertisementData", ">> setName: %s", name.c_str());
 	char cdata[2];
 	cdata[0] = name.length() + 1;
-	cdata[1] = ESP_BLE_AD_TYPE_NAME_CMPL;
+	cdata[1] = ESP_BLE_AD_TYPE_NAME_CMPL;  // 0x09
 	addData(std::string(cdata, 2)  + name);
 	ESP_LOGD("BLEAdvertisementData", "<< setName");
 } // setName
@@ -360,7 +360,7 @@ void BLEAdvertisementData::setPartialServices(BLEUUID uuid) {
 		case 16: {
 			// [Len] [0x02] [LL] [HH]
 			cdata[0] = 3;
-			cdata[1] = ESP_BLE_AD_TYPE_16SRV_PART;
+			cdata[1] = ESP_BLE_AD_TYPE_16SRV_PART;  // 0x02
 			addData(std::string(cdata, 2) + std::string((char *)&uuid.getNative()->uuid.uuid16,2));
 			break;
 		}
@@ -368,7 +368,7 @@ void BLEAdvertisementData::setPartialServices(BLEUUID uuid) {
 		case 32: {
 			// [Len] [0x04] [LL] [LL] [HH] [HH]
 			cdata[0] = 5;
-			cdata[1] = ESP_BLE_AD_TYPE_32SRV_PART;
+			cdata[1] = ESP_BLE_AD_TYPE_32SRV_PART; // 0x04
 			addData(std::string(cdata, 2) + std::string((char *)&uuid.getNative()->uuid.uuid32,4));
 			break;
 		}
@@ -376,7 +376,7 @@ void BLEAdvertisementData::setPartialServices(BLEUUID uuid) {
 		case 128: {
 			// [Len] [0x04] [0] [1] ... [15]
 			cdata[0] = 17;
-			cdata[1] = ESP_BLE_AD_TYPE_128SRV_PART;
+			cdata[1] = ESP_BLE_AD_TYPE_128SRV_PART;  // 0x06
 			addData(std::string(cdata, 2) + std::string((char *)uuid.getNative()->uuid.uuid128,16));
 			break;
 		}
@@ -388,6 +388,44 @@ void BLEAdvertisementData::setPartialServices(BLEUUID uuid) {
 
 
 /**
+ * @brief Set the service data (UUID + data)
+ * @param [in] uuid The UUID to set with the service data.  Size of UUID will be used.
+ * @param [in] data The data to be associated with the service data advert.
+ */
+void BLEAdvertisementData::setServiceData(BLEUUID uuid, std::string data) {
+	char cdata[2];
+	switch(uuid.bitSize()) {
+		case 16: {
+			// [Len] [0x16] [UUID16] data
+			cdata[0] = data.length() + 3;
+			cdata[1] = ESP_BLE_AD_TYPE_SERVICE_DATA;  // 0x16
+			addData(std::string(cdata, 2) + std::string((char *)&uuid.getNative()->uuid.uuid16,2) + data);
+			break;
+		}
+
+		case 32: {
+			// [Len] [0x20] [UUID32] data
+			cdata[0] = data.length() + 5;
+			cdata[1] = ESP_BLE_AD_TYPE_32SERVICE_DATA; // 0x20
+			addData(std::string(cdata, 2) + std::string((char *)&uuid.getNative()->uuid.uuid32,4) + data);
+			break;
+		}
+
+		case 128: {
+			// [Len] [0x21] [UUID128] data
+			cdata[0] = data.length() + 17;
+			cdata[1] = ESP_BLE_AD_TYPE_128SERVICE_DATA;  // 0x21
+			addData(std::string(cdata, 2) + std::string((char *)uuid.getNative()->uuid.uuid128,16) + data);
+			break;
+		}
+
+		default:
+			return;
+	}
+} // setServiceData
+
+
+/**
  * @brief Set the short name.
  * @param [in] The short name of the device.
  */
@@ -395,7 +433,7 @@ void BLEAdvertisementData::setShortName(std::string name) {
 	ESP_LOGD("BLEAdvertisementData", ">> setShortName: %s", name.c_str());
 	char cdata[2];
 	cdata[0] = name.length() + 1;
-	cdata[1] = ESP_BLE_AD_TYPE_NAME_SHORT;
+	cdata[1] = ESP_BLE_AD_TYPE_NAME_SHORT;  // 0x08
 	addData(std::string(cdata, 2)  + name);
 	ESP_LOGD("BLEAdvertisementData", "<< setShortName");
 } // setShortName

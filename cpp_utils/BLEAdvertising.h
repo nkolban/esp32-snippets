@@ -56,6 +56,7 @@ public:
 	void setManufacturerData(std::string data);
 	void setName(std::string name);
 	void setPartialServices(BLEUUID uuid);
+	void setServiceData(BLEUUID uuid, std::string data);
 	void setShortName(std::string name);
 
 private:
