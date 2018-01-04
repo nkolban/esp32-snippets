@@ -107,9 +107,9 @@ std::string Socket::addressToString(struct sockaddr* addr) {
  * Specify an address of INADDR_ANY to use the local server IP.
  * @param [in] port Port number to bind.
  * @param [in] address Address to bind.
- * @return N/A
+ * @return Returns 0 on success.
  */
-void Socket::bind(uint16_t port, uint32_t address) {
+int Socket::bind(uint16_t port, uint32_t address) {
 	ESP_LOGD(LOG_TAG, ">> bind: port=%d, address=0x%x", port, address);
 
 	if (m_sock == -1) {
@@ -120,35 +120,39 @@ void Socket::bind(uint16_t port, uint32_t address) {
 	serverAddress.sin_addr.s_addr = htonl(address);
 	serverAddress.sin_port        = htons(port);
 	int rc = ::lwip_bind_r(m_sock, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
-	if (rc == -1) {
+	if (rc != 0) {
 		ESP_LOGE(LOG_TAG, "<< bind: bind[socket=%d]: %d: %s", m_sock, errno, strerror(errno));
-		return;
+		return rc;
 	}
 	ESP_LOGD(LOG_TAG, "<< bind");
+	return rc;
 } // bind
 
 
 /**
  * @brief Close the socket.
  *
- * @return N/A.
+ * @return Returns 0 on success.
  */
-void Socket::close() {
+int Socket::close() {
 	ESP_LOGD(LOG_TAG, "close: m_sock=%d, ssl: %d", m_sock, getSSL());
+	int rc;
 	if (getSSL()) {
-		int rc = mbedtls_ssl_close_notify(&m_sslContext);
+		rc = mbedtls_ssl_close_notify(&m_sslContext);
 		if (rc < 0) {
 			ESP_LOGD(LOG_TAG, "mbedtls_ssl_close_notify: %d", rc);
 		}
 	}
+	rc = 0;
 	if (m_sock != -1) {
 		ESP_LOGD(LOG_TAG, "Calling lwip_close on %d", m_sock);
-		int rc = lwip_close_r(m_sock);
+		rc = ::lwip_close_r(m_sock);
 		if (rc != 0) {
-			ESP_LOGE(LOG_TAG, "Error with lwip_close");
+			ESP_LOGE(LOG_TAG, "Error with lwip_close: %d", rc);
 		}
 	}
 	m_sock = -1;
+	return rc;
 } // close
 
 
@@ -253,20 +257,27 @@ bool Socket::isValid() {
  * @brief Create a listening socket.
  * @param [in] port The port number to listen upon.
  * @param [in] isDatagram True if we are listening on a datagram.  The default is false.
+ * @return Returns 0 on success.
  */
-void Socket::listen(uint16_t port, bool isDatagram) {
+int Socket::listen(uint16_t port, bool isDatagram) {
 	ESP_LOGD(LOG_TAG, ">> listen: port: %d, isDatagram: %d", port, isDatagram);
 	createSocket(isDatagram);
-	bind(port, 0);
+	int rc = bind(port, 0);
+	if (rc != 0) {
+		ESP_LOGE(LOG_TAG, "<< listen: Error in bind: %s", strerror(errno));
+		return rc;
+	}
 	// For a datagram socket, we don't execute a listen call.  That is is only for connection oriented
 	// sockets.
 	if (!isDatagram) {
-		int rc = ::lwip_listen_r(m_sock, 5);
+		rc = ::lwip_listen_r(m_sock, 5);
 		if (rc == -1) {
 			ESP_LOGE(LOG_TAG, "<< listen: %s", strerror(errno));
+			return rc;
 		}
 	}
 	ESP_LOGD(LOG_TAG, "<< listen");
+	return 0;
 } // listen
 
 

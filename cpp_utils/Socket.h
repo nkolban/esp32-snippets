@@ -63,8 +63,8 @@ public:
 
 	Socket accept();
 	static std::string addressToString(struct sockaddr* addr);
-	void bind(uint16_t port, uint32_t address);
-	void close();
+	int  bind(uint16_t port, uint32_t address);
+	int  close();
 	int  connect(struct in_addr address, uint16_t port);
 	int  connect(char* address, uint16_t port);
 	int  createSocket(bool isDatagram = false);
@@ -74,7 +74,7 @@ public:
 	int  getFD() const;
 	bool getSSL() const;
 	bool isValid();
-	void listen(uint16_t port, bool isDatagram=false);
+	int  listen(uint16_t port, bool isDatagram=false);
 	bool operator<(const Socket& other) const;
 	std::string readToDelim(std::string delim);
 	size_t  receive(uint8_t* data, size_t length, bool exact=false);
