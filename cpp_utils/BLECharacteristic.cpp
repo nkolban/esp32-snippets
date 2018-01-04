@@ -199,17 +199,27 @@ std::string BLECharacteristic::getValue() {
 } // getValue
 
 
+/**
+ * Handle a GATT server event.
+ */
 void BLECharacteristic::handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
 		esp_gatt_if_t             gatts_if,
 		esp_ble_gatts_cb_param_t* param) {
+	ESP_LOGD(LOG_TAG, ">> handleGATTServerEvent: %s", BLEUtils::gattServerEventTypeToString(event).c_str());
+
 	switch(event) {
 	// Events handled:
-	// ESP_GATTS_ADD_CHAR_EVT
-	// ESP_GATTS_WRITE_EVT
-	// ESP_GATTS_READ_EVT
 	//
+	// ESP_GATTS_ADD_CHAR_EVT
+	// ESP_GATTS_CONF_EVT
+	// ESP_GATTS_CONNECT_EVT
+	// ESP_GATTS_DISCONNECT_EVT
+	// ESP_GATTS_EXEC_WRITE_EVT
+	// ESP_GATTS_READ_EVT
+	// ESP_GATTS_WRITE_EVT
 
+		//
 		// ESP_GATTS_EXEC_WRITE_EVT
 		// When we receive this event it is an indication that a previous write long needs to be committed.
 		//
@@ -217,7 +227,7 @@ void BLECharacteristic::handleGATTServerEvent(
 		// - uint16_t conn_id
 		// - uint32_t trans_id
 		// - esp_bd_addr_t bda
-		// - uint8_t exec_write_flag
+		// - uint8_t exec_write_flag - Either ESP_GATT_PREP_WRITE_EXEC or ESP_GATT_PREP_WRITE_CANCEL
 		//
 		case ESP_GATTS_EXEC_WRITE_EVT: {
 			if (param->exec_write.exec_write_flag == ESP_GATT_PREP_WRITE_EXEC) {
@@ -428,13 +438,15 @@ void BLECharacteristic::handleGATTServerEvent(
 			break;
 		}
 
-		case ESP_GATTS_CONNECT_EVT:
+		case ESP_GATTS_CONNECT_EVT: {
 			m_semaphoreConfEvt.give();
 			break;
+		}
 
-		case ESP_GATTS_DISCONNECT_EVT:
+		case ESP_GATTS_DISCONNECT_EVT: {
 			m_semaphoreConfEvt.give();
 			break;
+		}
 
 		default: {
 			break;
@@ -446,7 +458,7 @@ void BLECharacteristic::handleGATTServerEvent(
 	// event.
 
 	m_descriptorMap.handleGATTServerEvent(event, gatts_if, param);
-
+	ESP_LOGD(LOG_TAG, "<< handleGATTServerEvent");
 } // handleGATTServerEvent
 
 
@@ -699,6 +711,7 @@ void BLECharacteristic::setWriteProperty(bool value) {
 	}
 } // setWriteProperty
 
+
 /**
  * @brief Return a string representation of the characteristic.
  * @return A string representation of the characteristic.
@@ -717,7 +730,9 @@ std::string BLECharacteristic::toString() {
 	return stringstream.str();
 } // toString
 
+
 BLECharacteristicCallbacks::~BLECharacteristicCallbacks() {}
+
 
 /**
  * @brief Callback function to support a read request.
