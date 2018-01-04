@@ -36,9 +36,8 @@ class MyOutputCallbacks : public BLECharacteristicCallbacks {
 class MyTask : public Task {
 	void run(void*){
     	vTaskDelay(5000/portTICK_PERIOD_MS);  // wait 5 seconds before send first message
-    	const char* hello = "Hello world from esp32 hid keyboard!!!";
     	while(1){
-        	vTaskDelay(2000/portTICK_PERIOD_MS); // simulate write message every 2 seconds
+        	const char* hello = "Hello world from esp32 hid keyboard!!!\n";
 			while(*hello){
 				KEYMAP map = keymap[(uint8_t)*hello];
 				/*
@@ -55,7 +54,10 @@ class MyTask : public Task {
 				input->setValue(v, sizeof(v));
 				input->notify();
 				hello++;
+
+				vTaskDelay(10/portTICK_PERIOD_MS);
 			}
+        	vTaskDelay(2000/portTICK_PERIOD_MS); // simulate write message every 2 seconds
     	}
 		vTaskDelete(NULL);
 	}
