@@ -109,41 +109,16 @@ private:
 		if (GeneralUtils::endsWith(fileName, '/')) {
 			fileName = fileName.substr(0, fileName.length()-1);
 		}
-
+		
+		HttpResponse response(&request);
 		// Test if the path is a directory.
 		if (FileSystem::isDirectory(fileName)) {
 			ESP_LOGD(LOG_TAG, "Path %s is a directory", fileName.c_str());
-			HttpResponse response(&request);
 			m_pHttpServer->listDirectory(fileName, response);   // List the contents of the directory.
 			return;
 		} // Path was a directory.
 
-		ESP_LOGD("HttpServerTask", "Opening file: %s", fileName.c_str());
-		std::ifstream ifStream;
-		ifStream.open(fileName, std::ifstream::in | std::ifstream::binary);      // Attempt to open the file for reading.
-
-		// If we failed to open the requested file, then it probably didn't exist so return a not found.
-		if (!ifStream.is_open()) {
-			ESP_LOGE("HttpServerTask", "Unable to open file %s for reading", fileName.c_str());
-			HttpResponse response(&request);
-			response.setStatus(HttpResponse::HTTP_STATUS_NOT_FOUND, "Not Found");
-			response.sendData("");
-			return; // Since we failed to open the file, no further work to be done.
-		}
-
-		// We now have an open file and want to push the content of that file through to the browser.
-		// because of defect #252 we have to do some pretty important re-work here.  Specifically, we can't host the whole file in
-		// RAM at one time.  Instead what we have to do is ensure that we only have enough data in RAM to be sent.
-		HttpResponse response(&request);
-		response.setStatus(HttpResponse::HTTP_STATUS_OK, "OK");
-		uint8_t *pData = new uint8_t[m_pHttpServer->getFileBufferSize()];
-		while(!ifStream.eof()) {
-			ifStream.read((char *)pData, m_pHttpServer->getFileBufferSize());
-			response.sendData(pData, ifStream.gcount());
-		}
-		delete[] pData;
-		ifStream.close();
-
+		response.sendFile(fileName, m_pHttpServer->getFileBufferSize());
 	} // processRequest
 
 

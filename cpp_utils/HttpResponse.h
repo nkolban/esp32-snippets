@@ -46,6 +46,7 @@ public:
 	std::map<std::string, std::string> getHeaders();                                    // Get all headers.
 	void                               sendData(std::string data);                      // Send data to the client.
 	void                               sendData(uint8_t* pData, size_t size);           // Send data to the client.
+	void 							   sendFile(std::string fileName, size_t bufSize=4*1024);	// Send file contents if exists.
 	void                               setStatus(int status, std::string message);      // Set the response status.
 };
 
