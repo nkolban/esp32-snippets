@@ -1,7 +1,7 @@
 /*
  * BLEHIDDevice.h
  *
- *  Created on: Dec 18, 2017
+ *  Created on: Jan 03, 2018
  *      Author: chegewara
  */
 
@@ -32,7 +32,7 @@ public:
 	BLEHIDDevice(BLEServer*);
 	virtual ~BLEHIDDevice();
 
-	void setReportMap(uint8_t* map, uint16_t);
+	void reportMap(uint8_t* map, uint16_t);
 	void startServices();
 
 	BLEService* deviceInfo();
@@ -40,27 +40,25 @@ public:
 	BLEService* batteryService();
 
 	BLECharacteristic* 	manufacturer();
-	BLECharacteristic* 	pnp();
-	BLECharacteristic*	hidInfo();
-	BLECharacteristic* 	reportMap();
+	void 	manufacturer(std::string name);
+	//BLECharacteristic* 	pnp();
+	void	pnp(uint8_t sig, uint16_t vid, uint16_t pid, uint16_t version);
+	//BLECharacteristic*	hidInfo();
+	void	hidInfo(uint8_t country, uint8_t flags);
+	//BLECharacteristic* 	batteryLevel();
+	void 	setBatteryLevel(uint8_t level);
+
+
+	//BLECharacteristic* 	reportMap();
 	BLECharacteristic* 	hidControl();
-	BLECharacteristic* 	inputReport(void*);
-	BLECharacteristic* 	outputReport(void*);
-	BLECharacteristic* 	featureReport(void*);
+	BLECharacteristic* 	inputReport(uint8_t reportID);
+	BLECharacteristic* 	outputReport(uint8_t reportID);
+	BLECharacteristic* 	featureReport(uint8_t reportID);
 	BLECharacteristic* 	protocolMode();
 	BLECharacteristic* 	bootInput();
 	BLECharacteristic* 	bootOutput();
-	BLECharacteristic* 	batteryLevel(void*);
-
-	BLEDescriptor*		inputReport();
-	BLEDescriptor*		outputReport();
-	BLEDescriptor*		featureReport();
-	BLEDescriptor*		batteryLevel();
 
 private:
-	void createCharacteristics();
-	void createDescriptors();
-
 	BLEService*			m_deviceInfoService;			//0x180a
 	BLEService*			m_hidService;					//0x1812
 	BLEService*			m_batteryService = 0;			//0x180f
@@ -70,22 +68,8 @@ private:
 	BLECharacteristic* 	m_hidInfoCharacteristic;		//0x2a4a
 	BLECharacteristic* 	m_reportMapCharacteristic;		//0x2a4b
 	BLECharacteristic* 	m_hidControlCharacteristic;		//0x2a4c
-	BLECharacteristic* 	m_inputReportCharacteristic;	//0x2a4d
-	BLECharacteristic* 	m_outputReportCharacteristic;	//0x2a4d
-	BLECharacteristic* 	m_featureReportCharacteristic;	//0x2a4d
 	BLECharacteristic* 	m_protocolModeCharacteristic;	//0x2a4e
-	BLECharacteristic* 	m_bootInputCharacteristic;		//0x2a22
-	BLECharacteristic* 	m_bootOutputCharacteristic;		//0x2a32
 	BLECharacteristic*	m_batteryLevelCharacteristic;	//0x2a19
-
-	BLEDescriptor* 		m_inputReportDescriptor;		//0x2908
-	BLEDescriptor* 		m_outputReportDescriptor;		//0x2908
-	BLEDescriptor* 		m_featureReportDescriptor;		//0x2908
-	BLE2902*			m_inputReportNotifications;		//0x2902
-	BLE2902*			m_bootInputNotifications;		//0x2902
-	BLEDescriptor*		m_batteryLevelDescriptor;		//0x2904
-	BLE2902*			m_batteryLevelNotifications;	//0x2902
-
 };
 #endif // CONFIG_BT_ENABLED
 #endif /* _BLEHIDDEVICE_H_ */

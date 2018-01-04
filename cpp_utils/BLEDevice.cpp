@@ -98,6 +98,7 @@ uint16_t   BLEDevice::m_localMTU = 23;
 
 	switch(event) {
 		case ESP_GATTS_CONNECT_EVT: {
+			BLEDevice::m_localMTU = 23;
 			if(BLEDevice::m_securityLevel){
 				esp_ble_set_encryption(param->connect.remote_bda, BLEDevice::m_securityLevel);
 			}
