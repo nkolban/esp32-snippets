@@ -337,7 +337,7 @@ void WebSocket::send(std::string data, uint8_t sendType) {
 	} else {
 		frame.len = 126;
 		m_socket.send((uint8_t *)&frame, sizeof(frame));
-		m_socket.send((uint16_t)data.length());
+		m_socket.send(htons((uint16_t)data.length()));  // Convert to network byte order from host byte order
 	}
 	m_socket.send((uint8_t*)data.data(), data.length());
 	ESP_LOGD(LOG_TAG, "<< send");
