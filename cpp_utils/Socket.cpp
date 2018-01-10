@@ -259,9 +259,10 @@ bool Socket::isValid() {
  * @param [in] isDatagram True if we are listening on a datagram.  The default is false.
  * @return Returns 0 on success.
  */
-int Socket::listen(uint16_t port, bool isDatagram) {
+int Socket::listen(uint16_t port, bool isDatagram, bool reuseAddress) {
 	ESP_LOGD(LOG_TAG, ">> listen: port: %d, isDatagram: %d", port, isDatagram);
 	createSocket(isDatagram);
+	setReuseAddress(reuseAddress);
 	int rc = bind(port, 0);
 	if (rc != 0) {
 		ESP_LOGE(LOG_TAG, "<< listen: Error in bind: %s", strerror(errno));
@@ -285,14 +286,19 @@ bool Socket::operator <(const Socket& other) const {
 	return m_sock < other.m_sock;
 }
 
-int Socket::setSocketOption(int option, char* value, size_t len)
+
+/**
+ * @brief Set the socket option.
+ */
+int Socket::setSocketOption(int option, void* value, size_t len)
 {
-    int res = setsockopt(m_sock, SOL_SOCKET, option, value, len);
+    int res = ::setsockopt(m_sock, SOL_SOCKET, option, value, len);
     if(res < 0) {
     	ESP_LOGE(LOG_TAG, "%X : %d", option, errno);
     }
     return res;
-}
+} // setSocketOption
+
 
 /**
  * @brief Socket timeout.
@@ -480,6 +486,18 @@ void Socket::sendTo(const uint8_t* data, size_t length, struct sockaddr* pAddr) 
 
 
 /**
+ * @brief Flag the socket address as re-usable.
+ * @param [in] value True to mark the address as re-usable, false otherwise.
+ */
+void Socket::setReuseAddress(bool value) {
+	ESP_LOGD(LOG_TAG, ">> setReuseAddress: %d", value);
+	int val = value?1:0;
+	setSocketOption(SO_REUSEADDR, &val, sizeof(val));
+	ESP_LOGD(LOG_TAG, "<< setReuseAddress");
+} // setReuseAddress
+
+
+/**
  * @brief Flag the socket as using SSL
  * @param [in] sslValue True if we wish to use SSL.
  */
@@ -651,3 +669,5 @@ SocketInputRecordStreambuf::int_type SocketInputRecordStreambuf::underflow() {
 SocketException::SocketException(int myErrno) {
 	m_errno = myErrno;
 }
+
+

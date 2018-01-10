@@ -131,7 +131,7 @@ private:
 	void run(void* data) {
 		m_pHttpServer = (HttpServer*)data;             // The passed in data is an instance of an HttpServer.
 		m_pHttpServer->m_socket.setSSL(m_pHttpServer->m_useSSL);
-		m_pHttpServer->m_socket.listen(m_pHttpServer->m_portNumber);
+		m_pHttpServer->m_socket.listen(m_pHttpServer->m_portNumber, false /* is datagram */, true /* Allow address reuse */);
 		ESP_LOGD("HttpServerTask", "Listening on port %d", m_pHttpServer->getPort());
 		Socket clientSocket;
 		while(1) {   // Loop forever.
