@@ -8,7 +8,7 @@ char *readLine(uart_port_t uart) {
 	int size;
 	char *ptr = line;
 	while(1) {
-		size = uart_read_bytes(UART_NUM_1, (unsigned char *)ptr, 1, portMAX_DELAY);
+		size = uart_read_bytes(uart, (unsigned char *)ptr, 1, portMAX_DELAY);
 		if (size == 1) {
 			if (*ptr == '\n') {
 				*ptr = 0;
