@@ -18,6 +18,8 @@ BLE_FILES= \
 	BLEAdvertisedDevice.h \
 	BLEAdvertising.cpp \
 	BLEAdvertising.h \
+	BLEBeacon.cpp \
+	BLEBeacon.h \
 	BLECharacteristic.cpp \
 	BLECharacteristic.h \
 	BLECharacteristicMap.cpp \
