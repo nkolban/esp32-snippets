@@ -10,6 +10,8 @@
 BLE_FILES= \
 	BLE2902.cpp \
 	BLE2902.h \
+	BLE2904.cpp \
+	BLE2904.h \
 	BLEAddress.cpp \
 	BLEAddress.h \
 	BLEAdvertisedDevice.cpp \
