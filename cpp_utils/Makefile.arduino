@@ -10,12 +10,16 @@
 BLE_FILES= \
 	BLE2902.cpp \
 	BLE2902.h \
+	BLE2904.cpp \
+	BLE2904.h \
 	BLEAddress.cpp \
 	BLEAddress.h \
 	BLEAdvertisedDevice.cpp \
 	BLEAdvertisedDevice.h \
 	BLEAdvertising.cpp \
 	BLEAdvertising.h \
+	BLEBeacon.cpp \
+	BLEBeacon.h \
 	BLECharacteristic.cpp \
 	BLECharacteristic.h \
 	BLECharacteristicMap.cpp \
