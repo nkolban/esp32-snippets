@@ -647,6 +647,7 @@ std::string WiFiAPRecord::toString() {
     return std::string(std::move(info_str));
 } // toString
 
+/*
 MDNS::MDNS() {
 	esp_err_t errRc = ::mdns_init(TCPIP_ADAPTER_IF_STA, &m_mdns_server);
 	if (errRc != ESP_OK) {
@@ -661,6 +662,7 @@ MDNS::~MDNS() {
 	}
 	m_mdns_server = nullptr;
 }
+*/
 
 /**
  * @brief Define the service for mDNS.
@@ -670,6 +672,7 @@ MDNS::~MDNS() {
  * @param [in] port
  * @return N/A.
  */
+/*
 void MDNS::serviceAdd(const std::string& service, const std::string& proto, uint16_t port) {
     serviceAdd(service.c_str(), proto.c_str(), port);
 } // serviceAdd
@@ -688,7 +691,7 @@ void MDNS::servicePortSet(const std::string& service, const std::string& proto, 
 void MDNS::serviceRemove(const std::string& service, const std::string& proto) {
     serviceRemove(service.c_str(), proto.c_str());
 } // serviceRemove
-
+*/
 
 /**
  * @brief Set the mDNS hostname.
@@ -696,10 +699,11 @@ void MDNS::serviceRemove(const std::string& service, const std::string& proto) {
  * @param [in] hostname The host name to set against the mDNS.
  * @return N/A.
  */
+/*
 void MDNS::setHostname(const std::string& hostname) {
     setHostname(hostname.c_str());
 } // setHostname
-
+*/
 
 /**
  * @brief Set the mDNS instance.
@@ -707,9 +711,11 @@ void MDNS::setHostname(const std::string& hostname) {
  * @param [in] instance The instance name to set against the mDNS.
  * @return N/A.
  */
+/*
 void MDNS::setInstance(const std::string& instance) {
     setInstance(instance.c_str());
 } // setInstance
+*/
 
 /**
  * @brief Define the service for mDNS.
@@ -719,6 +725,7 @@ void MDNS::setInstance(const std::string& instance) {
  * @param [in] port
  * @return N/A.
  */
+/*
 void MDNS::serviceAdd(const char* service, const char* proto, uint16_t port) {
 	esp_err_t errRc = ::mdns_service_add(m_mdns_server, service, proto, port);
  	if (errRc != ESP_OK) {
@@ -754,13 +761,14 @@ void MDNS::serviceRemove(const char* service, const char* proto) {
     }
 } // serviceRemove
 
-
+*/
 /**
  * @brief Set the mDNS hostname.
  *
  * @param [in] hostname The host name to set against the mDNS.
  * @return N/A.
  */
+/*
 void MDNS::setHostname(const char* hostname) {
   esp_err_t errRc = ::mdns_set_hostname(m_mdns_server,hostname);
     if (errRc != ESP_OK) {
@@ -768,7 +776,7 @@ void MDNS::setHostname(const char* hostname) {
     	abort();
     }
 } // setHostname
-
+*/
 
 /**
  * @brief Set the mDNS instance.
@@ -776,6 +784,7 @@ void MDNS::setHostname(const char* hostname) {
  * @param [in] instance The instance name to set against the mDNS.
  * @return N/A.
  */
+/*
 void MDNS::setInstance(const char* instance) {
     esp_err_t errRc = ::mdns_set_instance(m_mdns_server, instance);
     if (errRc != ESP_OK) {
@@ -783,3 +792,4 @@ void MDNS::setInstance(const char* instance) {
     	abort();
     }
 } // setInstance
+*/

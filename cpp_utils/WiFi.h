@@ -19,6 +19,7 @@
 /**
  * @brief Manage mDNS server.
  */
+/*
 class MDNS {
 public:
     MDNS();
@@ -40,6 +41,7 @@ public:
 private:
     mdns_server_t *m_mdns_server = nullptr;
 };
+*/
 
 class WiFiAPRecord {
 public:
