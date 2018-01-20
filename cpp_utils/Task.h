@@ -38,6 +38,7 @@ public:
 	void setStackSize(uint16_t stackSize);
 	void setPriority(uint8_t priority);
 	void setName(std::string name);
+	void setCore(BaseType_t coreId);
 	void start(void* taskData=nullptr);
 	void stop();
 	/**
@@ -59,6 +60,7 @@ private:
 	std::string m_taskName;
 	uint16_t    m_stackSize;
 	uint8_t     m_priority;
+	BaseType_t  m_coreId;
 };
 
 #endif /* COMPONENTS_CPP_UTILS_TASK_H_ */
