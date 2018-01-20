@@ -30,6 +30,7 @@ Task::Task(std::string taskName, uint16_t stackSize, uint8_t priority) {
 	m_priority  = priority;
 	m_taskData  = nullptr;
 	m_handle    = nullptr;
+	m_coreId	= tskNO_AFFINITY;
 } // Task
 
 Task::~Task() {
@@ -71,7 +72,7 @@ void Task::start(void* taskData) {
 		ESP_LOGW(tag, "Task::start - There might be a task already running!");
 	}
 	m_taskData = taskData;
-	::xTaskCreate(&runTask, m_taskName.c_str(), m_stackSize, this, m_priority, &m_handle);
+	::xTaskCreatePinnedToCore(&runTask, m_taskName.c_str(), m_stackSize, this, m_priority, &m_handle, m_coreId);
 } // start
 
 
@@ -118,3 +119,14 @@ void Task::setPriority(uint8_t priority) {
 void Task::setName(std::string name) {
 	m_taskName = name;
 } // setName
+
+/**
+ * @brief Set the core number the task has to be executed on.
+ * If the core number is not set, tskNO_AFFINITY will be used
+ *
+ * @param [in] coreId The id of the core.
+ * @return N/A.
+ */
+void Task::setCore(BaseType_t coreId) {
+	m_coreId = coreId;
+}
