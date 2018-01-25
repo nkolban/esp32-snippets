@@ -429,15 +429,36 @@ int Socket::receiveFrom(uint8_t* data, size_t length,	struct sockaddr *pAddr) {
 int Socket::send(const uint8_t* data, size_t length) const {
 	ESP_LOGD(LOG_TAG, "send: Raw binary of length: %d", length);
 	//GeneralUtils::hexDump(data, length);
-	int rc;
-	if (getSSL()) {
-		rc = mbedtls_ssl_write((mbedtls_ssl_context*)&m_sslContext, data, length);
-	} else {
-		rc = ::lwip_send_r(m_sock, data, length, 0);
-	}
-	if (rc == -1) {
-		ESP_LOGE(LOG_TAG, "send: socket=%d, %s", m_sock, strerror(errno));
-	}
+	int rc = ERR_OK;
+    while (length > 0)
+    {
+        if (getSSL()) {
+            rc = mbedtls_ssl_write((mbedtls_ssl_context*)&m_sslContext, data, length);
+            // retry with same parameters if MBEDTLS_ERR_SSL_WANT_WRITE or MBEDTLS_ERR_SSL_WANT_READ
+            if ((rc != MBEDTLS_ERR_SSL_WANT_WRITE) && (rc != MBEDTLS_ERR_SSL_WANT_READ)) {
+                if (rc < 0) {
+                    // no cure for other errors - log and exit
+                    ESP_LOGE(LOG_TAG, "send: SSL write error %d", rc);
+                    return rc;
+                } else {
+                    // not all data was written, try again for the remainder
+                    length -= rc;
+                    data += rc;
+                }
+            }
+        } else {
+            rc = ::lwip_send_r(m_sock, data, length, 0);
+            if ((rc < 0) && (errno != EAGAIN)) {
+                // no cure for errors other than EAGAIN - log and exit
+                ESP_LOGE(LOG_TAG, "send: socket=%d, %s", m_sock, strerror(errno));
+                return rc;
+            } else if (rc > 0) {
+                // not all data was written, try again for the remainder
+                length -= rc;
+                data += rc;
+            }
+        }
+    }
 	return rc;
 } // send
 
