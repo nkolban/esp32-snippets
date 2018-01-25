@@ -91,6 +91,7 @@ public:
 	WebSocketHandler* getHandler();
 	Socket            getSocket();
 	void              send(std::string data, uint8_t sendType = SEND_TYPE_BINARY);
+	void              send(uint8_t* data, uint16_t length, uint8_t sendType = SEND_TYPE_BINARY);
 	void              setHandler(WebSocketHandler *handler);
 }; // WebSocket
 
