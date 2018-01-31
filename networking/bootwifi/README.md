@@ -13,6 +13,27 @@ This code is supplied in the form of an ESP-IDF module.  In addition, BootWiFi h
 
 The logic uses C++ exception handling and hence C++ exception handling must be enabled in `make menuconfig`.
 
+## Example
+Below is a sample of a minimal main.cpp.  
+* If you run it on an esp32, it should create a new open wifi network with SSID: "ESP32".  
+* Connect to that network. 
+* Then open a browser and go to http://192.168.4.1.
+```C++
+#include "BootWiFi.h"
+#include "sdkconfig.h"
+
+extern "C" {
+	void app_main(void);
+}
+
+BootWiFi *boot;
+
+void app_main(void) {
+	boot = new BootWiFi();
+	boot->boot();
+}
+```
+
 ## GPIO boot override
 To enable the ability to specify a GPIO pin to override known station information, compile the code with `-DBOOTWIFI_OVERRIDE_GPIO=<num>` when `<num>` is a GPIO pin number.  If the pin is high at startup, then it will override.  The pin is configured as pull-down low so it need not be artificially held low.  The default is no override pin.
 
