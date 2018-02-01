@@ -345,6 +345,35 @@ void WebSocket::send(std::string data, uint8_t sendType) {
 
 
 /**
+ * @brief Send data down the web socket
+ * See the WebSocket spec (RFC6455) section "6.1 Sending Data".
+ * We build a WebSocket frame, send the frame followed by the data.
+ * @param [in] data The data to send down the WebSocket.
+ * @param [in] sendType The type of payload.  Either SEND_TYPE_TEXT or SEND_TYPE_BINARY.
+ */
+void WebSocket::send(uint8_t* data, uint16_t length, uint8_t sendType) {
+	ESP_LOGD(LOG_TAG, ">> send: Length: %d", length);
+	Frame frame;
+	frame.fin    = 1;
+	frame.rsv1   = 0;
+	frame.rsv2   = 0;
+	frame.rsv3   = 0;
+	frame.opCode = sendType==SEND_TYPE_TEXT?OPCODE_TEXT:OPCODE_BINARY;
+	frame.mask   = 0;
+	if (length < 126) {
+		frame.len = length;
+		m_socket.send((uint8_t *)&frame, sizeof(frame));
+	} else {
+		frame.len = 126;
+		m_socket.send((uint8_t *)&frame, sizeof(frame));
+		m_socket.send(htons(length));  // Convert to network byte order from host byte order
+	}
+	m_socket.send(data, length);
+	ESP_LOGD(LOG_TAG, "<< send");
+}
+
+
+/**
  * @brief Set the Web socket handler associated with this Websocket.
  *
  * This will be the user supplied code that will be invoked to process incoming WebSocket
