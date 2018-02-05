@@ -253,8 +253,12 @@ private:
 };
 
 
+/**
+ * Boot WiFi
+ */
 void BootWiFi::bootWiFi2() {
 	ESP_LOGD(LOG_TAG, ">> bootWiFi2");
+
 	// Check for a GPIO override which occurs when a physical Pin is high
 	// during the test.  This can force the ability to check for new configuration
 	// even if the existing configured access point is available.
@@ -306,17 +310,22 @@ void BootWiFi::setAccessPointCredentials(std::string ssid, std::string password)
 } // setAccessPointCredentials
 
 
+
+/**
+ * @brief Main entry point into booting WiFi
+ */
 void BootWiFi::boot() {
 	ESP_LOGD(LOG_TAG, ">> boot");
 	ESP_LOGD(LOG_TAG, " +----------+");
 	ESP_LOGD(LOG_TAG, " | BootWiFi |");
 	ESP_LOGD(LOG_TAG, " +----------+");
 	ESP_LOGD(LOG_TAG, " Access point credentials: %s/%s", m_ssid.c_str(), m_password.c_str());
-	m_completeSemaphore.take("boot");   // Take the semaphore which will be unlocked when we complete booting.
+	m_completeSemaphore.take("boot");     // Take the semaphore which will be unlocked when we complete booting.
 	bootWiFi2();
-	m_completeSemaphore.wait("boot");   // Wait for the semaphore that indicated we have completed booting.
+	m_completeSemaphore.wait("boot");     // Wait for the semaphore that indicated we have completed booting.
+	m_wifi.setWifiEventHandler(nullptr);  // Remove the WiFi boot handler when we have completed booting.
 	ESP_LOGD(LOG_TAG, "<< boot");
-}
+} // boot
 
 BootWiFi::BootWiFi() {
 	m_httpServerStarted = false;

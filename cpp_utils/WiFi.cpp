@@ -54,16 +54,20 @@ WiFi::WiFi()
 {
 	m_eventLoopStarted  = false;
 	m_initCalled        = false;
-	m_pWifiEventHandler = new WiFiEventHandler();
+	//m_pWifiEventHandler = new WiFiEventHandler();
 	m_apConnected       = false;    // Are we connected to an access point?
 } // WiFi
+
 
 /**
  * @brief Deletes the event handler that was used by the class
  */
 WiFi::~WiFi() {
-	delete m_pWifiEventHandler;
-}
+	if (m_pWifiEventHandler != nullptr) {
+		delete m_pWifiEventHandler;
+		m_pWifiEventHandler = nullptr;
+	}
+} // ~WiFi
 
 
 /**
@@ -229,7 +233,12 @@ void WiFi::dump() {
 	WiFi *pWiFi = (WiFi *)ctx;   // retrieve the WiFi object from the passed in context.
 
 	// Invoke the event handler.
-	esp_err_t rc = pWiFi->m_pWifiEventHandler->getEventHandler()(pWiFi->m_pWifiEventHandler, event);
+	esp_err_t rc;
+	if (pWiFi->m_pWifiEventHandler != nullptr) {
+		rc = pWiFi->m_pWifiEventHandler->getEventHandler()(pWiFi->m_pWifiEventHandler, event);
+	} else {
+		rc = ESP_OK;
+	}
 
 	// If the event we received indicates that we now have an IP address or that a connection was disconnected then unlock the mutex that
 	// indicates we are waiting for a connection complete.
