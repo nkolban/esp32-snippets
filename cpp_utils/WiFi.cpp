@@ -292,6 +292,38 @@ std::string WiFi::getApSSID() {
 	return std::string((char *)conf.sta.ssid);
 } // getApSSID
 
+/**
+ * @brief Get the current ESP32 IP form AP.
+ * @return The ESP32 IP.
+ */
+std::string WiFi::getApIp(){
+	tcpip_adapter_ip_info_t ipInfo = getApIpInfo();
+	char ipAddrStr[30];
+	inet_ntop(AF_INET, &ipInfo.ip.addr, ipAddrStr, sizeof(ipAddrStr));
+	return std::string(ipAddrStr);
+} // getStaIp
+
+/**
+ * @brief Get the current AP netmask.
+ * @return The Netmask IP.
+ */
+std::string WiFi::getApNetmask(){
+	tcpip_adapter_ip_info_t ipInfo = getApIpInfo();
+	char ipAddrStr[30];
+	inet_ntop(AF_INET, &ipInfo.netmask.addr, ipAddrStr, sizeof(ipAddrStr));
+	return std::string(ipAddrStr);
+} // getStaNetmask
+
+/**
+ * @brief Get the current AP Gateway IP.
+ * @return The Gateway IP.
+ */
+std::string WiFi::getApGateway(){
+	tcpip_adapter_ip_info_t ipInfo = getApIpInfo();
+	char ipAddrStr[30];
+	inet_ntop(AF_INET, &ipInfo.gw.addr, ipAddrStr, sizeof(ipAddrStr));
+	return std::string(ipAddrStr);
+} // getStaGateway
 
 /**
  * @brief Lookup an IP address by host name.
@@ -351,6 +383,40 @@ tcpip_adapter_ip_info_t WiFi::getStaIpInfo() {
 	return ipInfo;
 } // getStaIpInfo
 
+/**
+ * @brief Get the current ESP32 IP form STA.
+ * @return The ESP32 IP.
+ */
+std::string WiFi::getStaIp(){
+	tcpip_adapter_ip_info_t ipInfo = getStaIpInfo();
+	char ipAddrStr[30];
+	inet_ntop(AF_INET, &ipInfo.ip.addr, ipAddrStr, sizeof(ipAddrStr));
+	return std::string(ipAddrStr);
+} // getStaIp
+
+
+/**
+ * @brief Get the current STA netmask.
+ * @return The Netmask IP.
+ */
+std::string WiFi::getStaNetmask(){
+	tcpip_adapter_ip_info_t ipInfo = getStaIpInfo();
+	char ipAddrStr[30];
+	inet_ntop(AF_INET, &ipInfo.netmask.addr, ipAddrStr, sizeof(ipAddrStr));
+	return std::string(ipAddrStr);
+} // getStaNetmask
+
+
+/**
+ * @brief Get the current STA Gateway IP.
+ * @return The Gateway IP.
+ */
+std::string WiFi::getStaGateway(){
+	tcpip_adapter_ip_info_t ipInfo = getStaIpInfo();
+	char ipAddrStr[30];
+	inet_ntop(AF_INET, &ipInfo.gw.addr, ipAddrStr, sizeof(ipAddrStr));
+	return std::string(ipAddrStr);
+} // getStaGateway
 
 /**
  * @brief Get the MAC address of the STA interface.
@@ -501,6 +567,27 @@ std::vector<WiFiAPRecord> WiFi::scan() {
  * @return N/A.
  */
 void WiFi::startAP(const std::string& ssid, const std::string& password, wifi_auth_mode_t auth) {
+	startAP(ssid, password, auth, 0, false, 4);
+} // startAP
+
+/**
+ * @brief Start being an access point.
+ *
+ * @param[in] ssid The SSID to use to advertize for stations.
+ * @param[in] password The password to use for station connections.
+ * @param[in] auth The authorization mode for access to this access point.  Options are:
+ * * WIFI_AUTH_OPEN
+ * * WIFI_AUTH_WPA_PSK
+ * * WIFI_AUTH_WPA2_PSK
+ * * WIFI_AUTH_WPA_WPA2_PSK
+ * * WIFI_AUTH_WPA2_ENTERPRISE
+ * * WIFI_AUTH_WEP
+ * @param[in] channel from the access point.
+ * @param[in] is the ssid hidden, ore not.
+ * @param[in] limiting number of clients.
+ * @return N/A.
+ */
+void WiFi::startAP(const std::string& ssid, const std::string& password, wifi_auth_mode_t auth, uint8_t channel, bool ssid_hidden, uint8_t max_connection) {
 	ESP_LOGD(LOG_TAG, ">> startAP: ssid: %s", ssid.c_str());
 
 	init();
@@ -517,10 +604,10 @@ void WiFi::startAP(const std::string& ssid, const std::string& password, wifi_au
 	::memcpy(apConfig.ap.ssid, ssid.data(), ssid.size());
 	apConfig.ap.ssid_len = ssid.size();
 	::memcpy(apConfig.ap.password, password.data(), password.size());
-	apConfig.ap.channel         = 0;
+	apConfig.ap.channel         = channel;
 	apConfig.ap.authmode        = auth;
-	apConfig.ap.ssid_hidden     = 0;
-	apConfig.ap.max_connection  = 4;
+	apConfig.ap.ssid_hidden     = (uint8_t) ssid_hidden;
+	apConfig.ap.max_connection  = max_connection;
 	apConfig.ap.beacon_interval = 100;
 
 	errRc = ::esp_wifi_set_config(WIFI_IF_AP, &apConfig);
@@ -542,7 +629,6 @@ void WiFi::startAP(const std::string& ssid, const std::string& password, wifi_au
 
 	ESP_LOGD(LOG_TAG, "<< startAP");
 } // startAP
-
 
 /**
  * @brief Set the event handler to use to process detected events.
