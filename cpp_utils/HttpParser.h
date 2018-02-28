@@ -17,9 +17,12 @@ private:
 	std::string m_url;
 	std::string m_version;
 	std::string m_body;
+    std::string m_status;
+    std::string m_reason;
 	std::map<std::string, std::string> m_headers;
 	void dump();
 	void parseRequestLine(std::string &line);
+    void parseStatusLine(std::string &line);
 public:
 	HttpParser();
 	virtual ~HttpParser();
@@ -29,9 +32,12 @@ public:
 	std::string getMethod();
 	std::string getURL();
 	std::string getVersion();
+    std::string getStatus();
+    std::string getReason();
 	bool hasHeader(const std::string& name);
 	void parse(std::string message);
 	void parse(Socket s);
+    void parseResponse(std::string message);
 };
 
 #endif /* CPP_UTILS_HTTPPARSER_H_ */
