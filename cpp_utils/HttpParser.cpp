@@ -168,6 +168,13 @@ std::string HttpParser::getVersion() {
 	return m_version;
 } // getVersion
 
+std::string HttpParser::getStatus() {
+    return m_status;
+} // getStatus
+
+std::string HttpParser::getReason() {
+    return m_reason;
+} // getReason
 
 /**
  * @brief Determine if we have a header of the given name.
@@ -261,3 +268,48 @@ void HttpParser::parseRequestLine(std::string &line) {
 	m_version = toCharToken(it, line, ' ');
 	ESP_LOGD(LOG_TAG, "<< parseRequestLine: method: %s, url: %s, version: %s", m_method.c_str(), m_url.c_str(), m_version.c_str());
 } // parseRequestLine
+
+/**
+ * @brief Parse a response message.
+ * @param [in] line The response to parse.
+ */
+// A response is built from:
+// A status line, any number of header lines, a body
+//
+void HttpParser::parseResponse(std::string message)
+{
+	auto it = message.begin();
+	auto line = toStringToken(it, message, lineTerminator);
+	parseStatusLine(line);
+
+	line = toStringToken(it, message, lineTerminator);
+	while(!line.empty()) {
+		ESP_LOGD(LOG_TAG, "Header: \"%s\"", line.c_str());
+		m_headers.insert(parseHeader(line));
+		line = toStringToken(it, message, lineTerminator);
+	}
+
+	m_body = message.substr(std::distance(message.begin(), it));
+} // parse
+
+/**
+ * @brief Parse A status line.
+ * @param [in] line The status line to parse.
+ */
+// A status Line is built from:
+// <HTTP-version> <sp> <status> <sp> <reason>
+//
+void HttpParser::parseStatusLine(std::string &line)
+{
+	ESP_LOGD(LOG_TAG, ">> ParseStatusLine: \"%s\" [%d]", line.c_str(), line.length());
+	std::string::iterator it = line.begin();
+	// Get the version
+	m_version = toCharToken(it, line, ' ');
+	// Get the version
+	m_status = toCharToken(it, line, ' ');
+	// Get the status code
+	m_reason = toStringToken(it, line, lineTerminator);
+
+	ESP_LOGD(LOG_TAG, "<< ParseStatusLine: method: %s, version: %s, status: %s", m_method.c_str(), m_version.c_str(), m_status.c_str());
+} // parseRequestLine
+
