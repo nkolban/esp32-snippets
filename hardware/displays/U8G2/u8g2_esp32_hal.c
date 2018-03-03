@@ -176,13 +176,13 @@ uint8_t u8g2_esp32_gpio_and_delay_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int,
 		case U8X8_MSG_GPIO_AND_DELAY_INIT: {
 			uint64_t bitmask = 0;
 			if (u8g2_esp32_hal.dc != U8G2_ESP32_HAL_UNDEFINED) {
-				bitmask = bitmask | (1<<u8g2_esp32_hal.dc);
+				bitmask = bitmask | (1ull<<u8g2_esp32_hal.dc);
 			}
 			if (u8g2_esp32_hal.reset != U8G2_ESP32_HAL_UNDEFINED) {
-				bitmask = bitmask | (1<<u8g2_esp32_hal.reset);
+				bitmask = bitmask | (1ull<<u8g2_esp32_hal.reset);
 			}
 			if (u8g2_esp32_hal.cs != U8G2_ESP32_HAL_UNDEFINED) {
-				bitmask = bitmask | (1<<u8g2_esp32_hal.cs);
+				bitmask = bitmask | (1ull<<u8g2_esp32_hal.cs);
 			}
 
             if (bitmask==0) {
