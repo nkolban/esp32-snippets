@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MMUTool</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<body>
+<h1>ESP32 MMU Tool</h1>
+	<p>Storage address: <input id="addr" type="text"><button id="getEntry">Get Entry</button></p>
+	<p>MMU entry: <input id="entry" type="text"><button id="getAddr">Get Address</button></p>
+	
+<table border="1" cellpadding="1" cellspacing="1" style="width:50%;background-color:#ffffcc;border-collapse:collapse;border:1px solid #ffcc00">
+	<tbody>
+		<tr>
+			<td>0x3F40 0000</td>
+			<td>0x3F40 FFFF</td>
+			<td>0</td>
+			<td>Data</td>
+		</tr>
+		<tr>
+			<td>0x3F41 0000</td>
+			<td>0x3F41 FFFF</td>
+			<td>1</td>
+			<td>Data</td>
+		</tr>
+		<tr>
+			<td>...</td>
+			<td>...</td>
+			<td>...</td>
+			<td>Data</td>
+		</tr>
+		<tr>
+			<td>0x3F7F 0000</td>
+			<td>0x3F7F FFFF</td>
+			<td>63</td>
+			<td>Data</td>
+		</tr>
+		<tr>
+			<td>0x4000 0000</td>
+			<td>0x4000 FFFF</td>
+			<td>64</td>
+			<td>Instruction</td>
+		</tr>
+		<tr>
+			<td>0x4001 0000</td>
+			<td>0x4001 FFFF</td>
+			<td>65</td>
+			<td><span style="background-color: rgb(255, 255, 204);">Instruction</span></td>
+		</tr>
+		<tr>
+			<td>...</td>
+			<td>...</td>
+			<td>...</td>
+			<td><span style="background-color: rgb(255, 255, 204);">Instruction</span></td>
+		</tr>
+		<tr>
+			<td>0x403F 0000</td>
+			<td>0x403F FFFF</td>
+			<td>127</td>
+			<td><span style="background-color: rgb(255, 255, 204);">Instruction</span></td>
+		</tr>
+		<tr>
+			<td>0x4040 0000</td>
+			<td>0x4040 FFFF</td>
+			<td>128</td>
+			<td>Instruction</td>
+		</tr>
+		<tr>
+			<td>...</td>
+			<td>...</td>
+			<td>...</td>
+			<td><span style="background-color: rgb(255, 255, 204);">Instruction</span></td>
+		</tr>
+		<tr>
+			<td>0x407F 0000</td>
+			<td>0x407F FFFF</td>
+			<td>255</td>
+			<td>Instruction</td>
+		</tr>
+	</tbody>
+
+</table>
+<script>
+$(function() {
+	$("#getEntry").click(() => {
+		var address = parseInt($("#addr").val(), 16);
+		if (isNaN(address)) {
+			alert("Invalid input.  Must be a hex address");
+			return;
+		}
+		if (address >= 0x10000) {
+			address >>= 16;
+		}
+		var result = null;
+
+		if (address >= 0x3f40 && address < 0x3f80) {
+			result = (address - 0x3f40);
+		}
+		if (address >= 0x4000 && address < 0x40c0) {
+			result = (address - 0x4000) + 64;
+		}
+		if (result == null) {
+			alert("Address not valid for MMU");
+			return;
+		}
+		alert("MMU Entry: " + result);
+	});
+	
+	$("#getAddr").click(() => {
+		var entry = parseInt($("#entry").val());
+		if (isNaN(entry)) {
+			alert("Invalid input.  Must be an MMU entry");
+			return;
+		}
+		var result = null;
+		if (entry < 64) {
+			result = 0x3f400000 + 64*1024*entry;
+		}
+		if (entry >=64 && entry <256) {
+			result = 0x40000000 + 64*1024*(entry-64);
+		}
+		if (result == null) {
+			alert("Entry not valid for MMU");
+			return;
+		}
+		alert("Address range: 0x" + result.toString(16) + " to 0x" + (result+64*1024-1).toString(16));
+	});
+});
+</script>
+</body>
+</html>
