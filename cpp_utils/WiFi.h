@@ -132,6 +132,7 @@ public:
     struct in_addr            getHostByName(const char* hostName);
     bool                      connectAP(const std::string& ssid, const std::string& password, bool waitForConnection=true);
     void                      dump();
+    bool                      isConnectedToAP();
     static std::string        getApMac();
     static tcpip_adapter_ip_info_t getApIpInfo();
     static std::string        getApSSID();

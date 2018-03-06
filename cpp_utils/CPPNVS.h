@@ -21,9 +21,9 @@ public:
 
 	void erase();
 	void erase(std::string key);
-	void get(std::string key, std::string* result, bool isBlob=false);
-	void get(std::string key, uint8_t* result, size_t &length);
-	void get(std::string key, uint32_t& value);
+	int get(std::string key, std::string* result, bool isBlob=false);
+	int get(std::string key, uint8_t* result, size_t &length);
+	int get(std::string key, uint32_t& value);
 	void set(std::string key, std::string data, bool isBlob=false);
 	void set(std::string key, uint32_t value);
 	void set(std::string key, uint8_t* data, size_t length);

@@ -225,6 +225,15 @@ void WiFi::dump() {
 
 
 /**
+ * @brief Returns whether wifi is connected to an access point
+ */
+bool WiFi::isConnectedToAP() {
+	return m_apConnected;
+} // isConnected
+
+
+
+/**
  * @brief Primary event handler interface.
  */
 /* STATIC */ esp_err_t WiFi::eventHandler(void* ctx, system_event_t* event) {
