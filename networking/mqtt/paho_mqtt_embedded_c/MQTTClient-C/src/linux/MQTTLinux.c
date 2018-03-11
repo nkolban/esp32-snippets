@@ -215,7 +215,9 @@ static int NetworkConnectSSL(Network *n, char *addr, int port) {
 	mbedtls_entropy_init(&mqtt_ssl_context->entropy);
 
   mbedtls_ssl_conf_dbg(&mqtt_ssl_context->conf, my_debug, stdout);
+#ifdef CONFIG_MBEDTLS_DEBUG
   mbedtls_debug_set_threshold(4); // Log at verbose only
+#endif // CONFIG_MBEDTLS_DEBUG
 
   int ret = mbedtls_ctr_drbg_seed(
      &mqtt_ssl_context->ctr_drbg,
