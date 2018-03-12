@@ -74,12 +74,16 @@ int NVS::get(std::string key, std::string* result, bool isBlob) {
 	size_t length;
 	if (isBlob) {
 		esp_err_t rc = ::nvs_get_blob(m_handle, key.c_str(), NULL, &length);
-		ESP_LOGD(LOG_TAG, "Error getting key: %i", rc);
-		return rc;
+		if (rc != ESP_OK) {
+			ESP_LOGI(LOG_TAG, "Error getting key: %i", rc);
+			return rc;
+		}
 	} else {
 		esp_err_t rc = ::nvs_get_str(m_handle, key.c_str(), NULL, &length);
-		ESP_LOGD(LOG_TAG, "Error getting key: %i", rc);
-		return rc;
+		if (rc != ESP_OK) {
+			ESP_LOGI(LOG_TAG, "Error getting key: %i", rc);
+			return rc;
+		}
 	}
 	char *data = (char *)malloc(length);
 	if (isBlob) {
