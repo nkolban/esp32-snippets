@@ -527,4 +527,8 @@ esp_err_t BLEDevice::setMTU(uint16_t mtu) {
 uint16_t BLEDevice::getMTU() {
 	return m_localMTU;
 }
+
+bool BLEDevice::getInitialized() {
+	return initialized;
+}
 #endif // CONFIG_BT_ENABLED
