@@ -121,8 +121,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	printf("Dump of ESP32 binary file: %s\n", fileName);
-	printf("magic: 0x%x, segment_count: %d, entry_addr: 0x%x - %s\n",
-			header.magic, header.segment_count, header.entry_addr, area(header.entry_addr));
+	printf("magic: 0x%x, segment_count: %d, entry_addr: 0x%x - %s, hash_appended: %d\n",
+			header.magic, header.segment_count, header.entry_addr, area(header.entry_addr), header.hash_appended);
 
 	printf("\n");
 	printf("Seg | Start      | End        | Length            | Area\n");

@@ -69,7 +69,7 @@ void I2C::endTransaction() {
 
 	errRc = ::i2c_master_cmd_begin(m_portNum, m_cmd, 1000/portTICK_PERIOD_MS);
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "i2c_master_stop: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		ESP_LOGE(LOG_TAG, "i2c_master_cmd_begin: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 	}
 	::i2c_cmd_link_delete(m_cmd);
 	m_directionKnown = false;
