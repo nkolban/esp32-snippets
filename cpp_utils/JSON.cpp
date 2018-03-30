@@ -229,6 +229,9 @@ JsonArray JsonObject::getArray(std::string name) {
  */
 bool JsonObject::getBoolean(std::string name) {
 	cJSON *node = cJSON_GetObjectItem(m_node, name.c_str());
+	if (node == nullptr) {
+		return false;
+	}
 	return cJSON_IsTrue(node);
 } // getBoolean
 
@@ -240,6 +243,9 @@ bool JsonObject::getBoolean(std::string name) {
  */
 double JsonObject::getDouble(std::string name) {
 	cJSON *node = cJSON_GetObjectItem(m_node, name.c_str());
+	if (node == nullptr) {
+		return 0.0;
+	}
 	return node->valuedouble;
 } // getDouble
 
@@ -251,6 +257,9 @@ double JsonObject::getDouble(std::string name) {
  */
 int JsonObject::getInt(std::string name) {
 	cJSON *node = cJSON_GetObjectItem(m_node, name.c_str());
+	if (node == nullptr) {
+		return 0;
+	}
 	return node->valueint;
 } // getInt
 
@@ -269,10 +278,13 @@ JsonObject JsonObject::getObject(std::string name) {
 /**
  * @brief Get the named string value from the object.
  * @param [in] name The name of the object property.
- * @return The string value from the object.
+ * @return The string value from the object.  A zero length string is returned when the object is not present.
  */
 std::string JsonObject::getString(std::string name) {
 	cJSON *node = cJSON_GetObjectItem(m_node, name.c_str());
+	if (node == nullptr) {
+		return "";
+	}
 	return std::string(node->valuestring);
 } // getString
 
