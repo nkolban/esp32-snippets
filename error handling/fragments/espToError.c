@@ -13,7 +13,7 @@ char *espToString(esp_err_t value) {
 	case ESP_ERR_INVALID_ARG:
 		return "Invalid argument";
 	case ESP_ERR_INVALID_SIZE:
-		return "Invalid state";
+		return "Invalid size";
 	case ESP_ERR_INVALID_STATE:
 		return "Invalid state";
 	case ESP_ERR_NOT_FOUND:
