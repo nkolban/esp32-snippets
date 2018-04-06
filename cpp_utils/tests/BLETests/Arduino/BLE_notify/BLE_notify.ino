@@ -23,7 +23,8 @@
 #include <BLEUtils.h>
 #include <BLE2902.h>
 
-BLEServer *pServer = NULL;
+BLEServer* pServer = NULL;
+BLECharacteristic* pCharacteristic = NULL;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 uint8_t value = 0;
@@ -61,7 +62,7 @@ void setup() {
   BLEService *pService = pServer->createService(SERVICE_UUID);
 
   // Create a BLE Characteristic
-  BLECharacteristic * pCharacteristic = pService->createCharacteristic(
+  pCharacteristic = pService->createCharacteristic(
                       CHARACTERISTIC_UUID,
                       BLECharacteristic::PROPERTY_READ   |
                       BLECharacteristic::PROPERTY_WRITE  |
