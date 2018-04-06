@@ -29,13 +29,12 @@ public:
 	void setPartialServices(BLEUUID uuid);
 	void setServiceData(BLEUUID uuid, std::string data);
 	void setShortName(std::string name);
+	void        addData(std::string data);  // Add data to the payload.
+	std::string getPayload();               // Retrieve the current advert payload.
 
 private:
 	friend class BLEAdvertising;
 	std::string m_payload;   // The payload of the advertisement.
-
-	void        addData(std::string data);  // Add data to the payload.
-	std::string getPayload();               // Retrieve the current advert payload.
 };   // BLEAdvertisementData
 
 
