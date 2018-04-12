@@ -36,13 +36,16 @@ RESTClient::~RESTClient() {
 /**
  * @brief Perform an HTTP GET request.
  */
-void RESTClient::get() {
+long RESTClient::get() {
+  long response_code;  // Added return response_code 2018_4_12
 	prepForCall();
 	::curl_easy_setopt(m_curlHandle, CURLOPT_HTTPGET, 1);
 	int rc = ::curl_easy_perform(m_curlHandle);
 	if (rc != CURLE_OK) {
 		ESP_LOGE(tag, "get(): %s", getErrorMessage().c_str());
 	}
+  curl_easy_getinfo(m_curlHandle, CURLINFO_RESPONSE_CODE, &response_code); // Added return response_code 2018_4_12
+  return response_code; // Added return response_code 2018_4_12
 } // get
 
 
@@ -52,13 +55,16 @@ void RESTClient::get() {
  * @param [in] body The body of the payload to send with the post request.
  *
  */
-void RESTClient::post(std::string body) {
+long RESTClient::post(std::string body) {
+  long response_code; // Added return response_code 2018_4_12
 	prepForCall();
 	::curl_easy_setopt(m_curlHandle, CURLOPT_POSTFIELDS, body.c_str());
 	int rc = ::curl_easy_perform(m_curlHandle);
 	if (rc != CURLE_OK) {
 		ESP_LOGE(tag, "post(): %s", getErrorMessage().c_str());
 	}
+  curl_easy_getinfo(m_curlHandle, CURLINFO_RESPONSE_CODE, &response_code);// Added return response_code 2018_4_12
+  return response_code;// Added return response_code 2018_4_12
 } // post
 
 
