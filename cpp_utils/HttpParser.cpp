@@ -220,7 +220,9 @@ void HttpParser::parse(Socket s) {
 	} else {
 		uint8_t data[512];
 		int rc = s.receive(data, sizeof(data));
-		m_body = std::string((char *)data, rc);
+        if (rc > 0) {
+		    m_body = std::string((char *)data, rc);
+        }
 	}
 	ESP_LOGD(LOG_TAG, "<< parse: Size of body: %d", m_body.length());
 } // parse
