@@ -285,7 +285,11 @@ void BootWiFi::bootWiFi2() {
 		 		connectionInfo.ipInfo.gw.addr,
 				connectionInfo.ipInfo.netmask.addr
 			);
-		  m_wifi.connectAP(connectionInfo.ssid, connectionInfo.password);   // Connect to the access point.
+		  
+      // Connect to the access point.
+      while(!m_wifi.connectAP(connectionInfo.ssid, connectionInfo.password)){
+        ESP_LOGE(LOG_TAG, "Unable to connect to access point \"%s\" - trying again...", connectionInfo.ssid);
+      };   
 
 		} else {
 			// We do NOT have connection information.  Let us now become an access
