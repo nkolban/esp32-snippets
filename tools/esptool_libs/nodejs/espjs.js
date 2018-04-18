@@ -13,38 +13,68 @@
  */
 
  /**
+  * High level commands:
+  * doSync - SYNC
+  * MemCommands
+  * - MEM_BEGIN
+  * - MEM_END
+  * FlashCommands
+  *  - FLASH_BEGIN
+  *  - FLASH_END
+  * writeReg - WRITE_REG
+  * readReg - READ_REG
+  * enterDownloadMode
+  * spiSetParams - SPI_SET_PARAMS
+  * flashFile - Flash a specific file to a specific address.
+  * spiFlashMD5 - Calculate the hash of a region of flash.
+  */
+
+ /**
   * We want to provide processing to both transmitted requests and received responses.  A request is a message that is then encapsulated
   * in a SLIP packet and transmitted via UART.  A response is a message received via UART that is wrapped in a SLIP packet.
   * 
   * We will logically define a DataPacket as the raw packet unit that is either transmitted or received.  This encapsulates a
   * Buffer that contains the data.  
   */
-const hexy   = require("hexy");
-const zlib   = require('zlib');
-const fs     = require("fs");
-const assert = require("assert");
-const PORT   = "/dev/ttyUSB1";
-const argv   = require("minimist")(process.argv.slice(2));
+const hexy       = require("hexy");                                           // Dumping hex data utility.
+const zlib       = require('zlib');                                           // Compression/decompression.
+const fs         = require("fs");                                             // File system access.
+const assert     = require("assert");                                         // Internal assertion.
+const argv       = require("minimist")(process.argv.slice(2));                // command line processing.
+const SerialPort = require("serialport");                                     // Serial / UART access.
+const md5        = require("md5");                                            // Hash checksum.
 
-const COMMAND_FLASH_BEGIN    = 0x02;
-const COMMAND_FLASH_DATA     = 0x03;
-const COMMAND_FLASH_END      = 0x04;
-const COMMAND_MEM_BEGIN      = 0x05;
-const COMMAND_MEM_END        = 0x06;
-const COMMAND_MEM_DATA       = 0x07;
-const COMMAND_SYNC           = 0x08;
-const COMMAND_WRITE_REG      = 0x09;
-const COMMAND_READ_REG       = 0x0a;
-const COMMAND_SPI_SET_PARAMS = 0x0b;
-const COMMAND_SPI_FLASH_MD5  = 0x13;
+const PORT       = "/dev/ttyUSB1";                                            // The serial port to work with.
 
-const EFUSE_REG_BASE    = 0x6001a000;
+// These are the commands exposed by the Flasher stub.
+const COMMAND_FLASH_BEGIN      = 0x02;
+const COMMAND_FLASH_DATA       = 0x03;
+const COMMAND_FLASH_END        = 0x04;
+const COMMAND_MEM_BEGIN        = 0x05;
+const COMMAND_MEM_END          = 0x06;
+const COMMAND_MEM_DATA         = 0x07;
+const COMMAND_SYNC             = 0x08;
+const COMMAND_WRITE_REG        = 0x09;
+const COMMAND_READ_REG         = 0x0a;
+const COMMAND_SPI_SET_PARAMS   = 0x0b;
+const COMMAND_SPI_ATTACH       = 0x0d;
+const COMMAND_CHANGE_BAUDRATE  = 0x0f;
+const COMMAND_FLASH_DEFL_BEGIN = 0x10;
+const COMMAND_FLASH_DEFL_DATA  = 0x11;
+const COMMAND_FLASH_DEFL_END   = 0x12;
+const COMMAND_SPI_FLASH_MD5    = 0x13;
+const COMMAND_ERASE_FLASH      = 0xd0;
+const COMMAND_ERASE_REGION     = 0xd1;
+const COMMAND_READ_FLASH       = 0xd2;
+const COMMAND_RUN_USER_CODE    = 0xd3;
+
+const EFUSE_REG_BASE           = 0x6001a000;
 
 var esp32r0Delay = false;
 var response     = null;
 var serialData   = SerialData(); // The buffer holding the received serial data.
 
-var SerialPort = require("serialport");
+
 var port = new SerialPort(PORT, {
 	baudRate: 115200,
 	autoOpen: false
@@ -52,18 +82,24 @@ var port = new SerialPort(PORT, {
 
 /**
  * Maintain received serial data.
+ * 
  * We are receiving serial data asynchronosly from the serial processor.  This means that when data arrives
  * on the UART, it is passed to an instance of this object for accumulation.  The data is passed in through a
- * call to append.
+ * call to append().
  */
 function SerialData() {
-	var serialDataBuffer;  // The serial data we are accumulating.
+	var serialDataBuffer;        // The serial data we are accumulating.
+	var resolveMoreData = null;  // A resolve function for a promise that will be resolved when more data has arrived.
 
+
+	/**
+	 * Purge and reset any existing unprocessed serial data.
+	 */
 	function empty() {
 		serialDataBuffer = Buffer.allocUnsafe(0);
-	}
+	} // empty
 
-	var resolveMoreData = null;
+
 	/**
 	 * Append data received from the serial port into our buffer.
 	 * @param {Buffer} data The data received from our serial port.
@@ -71,12 +107,13 @@ function SerialData() {
 	 */
 	function append(data) {
 		console.log("SerialData.append:\n%s", hexy.hexy(data));
-		serialDataBuffer = Buffer.concat([serialDataBuffer, data]);      // Append the new data into the serial buffer.
+		serialDataBuffer = Buffer.concat([serialDataBuffer, data]);      // Append the new data into the accumulating serial buffer.
 		if (resolveMoreData != null) {                                   // If we have a promise resolution that is waiting for more data ..
 			resolveMoreData();                                           // resolve the promise.
 			resolveModeData = null;
 		}
 	} // append
+
 
 	/**
 	 * Create a promise that is resolved when we have more data.
@@ -90,18 +127,20 @@ function SerialData() {
 
 
 	/**
+	 * Get the next SLIP data packet.
 	 * Assume that the serial data received is a sequence of packets.  This function returns a promise that
 	 * is resolved when a packet is available for processing.
 	 */
 	async function getNextDataPacket() {
 		var p = new Promise(async (resolve, reject) => {
 			console.log("getNextDataPacket>>");
-			while(true) {                                                        // Keep looping until we have a data packet.
-				if (DataPacket().containsSLIPPacket(serialDataBuffer)) {         // Does the buffer now contain a SLIP packet?
-					var dp = DataPacket();                                       // Create a new data packet
-					serialDataBuffer = dp.setSLIPPacket(serialDataBuffer);       // Load the data packet with the raw serial data.
-					console.log("Got a new data packet: %s\n%s", dp.toString(), hexy.hexy(dp.getData()));
-					resolve(dp);
+			while(true) {                                                                   // Keep looping until we have a data packet.
+				if (DataPacket().containsSLIPPacket(serialDataBuffer)) {                    // Does the buffer now contain a SLIP packet?
+					var newDataPacket = DataPacket();                                       // Create a new data packet
+					serialDataBuffer = newDataPacket.setSLIPPacket(serialDataBuffer);       // Load the data packet with the raw serial data.
+					console.log("Got a new data packet: %s\n%s",
+						newDataPacket.toString(), hexy.hexy(newDataPacket.getData()));
+					resolve(newDataPacket);
 					return;
 				}
 				await moreData();                                                // We didn't find a data packet in our data, so wait for more data.
@@ -110,10 +149,11 @@ function SerialData() {
 		return p;                                                                // Return the promise that is resolved when we have a data packet.
 	} // getNextDataPacket
 
+
 	empty(); // Initialize / empty the serial data.
 	return {
-		"append": append,
-		"empty":  empty,
+		"append":            append,
+		"empty":             empty,
 		"getNextDataPacket": getNextDataPacket
 	}
 } // SerialData
@@ -124,6 +164,7 @@ function SerialData() {
  */
 function DataPacket() {
 	var dataPacket = Buffer.allocUnsafe(0);
+
 	/**
 	 * Examine the data buffer looking for a slip trailer (0xc0).  If found, we return the index
 	 * at which it was found.  If not found, we return -1.
@@ -157,15 +198,17 @@ function DataPacket() {
 	 */
 	function setSLIPPacket(data) {
 		console.log("setSLIPPacket:\n%s", hexy.hexy(data));
-		assert(data);
-		assert(data[0] == 0xc0);
-		assert(data.length > 0);
-		var end = getSLIPTrailer(data);
+		assert(data);                          // Assert if we have been presented no data.
+		assert(data.length > 0);               // Assert that the data length is not 0.
+		assert(data[0] == 0xc0);               // Assert if the first bytes isn't a SLIP marker.
+         
+		var end = getSLIPTrailer(data);        // Get the end marker for the SLIP packet.
 		if (end == -1) {
 			throw "No SLIP trailer in data we are to process.";
 		}
 		assert(end > 0);
-		dataPacket = Buffer.allocUnsafe(data.length); // Our data will be no MORE than data.length bytes in size.
+
+		dataPacket = Buffer.allocUnsafe(data.length);                     // Our data will be no MORE (but likely less) than data.length bytes in size.
 		for (var i=1, j=0; i<end; i++, j++) {                             // Remove escape sequences.
 			if (data[i] == 0xdb && data[i+1] == 0xdc) {                   // 0xdb 0xdc -> 0xc0
 				dataPacket[j] = 0xc0;
@@ -181,7 +224,7 @@ function DataPacket() {
 		// We now have a buffer (dataPacket) that contains our decoded data but will be too large.  However, j contains the number of bytes we want.
 		var temp = Buffer.allocUnsafe(j);
 		dataPacket.copy(temp, 0, 0, j);                                  // Copy dataPacket[0..j-1] -> temp
-		dataPacket = temp;
+		dataPacket = temp;                                               // Set datapacket to the shrunk buffer.
 
 		// We have now processed what we wanted from the incoming data and now we must return the unused data.
 		i++;
@@ -190,7 +233,9 @@ function DataPacket() {
 		data.copy(temp, 0, i);                                           // copy data[i..] -> temp
 
 		console.log("setSLIPPacket: New data has length: %d, returning unused buffer of size: %d", dataPacket.length, temp.length);
-		console.log("Unused:\n%s", hexy.hexy(temp));
+		if (temp.length > 0) {
+			console.log("Unused:\n%s", hexy.hexy(temp));
+		}
 		return temp;
 	} // setSLIPPacket
 
@@ -251,8 +296,8 @@ function DataPacket() {
 			// For the ESP32
 			// Size - 4 = status
 			// Size - 3 = error
-			result += ", status: " + dataPacket[dataPacket.length-4];
-			result += ", errorCode: " + dataPacket[dataPacket.length-3];
+			result += ", status: " + dataPacket[dataPacket.length-2];
+			result += ", errorCode: " + dataPacket[dataPacket.length-1];
 		} else {
 			result = "Unknown command: " + dataPacket[0];
 		}
@@ -329,18 +374,18 @@ function delay(msecs) {
  * @param checksum            // [Optional] The checksum value
  * @returns
  */
-function buildCommand(command, data, checksum = 0) {
-	console.log("buildCommand: %s, checksum: 0x%s, dataLength: %d", commandToString(command), checksum.toString(16), data.length);
+async function buildAndSendRequest(command, data, checksum = 0) {
+	console.log("buildAndSendRequest: %s, checksum: 0x%s, dataLength: %d", commandToString(command), checksum.toString(16), data.length);
 	var buf = Buffer.allocUnsafe(8 + data.length);     // Create a buffer used to hold the command.
-	buf.writeUInt8(0, 0);                              // Flag as a request  [0]
-	buf.writeUInt8(command, 1);                        // Write the command  [1]
+	buf.writeUInt8(0,              0);                 // Flag as a request  [0]
+	buf.writeUInt8(command,        1);                 // Write the command  [1]
 	buf.writeUInt16LE(data.length, 2);                 // Write the size     [2-3]
-	buf.writeUInt32LE(checksum, 4);                    // Write the checksum [4-7]
+	buf.writeUInt32LE(checksum,    4);                 // Write the checksum [4-7]
 	data.copy(buf, 8);                                 // Copy data[0..] to buf[8..]
 	var dataPacket = DataPacket();                     // Create a new data packet object
 	dataPacket.setData(buf);                           // Populate the data packet
-	return dataPacket;
-} // writeCommand
+	await portWrite(dataPacket.getSLIPPacket());       // Send the data packet to the ESP32.
+} // buildAndSendRequest
 
 
 /**
@@ -401,7 +446,7 @@ function ProcessResponse() {
 			timeoutId = setTimeout(()=>{
 				console.log("getResponse timeout!");
 				reject();
-			}, 500);
+			}, 1000);
 			var dp = await serialData.getNextDataPacket();
 			console.log(" .. getResponse ... we think we have a new datapacket!");
 			processPacket(dp.getData());
@@ -413,7 +458,7 @@ function ProcessResponse() {
 	function processPacket(inputData) {
 		assert(inputData);
 		assert(inputData.length > 0);
-		console.log("Received a packet, length %d:\n", inputData.length, hexy.hexy(inputData));
+		console.log("Received a packet, length %d:\n%s", inputData.length, hexy.hexy(inputData));
 		// 0 - direction
 		// 1 - command
 		// [2-3] - size
@@ -427,16 +472,18 @@ function ProcessResponse() {
 		command  = inputData.readUInt8(1);
 		dataSize = inputData.readUInt16LE(2);
 		value    = inputData.readUInt32LE(4);
-		data     = Buffer.allocUnsafe(inputData.length - 8);
-		inputData.copy(data, 0, 8, inputData.length-2);
+		data     = Buffer.allocUnsafe(inputData.length - 8 - 2);
+		inputData.copy(data, 0, 8, inputData.length - 2);
 		status   = inputData.readUInt8(inputData.length - 2);
-		erorCode = inputData.readUInt8(inputData.length-1);
+		erorCode = inputData.readUInt8(inputData.length - 1);
 		clearTimeout(timeoutId);
 	} // processPacket
 
 	return {
 		getResponse:   getResponse,
-		processPacket: processPacket
+		getData: function() {
+			return data;
+		}
 	};
 } // ProcessResponse
 
@@ -456,9 +503,7 @@ async function doSync() {
 		for (var i=4; i<36; i++) {
 			buf.writeUInt8(0x55, i);
 		}
-		var dataPacket = buildCommand(COMMAND_SYNC, buf);
-		await portWrite(dataPacket.getSLIPPacket());
-		await drain();
+		await buildAndSendRequest(COMMAND_SYNC, buf);
 		console.log("response: " + response);
 		try {
 			await response.getResponse();
@@ -508,9 +553,7 @@ function MemCommands() {
 			buf.writeUInt32LE(Math.ceil(size/MEM_PACKET_SIZE), 4);                               // Number of data packets to be sent.
 			buf.writeUInt32LE(MEM_PACKET_SIZE,                 8);                               // Size of each data packet.
 			buf.writeUInt32LE(address,                        12);                               // Offset in memory to start writing.
-			var dataPacket = buildCommand(COMMAND_MEM_BEGIN, buf);
-			await portWrite(dataPacket.getSLIPPacket());
-			await drain();
+			await buildAndSendRequest(COMMAND_MEM_BEGIN, buf);
 			await response.getResponse();
 			resolve();
 		});
@@ -531,9 +574,7 @@ function MemCommands() {
 			var buf = Buffer.allocUnsafe(2*4);                                                   // Allocate the payload which is 2 * 32bit words
 			buf.writeUInt32LE(executeFlag,       0);                                             // Execute flag.
 			buf.writeUInt32LE(entrypointAddress, 4);                                             // Entry point address.
-			var dataPacket = buildCommand(COMMAND_MEM_END, buf);
-			await portWrite(dataPacket.getSLIPPacket());
-			await drain();                                                                       // Drain the transmit queue.
+			await buildAndSendRequest(COMMAND_MEM_END, buf);
 			await response.getResponse();                                                        // Wait for a response.
 			resolve();                                                                           // Resolve the promise.
 		});
@@ -577,9 +618,7 @@ function MemCommands() {
 			console.log("| MEM_DATA |");
 			console.log("+----------+");
 			await flush();                                                                       // Discard any untransmitted and unreceived data.                                                                    // End the SLIP communication.
-			var dataPacket = buildCommand(COMMAND_MEM_DATA, buf2, calculateChecksum(data));
-			await portWrite(dataPacket.getSLIPPacket());
-			await drain();                                                                       // Drain the transmit queue.			
+			await buildAndSendRequest(COMMAND_MEM_DATA, buf2, calculateChecksum(data));			
 			sequenceNumber ++;                                                                   // Increment the sequence number.
 			sizeWritten += sizeToWrite;                                                          // Updae the size of the data that we have now written.                                                                    // Ensure that all the transmitted data is now outbound.
 			await response.getResponse();                                                        // Await a response.
@@ -615,12 +654,17 @@ function MemCommands() {
 	};
 } // MemCommands
 
+
 function portWrite(data) {
 	console.log("Writing data down port, length: %d", data.length)
 	return new Promise((resolve, reject) => {
-		port.write(data, ()=> {resolve()});
+		port.write(data, async ()=> {
+			await drain;
+			resolve()
+		});
 	});
-}
+} // portWrite
+
 
 /**
  * Process the handling of flash commands.
@@ -645,9 +689,7 @@ function FlashCommands() {
 			buf.writeUInt32LE(Math.ceil(size/FLASH_PACKET_SIZE), 4);                             // Number of data packets to be sent.
 			buf.writeUInt32LE(FLASH_PACKET_SIZE,                 8);                             // Size of each data packet.
 			buf.writeUInt32LE(address,                           12);                            // Offset in memory to start writing.
-			var dataPacket = buildCommand(COMMAND_FLASH_BEGIN, buf);
-			await portWrite(dataPacket.getSLIPPacket());			
-			await drain();
+			await buildAndSendRequest(COMMAND_FLASH_BEGIN, buf);			
 			await response.getResponse();			
 			resolve();
 		});		
@@ -657,16 +699,16 @@ function FlashCommands() {
 
 	async function flashData(data, sequenceNumber) {
 		console.log(">> flashData: sequenceId: %d, size: %d", sequenceNumber, data.length);
-		if (data.length < 16*1024) {
-			var temp = Buffer.alloc(16*1024, 0xff);
+		if (data.length < FLASH_PACKET_SIZE) {
+			var temp = Buffer.alloc(FLASH_PACKET_SIZE, 0xff);
 			data.copy(temp);
 			data = temp;
 		}
 		var buf2 = Buffer.alloc(4*4 + data.length);                                        // Allocate storage for the command preamble.
 		buf2.writeUInt32LE(data.length,    0);                                             // Size of data to be sent.
 		buf2.writeUInt32LE(sequenceNumber, 4);                                             // Current sequence number.
-		buf2.writeUInt32LE(0, 8);
-		buf2.writeUInt32LE(0, 12);				
+		buf2.writeUInt32LE(0,              8);
+		buf2.writeUInt32LE(0,              12);				
 		data.copy(buf2, 16);
 		//var buf = Buffer.concat([buf2, data]);
 		//console.log("Here is the data we are sending:\n%s", hexy.hexy(buf));
@@ -676,10 +718,7 @@ function FlashCommands() {
 			console.log("| FLASH_DATA |");
 			console.log("+------------+");
 			await flush();                                                                       // Discard any untransmitted and unreceived data.                                      
-			var dataPacket = buildCommand(COMMAND_FLASH_DATA, buf2, calculateChecksum(data));
-			await portWrite(dataPacket.getSLIPPacket());				
-			await drain();                                                                       // Ensure that all the transmitted data is now outbound.
-
+			await buildAndSendRequest(COMMAND_FLASH_DATA, buf2, calculateChecksum(data));				
 			await response.getResponse();                                                        // Await a response.
 			resolve();                                                                           // Indicate that the command has been completed.
 		});	
@@ -701,9 +740,7 @@ function FlashCommands() {
 			await flush();                                                                       // Discard any pending input or output.
 			var buf = Buffer.allocUnsafe(4);                                                     // Allocate the payload which is one 32bit word.
 			buf.writeUInt32LE(command, 0);                                                       // Execute flag.
-			var dataPacket = buildCommand(COMMAND_FLASH_END, buf);
-			await portWrite(dataPacket.getSLIPPacket());				
-			await drain();                                                                       // Drain the transmit queue.
+			await buildAndSendRequest(COMMAND_FLASH_END, buf);				
 			await response.getResponse();                                                        // Wait for a response.
 			resolve();                                                                           // Resolve the promise.
 		});
@@ -734,7 +771,7 @@ function FlashCommands() {
 				var sizeRemaining  = totalSize - sizeWritten;                                            // Calculate the amount of data still expected.
 				var offsetIntoData = sequenceNumber * FLASH_PACKET_SIZE;                                 // Calculate the offset into the data from which to send.
 				var sizeToWrite    = sizeRemaining > FLASH_PACKET_SIZE?FLASH_PACKET_SIZE:sizeRemaining;  // Calculate how large this unit should be.
-				var tempBuf = Buffer.allocUnsafe(sizeToWrite);
+				var tempBuf        = Buffer.allocUnsafe(sizeToWrite);
 				data.copy(tempBuf, 0, offsetIntoData, offsetIntoData+sizeToWrite);
 				await flashData(tempBuf, sequenceNumber);
 				sequenceNumber++;
@@ -803,16 +840,15 @@ function writeReg(address, value) {
 		var buf = Buffer.allocUnsafe(4*4);
 		buf.writeUInt32LE(address,    0);
 		buf.writeUInt32LE(value,      4);		
-		buf.writeUInt32LE(0xffffffff, 8);   // Mask
-		buf.writeUInt32LE(0,         12);   // Delay
-		var dataPacket = buildCommand(COMMAND_WRITE_REG, buf);
-		await portWrite(dataPacket.getSLIPPacket());				
-		await drain();
+		buf.writeUInt32LE(0xffffffff, 8);    // Mask
+		buf.writeUInt32LE(0,          12);   // Delay
+		await buildAndSendRequest(COMMAND_WRITE_REG, buf);				
 		await response.getResponse();
 		resolve();
 	});
 	return p;
 } // writeReg
+
 
 /**
  * Set the SPI configuration parameters.
@@ -828,20 +864,38 @@ function spiSetParams(size) {
 	var p = new Promise(async function(resolve, reject) {
 		await flush();
 		var buf = Buffer.allocUnsafe(6*4);
-		buf.writeUInt32LE(0,       0);   // id
-		buf.writeUInt32LE(size,    4);	 // Total size	
-		buf.writeUInt32LE(64*1024, 8);   // block size
-		buf.writeUInt32LE(4*1024, 12);   // sector size
-		buf.writeUInt32LE(256,    16);   // page size
-		buf.writeUInt32LE(0xffff, 20);   // status mask				
-		var dataPacket = buildCommand(COMMAND_SPI_SET_PARAMS, buf);
-		await portWrite(dataPacket.getSLIPPacket());				
-		await drain();
+		buf.writeUInt32LE(0,       0);    // id
+		buf.writeUInt32LE(size,    4);	  // Total size	
+		buf.writeUInt32LE(64*1024, 8);    // block size
+		buf.writeUInt32LE(4*1024,  12);   // sector size
+		buf.writeUInt32LE(256,     16);   // page size
+		buf.writeUInt32LE(0xffff,  20);   // status mask				
+		await buildAndSendRequest(COMMAND_SPI_SET_PARAMS, buf);				
 		await response.getResponse();
 		resolve();
 	});
 	return p;
-} // writeReg
+} // spiSetParams
+
+
+/**
+ * Erase the flash memory.
+ * @returns A promise that is fulfilled when the flash memory has been erased.
+ */
+function eraseFlash() {
+	console.log("+-------------+");
+	console.log("| ERASE_FLASH |");
+	console.log("+-------------+");
+	console.log(">> Erase Flash:  Command: 0x%s",	COMMAND_ERASE_FLASH.toString(16));
+	var p = new Promise(async function(resolve, reject) {
+		await flush();
+		var buf = Buffer.allocUnsafe(0);			
+		await buildAndSendRequest(COMMAND_ERASE_FLASH, buf);				
+		await response.getResponse();
+		resolve();
+	});
+	return p;
+} // spiSetParams
 
 
 /**
@@ -855,9 +909,7 @@ function readReg(address) {
 		await flush();
 		var buf = Buffer.allocUnsafe(4);
 		buf.writeUInt32LE(address, 0);
-		var dataPacket = buildCommand(COMMAND_READ_REG, buf);
-		await portWrite(dataPacket.getSLIPPacket());		
-		await drain();
+		await buildAndSendRequest(COMMAND_READ_REG, buf);		
 		var result = await response.getResponse();
 		console.log("readReg: %O", result);
 		resolve(result);
@@ -874,20 +926,21 @@ function readReg(address) {
  * @returns The MD5 hash value.
  */
 function spiFlashMD5(address, size) {
+	console.log("+---------------+");
+	console.log("| SPI_FLASH_MD5 |");
+	console.log("+---------------+");
 	console.log(">> spiFlashMD5:  Command: 0x%s, Address: 0x%s, Size: %d", COMMAND_SPI_FLASH_MD5.toString(16), address.toString(16), size);
 	var p = new Promise(async function(resolve, reject) {
 		await flush();
 		var buf = Buffer.allocUnsafe(4 * 4);
 		buf.writeUInt32LE(address, 0);
-		buf.writeUInt32LE(size,    0);
-		buf.writeUInt32LE(0,       0);
-		buf.writeUInt32LE(0,       0);						
-		var dataPacket = buildCommand(COMMAND_SPI_FLASH_MD5, buf);
-		await portWrite(dataPacket.getSLIPPacket());			
-		await drain();
-		var result = await response.getResponse();
-		console.log("spiFlashMD5 result: %O", result);
-		resolve(result);
+		buf.writeUInt32LE(size,    4);
+		buf.writeUInt32LE(0,       8);
+		buf.writeUInt32LE(0,       12);						
+		await buildAndSendRequest(COMMAND_SPI_FLASH_MD5, buf);			
+		await response.getResponse();
+		console.log("spiFlashMD5 result:\n%s", hexy.hexy(response.getData()));
+		resolve(response.getData());
 	});
 	return p;
 } // spiFlashMD5
@@ -946,9 +999,10 @@ function enterDownloadMode() {
 async function flashFile(address, fileName) {
 	console.log("Flashing file %s to address 0x%s", fileName, address.toString(16));
 	var fileData = fs.readFileSync(fileName);
-	console.log("Read file ... size is %d", fileData.length);
+	console.log("Read file ... size is %d, md5: %s", fileData.length, md5(fileData));
 	await FlashCommands().send(fileData, address);
 	console.log("Flash File complete");
+	return fileData.length;
 } // flashFile
 
 
@@ -1015,7 +1069,9 @@ port.open(async (err)=>{
 		i++;
 		var fileName = argv._[i];              // Obtain the file name.
 		i++;
-		await flashFile(address, fileName);          // Invoke the processor to upload the file into flash.
+		var size = await flashFile(address, fileName);          // Invoke the processor to upload the file into flash.
+		console.log("File size written: %d", size);
+		await spiFlashMD5(address, size);
 	} // End of process each file.
 	
 
