@@ -116,7 +116,7 @@ private:
     uint8_t             m_dnsCount=0;
     bool                m_eventLoopStarted;
     bool                m_initCalled;
-    bool                m_apConnected;   // Are we connected to an access point?
+    uint8_t             m_apConnectionStatus;   // ESP_OK = we are connected to an access point.  Otherwise receives wifi_err_reason_t.
   	FreeRTOS::Semaphore m_connectFinished = FreeRTOS::Semaphore("ConnectFinished");
 
 public:
@@ -130,7 +130,7 @@ public:
     void                      setDNSServer(int numdns, ip_addr_t ip);
     struct in_addr            getHostByName(const std::string& hostName);
     struct in_addr            getHostByName(const char* hostName);
-    bool                      connectAP(const std::string& ssid, const std::string& password, bool waitForConnection=true);
+    uint8_t                   connectAP(const std::string& ssid, const std::string& password, bool waitForConnection=true);
     void                      dump();
     bool                      isConnectedToAP();
     static std::string        getApMac();
