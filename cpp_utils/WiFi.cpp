@@ -153,7 +153,7 @@ void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
  * @param [in] ssid The network SSID of the access point to which we wish to connect.
  * @param [in] password The password of the access point to which we wish to connect.
  * @param [in] waitForConnection Block until the connection has an outcome.
- * @returns ESP_OK if successfully connected to an access point.  Otherwise returns wifi_err_reason_t - use GeneralUtils::wifiErrorToString(uint8_t errCode) to print the error.
+ * @returns ESP_OK if successfully receives a SYSTEM_EVENT_STA_GOT_IP event.  Otherwise returns wifi_err_reason_t - use GeneralUtils::wifiErrorToString(uint8_t errCode) to print the error.
  */
 uint8_t WiFi::connectAP(const std::string& ssid, const std::string& password, bool waitForConnection){
 	ESP_LOGD(LOG_TAG, ">> connectAP");
