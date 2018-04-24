@@ -74,6 +74,9 @@ void BLEScan::handleGAPEvent(
 				// asked to stop.
 				case ESP_GAP_SEARCH_INQ_CMPL_EVT: {
 					m_stopped = true;
+					if (m_scanCompleteCB != nullptr) {
+						m_scanCompleteCB(m_scanResults);
+					}
 					m_semaphoreScanEnd.give();
 					break;
 				} // ESP_GAP_SEARCH_INQ_CMPL_EVT
@@ -186,10 +189,14 @@ void BLEScan::setWindow(uint16_t windowMSecs) {
 /**
  * @brief Start scanning.
  * @param [in] duration The duration in seconds for which to scan.
- * @return N/A.
+ * @param [in] scanCompleteCB A function to be called when scanning has completed.  This can
+ * be supplied as nullptr (the default) in which case the call to start will block until scanning has
+ * been completed.
+ * @return The BLEScanResults.  Only applicable if we are waiting for results.
  */
-BLEScanResults BLEScan::start(uint32_t duration) {
+BLEScanResults BLEScan::start(uint32_t duration, void (*scanCompleteCB)(BLEScanResults)) {
 	ESP_LOGD(LOG_TAG, ">> start(duration=%d)", duration);
+	m_scanCompleteCB = scanCompleteCB;                  // Save the callback to be invoked when the scan completes.
 
 	m_semaphoreScanEnd.take(std::string("start"));
 
@@ -213,7 +220,9 @@ BLEScanResults BLEScan::start(uint32_t duration) {
 
 	m_stopped = false;
 
-	m_semaphoreScanEnd.wait("start");   // Wait for the semaphore to release.
+	if (m_scanCompleteCB == nullptr) {
+		m_semaphoreScanEnd.wait("start");   // Wait for the semaphore to release.
+	}
 
 	ESP_LOGD(LOG_TAG, "<< start()");
 	return m_scanResults;

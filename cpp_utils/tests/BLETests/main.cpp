@@ -9,6 +9,7 @@ extern "C" {
 // The list of sample entry points.
 void Sample_MLE_15(void);
 void Sample1(void);
+void SampleAsyncScan(void);
 void SampleClient(void);
 void SampleClient_Notify(void);
 void SampleClientAndServer(void);
@@ -27,6 +28,7 @@ void SampleWrite(void);
 void app_main(void) {
 	//Sample_MLE_15();
 	//Sample1();
+	//SampleAsyncScan();
 	//SampleClient();
 	//SampleClient_Notify();
 	//SampleClientAndServer();
