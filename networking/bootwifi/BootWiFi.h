@@ -24,12 +24,13 @@ private:
 	bool        m_httpServerStarted;
 	std::string m_ssid;
 	std::string m_password;
+  uint8_t     m_apConnectionStatus;   // receives the connection status.  ESP_OK = received SYSTEM_EVENT_STA_GOT_IP event.
 	FreeRTOS::Semaphore m_completeSemaphore = FreeRTOS::Semaphore("completeSemaphore");
 
 public:
 	BootWiFi();
 	void setAccessPointCredentials(std::string ssid, std::string password);
-	void boot();
+	uint8_t boot();
 };
 
 #endif /* MAIN_BOOTWIFI_H_ */

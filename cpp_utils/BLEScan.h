@@ -53,7 +53,7 @@ public:
 										bool wantDuplicates = false);
 	void           setInterval(uint16_t intervalMSecs);
 	void           setWindow(uint16_t windowMSecs);
-	BLEScanResults start(uint32_t duration);
+	BLEScanResults start(uint32_t duration, void (*scanCompleteCB)(BLEScanResults) = nullptr);
 	void           stop();
 
 private:
@@ -71,6 +71,7 @@ private:
 	FreeRTOS::Semaphore           m_semaphoreScanEnd = FreeRTOS::Semaphore("ScanEnd");
 	BLEScanResults                m_scanResults;
 	bool                          m_wantDuplicates;
+	void                        (*m_scanCompleteCB)(BLEScanResults scanResults);
 }; // BLEScan
 
 #endif /* CONFIG_BT_ENABLED */

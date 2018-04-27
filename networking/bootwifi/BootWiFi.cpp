@@ -243,6 +243,7 @@ public:
 
 	esp_err_t staGotIp(system_event_sta_got_ip_t event_sta_got_ip) {
 		ESP_LOGD("BootWifiEventHandler", ">> staGotIP");
+    m_pBootWiFi->m_apConnectionStatus = ESP_OK;  // Set the status to ESP_OK
 		m_pBootWiFi->m_completeSemaphore.give();   // If we got an IP address, then we can end the boot process.
 		ESP_LOGD("BootWifiEventHandler", "<< staGotIP");
 		return ESP_OK;
@@ -255,6 +256,11 @@ private:
 
 /**
  * Boot WiFi
+ *
+ * @brief Get connected to WiFi
+ * 
+ * @detailed If SSID & Password were previously saved, connect to the AP.  Otherwise become an AP and start an HTTP server so that the user can set SSID & Password - then save it.
+ *
  */
 void BootWiFi::bootWiFi2() {
 	ESP_LOGD(LOG_TAG, ">> bootWiFi2");
@@ -285,7 +291,9 @@ void BootWiFi::bootWiFi2() {
 		 		connectionInfo.ipInfo.gw.addr,
 				connectionInfo.ipInfo.netmask.addr
 			);
-		  m_wifi.connectAP(connectionInfo.ssid, connectionInfo.password);   // Connect to the access point.
+		  
+      m_apConnectionStatus = m_wifi.connectAP(connectionInfo.ssid, connectionInfo.password);   // Try to connect to the access point.
+      m_completeSemaphore.give();                                                              // end the boot process so we don't hang...
 
 		} else {
 			// We do NOT have connection information.  Let us now become an access
@@ -312,22 +320,28 @@ void BootWiFi::setAccessPointCredentials(std::string ssid, std::string password)
 
 
 /**
- * @brief Main entry point into booting WiFi
+ * @brief Main entry point into booting WiFi - see BootWiFi2 for more detail.
+ *
+ * The event handler will be called back with the outcome of the connection.
+ *
+ * @returns ESP_OK if successfully connected to an access point.  Otherwise returns wifi_err_reason_t - to print use GeneralUtils::wifiErrorToString
  */
-void BootWiFi::boot() {
+uint8_t BootWiFi::boot() {
 	ESP_LOGD(LOG_TAG, ">> boot");
 	ESP_LOGD(LOG_TAG, " +----------+");
 	ESP_LOGD(LOG_TAG, " | BootWiFi |");
 	ESP_LOGD(LOG_TAG, " +----------+");
 	ESP_LOGD(LOG_TAG, " Access point credentials: %s/%s", m_ssid.c_str(), m_password.c_str());
-	m_completeSemaphore.take("boot");     // Take the semaphore which will be unlocked when we complete booting.
+ 	m_completeSemaphore.take("boot");     // Take the semaphore which will be unlocked when we complete booting.
 	bootWiFi2();
 	m_completeSemaphore.wait("boot");     // Wait for the semaphore that indicated we have completed booting.
 	m_wifi.setWifiEventHandler(nullptr);  // Remove the WiFi boot handler when we have completed booting.
 	ESP_LOGD(LOG_TAG, "<< boot");
+  return m_apConnectionStatus;
 } // boot
 
 BootWiFi::BootWiFi() {
 	m_httpServerStarted = false;
+  m_apConnectionStatus = UINT8_MAX;
 	setAccessPointCredentials("esp32", "password");   // Default access point credentials
 }
