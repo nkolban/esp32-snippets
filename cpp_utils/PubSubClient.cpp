@@ -315,7 +315,7 @@ bool PubSubClient::connect(){
 
 		ESP_LOGD(TAG, "Connect to mqtt server...");
 
-		ESP_LOGD(TAG, "ip: %s  port: %d", _config.ip.c_str(), _config.port)
+		ESP_LOGD(TAG, "ip: %s  port: %d", _config.ip.c_str(), _config.port);
 		int result = _client->connect((char *)_config.ip.c_str(), _config.port);
 
 		if (result == 0) {
