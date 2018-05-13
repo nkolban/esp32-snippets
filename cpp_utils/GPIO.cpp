@@ -9,6 +9,7 @@
 #include <driver/gpio.h>
 #include "sdkconfig.h"
 #include <esp_log.h>
+#include <esp_err.h>
 #include "GeneralUtils.h"
 
 static const char* LOG_TAG = "GPIO";
