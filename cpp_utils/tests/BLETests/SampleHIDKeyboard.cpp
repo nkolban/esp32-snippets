@@ -59,7 +59,6 @@ class MyTask : public Task {
 			}
         	vTaskDelay(2000/portTICK_PERIOD_MS); // simulate write message every 2 seconds
     	}
-		vTaskDelete(NULL);
 	}
 };
 
