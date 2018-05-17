@@ -97,6 +97,7 @@ void setup() {
   pService->start();
 
   // Start advertising
+  pServer->getAdvertising()->addServiceUUID(pService->getUUID());
   pServer->getAdvertising()->start();
   Serial.println("Waiting a client connection to notify...");
 }
