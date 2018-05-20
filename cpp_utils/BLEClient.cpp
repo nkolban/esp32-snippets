@@ -167,6 +167,8 @@ void BLEClient::gattClientEventHandler(
 					m_pClientCallbacks->onDisconnect(this);
 				}
 				m_isConnected = false;
+				m_semaphoreRssiCmplEvt.give();
+				m_semaphoreSearchCmplEvt.give(1);
 				break;
 		} // ESP_GATTC_DISCONNECT_EVT
 
@@ -214,7 +216,7 @@ void BLEClient::gattClientEventHandler(
 		// - uint16_t          conn_id
 		//
 		case ESP_GATTC_SEARCH_CMPL_EVT: {
-			m_semaphoreSearchCmplEvt.give();
+			m_semaphoreSearchCmplEvt.give(0);
 			break;
 		} // ESP_GATTC_SEARCH_CMPL_EVT
 
@@ -367,8 +369,8 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_search_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return &m_servicesMap;
 	}
-	m_semaphoreSearchCmplEvt.wait("getServices");
-	m_haveServices = true; // Remember that we now have services.
+	// If sucessfull, remember that we now have services.
+	m_haveServices = (m_semaphoreSearchCmplEvt.wait("getServices") == 0);
 	ESP_LOGD(LOG_TAG, "<< getServices");
 	return &m_servicesMap;
 } // getServices
