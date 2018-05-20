@@ -77,6 +77,7 @@ void BLEClient::clearServices() {
 	   delete myPair.second;
 	}
 	m_servicesMap.clear();
+	m_haveServices = false;
 	ESP_LOGD(LOG_TAG, "<< clearServices");
 } // clearServices
 
