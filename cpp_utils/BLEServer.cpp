@@ -75,15 +75,16 @@ BLEService* BLEServer::createService(BLEUUID uuid, uint32_t numHandles) {
 	ESP_LOGD(LOG_TAG, ">> createService - %s", uuid.toString().c_str());
 	m_semaphoreCreateEvt.take("createService");
 
+	BLEService* pService = new BLEService(uuid, numHandles);
 	// Check that a service with the supplied UUID does not already exist.
 	if (m_serviceMap.getByUUID(uuid) != nullptr) {
-		ESP_LOGE(LOG_TAG, "<< Attempt to create a new service with uuid %s but a service with that UUID already exists.",
+		ESP_LOGW(LOG_TAG, "<< Attempt to create a new service with uuid %s but a service with that UUID already exists.",
 			uuid.toString().c_str());
-		m_semaphoreCreateEvt.give();
-		return nullptr;
+		//m_semaphoreCreateEvt.give();
+		//return nullptr;
+		pService->m_id = 1;
 	}
 
-	BLEService* pService = new BLEService(uuid, numHandles);
 	m_serviceMap.setByUUID(uuid, pService); // Save a reference to this service being on this server.
 	pService->executeCreate(this);          // Perform the API calls to actually create the service.
 
