@@ -292,7 +292,6 @@ void BLEService::handleGATTServerEvent(
 		// * - bool is_primary
 		//
 		case ESP_GATTS_CREATE_EVT: {
-			ESP_LOGE(LOG_TAG, "%d", param->create.service_handle);
 			if (getUUID().equals(BLEUUID(param->create.service_id.id.uuid)) && m_id == param->create.service_id.id.inst_id) {
 				setHandle(param->create.service_handle);
 				m_semaphoreCreateEvt.give();
