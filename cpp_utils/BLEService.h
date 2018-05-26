@@ -64,6 +64,7 @@ public:
 	void               start();
 	std::string        toString();
 	uint16_t           getHandle();
+	uint8_t			   m_id = 0;
 
 private:
 	BLEService(const char* uuid, uint32_t numHandles);

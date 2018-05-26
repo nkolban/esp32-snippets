@@ -73,7 +73,7 @@ void BLEService::executeCreate(BLEServer *pServer) {
 
 	esp_gatt_srvc_id_t srvc_id;
 	srvc_id.is_primary = true;
-	srvc_id.id.inst_id = 0;
+	srvc_id.id.inst_id = m_id;
 	srvc_id.id.uuid    = *m_uuid.getNative();
 	esp_err_t errRc = ::esp_ble_gatts_create_service(
 		getServer()->getGattsIf(),
@@ -292,7 +292,7 @@ void BLEService::handleGATTServerEvent(
 		// * - bool is_primary
 		//
 		case ESP_GATTS_CREATE_EVT: {
-			if (getUUID().equals(BLEUUID(param->create.service_id.id.uuid))) {
+			if (getUUID().equals(BLEUUID(param->create.service_id.id.uuid)) && m_id == param->create.service_id.id.inst_id) {
 				setHandle(param->create.service_handle);
 				m_semaphoreCreateEvt.give();
 			}
