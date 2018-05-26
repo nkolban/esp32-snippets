@@ -74,6 +74,7 @@
 <includepath>${IDF_PATH}/components/aws_iot/aws-iot-device-sdk-embedded-C/include</includepath>
 <includepath>${IDF_PATH}/components/fatfs/src</includepath>
 <includepath>${IDF_PATH}/components/wear_levelling/include</includepath>
+<includepath>${IDF_PATH}/components/console</includepath>
 
 </language>
 <language name="GNU C">
