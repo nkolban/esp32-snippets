@@ -43,7 +43,7 @@ BLERemoteCharacteristic::BLERemoteCharacteristic(
 	m_uuid           = uuid;
 	m_charProp       = charProp;
 	m_pRemoteService = pRemoteService;
-	m_notifyCallback = nullptr;
+	toNotify = nullptr;
 
 	retrieveDescriptors(); // Get the descriptors for this characteristic
 	ESP_LOGD(LOG_TAG, "<< BLERemoteCharacteristic");
@@ -170,9 +170,9 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 			if (evtParam->notify.handle != getHandle()) {
 				break;
 			}
-			if (m_notifyCallback != nullptr) {
+			if (toNotify != nullptr) {
 				ESP_LOGD(LOG_TAG, "Invoking callback for notification on characteristic %s", toString().c_str());
-				m_notifyCallback(
+				toNotify->onData(
 					this,
 					evtParam->notify.value,
 					evtParam->notify.value_len,
@@ -470,19 +470,14 @@ std::string BLERemoteCharacteristic::readValue() {
  * unregistering a notification.
  * @return N/A.
  */
-void BLERemoteCharacteristic::registerForNotify(
-		void (*notifyCallback)(
-			BLERemoteCharacteristic* pBLERemoteCharacteristic,
-			uint8_t*                 pData,
-			size_t                   length,
-			bool                     isNotify)) {
+void BLERemoteCharacteristic::registerForNotify(BLENotifier* objectToNotify) {
 	ESP_LOGD(LOG_TAG, ">> registerForNotify(): %s", toString().c_str());
 
-	m_notifyCallback = notifyCallback;   // Save the notification callback.
+	toNotify = objectToNotify;   // Save the notification callback.
 
 	m_semaphoreRegForNotifyEvt.take("registerForNotify");
 
-	if (notifyCallback != nullptr) {   // If we have a callback function, then this is a registration.
+	if (toNotify != nullptr) {   // If we have a callback function, then this is a registration.
 		esp_err_t errRc = ::esp_ble_gattc_register_for_notify(
 			m_pRemoteService->getClient()->getGattcIf(),
 			*m_pRemoteService->getClient()->getPeerAddress().getNative(),

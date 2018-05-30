@@ -44,12 +44,13 @@
  */
 static const char* LOG_TAG = "BLEClient";
 
-BLEClient::BLEClient() {
+BLEClient::BLEClient(uint16_t appId) {
 	m_pClientCallbacks = nullptr;
 	m_conn_id          = 0;
 	m_gattc_if         = 0;
 	m_haveServices     = false;
 	m_isConnected      = false;  // Initially, we are flagged as not connected.
+  m_app_id           = appId;
 } // BLEClient
 
 

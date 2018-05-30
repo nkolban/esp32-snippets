@@ -21,13 +21,16 @@
 #include "BLEScan.h"
 #include "BLEAddress.h"
 
+#define DEFAULT_SERVER_APP_ID 0
+#define DEFAULT_CLIENT_APP_ID 1
+
 /**
  * @brief %BLE functions.
  */
 class BLEDevice {
 public:
 
-	static BLEClient*  createClient();    // Create a new BLE client.
+	static BLEClient*  createClient(uint16_t appId);    // Create a new BLE client.
 	static BLEServer*  createServer();    // Cretae a new BLE server.
 	static BLEAddress  getAddress();      // Retrieve our own local BD address.
 	static BLEScan*    getScan();         // Get the scan object
@@ -47,7 +50,9 @@ public:
 private:
 	static BLEServer *m_pServer;
 	static BLEScan   *m_pScan;
-	static BLEClient *m_pClient;
+	static std::map<uint16_t, BLEClient*> m_clients;
+	static std::map<esp_gatt_if_t, BLEClient*> m_connectedClients;
+	static std::map<std::string, BLEClient*> m_connectedClientsAddr;
 	static esp_ble_sec_act_t 	m_securityLevel;
 	static BLESecurityCallbacks* m_securityCallbacks;
 	static uint16_t		m_localMTU;
