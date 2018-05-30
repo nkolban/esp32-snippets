@@ -20,6 +20,7 @@ $c/BLEClient.o \
 $c/BLEDescriptor.o \
 $c/BLEDescriptorMap.o \
 $c/BLEDevice.o \
+$c/BLENotifier.o \
 $c/BLERemoteCharacteristic.o \
 $c/BLERemoteDescriptor.o \
 $c/BLERemoteService.o \
