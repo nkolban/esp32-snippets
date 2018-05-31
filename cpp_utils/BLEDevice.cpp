@@ -65,14 +65,14 @@ uint16_t   BLEDevice::m_localMTU = 23;
  * @brief Create a new instance of a server.
  * @return A new instance of the server.
  */
-/* STATIC */ BLEServer* BLEDevice::createServer() {
+/* STATIC */ BLEServer* BLEDevice::createServer(uint16_t appId) {
 	ESP_LOGD(LOG_TAG, ">> createServer");
 #ifndef CONFIG_GATTS_ENABLE  // Check that BLE GATTS is enabled in make menuconfig
 	ESP_LOGE(LOG_TAG, "BLE GATTS is not enabled - CONFIG_GATTS_ENABLE not defined");
 	abort();
 #endif // CONFIG_GATTS_ENABLE
 	m_pServer = new BLEServer();
-	m_pServer->createApp(DEFAULT_SERVER_APP_ID);
+	m_pServer->createApp(appId);
 	ESP_LOGD(LOG_TAG, "<< createServer");
 	return m_pServer;
 } // createServer
