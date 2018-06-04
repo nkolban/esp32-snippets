@@ -14,7 +14,6 @@
 
 #include <esp_gattc_api.h>
 
-#include "BLENotifier.h"
 #include "BLERemoteService.h"
 #include "BLERemoteDescriptor.h"
 #include "BLEUUID.h"
@@ -22,6 +21,11 @@
 
 class BLERemoteService;
 class BLERemoteDescriptor;
+
+class BLENotifier {
+	public:
+		virtual void onNotify(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify)=0;
+};
 
 /**
  * @brief A model of a remote %BLE characteristic.
