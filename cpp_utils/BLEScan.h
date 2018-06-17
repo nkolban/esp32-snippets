@@ -53,7 +53,8 @@ public:
 										bool wantDuplicates = false);
 	void           setInterval(uint16_t intervalMSecs);
 	void           setWindow(uint16_t windowMSecs);
-	BLEScanResults start(uint32_t duration, void (*scanCompleteCB)(BLEScanResults) = nullptr);
+	bool           start(uint32_t duration, void (*scanCompleteCB)(BLEScanResults));
+	BLEScanResults start(uint32_t duration);
 	void           stop();
 
 private:
