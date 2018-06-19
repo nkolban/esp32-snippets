@@ -120,4 +120,9 @@ BLEService* BLEServiceMap::getNext() {
 	return pRet;
 } // getNext
 
+void BLEServiceMap::removeService(BLEService *service){
+	m_handleMap->erase(serice->getHandle());
+	m_uuidMap->erase(service);
+}
+
 #endif /* CONFIG_BT_ENABLED */
