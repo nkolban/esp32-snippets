@@ -323,6 +323,14 @@ void BLEServer::setCallbacks(BLEServerCallbacks* pCallbacks) {
 	m_pServerCallbacks = pCallbacks;
 } // setCallbacks
 
+/*
+ * Remove service
+ */
+void BLEServer::removeService(BLEService *service) {
+	service->stop();
+	service->executeDelete();	
+	m_serviceMap.removeService(service);
+}
 
 /**
  * @brief Start advertising.

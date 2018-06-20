@@ -92,6 +92,29 @@ void BLEService::executeCreate(BLEServer *pServer) {
 
 
 /**
+ * @brief Delete the service.
+ * Delete the service.
+ * @param [in] gatts_if The handle of the GATT server interface.
+ * @return N/A.
+ */
+
+void BLEService::executeDelete() {
+	ESP_LOGD(LOG_TAG, ">> executeDelete()");
+	m_semaphoreDeleteEvt.take("executeDelete"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
+
+	esp_err_t errRc = ::esp_ble_gatts_delete_service( getHandle() );
+
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "esp_ble_gatts_delete_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		return;
+	}
+
+	m_semaphoreDeleteEvt.wait("executeDelete");
+	ESP_LOGD(LOG_TAG, "<< executeDelete");
+} // executeDelete
+
+
+/**
  * @brief Dump details of this BLE GATT service.
  * @return N/A.
  */
@@ -150,6 +173,34 @@ void BLEService::start() {
 	m_semaphoreStartEvt.wait("start");
 
 	ESP_LOGD(LOG_TAG, "<< start()");
+} // start
+
+
+/**
+ * @brief Stop the service.
+ * @return Stop the service.
+ */
+void BLEService::stop() {
+// We ask the BLE runtime to start the service and then create each of the characteristics.
+// We start the service through its local handle which was returned in the ESP_GATTS_CREATE_EVT event
+// obtained as a result of calling esp_ble_gatts_create_service().
+//
+	ESP_LOGD(LOG_TAG, ">> stop(): Stopping service (esp_ble_gatts_stop_service): %s", toString().c_str());
+	if (m_handle == NULL_HANDLE) {
+		ESP_LOGE(LOG_TAG, "<< !!! We attempted to stop a service but don't know its handle!");
+		return;
+	}
+
+	m_semaphoreStopEvt.take("stop");
+	esp_err_t errRc = ::esp_ble_gatts_stop_service(m_handle);
+
+	if (errRc != ESP_OK) {
+		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_stop_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		return;
+	}
+	m_semaphoreStopEvt.wait("stop");
+
+	ESP_LOGD(LOG_TAG, "<< stop()");
 } // start
 
 
@@ -278,6 +329,10 @@ void BLEService::handleGATTServerEvent(
 			break;
 		} // ESP_GATTS_START_EVT
 
+		case ESP_GATTS_STOP_EVT:
+			m_semaphoreStopEvt.give();
+			break;
+
 
 		// ESP_GATTS_CREATE_EVT
 		// Called when a new service is registered as having been created.
@@ -298,6 +353,11 @@ void BLEService::handleGATTServerEvent(
 			}
 			break;
 		} // ESP_GATTS_CREATE_EVT
+
+		case ESP_GATTS_DELETE_EVT: {
+			m_semaphoreDeleteEvt.give();
+			break;
+		}
 
 		default: {
 			break;
