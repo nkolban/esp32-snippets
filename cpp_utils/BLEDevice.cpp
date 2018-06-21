@@ -331,14 +331,21 @@ uint16_t   BLEDevice::m_localMTU = 23;
 	if(!initialized){
 		initialized = true;   // Set the initialization flag to ensure we are only initialized once.
 
-		esp_err_t errRc = ::nvs_flash_init();
+		esp_err_t errRc = ESP_OK;
+#ifdef ARDUINO_ARCH_ESP32
+		if (!btStart()) {
+			errRc = ESP_FAIL;
+			return;
+		}
+#else
+		errRc = ::nvs_flash_init();
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "nvs_flash_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 			return;
 		}
 
-	  esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-	  errRc = esp_bt_controller_init(&bt_cfg);
+		esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+		errRc = esp_bt_controller_init(&bt_cfg);
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 			return;
@@ -359,17 +366,23 @@ uint16_t   BLEDevice::m_localMTU = 23;
 			return;
 		}
 #endif
+#endif
 
-		errRc = esp_bluedroid_init();
-		if (errRc != ESP_OK) {
-			ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-			return;
+		esp_bluedroid_status_t bt_state = esp_bluedroid_get_status();
+		if (bt_state == ESP_BLUEDROID_STATUS_UNINITIALIZED){
+			errRc = esp_bluedroid_init();
+			if (errRc != ESP_OK) {
+				ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+				return;
+			}
 		}
 
-		errRc = esp_bluedroid_enable();
-		if (errRc != ESP_OK) {
-			ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-			return;
+		if (bt_state != ESP_BLUEDROID_STATUS_ENABLED){
+			errRc = esp_bluedroid_enable();
+			if (errRc != ESP_OK) {
+				ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+				return;
+			}
 		}
 
 		errRc = esp_ble_gap_register_callback(BLEDevice::gapEventHandler);
