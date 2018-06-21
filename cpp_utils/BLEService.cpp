@@ -94,13 +94,12 @@ void BLEService::executeCreate(BLEServer *pServer) {
 /**
  * @brief Delete the service.
  * Delete the service.
- * @param [in] gatts_if The handle of the GATT server interface.
  * @return N/A.
  */
 
 void BLEService::executeDelete() {
 	ESP_LOGD(LOG_TAG, ">> executeDelete()");
-	m_semaphoreDeleteEvt.take("executeDelete"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
+	m_semaphoreDeleteEvt.take("executeDelete"); // Take the mutex and release at event ESP_GATTS_DELETE_EVT
 
 	esp_err_t errRc = ::esp_ble_gatts_delete_service( getHandle() );
 
@@ -329,9 +328,18 @@ void BLEService::handleGATTServerEvent(
 			break;
 		} // ESP_GATTS_START_EVT
 
-		case ESP_GATTS_STOP_EVT:
-			m_semaphoreStopEvt.give();
+		// ESP_GATTS_STOP_EVT
+		//
+		// stop:
+		// esp_gatt_status_t status
+		// uint16_t service_handle
+		//
+		case ESP_GATTS_STOP_EVT: {
+			if (param->stop.service_handle == getHandle()) {
+				m_semaphoreStopEvt.give();
+			}
 			break;
+		} // ESP_GATTS_STOP_EVT
 
 
 		// ESP_GATTS_CREATE_EVT
@@ -354,10 +362,20 @@ void BLEService::handleGATTServerEvent(
 			break;
 		} // ESP_GATTS_CREATE_EVT
 
+
+		// ESP_GATTS_DELETE_EVT
+		// Called when a service is deleted.
+		//
+		// delete:
+		// * esp_gatt_status_t status
+		// * uint16_t service_handle
+		//
 		case ESP_GATTS_DELETE_EVT: {
-			m_semaphoreDeleteEvt.give();
+			if (param->del.service_handle == getHandle()) {
+				m_semaphoreDeleteEvt.give();
+			}
 			break;
-		}
+		} // ESP_GATTS_DELETE_EVT
 
 		default: {
 			break;
