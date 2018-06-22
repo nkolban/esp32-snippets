@@ -42,6 +42,7 @@ public:
 	std::string toString();
 	BLEService* getFirst();
 	BLEService* getNext();
+	void 		removeService(BLEService *service);
 
 private:
 	std::map<uint16_t, BLEService*>    m_handleMap;
@@ -61,6 +62,7 @@ public:
 	BLEAdvertising* getAdvertising();
 	void            setCallbacks(BLEServerCallbacks* pCallbacks);
 	void            startAdvertising();
+	void 			removeService(BLEService *service);
 
 
 private:
