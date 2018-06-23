@@ -30,6 +30,7 @@
 #include "GeneralUtils.h"
 #ifdef ARDUINO_ARCH_ESP32
 #include "esp32-hal-log.h"
+#include "esp32-hal-bt.h"
 #endif
 
 static const char* LOG_TAG = "BLEDevice";
