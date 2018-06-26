@@ -63,7 +63,8 @@ public:
 	void            setCallbacks(BLEServerCallbacks* pCallbacks);
 	void            startAdvertising();
 	void 			removeService(BLEService *service);
-
+	BLEService* 	getServiceByUUID(const char* uuid);
+	BLEService* 	getServiceByUUID(BLEUUID uuid);
 
 private:
 	BLEServer();
