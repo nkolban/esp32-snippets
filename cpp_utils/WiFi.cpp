@@ -146,13 +146,6 @@ void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
 
 
 /**
- * @see WiFi::connectWithMode - this one defaults the mode to WIFI_MODE_AP
- */
-uint8_t WiFi::connectAP(const std::string& ssid, const std::string& password, bool waitForConnection){
-	return this->connectWithMode(ssid, password, waitForConnection, WIFI_MODE_AP);
-}
-
-/**
  * @brief Connect to an external access point and specify the mode (WIFI_MODE_AP or WIFI_MODE_APSTA).
  *
  * The event handler will be called back with the outcome of the connection.
