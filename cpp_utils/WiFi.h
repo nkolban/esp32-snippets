@@ -131,6 +131,7 @@ public:
     struct in_addr            getHostByName(const std::string& hostName);
     struct in_addr            getHostByName(const char* hostName);
     uint8_t                   connectAP(const std::string& ssid, const std::string& password, bool waitForConnection=true);
+    uint8_t                   connectWithMode(const std::string& ssid, const std::string& password, bool waitForConnection, wifi_mode_t mode);
     void                      dump();
     bool                      isConnectedToAP();
     static std::string        getApMac();
