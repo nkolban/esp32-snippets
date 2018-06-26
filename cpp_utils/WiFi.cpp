@@ -146,7 +146,7 @@ void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
 
 
 /**
- * @brief Connect to an external access point and specify the mode (WIFI_MODE_AP or WIFI_MODE_APSTA).
+ * @brief Connect to an external access point.
  *
  * The event handler will be called back with the outcome of the connection.
  *
@@ -154,7 +154,7 @@ void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
  * @param [in] password The password of the access point to which we wish to connect.
  * @param [in] waitForConnection Block until the connection has an outcome.
  * @param [in] mode WIFI_MODE_AP for normal or WIFI_MODE_APSTA if you want to keep an Access Point running while you connect
- * @return N/A.
+ * @return ESP_OK if we are now connected and wifi_err_reason_t if not.
  */
 uint8_t WiFi::connectAP(const std::string& ssid, const std::string& password, bool waitForConnection, wifi_mode_t mode){
 	ESP_LOGD(LOG_TAG, ">> connectAP");
