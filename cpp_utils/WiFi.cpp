@@ -153,9 +153,10 @@ void WiFi::setDNSServer(int numdns, ip_addr_t ip) {
  * @param [in] ssid The network SSID of the access point to which we wish to connect.
  * @param [in] password The password of the access point to which we wish to connect.
  * @param [in] waitForConnection Block until the connection has an outcome.
- * @returns ESP_OK if successfully receives a SYSTEM_EVENT_STA_GOT_IP event.  Otherwise returns wifi_err_reason_t - use GeneralUtils::wifiErrorToString(uint8_t errCode) to print the error.
+ * @param [in] mode WIFI_MODE_AP for normal or WIFI_MODE_APSTA if you want to keep an Access Point running while you connect
+ * @return ESP_OK if we are now connected and wifi_err_reason_t if not.
  */
-uint8_t WiFi::connectAP(const std::string& ssid, const std::string& password, bool waitForConnection){
+uint8_t WiFi::connectAP(const std::string& ssid, const std::string& password, bool waitForConnection, wifi_mode_t mode){
 	ESP_LOGD(LOG_TAG, ">> connectAP");
 
 	m_apConnectionStatus = UINT8_MAX;
@@ -172,7 +173,7 @@ uint8_t WiFi::connectAP(const std::string& ssid, const std::string& password, bo
 			::tcpip_adapter_set_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
 	}
 
-	esp_err_t errRc = ::esp_wifi_set_mode(WIFI_MODE_STA);
+	esp_err_t errRc = ::esp_wifi_set_mode(mode);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_set_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();
