@@ -204,6 +204,11 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 			// and unlock the semaphore to ensure that the requestor of the data can continue.
 			if (evtParam->read.status == ESP_GATT_OK) {
 				m_value = std::string((char*)evtParam->read.value, evtParam->read.value_len);
+				if(m_rawData != nullptr)
+					free(m_rawData);
+				
+				m_rawData = calloc(evtParam->read.value_len, sizeof(uint8_t));
+				memcpy(m_rawData, evtParam->read.value, evtParam->read.value_len);
 			} else {
 				m_value = "";
 			}
@@ -612,5 +617,13 @@ void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
 void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool response) {
 	writeValue(std::string((char *)data, length), response);
 } // writeValue
+
+/**
+ * @brief Read raw data from remote characteristic as hex bytes 
+ * @return return pointer data read
+ */
+uint8_t* BLERemoteCharacteristic::readRawData() {
+	return m_rawData;
+}
 
 #endif /* CONFIG_BT_ENABLED */
