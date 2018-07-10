@@ -352,6 +352,12 @@ void BLEServerCallbacks::onConnect(BLEServer* pServer) {
 	ESP_LOGD("BLEServerCallbacks", "<< onConnect()");
 } // onConnect
 
+void BLEServerCallbacks::onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t *param) {
+	ESP_LOGD("BLEServerCallbacks", ">> onConnect(): Default");
+	ESP_LOGD("BLEServerCallbacks", "Device: %s", BLEDevice::toString().c_str());
+	ESP_LOGD("BLEServerCallbacks", "<< onConnect()");
+} // onConnect
+
 
 void BLEServerCallbacks::onDisconnect(BLEServer* pServer) {
 	ESP_LOGD("BLEServerCallbacks", ">> onDisconnect(): Default");

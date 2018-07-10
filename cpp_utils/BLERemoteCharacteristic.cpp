@@ -207,7 +207,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 				if(m_rawData != nullptr)
 					free(m_rawData);
 				
-				m_rawData = calloc(evtParam->read.value_len, sizeof(uint8_t));
+				m_rawData = (uint8_t*) calloc(evtParam->read.value_len, sizeof(uint8_t));
 				memcpy(m_rawData, evtParam->read.value, evtParam->read.value_len);
 			} else {
 				m_value = "";
@@ -501,7 +501,7 @@ void BLERemoteCharacteristic::registerForNotify(
 		uint8_t val[] = {0x01, 0x00};
 		if(!notifications)
 			val[0] = 0x02;
-		BLERemoteDescriptor *desc = getDescriptorByUUID("0x2902");
+		BLERemoteDescriptor *desc = getDescriptor(BLEUUID("0x2902"));
 		desc->writeValue(val, 2);
 	} // End Register
 	else {   // If we weren't passed a callback function, then this is an unregistration.
@@ -516,7 +516,7 @@ void BLERemoteCharacteristic::registerForNotify(
 		}
 
 		uint8_t val[] = {0x00, 0x00};
-		BLERemoteDescriptor *desc = getDescriptorByUUID("0x2902");
+		BLERemoteDescriptor *desc = getDescriptor(BLEUUID("0x2902"));
 		desc->writeValue(val, 2);
 	} // End Unregister
 
