@@ -475,7 +475,7 @@ void BLERemoteCharacteristic::registerForNotify(
 			BLERemoteCharacteristic* pBLERemoteCharacteristic,
 			uint8_t*                 pData,
 			size_t                   length,
-			bool                     isNotify)) {
+			bool                     isNotify), bool notifications) {
 	ESP_LOGD(LOG_TAG, ">> registerForNotify(): %s", toString().c_str());
 
 	m_notifyCallback = notifyCallback;   // Save the notification callback.
@@ -492,6 +492,12 @@ void BLERemoteCharacteristic::registerForNotify(
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_for_notify: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		}
+
+		uint8_t val[] = {0x01, 0x00};
+		if(!notifications)
+			val[0] = 0x02;
+		BLERemoteDescriptor *desc = getDescriptorByUUID("0x2902");
+		desc->writeValue(val, 2);
 	} // End Register
 	else {   // If we weren't passed a callback function, then this is an unregistration.
 		esp_err_t errRc = ::esp_ble_gattc_unregister_for_notify(
@@ -503,6 +509,10 @@ void BLERemoteCharacteristic::registerForNotify(
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_unregister_for_notify: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		}
+
+		uint8_t val[] = {0x00, 0x00};
+		BLERemoteDescriptor *desc = getDescriptorByUUID("0x2902");
+		desc->writeValue(val, 2);
 	} // End Unregister
 
 	m_semaphoreRegForNotifyEvt.wait("registerForNotify");
