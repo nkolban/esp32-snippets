@@ -1,4 +1,4 @@
-#Watchdogs
+# Watchdogs
 This is a sample application that illustrates the capabilities of watchdogs and watchdog processing.
 
 A related YouTube video is available here:
