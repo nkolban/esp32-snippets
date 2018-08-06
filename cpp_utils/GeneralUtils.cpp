@@ -296,7 +296,8 @@ void GeneralUtils::hexDump(const uint8_t* pData, uint32_t length) {
 	char tempBuf[80];
 	uint32_t lineNumber = 0;
 
-	ESP_LOGD(LOG_TAG, "     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f  ----------------");
+	ESP_LOGD(LOG_TAG, "     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f");
+	ESP_LOGD(LOG_TAG, "     -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
 	strcpy(ascii, "");
 	strcpy(hex, "");
 	uint32_t index=0;
@@ -365,23 +366,23 @@ std::vector<std::string> GeneralUtils::split(std::string source, char delimiter)
 const char* GeneralUtils::errorToString(esp_err_t errCode) {
 	switch(errCode) {
 		case ESP_OK:
-			return "OK";
+			return "ESP_OK";
 		case ESP_FAIL:
-			return "Fail";
+			return "ESP_FAIL";
 		case ESP_ERR_NO_MEM:
-			return "No memory";
+			return "ESP_ERR_NO_MEM";
 		case ESP_ERR_INVALID_ARG:
-			return "Invalid argument";
+			return "ESP_ERR_INVALID_ARG";
 		case ESP_ERR_INVALID_SIZE:
-			return "Invalid state";
+			return "ESP_ERR_INVALID_SIZE";
 		case ESP_ERR_INVALID_STATE:
-			return "Invalid state";
+			return "ESP_ERR_INVALID_STATE";
 		case ESP_ERR_NOT_FOUND:
-			return "Not found";
+			return "ESP_ERR_NOT_FOUND";
 		case ESP_ERR_NOT_SUPPORTED:
-			return "Not supported";
+			return "ESP_ERR_NOT_SUPPORTED";
 		case ESP_ERR_TIMEOUT:
-			return "Timeout";
+			return "ESP_ERR_TIMEOUT";
 		case ESP_ERR_NVS_NOT_INITIALIZED:
 			return "ESP_ERR_NVS_NOT_INITIALIZED";
 		case ESP_ERR_NVS_NOT_FOUND:

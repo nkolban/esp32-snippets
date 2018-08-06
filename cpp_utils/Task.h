@@ -51,7 +51,7 @@ public:
 	 * @param [in] data The data passed in to the newly started task.
 	 */
 	virtual void run(void *data) = 0; // Make run pure virtual
-	void delay(int ms);
+	static void delay(int ms);
 
 private:
 	xTaskHandle m_handle;

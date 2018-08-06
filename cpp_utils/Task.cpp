@@ -43,7 +43,7 @@ Task::~Task() {
  * @return N/A.
  */
 
-void Task::delay(int ms) {
+/* static */ void Task::delay(int ms) {
 	::vTaskDelay(ms/portTICK_PERIOD_MS);
 } // delay
 
