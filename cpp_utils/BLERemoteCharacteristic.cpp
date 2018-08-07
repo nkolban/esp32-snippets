@@ -204,6 +204,11 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 			// and unlock the semaphore to ensure that the requestor of the data can continue.
 			if (evtParam->read.status == ESP_GATT_OK) {
 				m_value = std::string((char*)evtParam->read.value, evtParam->read.value_len);
+				if(m_rawData != nullptr)
+					free(m_rawData);
+				
+				m_rawData = (uint8_t*) calloc(evtParam->read.value_len, sizeof(uint8_t));
+				memcpy(m_rawData, evtParam->read.value, evtParam->read.value_len);
 			} else {
 				m_value = "";
 			}
@@ -475,7 +480,7 @@ void BLERemoteCharacteristic::registerForNotify(
 			BLERemoteCharacteristic* pBLERemoteCharacteristic,
 			uint8_t*                 pData,
 			size_t                   length,
-			bool                     isNotify)) {
+			bool                     isNotify), bool notifications) {
 	ESP_LOGD(LOG_TAG, ">> registerForNotify(): %s", toString().c_str());
 
 	m_notifyCallback = notifyCallback;   // Save the notification callback.
@@ -492,6 +497,12 @@ void BLERemoteCharacteristic::registerForNotify(
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_for_notify: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		}
+
+		uint8_t val[] = {0x01, 0x00};
+		if(!notifications)
+			val[0] = 0x02;
+		BLERemoteDescriptor *desc = getDescriptor(BLEUUID("0x2902"));
+		desc->writeValue(val, 2);
 	} // End Register
 	else {   // If we weren't passed a callback function, then this is an unregistration.
 		esp_err_t errRc = ::esp_ble_gattc_unregister_for_notify(
@@ -503,6 +514,10 @@ void BLERemoteCharacteristic::registerForNotify(
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_unregister_for_notify: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		}
+
+		uint8_t val[] = {0x00, 0x00};
+		BLERemoteDescriptor *desc = getDescriptor(BLEUUID("0x2902"));
+		desc->writeValue(val, 2);
 	} // End Unregister
 
 	m_semaphoreRegForNotifyEvt.wait("registerForNotify");
@@ -602,5 +617,13 @@ void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
 void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool response) {
 	writeValue(std::string((char *)data, length), response);
 } // writeValue
+
+/**
+ * @brief Read raw data from remote characteristic as hex bytes 
+ * @return return pointer data read
+ */
+uint8_t* BLERemoteCharacteristic::readRawData() {
+	return m_rawData;
+}
 
 #endif /* CONFIG_BT_ENABLED */

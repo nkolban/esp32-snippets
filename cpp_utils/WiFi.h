@@ -130,7 +130,7 @@ public:
     void                      setDNSServer(int numdns, ip_addr_t ip);
     struct in_addr            getHostByName(const std::string& hostName);
     struct in_addr            getHostByName(const char* hostName);
-    uint8_t                   connectAP(const std::string& ssid, const std::string& password, bool waitForConnection=true);
+    uint8_t                   connectAP(const std::string& ssid, const std::string& password, bool waitForConnection=true, wifi_mode_t mode=WIFI_MODE_STA);
     void                      dump();
     bool                      isConnectedToAP();
     static std::string        getApMac();

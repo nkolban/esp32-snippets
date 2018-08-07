@@ -220,6 +220,7 @@ void BLEServer::handleGATTServerEvent(
 			m_connId = param->connect.conn_id; // Save the connection id.
 			if (m_pServerCallbacks != nullptr) {
 				m_pServerCallbacks->onConnect(this);
+				m_pServerCallbacks->onConnect(this, param);			
 			}
 			m_connectedCount++;   // Increment the number of connected devices count.
 			break;
@@ -364,6 +365,12 @@ void BLEServer::startAdvertising() {
 
 
 void BLEServerCallbacks::onConnect(BLEServer* pServer) {
+	ESP_LOGD("BLEServerCallbacks", ">> onConnect(): Default");
+	ESP_LOGD("BLEServerCallbacks", "Device: %s", BLEDevice::toString().c_str());
+	ESP_LOGD("BLEServerCallbacks", "<< onConnect()");
+} // onConnect
+
+void BLEServerCallbacks::onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t *param) {
 	ESP_LOGD("BLEServerCallbacks", ">> onConnect(): Default");
 	ESP_LOGD("BLEServerCallbacks", "Device: %s", BLEDevice::toString().c_str());
 	ESP_LOGD("BLEServerCallbacks", "<< onConnect()");
