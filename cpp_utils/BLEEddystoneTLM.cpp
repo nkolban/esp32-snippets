@@ -4,10 +4,10 @@
  *  Created on: Mar 12, 2018
  *      Author: pcbreflux
  */
-#include "Arduino.h"
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 #include <string.h>
+#include <sstream>
 #include <esp_log.h>
 #include "BLEEddystoneTLM.h"
 
@@ -54,46 +54,62 @@ uint32_t BLEEddystoneTLM::getTime() {
 } // getTime
 
 std::string BLEEddystoneTLM::toString() {
+	std::stringstream ss;
 	std::string out = "";
-  String buff;
   uint32_t rawsec;
+  ss << "Version ";
+  ss << std::dec << m_eddystoneData.version;
+  ss << "\n";
   
-  out += "Version ";
-  buff = String(m_eddystoneData.version, DEC);
-  out += buff.c_str();
-  out += "\n";
+  ss << "Battery Voltage ";
+  ss << std::dec << ENDIAN_CHANGE_U16(m_eddystoneData.volt);
+  ss << " mV\n";
   
-  out += "Battery Voltage ";
-  buff = String(ENDIAN_CHANGE_U16(m_eddystoneData.volt), DEC);
-  out += buff.c_str();
-  out += " mV\n";
+  ss <<  "Temperature ";
+  ss << (float)m_eddystoneData.temp;
+  ss <<  " °C\n";
   
-  out += "Temperature ";
-  buff = String((float)m_eddystoneData.temp, 1);
-  out += buff.c_str();
-  out += " °C\n";
-  
-  out += "Adv. Count ";
-  buff = String(ENDIAN_CHANGE_U32(m_eddystoneData.advCount), DEC);
-  out += buff.c_str();
-  out += "\n";
-  
-  out += "Time ";
-  rawsec = ENDIAN_CHANGE_U32(m_eddystoneData.tmil);
-  buff = "0000"+String(rawsec/864000, DEC);
-  out += buff.substring(buff.length()-4,buff.length()).c_str();
-  out += ".";
-  buff = "00"+String((rawsec/36000)%24, DEC);
-  out += buff.substring(buff.length()-2,buff.length()).c_str();
-  out += ":";
-  buff = "00"+String((rawsec/600)%60, DEC);
-  out += buff.substring(buff.length()-2,buff.length()).c_str();
-  out += ":";
-  buff = "00"+String((rawsec/10)%60, DEC);
-  out += buff.substring(buff.length()-2,buff.length()).c_str();
-  out += "\n";
+  ss <<  "Adv. Count ";
+  ss << std::dec << ENDIAN_CHANGE_U32(m_eddystoneData.advCount);
 
-	return out;
+  ss << "\n";
+  
+  ss << "Time ";
+
+  rawsec = ENDIAN_CHANGE_U32(m_eddystoneData.tmil);
+  std::stringstream buffstream;
+  buffstream << "0000";
+  buffstream << std::dec << rawsec/864000;
+  std::string buff = buffstream.str();
+
+  ss << buff.substr(buff.length()-4, buff.length());
+  ss << ".";
+
+  buffstream.str("");
+  buffstream.clear();
+  buffstream << "00";
+  buffstream << std::dec << (rawsec/36000)%24;
+  buff = buffstream.str();
+  ss << buff.substr(buff.length()-2, buff.length());
+  ss << ":";
+
+  buffstream.str("");
+  buffstream.clear();
+  buffstream << "00";
+  buffstream << std::dec << (rawsec/600)%60;
+  buff = buffstream.str();
+  ss << buff.substr(buff.length()-2, buff.length());
+  ss << ":";
+
+  buffstream.str("");
+  buffstream.clear();
+  buffstream << "00";
+  buffstream << std::dec << (rawsec/10)%60;
+  buff = buffstream.str();
+  ss << buff.substr(buff.length()-2, buff.length());
+  ss << "\n";
+
+  return ss.str();
 } // toString
 
 /**

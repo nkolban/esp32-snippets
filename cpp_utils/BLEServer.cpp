@@ -97,6 +97,24 @@ BLEService* BLEServer::createService(BLEUUID uuid, uint32_t numHandles, uint8_t 
 
 
 /**
+ * @brief Get a %BLE Service by its UUID
+ * @param [in] uuid The UUID of the new service.
+ * @return A reference to the service object.
+ */
+BLEService* 	BLEServer::getServiceByUUID(const char* uuid) {
+	return m_serviceMap.getByUUID(uuid);
+}
+
+/**
+ * @brief Get a %BLE Service by its UUID
+ * @param [in] uuid The UUID of the new service.
+ * @return A reference to the service object.
+ */
+BLEService* 	BLEServer::getServiceByUUID(BLEUUID uuid) {
+	return m_serviceMap.getByUUID(uuid);
+}
+
+/**
  * @brief Retrieve the advertising object that can be used to advertise the existence of the server.
  *
  * @return An advertising object.
