@@ -1,0 +1,43 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        
+        {
+            "name": "ESP32 OpenOCD launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "./build/app-template.elf",
+            "args": [],
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/opt/xtensa-esp32-elf/bin/xtensa-esp32-elf-gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "text": "target remote localhost:3333"
+                },
+                {
+                    "text": "monitor reset halt"
+                },
+                {
+                    "text": "flushregs"
+                },
+                {
+                    "text": "thb app_main"
+                }
+            ],
+            "logging": {
+                "trace": true,
+                "traceResponse": true,
+                "engineLogging": true
+            }
+        }
+    ]
+}
