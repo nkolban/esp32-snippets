@@ -50,13 +50,14 @@ uint16_t   BLEDevice::m_localMTU = 23;
  * @brief Create a new instance of a client.
  * @return A new instance of the client.
  */
-/* STATIC */ BLEClient* BLEDevice::createClient() {
+/* STATIC */ BLEClient* BLEDevice::createClient(uint16_t connID) {
 	ESP_LOGD(LOG_TAG, ">> createClient");
 #ifndef CONFIG_GATTC_ENABLE  // Check that BLE GATTC is enabled in make menuconfig
 	ESP_LOGE(LOG_TAG, "BLE GATTC is not enabled - CONFIG_GATTC_ENABLE not defined");
 	abort();
 #endif  // CONFIG_GATTC_ENABLE
-	m_pClient = new BLEClient();
+	m_pClient = new BLEClient(connID);
+	addClient(connID, m_pClient);
 	ESP_LOGD(LOG_TAG, "<< createClient");
 	return m_pClient;
 } // createClient
@@ -545,4 +546,13 @@ uint16_t BLEDevice::getMTU() {
 bool BLEDevice::getInitialized() {
 	return initialized;
 }
+
+void BLEDevice::addClient(uint16_t connID, BLEClient* client) {
+	// m_clientList.insert(std::pair<uint16_t, BLEClient *>(connID, client));
+}
+
+void BLEDevice::removeClient(uint16_t connID) {
+	m_clientList.erase(connID);
+}
+
 #endif // CONFIG_BT_ENABLED
