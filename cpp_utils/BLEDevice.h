@@ -30,6 +30,7 @@ class BLEDevice {
 public:
 
 	static BLEClient*  createClient(uint16_t appId);    // Create a new BLE client.
+	static void				 removeClient(uint16_t appId);		// Remove a BLE client.
 	static BLEServer*  createServer();    // Cretae a new BLE server.
 	static BLEAddress  getAddress();      // Retrieve our own local BD address.
 	static BLEScan*    getScan();         // Get the scan object

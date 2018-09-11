@@ -63,6 +63,19 @@ uint16_t   BLEDevice::m_localMTU = 23;
 	return m_clients[appId];
 } // createClient
 
+/**
+ * @brief Remove an existing BLE client
+ * @param [in] appId Application ID for the BLE client to remove
+*/
+/* STATIC */ void BLEDevice::removeClient(uint16_t appId) {
+	ESP_LOGD(LOG_TAG, ">> removeClient");
+	// first disconnect and unregister
+	m_clients[appId]->disconnect();
+
+	// remove from client map
+	m_clients.erase(appId);
+	ESP_LOGD(LOG_TAG, "<< removeClient");
+}
 
 /**
  * @brief Create a new instance of a server.
