@@ -470,7 +470,8 @@ std::string BLERemoteCharacteristic::readValue() {
  * unregistering a notification.
  * @return N/A.
  */
-void BLERemoteCharacteristic::registerForNotify(BLENotifier* objectToNotify) {
+void BLERemoteCharacteristic::registerForNotify(
+		BLENotifier* objectToNotify) {
 	ESP_LOGD(LOG_TAG, ">> registerForNotify(): %s", toString().c_str());
 
 	toNotify = objectToNotify;   // Save the notification callback.

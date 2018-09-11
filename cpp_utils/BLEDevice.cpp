@@ -30,6 +30,7 @@
 #include "GeneralUtils.h"
 #ifdef ARDUINO_ARCH_ESP32
 #include "esp32-hal-log.h"
+#include "esp32-hal-bt.h"
 #endif
 
 static const char* LOG_TAG = "BLEDevice";
@@ -39,7 +40,9 @@ static const char* LOG_TAG = "BLEDevice";
  */
 BLEServer* BLEDevice::m_pServer = nullptr;
 BLEScan*   BLEDevice::m_pScan   = nullptr;
-BLEClient* BLEDevice::m_pClient = nullptr;
+std::map<uint16_t, BLEClient*> BLEDevice::m_clients;
+std::map<esp_gatt_if_t, BLEClient*> BLEDevice::m_connectedClients;
+std::map<std::string, BLEClient*> BLEDevice::m_connectedClientsAddr;
 bool       initialized          = false;   // Have we been initialized?
 esp_ble_sec_act_t 	BLEDevice::m_securityLevel = (esp_ble_sec_act_t)0;
 BLESecurityCallbacks* BLEDevice::m_securityCallbacks = nullptr;
@@ -55,7 +58,7 @@ uint16_t   BLEDevice::m_localMTU = 23;
 	ESP_LOGE(LOG_TAG, "BLE GATTC is not enabled - CONFIG_GATTC_ENABLE not defined");
 	abort();
 #endif  // CONFIG_GATTC_ENABLE
-  m_clients[appId] = new BLEClient(appId);
+	m_clients[appId] = new BLEClient(appId);
 	ESP_LOGD(LOG_TAG, "<< createClient");
 	return m_clients[appId];
 } // createClient
@@ -65,14 +68,14 @@ uint16_t   BLEDevice::m_localMTU = 23;
  * @brief Create a new instance of a server.
  * @return A new instance of the server.
  */
-/* STATIC */ BLEServer* BLEDevice::createServer(uint16_t appId) {
+/* STATIC */ BLEServer* BLEDevice::createServer() {
 	ESP_LOGD(LOG_TAG, ">> createServer");
 #ifndef CONFIG_GATTS_ENABLE  // Check that BLE GATTS is enabled in make menuconfig
 	ESP_LOGE(LOG_TAG, "BLE GATTS is not enabled - CONFIG_GATTS_ENABLE not defined");
 	abort();
 #endif // CONFIG_GATTS_ENABLE
 	m_pServer = new BLEServer();
-	m_pServer->createApp(appId);
+	m_pServer->createApp(0);
 	ESP_LOGD(LOG_TAG, "<< createServer");
 	return m_pServer;
 } // createServer
@@ -143,7 +146,7 @@ uint16_t   BLEDevice::m_localMTU = 23;
 	BLEUtils::dumpGattClientEvent(event, gattc_if, param);
 
 	switch(event) {
-    case ESP_GATTC_REG_EVT: {
+		case ESP_GATTC_REG_EVT: {
 			ESP_LOGI(LOG_TAG, "REG_EVT");
 			// get associated client
 			BLEClient* client = m_clients[(uint16_t)param->reg.app_id];
@@ -329,7 +332,7 @@ uint16_t   BLEDevice::m_localMTU = 23;
  */
 /* STATIC */ std::string BLEDevice::getValue(BLEAddress bdAddress, BLEUUID serviceUUID, BLEUUID characteristicUUID) {
 	ESP_LOGD(LOG_TAG, ">> getValue: bdAddress: %s, serviceUUID: %s, characteristicUUID: %s", bdAddress.toString().c_str(), serviceUUID.toString().c_str(), characteristicUUID.toString().c_str());
-	BLEClient *pClient = createClient(DEFAULT_CLIENT_APP_ID);
+	BLEClient *pClient = createClient(DEFAULT_APP_ID);
 	pClient->connect(bdAddress);
 	std::string ret = pClient->getValue(serviceUUID, characteristicUUID);
 	pClient->disconnect();
@@ -346,14 +349,21 @@ uint16_t   BLEDevice::m_localMTU = 23;
 	if(!initialized){
 		initialized = true;   // Set the initialization flag to ensure we are only initialized once.
 
-		esp_err_t errRc = ::nvs_flash_init();
+		esp_err_t errRc = ESP_OK;
+#ifdef ARDUINO_ARCH_ESP32
+		if (!btStart()) {
+			errRc = ESP_FAIL;
+			return;
+		}
+#else
+		errRc = ::nvs_flash_init();
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "nvs_flash_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 			return;
 		}
 
-	  esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-	  errRc = esp_bt_controller_init(&bt_cfg);
+		esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+		errRc = esp_bt_controller_init(&bt_cfg);
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_bt_controller_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 			return;
@@ -374,17 +384,23 @@ uint16_t   BLEDevice::m_localMTU = 23;
 			return;
 		}
 #endif
+#endif
 
-		errRc = esp_bluedroid_init();
-		if (errRc != ESP_OK) {
-			ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-			return;
+		esp_bluedroid_status_t bt_state = esp_bluedroid_get_status();
+		if (bt_state == ESP_BLUEDROID_STATUS_UNINITIALIZED){
+			errRc = esp_bluedroid_init();
+			if (errRc != ESP_OK) {
+				ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+				return;
+			}
 		}
 
-		errRc = esp_bluedroid_enable();
-		if (errRc != ESP_OK) {
-			ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-			return;
+		if (bt_state != ESP_BLUEDROID_STATUS_ENABLED){
+			errRc = esp_bluedroid_enable();
+			if (errRc != ESP_OK) {
+				ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+				return;
+			}
 		}
 
 		errRc = esp_ble_gap_register_callback(BLEDevice::gapEventHandler);
@@ -459,7 +475,7 @@ uint16_t   BLEDevice::m_localMTU = 23;
  */
 /* STATIC */ void BLEDevice::setValue(BLEAddress bdAddress, BLEUUID serviceUUID, BLEUUID characteristicUUID, std::string value) {
 	ESP_LOGD(LOG_TAG, ">> setValue: bdAddress: %s, serviceUUID: %s, characteristicUUID: %s", bdAddress.toString().c_str(), serviceUUID.toString().c_str(), characteristicUUID.toString().c_str());
-	BLEClient *pClient = createClient(DEFAULT_CLIENT_APP_ID);
+	BLEClient *pClient = createClient(DEFAULT_APP_ID);
 	pClient->connect(bdAddress);
 	pClient->setValue(serviceUUID, characteristicUUID, value);
 	pClient->disconnect();

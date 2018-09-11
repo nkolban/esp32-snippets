@@ -189,16 +189,14 @@ void BLEScan::setWindow(uint16_t windowMSecs) {
 /**
  * @brief Start scanning.
  * @param [in] duration The duration in seconds for which to scan.
- * @param [in] scanCompleteCB A function to be called when scanning has completed.  This can
- * be supplied as nullptr (the default) in which case the call to start will block until scanning has
- * been completed.
- * @return The BLEScanResults.  Only applicable if we are waiting for results.
+ * @param [in] scanCompleteCB A function to be called when scanning has completed.
+ * @return True if scan started or false if there was an error.
  */
-BLEScanResults BLEScan::start(uint32_t duration, void (*scanCompleteCB)(BLEScanResults)) {
+bool BLEScan::start(uint32_t duration, void (*scanCompleteCB)(BLEScanResults)) {
 	ESP_LOGD(LOG_TAG, ">> start(duration=%d)", duration);
-	m_scanCompleteCB = scanCompleteCB;                  // Save the callback to be invoked when the scan completes.
 
 	m_semaphoreScanEnd.take(std::string("start"));
+	m_scanCompleteCB = scanCompleteCB;                  // Save the callback to be invoked when the scan completes.
 
 	m_scanResults.m_vectorAdvertisedDevices.clear();
 
@@ -207,7 +205,7 @@ BLEScanResults BLEScan::start(uint32_t duration, void (*scanCompleteCB)(BLEScanR
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_set_scan_params: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
 		m_semaphoreScanEnd.give();
-		return m_scanResults;
+		return false;
 	}
 
 	errRc = ::esp_ble_gap_start_scanning(duration);
@@ -215,16 +213,25 @@ BLEScanResults BLEScan::start(uint32_t duration, void (*scanCompleteCB)(BLEScanR
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gap_start_scanning: err: %d, text: %s", errRc, GeneralUtils::errorToString(errRc));
 		m_semaphoreScanEnd.give();
-		return m_scanResults;
+		return false;
 	}
 
 	m_stopped = false;
 
-	if (m_scanCompleteCB == nullptr) {
+	ESP_LOGD(LOG_TAG, "<< start()");
+	return true;
+} // start
+
+
+/**
+ * @brief Start scanning and block until scanning has been completed.
+ * @param [in] duration The duration in seconds for which to scan.
+ * @return The BLEScanResults.
+ */
+BLEScanResults BLEScan::start(uint32_t duration) {
+	if(start(duration, nullptr)) {
 		m_semaphoreScanEnd.wait("start");   // Wait for the semaphore to release.
 	}
-
-	ESP_LOGD(LOG_TAG, "<< start()");
 	return m_scanResults;
 } // start
 

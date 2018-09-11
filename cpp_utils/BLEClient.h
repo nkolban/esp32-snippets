@@ -28,10 +28,10 @@ class BLEClientCallbacks;
  */
 class BLEClient {
 public:
-	BLEClient();
+	BLEClient(uint16_t app_id);
 	~BLEClient();
 
-	bool                                       connect(BLEAddress address);   // Connect to the remote BLE Server
+	bool                                       connect(BLEAddress address);		// Connect to the remote BLE Server
 	void                                       disconnect();                  // Disconnect from the remote BLE Server
 	BLEAddress                                 getPeerAddress();              // Get the address of the remote BLE Server
 	int                                        getRssi();                     // Get the RSSI of the remote BLE Server
@@ -72,6 +72,7 @@ private:
 	esp_gatt_if_t m_gattc_if;
 	bool          m_haveServices;    // Have we previously obtain the set of services from the remote server.
 	bool          m_isConnected;     // Are we currently connected.
+	uint16_t			m_app_id;
 
 	BLEClientCallbacks* m_pClientCallbacks;
 	FreeRTOS::Semaphore m_semaphoreRegEvt        = FreeRTOS::Semaphore("RegEvt");
