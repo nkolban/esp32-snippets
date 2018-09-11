@@ -72,6 +72,9 @@ uint16_t   BLEDevice::m_localMTU = 23;
 	// first disconnect and unregister
 	m_clients[appId]->disconnect();
 
+	// release memory for client
+	delete m_clients[appId];
+
 	// remove from client map
 	m_clients.erase(appId);
 	ESP_LOGD(LOG_TAG, "<< removeClient");
