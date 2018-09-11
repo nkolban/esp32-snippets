@@ -24,6 +24,7 @@ public:
 
 	void connect(std::string clientId);
 	void disconnect();
+	static std::string errorToString(IoT_Error_t err); // Convert an AWS IoT error code to a string representation.
 	void init(std::string host=CONFIG_AWS_IOT_MQTT_HOST, uint16_t port=CONFIG_AWS_IOT_MQTT_PORT);
 	void publish(std::string topic, std::string payload, QoS qos = QOS0);
 	void subscribe(std::string topic);

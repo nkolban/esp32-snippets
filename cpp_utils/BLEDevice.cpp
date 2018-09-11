@@ -281,7 +281,9 @@ uint16_t   BLEDevice::m_localMTU = 23;
 	if (event == ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT) {
 		BLEAddress address = BLEAddress(param->read_rssi_cmpl.remote_addr);
 		BLEClient* client = m_connectedClientsAddr[address.toString()];
-		client->handleGAPEvent(event, param);
+
+		if (client != nullptr)
+			client->handleGAPEvent(event, param);
 	}
 
 	if (BLEDevice::m_pScan != nullptr) {

@@ -148,7 +148,7 @@ void BLERemoteDescriptor::writeValue(
 		getHandle(),
 		length,                           // Data length
 		data,                             // Data
-		ESP_GATT_WRITE_TYPE_NO_RSP,
+		response ? ESP_GATT_WRITE_TYPE_RSP : ESP_GATT_WRITE_TYPE_NO_RSP,
 		ESP_GATT_AUTH_REQ_NONE
 	);
 	if (errRc != ESP_OK) {

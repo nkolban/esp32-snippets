@@ -18,6 +18,8 @@ class System {
 public:
 	System();
 	virtual ~System();
+	static void dumpPinMapping();                       // Dump the mappings of pins to functions.
+	static void dumpHeapInfo();
 	static void getChipInfo(esp_chip_info_t *info);
 	static size_t getFreeHeapSize();
 	static std::string getIDFVersion();

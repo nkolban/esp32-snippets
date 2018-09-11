@@ -51,20 +51,20 @@ public:
 	 * It requires that our device is capable to display this code to end user
 	 * @param
 	 */
-	virtual void onPassKeyNotify(uint32_t pass_key);
+	virtual void onPassKeyNotify(uint32_t pass_key) = 0;
 
 	/**
 	 * @brief Here we can make decision if we want to let negotiate authorization with peer device or not
 	 * return Return true if we accept this peer device request
 	 */
 
-	virtual bool onSecurityRequest();
+	virtual bool onSecurityRequest() = 0 ;
 	/**
 	 * Provide us information when authentication process is completed
 	 */
-	virtual void onAuthenticationComplete(esp_ble_auth_cmpl_t);
+	virtual void onAuthenticationComplete(esp_ble_auth_cmpl_t) = 0;
 
-	virtual bool onConfirmPIN(uint32_t pin);
+	virtual bool onConfirmPIN(uint32_t pin) = 0;
 }; // BLESecurityCallbacks
 
 #endif // CONFIG_BT_ENABLED

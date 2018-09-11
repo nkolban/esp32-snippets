@@ -2,3 +2,6 @@
 .cproject
 .settings/
 /esp32-snippets/.vs
+.vscode
+VisualStudioCode/
+.DS_Store

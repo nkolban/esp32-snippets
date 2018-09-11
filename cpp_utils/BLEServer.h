@@ -63,7 +63,8 @@ public:
 	void            setCallbacks(BLEServerCallbacks* pCallbacks);
 	void            startAdvertising();
 	void 			removeService(BLEService *service);
-
+	BLEService* 	getServiceByUUID(const char* uuid);
+	BLEService* 	getServiceByUUID(BLEUUID uuid);
 
 private:
 	BLEServer();
@@ -104,7 +105,7 @@ public:
 	 * @param [in] pServer A reference to the %BLE server that received the client connection.
 	 */
 	virtual void onConnect(BLEServer* pServer);
-
+	virtual void onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t *param);
 	/**
 	 * @brief Handle an existing client disconnection.
 	 *
