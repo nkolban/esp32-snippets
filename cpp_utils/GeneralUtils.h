@@ -23,6 +23,7 @@ public:
 	static void        dumpInfo();
 	static bool        endsWith(std::string str, char c);
 	static const char* errorToString(esp_err_t errCode);
+	static const char* wifiErrorToString(uint8_t value);
 	static void        hexDump(const uint8_t* pData, uint32_t length);
 	static std::string ipToString(uint8_t* ip);
 	static std::vector<std::string> split(std::string source, char delimiter);
