@@ -109,7 +109,7 @@ void I2C::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin, uint32_t c
 	conf.scl_io_num       = sclPin;
 	conf.sda_pullup_en    = GPIO_PULLUP_ENABLE;
 	conf.scl_pullup_en    = GPIO_PULLUP_ENABLE;
-	conf.master.clk_speed =  100000;
+	conf.master.clk_speed =  clockSpeed;
 	esp_err_t errRc = ::i2c_param_config(m_portNum, &conf);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "i2c_param_config: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -279,7 +279,7 @@ void I2C::write(uint8_t byte, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "write(val=0x%.2x, ack=%d)", byte, ack);
 	}
-	if (m_directionKnown == false) {
+	if (!m_directionKnown) {
 		m_directionKnown = true;
 		esp_err_t errRc = ::i2c_master_write_byte(m_cmd, (m_address << 1) | I2C_MASTER_WRITE, !ack);
 		if (errRc != ESP_OK) {
