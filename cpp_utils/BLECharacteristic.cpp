@@ -198,6 +198,14 @@ std::string BLECharacteristic::getValue() {
 	return m_value.getValue();
 } // getValue
 
+/**
+ * @brief Retrieve the current raw data of the characteristic.
+ * @return A pointer to storage containing the current characteristic data.
+ */
+uint8_t* BLECharacteristic::getData() {
+	return m_value.getData();
+} // getData
+
 
 /**
  * Handle a GATT server event.

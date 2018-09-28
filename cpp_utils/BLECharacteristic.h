@@ -65,6 +65,7 @@ public:
 	//size_t         getLength();
 	BLEUUID        getUUID();
 	std::string    getValue();
+	uint8_t*       getData();
 
 	void indicate();
 	void notify();
