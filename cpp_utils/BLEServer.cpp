@@ -120,7 +120,7 @@ BLEService* 	BLEServer::getServiceByUUID(BLEUUID uuid) {
  * @return An advertising object.
  */
 BLEAdvertising* BLEServer::getAdvertising() {
-	return &m_bleAdvertising;
+	return BLEDevice::getAdvertising();
 }
 
 uint16_t BLEServer::getConnId() {
@@ -359,7 +359,7 @@ void BLEServer::removeService(BLEService *service) {
  */
 void BLEServer::startAdvertising() {
 	ESP_LOGD(LOG_TAG, ">> startAdvertising");
-	m_bleAdvertising.start();
+	BLEDevice::startAdvertising();
 	ESP_LOGD(LOG_TAG, "<< startAdvertising");
 } // startAdvertising
 

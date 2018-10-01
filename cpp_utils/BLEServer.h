@@ -73,7 +73,7 @@ private:
 	friend class BLEDevice;
 	esp_ble_adv_data_t  m_adv_data;
 	uint16_t            m_appId;
-	BLEAdvertising      m_bleAdvertising;
+	// BLEAdvertising      m_bleAdvertising;
   uint16_t						m_connId;
   uint32_t            m_connectedCount;
   uint16_t            m_gatts_if;
