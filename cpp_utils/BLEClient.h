@@ -28,7 +28,7 @@ class BLEClientCallbacks;
  */
 class BLEClient {
 public:
-	BLEClient(uint16_t connID);
+	BLEClient();
 	~BLEClient();
 
 	bool                                       connect(BLEAddress address);   // Connect to the remote BLE Server

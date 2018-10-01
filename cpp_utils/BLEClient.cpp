@@ -21,7 +21,6 @@
 #ifdef ARDUINO_ARCH_ESP32
 #include "esp32-hal-log.h"
 #endif
-#include "BLEDevice.h"
 
 /*
  * Design
@@ -45,9 +44,9 @@
  */
 static const char* LOG_TAG = "BLEClient";
 
-BLEClient::BLEClient(uint16_t connID) {
+BLEClient::BLEClient() {
 	m_pClientCallbacks = nullptr;
-	m_conn_id          = connID;
+	m_conn_id          = 0;
 	m_gattc_if         = 0;
 	m_haveServices     = false;
 	m_isConnected      = false;  // Initially, we are flagged as not connected.
@@ -97,7 +96,7 @@ bool BLEClient::connect(BLEAddress address) {
 
 	clearServices(); // Delete any services that may exist.
 
-	esp_err_t errRc = ::esp_ble_gattc_app_register(m_conn_id);
+	esp_err_t errRc = ::esp_ble_gattc_app_register(0);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_app_register: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return false;
@@ -139,7 +138,6 @@ void BLEClient::disconnect() {
 	}
 	esp_ble_gattc_app_unregister(getGattcIf());
 	m_peerAddress = BLEAddress("00:00:00:00:00:00");
-	BLEDevice::removeClient(m_conn_id);
 	ESP_LOGD(LOG_TAG, "<< disconnect()");
 } // disconnect
 
