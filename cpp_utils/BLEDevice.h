@@ -26,8 +26,11 @@
  */
 class BLEDevice {
 public:
+	static BLEAdvertising* getAdvertising();
+	static void		   startAdvertising();
+	static BLEAdvertising *m_bleAdvertising;
 
-	static BLEClient*  createClient(uint16_t connID = 0);    // Create a new BLE client.
+	static BLEClient*  createClient();    // Create a new BLE client.
 	static BLEServer*  createServer();    // Cretae a new BLE server.
 	static BLEAddress  getAddress();      // Retrieve our own local BD address.
 	static BLEScan*    getScan();         // Get the scan object
@@ -43,8 +46,6 @@ public:
 	static esp_err_t   setMTU(uint16_t mtu);
 	static uint16_t	   getMTU();
 	static bool        getInitialized(); // Returns the state of the device, is it initialized or not?
-	static void			addClient(uint16_t connID, BLEClient* client);
-	static void			removeClient(uint16_t connID);
 
 private:
 	static BLEServer *m_pServer;
@@ -53,7 +54,6 @@ private:
 	static esp_ble_sec_act_t 	m_securityLevel;
 	static BLESecurityCallbacks* m_securityCallbacks;
 	static uint16_t		m_localMTU;
-	static std::map<uint16_t, BLEClient*> m_clientList;
 
 	static esp_gatt_if_t getGattcIF();
 

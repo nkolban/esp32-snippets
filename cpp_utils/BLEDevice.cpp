@@ -41,6 +41,7 @@ static const char* LOG_TAG = "BLEDevice";
 BLEServer* BLEDevice::m_pServer = nullptr;
 BLEScan*   BLEDevice::m_pScan   = nullptr;
 BLEClient* BLEDevice::m_pClient = nullptr;
+BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
 bool       initialized          = false;   // Have we been initialized?
 esp_ble_sec_act_t 	BLEDevice::m_securityLevel = (esp_ble_sec_act_t)0;
 BLESecurityCallbacks* BLEDevice::m_securityCallbacks = nullptr;
@@ -50,14 +51,13 @@ uint16_t   BLEDevice::m_localMTU = 23;
  * @brief Create a new instance of a client.
  * @return A new instance of the client.
  */
-/* STATIC */ BLEClient* BLEDevice::createClient(uint16_t connID) {
+/* STATIC */ BLEClient* BLEDevice::createClient() {
 	ESP_LOGD(LOG_TAG, ">> createClient");
 #ifndef CONFIG_GATTC_ENABLE  // Check that BLE GATTC is enabled in make menuconfig
 	ESP_LOGE(LOG_TAG, "BLE GATTC is not enabled - CONFIG_GATTC_ENABLE not defined");
 	abort();
 #endif  // CONFIG_GATTC_ENABLE
-	m_pClient = new BLEClient(connID);
-	addClient(connID, m_pClient);
+	m_pClient = new BLEClient();
 	ESP_LOGD(LOG_TAG, "<< createClient");
 	return m_pClient;
 } // createClient
@@ -547,12 +547,20 @@ bool BLEDevice::getInitialized() {
 	return initialized;
 }
 
-void BLEDevice::addClient(uint16_t connID, BLEClient* client) {
-	// m_clientList.insert(std::pair<uint16_t, BLEClient *>(connID, client));
+BLEAdvertising* BLEDevice::getAdvertising() {
+	if(m_bleAdvertising == nullptr)
+	{
+		m_bleAdvertising = new BLEAdvertising();
+		ESP_LOGI(LOG_TAG, "create advertising");
+	}
+	ESP_LOGD(LOG_TAG, "get advertising");
+	return m_bleAdvertising;
 }
 
-void BLEDevice::removeClient(uint16_t connID) {
-	m_clientList.erase(connID);
-}
+void BLEDevice::startAdvertising() {
+	ESP_LOGD(LOG_TAG, ">> startAdvertising");
+	getAdvertising()->start();
+	ESP_LOGD(LOG_TAG, "<< startAdvertising");
+} // startAdvertising
 
 #endif // CONFIG_BT_ENABLED
