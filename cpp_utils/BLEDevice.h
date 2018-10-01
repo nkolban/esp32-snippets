@@ -26,6 +26,9 @@
  */
 class BLEDevice {
 public:
+	static BLEAdvertising* getAdvertising();
+	static void		   startAdvertising();
+	static BLEAdvertising *m_bleAdvertising;
 
 	static BLEClient*  createClient();    // Create a new BLE client.
 	static BLEServer*  createServer();    // Cretae a new BLE server.

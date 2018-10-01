@@ -120,7 +120,8 @@ BLEService* 	BLEServer::getServiceByUUID(BLEUUID uuid) {
  * @return An advertising object.
  */
 BLEAdvertising* BLEServer::getAdvertising() {
-	return &m_bleAdvertising;
+	// return &m_bleAdvertising;
+	return BLEDevice::getAdvertising();
 }
 
 uint16_t BLEServer::getConnId() {
@@ -257,7 +258,7 @@ void BLEServer::handleGATTServerEvent(
 			if (m_pServerCallbacks != nullptr) {         // If we have callbacks, call now.
 				m_pServerCallbacks->onDisconnect(this);
 			}
-			startAdvertising(); //- do this with some delay from the loop()
+			// startAdvertising(); //- do this with some delay from the loop()
 			break;
 		} // ESP_GATTS_DISCONNECT_EVT
 
@@ -359,7 +360,8 @@ void BLEServer::removeService(BLEService *service) {
  */
 void BLEServer::startAdvertising() {
 	ESP_LOGD(LOG_TAG, ">> startAdvertising");
-	m_bleAdvertising.start();
+	// m_bleAdvertising.start();
+	BLEDevice::startAdvertising();
 	ESP_LOGD(LOG_TAG, "<< startAdvertising");
 } // startAdvertising
 
