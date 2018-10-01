@@ -41,7 +41,6 @@ static const char* LOG_TAG = "BLEDevice";
 BLEServer* BLEDevice::m_pServer = nullptr;
 BLEScan*   BLEDevice::m_pScan   = nullptr;
 BLEClient* BLEDevice::m_pClient = nullptr;
-BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
 bool       initialized          = false;   // Have we been initialized?
 esp_ble_sec_act_t 	BLEDevice::m_securityLevel = (esp_ble_sec_act_t)0;
 BLESecurityCallbacks* BLEDevice::m_securityCallbacks = nullptr;
@@ -546,21 +545,4 @@ uint16_t BLEDevice::getMTU() {
 bool BLEDevice::getInitialized() {
 	return initialized;
 }
-
-BLEAdvertising* BLEDevice::getAdvertising() {
-	if(m_bleAdvertising == nullptr)
-	{
-		m_bleAdvertising = new BLEAdvertising();
-		ESP_LOGI(LOG_TAG, "create advertising");
-	}
-	ESP_LOGD(LOG_TAG, "get advertising");
-	return m_bleAdvertising;
-}
-
-void BLEDevice::startAdvertising() {
-	ESP_LOGD(LOG_TAG, ">> startAdvertising");
-	getAdvertising()->start();
-	ESP_LOGD(LOG_TAG, "<< startAdvertising");
-} // startAdvertising
-
 #endif // CONFIG_BT_ENABLED
