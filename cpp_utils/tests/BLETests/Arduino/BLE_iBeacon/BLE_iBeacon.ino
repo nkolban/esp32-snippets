@@ -49,7 +49,7 @@ void setBeacon() {
 
   BLEBeacon oBeacon = BLEBeacon();
   oBeacon.setManufacturerId(0x4C00); // fake Apple 0x004C LSB (ENDIAN_CHANGE_U16!)
-  oBeacon.setProximityUUID(BLEUUID(BEACON_UUID));
+  oBeacon.setProximityUUID(BLEUUID(BEACON_UUID)); 
   oBeacon.setMajor((bootcount & 0xFFFF0000) >> 16);
   oBeacon.setMinor(bootcount&0xFFFF);
   BLEAdvertisementData oAdvertisementData = BLEAdvertisementData();
@@ -84,10 +84,10 @@ void setup() {
   // Create the BLE Device
   BLEDevice::init("");
 
-  // Create the BLE Server
-  BLEServer *pServer = BLEDevice::createServer();
+  // Create the BLE Server is no longer required to crete beacon
+  // BLEServer *pServer = BLEDevice::createServer();
 
-  pAdvertising = pServer->getAdvertising();
+  pAdvertising = BLEDevice::getAdvertising();
   
   setBeacon();
    // Start advertising

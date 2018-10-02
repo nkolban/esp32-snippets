@@ -137,7 +137,7 @@ BLEUUID BLEAdvertisedDevice::getServiceUUID() {  //TODO Remove it eventually, is
  * @return Return true if service is advertised
  */
 bool BLEAdvertisedDevice::isAdvertisingService(BLEUUID uuid){
-	for (int i = 0; i < m_serviceUUIDs.size(); ++i) {
+	for (int i = 0; i < m_serviceUUIDs.size(); i++) {
 		if(m_serviceUUIDs[i].equals(uuid))
 			return true;
 	}

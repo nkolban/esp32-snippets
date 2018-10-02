@@ -114,7 +114,7 @@ void BLERemoteService::gattClientEventHandler(
 	} // switch
 
 	// Send the event to each of the characteristics owned by this service.
-	for (auto &myPair : m_characteristicMap) {
+	for (auto &myPair : m_characteristicMapByHandle) {
 	   myPair.second->gattClientEventHandler(event, gattc_if, evtParam);
 	}
 } // gattClientEventHandler
@@ -206,7 +206,7 @@ void BLERemoteService::retrieveCharacteristics() {
 		);
 
 		m_characteristicMap.insert(std::pair<std::string, BLERemoteCharacteristic*>(pNewRemoteCharacteristic->getUUID().toString(), pNewRemoteCharacteristic));
-
+		m_characteristicMapByHandle.insert(std::pair<uint16_t, BLERemoteCharacteristic*>(result.char_handle, pNewRemoteCharacteristic));
 		offset++;   // Increment our count of number of descriptors found.
 	} // Loop forever (until we break inside the loop).
 
@@ -231,6 +231,12 @@ std::map<std::string, BLERemoteCharacteristic *> * BLERemoteService::getCharacte
 	return &m_characteristicMap;
 } // getCharacteristics
 
+/**
+ * @brief This function is designed to get characteristics map when we have multiple characteristics with the same UUID
+ */
+void BLERemoteService::getCharacteristics(std::map<uint16_t, BLERemoteCharacteristic*>* pCharacteristicMap){
+	pCharacteristicMap = &m_characteristicMapByHandle;
+}  // Get the characteristics map.
 
 /**
  * @brief Get the client associated with this service.
@@ -292,6 +298,10 @@ void BLERemoteService::removeCharacteristics() {
 	   //m_characteristicMap.erase(myPair.first);  // Should be no need to delete as it will be deleted by the clear
 	}
 	m_characteristicMap.clear();   // Clear the map
+	for (auto &myPair : m_characteristicMapByHandle) {
+	   delete myPair.second;
+	}
+	m_characteristicMapByHandle.clear();   // Clear the map
 } // removeCharacteristics
 
 
