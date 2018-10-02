@@ -43,6 +43,8 @@ public:
 	static esp_err_t   setMTU(uint16_t mtu);
 	static uint16_t	   getMTU();
 	static bool        getInitialized(); // Returns the state of the device, is it initialized or not?
+	static BLEAdvertising* getAdvertising();
+	static void		   startAdvertising();
 
 private:
 	static BLEServer *m_pServer;
@@ -51,6 +53,7 @@ private:
 	static esp_ble_sec_act_t 	m_securityLevel;
 	static BLESecurityCallbacks* m_securityCallbacks;
 	static uint16_t		m_localMTU;
+	static BLEAdvertising *m_bleAdvertising;
 
 	static esp_gatt_if_t getGattcIF();
 
