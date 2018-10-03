@@ -118,7 +118,7 @@ BLECharacteristic* BLEHIDDevice::inputReport(uint8_t reportID) {
 
 	uint8_t desc1_val[] = {reportID, 0x01};
 	inputReportDescriptor->setValue((uint8_t*)desc1_val, 2);
-	inputReportCharacteristic->addDescriptor(p2902;
+	inputReportCharacteristic->addDescriptor(p2902);
 	inputReportCharacteristic->addDescriptor(inputReportDescriptor);
 
 	return inputReportCharacteristic;
