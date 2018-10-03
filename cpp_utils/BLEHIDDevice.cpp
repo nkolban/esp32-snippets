@@ -111,10 +111,14 @@ void BLEHIDDevice::hidInfo(uint8_t country, uint8_t flags) {
 BLECharacteristic* BLEHIDDevice::inputReport(uint8_t reportID) {
 	BLECharacteristic* 	inputReportCharacteristic = m_hidService->createCharacteristic((uint16_t)0x2a4d, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
 	BLEDescriptor* inputReportDescriptor = new BLEDescriptor(BLEUUID((uint16_t)0x2908));
+	BLE2902* p2902 = new BLE2902();
+	inputReportCharacteristic->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
+	inputReportDescriptor->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
+	p2902->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
 
 	uint8_t desc1_val[] = {reportID, 0x01};
 	inputReportDescriptor->setValue((uint8_t*)desc1_val, 2);
-	inputReportCharacteristic->addDescriptor(new BLE2902());
+	inputReportCharacteristic->addDescriptor(p2902;
 	inputReportCharacteristic->addDescriptor(inputReportDescriptor);
 
 	return inputReportCharacteristic;
@@ -128,6 +132,8 @@ BLECharacteristic* BLEHIDDevice::inputReport(uint8_t reportID) {
 BLECharacteristic* BLEHIDDevice::outputReport(uint8_t reportID) {
 	BLECharacteristic* 	outputReportCharacteristic = m_hidService->createCharacteristic((uint16_t)0x2a4d, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR);
 	BLEDescriptor* outputReportDescriptor = new BLEDescriptor(BLEUUID((uint16_t)0x2908));
+	outputReportCharacteristic->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
+	outputReportDescriptor->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
 
 	uint8_t desc1_val[] = {reportID, 0x02};
 	outputReportDescriptor->setValue((uint8_t*)desc1_val, 2);
@@ -144,6 +150,8 @@ BLECharacteristic* BLEHIDDevice::outputReport(uint8_t reportID) {
 BLECharacteristic* BLEHIDDevice::featureReport(uint8_t reportID) {
 	BLECharacteristic* 	featureReportCharacteristic = m_hidService->createCharacteristic((uint16_t)0x2a4d, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
 	BLEDescriptor* featureReportDescriptor = new BLEDescriptor(BLEUUID((uint16_t)0x2908));
+	featureReportCharacteristic->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
+	featureReportDescriptor->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
 
 	uint8_t desc1_val[] = {reportID, 0x03};
 	featureReportDescriptor->setValue((uint8_t*)desc1_val, 2);
