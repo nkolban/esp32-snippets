@@ -23,7 +23,7 @@
 class FreeRTOS {
 public:
 	static void sleep(uint32_t ms);
-	static void startTask(void task(void *), std::string taskName, void *param=nullptr, int stackSize = 2048);
+	static void startTask(void task(void *), std::string taskName, void *param=nullptr, uint32_t stackSize = 2048);
 	static void deleteTask(TaskHandle_t pTask = nullptr);
 
 	static uint32_t getTimeSinceStart();
