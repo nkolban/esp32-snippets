@@ -32,7 +32,7 @@ void FreeRTOS::sleep(uint32_t ms) {
  * @param[in] param An optional parameter to be passed to the started task.
  * @param[in] stackSize An optional paremeter supplying the size of the stack in which to run the task.
  */
-void FreeRTOS::startTask(void task(void*), std::string taskName, void *param, int stackSize) {
+void FreeRTOS::startTask(void task(void*), std::string taskName, void *param, uint32_t stackSize) {
 	::xTaskCreate(task, taskName.data(), stackSize, param, 5, NULL);
 } // startTask
 
