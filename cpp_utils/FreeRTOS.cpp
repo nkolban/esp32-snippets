@@ -134,7 +134,7 @@ void FreeRTOS::Semaphore::give() {
 		xSemaphoreGive(m_semaphore);
 	}
 // #ifdef ARDUINO_ARCH_ESP32
-// 	FreeRTOS::sleep(10); 
+// 	FreeRTOS::sleep(10);
 // #endif
 
 	m_owner = std::string("<N/A>");
@@ -178,7 +178,7 @@ bool FreeRTOS::Semaphore::take(std::string owner)
 	if (m_usePthreads) {
 		pthread_mutex_lock(&m_pthread_mutex);
 	} else {
-		rc = ::xSemaphoreTake(m_semaphore, portMAX_DELAY);
+		rc = ::xSemaphoreTake(m_semaphore, portMAX_DELAY) == pdTRUE;
 	}
 	m_owner = owner;
 	if (rc) {
@@ -204,7 +204,7 @@ bool FreeRTOS::Semaphore::take(uint32_t timeoutMs, std::string owner) {
 	if (m_usePthreads) {
 		assert(false);  // We apparently don't have a timed wait for pthreads.
 	} else {
-		rc = ::xSemaphoreTake(m_semaphore, timeoutMs/portTICK_PERIOD_MS);
+		rc = ::xSemaphoreTake(m_semaphore, timeoutMs / portTICK_PERIOD_MS) == pdTRUE;
 	}
 	m_owner = owner;
 	if (rc) {
