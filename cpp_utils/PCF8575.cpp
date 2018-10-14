@@ -18,7 +18,8 @@
  * @param [in] address The %I2C address of the device on the %I2C bus.
  */
 PCF8575::PCF8575(uint8_t address) {
-	i2c.setAddress(address);
+	i2c = new I2C();
+	i2c->setAddress(address);
 	m_lastWrite = 0;
 }
 
@@ -26,6 +27,7 @@ PCF8575::PCF8575(uint8_t address) {
  * @brief Class instance destructor.
  */
 PCF8575::~PCF8575() {
+	delete i2c;
 }
 
 
@@ -35,10 +37,10 @@ PCF8575::~PCF8575() {
  */
 uint16_t PCF8575::read() {
 	uint16_t value;
-	i2c.beginTransaction();
-	i2c.read((uint8_t*)&value,true);
-	i2c.read(((uint8_t*)&value) + 1,true);
-	i2c.endTransaction();
+	i2c->beginTransaction();
+	i2c->read((uint8_t*)&value,true);
+	i2c->read(((uint8_t*)&value) + 1,true);
+	i2c->endTransaction();
 	return value;
 } // read
 
@@ -67,10 +69,10 @@ void PCF8575::write(uint16_t value) {
 	if (invert) {
 		value = ~value;
 	}
-	i2c.beginTransaction();
-	i2c.write(value & 0xff, true);
-	i2c.write((value >> 8) & 0xff, true);
-	i2c.endTransaction();
+	i2c->beginTransaction();
+	i2c->write(value & 0xff, true);
+	i2c->write((value >> 8) & 0xff, true);
+	i2c->endTransaction();
 	m_lastWrite = value;
 } // write
 
@@ -119,5 +121,5 @@ void PCF8575::setInvert(bool value) {
  * @param [in] clkPin The pin to use for the %I2C CLK functions.
  */
 void PCF8575::init(gpio_num_t sdaPin, gpio_num_t clkPin) {
-	i2c.init(0, sdaPin, clkPin);
+	i2c->init(0, sdaPin, clkPin);
 } // init
