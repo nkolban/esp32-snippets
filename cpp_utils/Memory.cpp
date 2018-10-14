@@ -47,7 +47,7 @@ size_t               Memory::m_lastHeapSize = 0;
 
 /* STATIC */ void Memory::dumpHeapChange(std::string tag) {
 	size_t currentUsage = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-	int diff = currentUsage - m_lastHeapSize;
+	size_t diff = currentUsage - m_lastHeapSize;
 	ESP_LOGD(LOG_TAG, "%s: Heap changed by %d bytes  (%d to %d)", tag.c_str(), diff, m_lastHeapSize, currentUsage);
 	m_lastHeapSize = currentUsage;
 } // dumpHeapChange
@@ -69,7 +69,7 @@ size_t               Memory::m_lastHeapSize = 0;
 		return;
 	}
 	esp_log_level_set("*", ESP_LOG_NONE);
-	size_t count = heap_trace_get_count();
+	size_t count = (size_t) heap_trace_get_count();
 	heap_trace_record_t record;
 	printf(">>> dumpRanges\n");
 	for (size_t i=0; i<count; i++) {
