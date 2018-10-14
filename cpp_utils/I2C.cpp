@@ -95,7 +95,7 @@ uint8_t I2C::getAddress() const
  * @param [in] sclPin The pin to use for SCL clock.
  * @return N/A.
  */
-void I2C::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin, uint32_t clockSpeed, i2c_port_t portNum) {
+void I2C::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin, uint32_t clockSpeed, i2c_port_t portNum, bool pullup) {
 	ESP_LOGD(LOG_TAG, ">> I2c::init.  address=%d, sda=%d, scl=%d, clockSpeed=%d, portNum=%d", address, sdaPin, sclPin, clockSpeed, portNum);
 	assert(portNum < I2C_NUM_MAX);
 	m_portNum = portNum;
@@ -107,8 +107,8 @@ void I2C::init(uint8_t address, gpio_num_t sdaPin, gpio_num_t sclPin, uint32_t c
 	conf.mode             = I2C_MODE_MASTER;
 	conf.sda_io_num       = sdaPin;
 	conf.scl_io_num       = sclPin;
-	conf.sda_pullup_en    = GPIO_PULLUP_ENABLE;
-	conf.scl_pullup_en    = GPIO_PULLUP_ENABLE;
+	conf.sda_pullup_en    = pullup ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE;
+	conf.scl_pullup_en    = pullup ? GPIO_PULLUP_ENABLE: GPIO_PULLUP_DISABLE;
 	conf.master.clk_speed =  clockSpeed;
 	esp_err_t errRc = ::i2c_param_config(m_portNum, &conf);
 	if (errRc != ESP_OK) {
