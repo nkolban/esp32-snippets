@@ -48,7 +48,7 @@ void BLEScan::handleGAPEvent(
 	esp_gap_ble_cb_event_t  event,
 	esp_ble_gap_cb_param_t* param) {
 
-	switch(event) {
+	switch (event) {
 
 	// ESP_GAP_BLE_SCAN_RESULT_EVT
 	// ---------------------------
@@ -90,12 +90,12 @@ void BLEScan::handleGAPEvent(
 						break;
 					}
 
-// Examine our list of previously scanned addresses and, if we found this one already,
-// ignore it.
+					// Examine our list of previously scanned addresses and, if we found this one already,
+					// ignore it.
 					BLEAddress advertisedAddress(param->scan_rst.bda);
 					bool found = false;
 
-					for (int i=0; i<m_scanResults.getCount(); i++) {
+					for (uint32_t i = 0; i < m_scanResults.getCount(); i++) {
 						if (m_scanResults.getDevice(i).getAddress().equals(advertisedAddress)) {
 							found = true;
 							break;
@@ -126,18 +126,16 @@ void BLEScan::handleGAPEvent(
 					break;
 				} // ESP_GAP_SEARCH_INQ_RES_EVT
 
-				default: {
+				default:
 					break;
-				}
 			} // switch - search_evt
 
 
 			break;
 		} // ESP_GAP_BLE_SCAN_RESULT_EVT
 
-		default: {
+		default:
 			break;
-		} // default
 	} // End switch
 } // gapEventHandler
 
@@ -229,7 +227,7 @@ bool BLEScan::start(uint32_t duration, void (*scanCompleteCB)(BLEScanResults)) {
  * @return The BLEScanResults.
  */
 BLEScanResults BLEScan::start(uint32_t duration) {
-	if(start(duration, nullptr)) {
+	if (start(duration, nullptr)) {
 		m_semaphoreScanEnd.wait("start");   // Wait for the semaphore to release.
 	}
 	return m_scanResults;
@@ -263,7 +261,7 @@ void BLEScan::stop() {
  */
 void BLEScanResults::dump() {
 	ESP_LOGD(LOG_TAG, ">> Dump scan results:");
-	for (int i=0; i<getCount(); i++) {
+	for (uint32_t i = 0; i < getCount(); i++) {
 		ESP_LOGD(LOG_TAG, "- %s", getDevice(i).toString().c_str());
 	}
 } // dump

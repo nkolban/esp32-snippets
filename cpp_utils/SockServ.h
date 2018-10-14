@@ -51,11 +51,12 @@ public:
 	void   sendData(uint8_t* data, size_t length);
 	void   sendData(std::string str);
 	void   setPort(uint16_t port);
-	void   setSSL(bool use=true);
+	void   setSSL(bool use = true);
 	void   start();
 	void   stop();
 	Socket waitForData(std::set<Socket>& socketSet);
 	Socket waitForNewClient();
+
 };
 
 #endif /* MAIN_SOCKSERV_H_ */

@@ -37,7 +37,7 @@ void IFTTT::trigger(
 		std::string value2,
 		std::string value3) {
 	m_restClient.setURL("https://maker.ifttt.com/trigger/" + event + "/with/key/" + m_key);
-	cJSON *root;
+	cJSON* root;
 	root = cJSON_CreateObject();
 
 	cJSON_AddStringToObject(root, "value1", value1.c_str());

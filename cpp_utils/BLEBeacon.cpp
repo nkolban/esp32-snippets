@@ -25,7 +25,7 @@ BLEBeacon::BLEBeacon() {
 } // BLEBeacon
 
 std::string BLEBeacon::getData() {
-	return std::string((char*)&m_beaconData, sizeof(m_beaconData));
+	return std::string((char*) &m_beaconData, sizeof(m_beaconData));
 } // getData
 
 uint16_t BLEBeacon::getMajor() {

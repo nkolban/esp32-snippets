@@ -27,17 +27,13 @@ public:
 	void setByUUID(BLECharacteristic* pCharacteristic, const char* uuid);
 	void setByUUID(BLECharacteristic* pCharacteristic, BLEUUID uuid);
 	void setByHandle(uint16_t handle, BLECharacteristic* pCharacteristic);
-	BLECharacteristic* getByUUID(const char* uuid);	
+	BLECharacteristic* getByUUID(const char* uuid);
 	BLECharacteristic* getByUUID(BLEUUID uuid);
 	BLECharacteristic* getByHandle(uint16_t handle);
 	BLECharacteristic* getFirst();
 	BLECharacteristic* getNext();
 	std::string toString();
-	void handleGATTServerEvent(
-			esp_gatts_cb_event_t      event,
-			esp_gatt_if_t             gatts_if,
-			esp_ble_gatts_cb_param_t* param);
-
+	void handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t* param);
 
 private:
 	std::map<BLECharacteristic*, std::string> m_uuidMap;
@@ -57,16 +53,16 @@ public:
 	BLECharacteristic* createCharacteristic(BLEUUID uuid, uint32_t properties);
 	void               dump();
 	void               executeCreate(BLEServer* pServer);
-	void			   executeDelete();
+	void               executeDelete();
 	BLECharacteristic* getCharacteristic(const char* uuid);
 	BLECharacteristic* getCharacteristic(BLEUUID uuid);
 	BLEUUID            getUUID();
 	BLEServer*         getServer();
 	void               start();
-	void			   stop();
+	void               stop();
 	std::string        toString();
 	uint16_t           getHandle();
-	uint8_t			   m_id = 0;
+	uint8_t            m_id = 0;
 
 private:
 	BLEService(const char* uuid, uint32_t numHandles);
@@ -91,12 +87,10 @@ private:
 	uint32_t             m_numHandles;
 
 	BLECharacteristic* getLastCreatedCharacteristic();
-	void               handleGATTServerEvent(
-		esp_gatts_cb_event_t      event,
-		esp_gatt_if_t             gatts_if,
-		esp_ble_gatts_cb_param_t* param);
+	void			   handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t* param);
 	void               setHandle(uint16_t handle);
 	//void               setService(esp_gatt_srvc_id_t srvc_id);
+
 }; // BLEService
 
 

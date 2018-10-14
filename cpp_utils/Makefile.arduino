@@ -80,4 +80,3 @@ build_ble:
 install: build_ble
 	rm -rf ${ARDUINO_LIBS}/ESP32_BLE
 	unzip Arduino/ESP32_BLE.zip -d $(ARDUINO_LIBS)
-	

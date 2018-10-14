@@ -51,14 +51,14 @@ struct mqtt_InitTypeDef{
 	const char* 	user;
 	const char* 	pass;
 
-	const char *	id;
+	const char* 	id;
 	const char* 	willTopic;
 	uint8_t 		willQos;
 	bool 			willRetain;
 	const char* 	willMessage;
 };
 
-typedef enum{
+typedef enum {
 	CONNECTION_TIMEOUT      = -4,
 	CONNECTION_LOST         = -3,
 	CONNECT_FAILED          = -2,
@@ -69,9 +69,9 @@ typedef enum{
 	CONNECT_UNAVAILABLE     =  3,
 	CONNECT_BAD_CREDENTIALS =  4,
 	CONNECT_UNAUTHORIZED    =  5,
-}mqtt_state;
+} mqtt_state;
 
-typedef enum{
+typedef enum {
 	CONNECT     =  1 << 4, // Client request to connect to Server
 	CONNACK     =  2 << 4, // Connect Acknowledgment
 	PUBLISH     =  3 << 4, // Publish message
@@ -87,15 +87,15 @@ typedef enum{
 	PINGRESP    = 13 << 4, // PING Response
 	DISCONNECT  = 14 << 4, // Client is Disconnecting
 	Reserved    = 15 << 4, // Reserved
-}mqtt_message_type;
+} mqtt_message_type;
 
-typedef enum{
+typedef enum {
 	QOS0        = (0 << 1),
 	QOS1        = (1 << 1),
 	QOS2        = (2 << 1),
-}mqtt_qos;
+} mqtt_qos;
 
-struct mqtt_message{
+struct mqtt_message {
 	uint8_t type;
 	uint8_t qos;
 	bool retained;
@@ -105,7 +105,7 @@ struct mqtt_message{
 	uint16_t msgId;
 };
 
-#define MQTT_CALLBACK_SIGNATURE void (*callback)(std::string, std::string)
+#define MQTT_CALLBACK_SIGNATURE void (*callback) (std::string, std::string)
 
 class PubSubClientTask;
 
@@ -130,19 +130,19 @@ public:
    void disconnect();
    bool publish(const char* topic, const char* payload);
    bool publish(const char* topic, const char* payload, bool retained);
-   bool publish(const char* topic, const uint8_t * payload, unsigned int plength);
-   bool publish(const char* topic, const uint8_t * payload, unsigned int plength, bool retained);
+   bool publish(const char* topic, const uint8_t* payload, unsigned int plength);
+   bool publish(const char* topic, const uint8_t* payload, unsigned int plength, bool retained);
    //bool publish_P(const char* topic, const uint8_t * payload, unsigned int plength, bool retained);
 
-   bool subscribe			(const char* topic,  bool ack=false);
-   bool unsubscribe			(const char* topic,  bool ack=false);
-   bool isSubscribeDone		(void);
-   bool isUnsubscribeDone	(void);
+   bool subscribe(const char* topic, bool ack = false);
+   bool unsubscribe(const char* topic, bool ack = false);
+   bool isSubscribeDone();
+   bool isUnsubscribeDone();
 
-   bool connected			(void);
-   int state				(void);
-   void keepAliveChecker	(void);
-   void timeoutChecker	(void);
+   bool connected();
+   int state();
+   void keepAliveChecker();
+   void timeoutChecker();
 
 private:
    friend class 	PubSubClientTask;
@@ -159,12 +159,12 @@ private:
    FreeRTOSTimer* 	timeoutTimer;
 
    MQTT_CALLBACK_SIGNATURE;
-   void setup			(void);
-   uint16_t 			readPacket();
-   bool write			(uint8_t header, uint8_t* buf, uint16_t length);
+   void setup();
+   uint16_t readPacket();
+   bool write(uint8_t header, uint8_t* buf, uint16_t length);
    uint16_t writeString(const char* string, uint8_t* buf, uint16_t pos);
-   void parseData		(mqtt_message* msg, uint16_t len);
-   void dumpData		(mqtt_message* msg);
+   void parseData(mqtt_message* msg, uint16_t len);
+   void dumpData(mqtt_message* msg);
    std::string messageType_toString(uint8_t type);
 
 };

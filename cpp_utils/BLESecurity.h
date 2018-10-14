@@ -29,6 +29,7 @@ private:
 	uint8_t m_initKey;
 	uint8_t m_respKey;
 	uint8_t m_keySize;
+
 }; // BLESecurity
 
 

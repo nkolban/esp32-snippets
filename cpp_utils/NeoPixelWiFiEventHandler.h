@@ -28,9 +28,10 @@ public:
 	esp_err_t staDisconnected(system_event_sta_disconnected_t info) override;
 	esp_err_t wifiReady() override;
 	esp_err_t staStart() override;
+
 private:
 	gpio_num_t gpioPin;
-	WS2812 *ws2812;
+	WS2812* ws2812;
 };
 
 #endif /* MAIN_NEOPIXELWIFIEVENTHANDLER_H_ */

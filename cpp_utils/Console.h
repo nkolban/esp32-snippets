@@ -52,7 +52,7 @@ private:
 public:
 	ArgTableEntry_Int(std::string shortopts, std::string longopts, std::string glossary);
 	int getCount();
-	int getValue(int index=0);
+	int getValue(int index = 0);
 	void* getEntry() {
 		return m_argInt;
 	}
@@ -65,7 +65,7 @@ private:
 public:
 	ArgTableEntry_Double(std::string shortopts, std::string longopts, std::string glossary);
 	int getCount();
-	double getValue(int index=0);
+	double getValue(int index = 0);
 	void* getEntry() {
 		return m_argDbl;
 	}
@@ -78,7 +78,7 @@ private:
 public:
 	ArgTableEntry_String(std::string shortopts, std::string longopts, std::string glossary, int min, int max);
 	int getCount();
-	std::string getValue(int index=0);
+	std::string getValue(int index = 0);
 	void* getEntry() {
 		return m_argStr;
 	}
@@ -90,7 +90,7 @@ private:
 	struct arg_rex* m_argRex;
 public:
 	int getCount();
-	std::string getValue(int index=0);
+	std::string getValue(int index = 0);
 	void* getEntry() {
 		return m_argRex;
 	}
@@ -103,9 +103,9 @@ private:
 public:
 	ArgTableEntry_File(std::string shortopts, std::string longopts, std::string glossary);
 	int getCount();
-	std::string getFilename(int index=0);
-	std::string getBasename(int index=0);
-	std::string getExtension(int index=0);
+	std::string getFilename(int index = 0);
+	std::string getBasename(int index = 0);
+	std::string getExtension(int index = 0);
 	void* getEntry() {
 		return m_argFile;
 	}
@@ -118,7 +118,7 @@ private:
 public:
 	ArgTableEntry_Date(std::string shortopts, std::string longopts, std::string glossary);
 	int getCount();
-	struct tm* getValue(int index=0);
+	struct tm* getValue(int index = 0);
 	void* getEntry() {
 		return m_argDate;
 	}

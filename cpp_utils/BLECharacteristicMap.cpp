@@ -56,9 +56,7 @@ BLECharacteristic* BLECharacteristicMap::getByUUID(BLEUUID uuid) {
  */
 BLECharacteristic* BLECharacteristicMap::getFirst() {
 	m_iterator = m_uuidMap.begin();
-	if (m_iterator == m_uuidMap.end()) {
-		return nullptr;
-	}
+	if (m_iterator == m_uuidMap.end()) return nullptr;
 	BLECharacteristic* pRet = m_iterator->first;
 	m_iterator++;
 	return pRet;
@@ -70,9 +68,7 @@ BLECharacteristic* BLECharacteristicMap::getFirst() {
  * @return The next characteristic in the map.
  */
 BLECharacteristic* BLECharacteristicMap::getNext() {
-	if (m_iterator == m_uuidMap.end()) {
-		return nullptr;
-	}
+	if (m_iterator == m_uuidMap.end()) return nullptr;
 	BLECharacteristic* pRet = m_iterator->first;
 	m_iterator++;
 	return pRet;
@@ -103,8 +99,8 @@ void BLECharacteristicMap::handleGATTServerEvent(
  * @return N/A.
  */
 void BLECharacteristicMap::setByHandle(uint16_t handle,
-		BLECharacteristic *characteristic) {
-	m_handleMap.insert(std::pair<uint16_t, BLECharacteristic *>(handle, characteristic));
+		BLECharacteristic* characteristic) {
+	m_handleMap.insert(std::pair<uint16_t, BLECharacteristic*>(handle, characteristic));
 } // setByHandle
 
 
@@ -115,9 +111,9 @@ void BLECharacteristicMap::setByHandle(uint16_t handle,
  * @return N/A.
  */
 void BLECharacteristicMap::setByUUID(
-		BLECharacteristic *pCharacteristic,
 		BLEUUID            uuid) {
-	m_uuidMap.insert(std::pair<BLECharacteristic *, std::string>(pCharacteristic, uuid.toString()));
+		BLECharacteristic* pCharacteristic,
+	m_uuidMap.insert(std::pair<BLECharacteristic*, std::string>(pCharacteristic, uuid.toString()));
 } // setByUUID
 
 
@@ -128,7 +124,7 @@ void BLECharacteristicMap::setByUUID(
 std::string BLECharacteristicMap::toString() {
 	std::stringstream stringStream;
 	stringStream << std::hex << std::setfill('0');
-	int count=0;
+	int count = 0;
 	for (auto &myPair: m_uuidMap) {
 		if (count > 0) {
 			stringStream << "\n";

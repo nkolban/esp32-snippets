@@ -146,12 +146,8 @@ static bool compareGattId(esp_gatt_id_t id1, esp_gatt_id_t id2) {
  * @param [in] evtParam Payload data for the event.
  * @returns N/A
  */
-void BLERemoteCharacteristic::gattClientEventHandler(
-	esp_gattc_cb_event_t      event,
-	esp_gatt_if_t             gattc_if,
-	esp_ble_gattc_cb_param_t* evtParam) {
-	switch(event) {
-		//
+void BLERemoteCharacteristic::gattClientEventHandler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t* evtParam) {
+	switch (event) {
 		// ESP_GATTC_NOTIFY_EVT
 		//
 		// notify
@@ -165,25 +161,15 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 		// We have received a notification event which means that the server wishes us to know about a notification
 		// piece of data.  What we must now do is find the characteristic with the associated handle and then
 		// invoke its notification callback (if it has one).
-		//
 		case ESP_GATTC_NOTIFY_EVT: {
-			if (evtParam->notify.handle != getHandle()) {
-				break;
-			}
+			if (evtParam->notify.handle != getHandle()) break;
 			if (m_notifyCallback != nullptr) {
 				ESP_LOGD(LOG_TAG, "Invoking callback for notification on characteristic %s", toString().c_str());
-				m_notifyCallback(
-					this,
-					evtParam->notify.value,
-					evtParam->notify.value_len,
-					evtParam->notify.is_notify
-				);
+				m_notifyCallback(this, evtParam->notify.value, evtParam->notify.value_len, evtParam->notify.is_notify);
 			} // End we have a callback function ...
 			break;
 		} // ESP_GATTC_NOTIFY_EVT
 
-
-		//
 		// ESP_GATTC_READ_CHAR_EVT
 		// This event indicates that the server has responded to the read request.
 		//
@@ -193,20 +179,16 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 		// - uint16_t           handle
 		// - uint8_t*           value
 		// - uint16_t           value_len
-	  //
 		case ESP_GATTC_READ_CHAR_EVT: {
 			// If this event is not for us, then nothing further to do.
-			if (evtParam->read.handle != getHandle()) {
-				break;
-			}
+			if (evtParam->read.handle != getHandle()) break;
 
 			// At this point, we have determined that the event is for us, so now we save the value
 			// and unlock the semaphore to ensure that the requestor of the data can continue.
 			if (evtParam->read.status == ESP_GATT_OK) {
-				m_value = std::string((char*)evtParam->read.value, evtParam->read.value_len);
-				if(m_rawData != nullptr)
-					free(m_rawData);
-				
+				m_value = std::string((char*) evtParam->read.value, evtParam->read.value_len);
+				if (m_rawData != nullptr) free(m_rawData);
+
 				m_rawData = (uint8_t*) calloc(evtParam->read.value_len, sizeof(uint8_t));
 				memcpy(m_rawData, evtParam->read.value, evtParam->read.value_len);
 			} else {
@@ -217,56 +199,41 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 			break;
 		} // ESP_GATTC_READ_CHAR_EVT
 
-
-		//
 		// ESP_GATTC_REG_FOR_NOTIFY_EVT
 		//
 		// reg_for_notify:
 		// - esp_gatt_status_t status
 		// - uint16_t          handle
-		//
 		case ESP_GATTC_REG_FOR_NOTIFY_EVT: {
 			// If the request is not for this BLERemoteCharacteristic then move on to the next.
-			if (evtParam->reg_for_notify.handle != getHandle()) {
-				break;
-			}
+			if (evtParam->reg_for_notify.handle != getHandle()) break;
 
 			// We have processed the notify registration and can unlock the semaphore.
 			m_semaphoreRegForNotifyEvt.give();
 			break;
 		} // ESP_GATTC_REG_FOR_NOTIFY_EVT
 
-
-		//
 		// ESP_GATTC_UNREG_FOR_NOTIFY_EVT
 		//
 		// unreg_for_notify:
 		// - esp_gatt_status_t status
 		// - uint16_t          handle
-		//
 		case ESP_GATTC_UNREG_FOR_NOTIFY_EVT: {
-			if (evtParam->unreg_for_notify.handle != getHandle()) {
-				break;
-			}
+			if (evtParam->unreg_for_notify.handle != getHandle()) break;
 			// We have processed the notify un-registration and can unlock the semaphore.
 			m_semaphoreRegForNotifyEvt.give();
 			break;
 		} // ESP_GATTC_UNREG_FOR_NOTIFY_EVT:
 
-
-		//
 		// ESP_GATTC_WRITE_CHAR_EVT
 		//
 		// write:
 		// - esp_gatt_status_t status
 		// - uint16_t          conn_id
 		// - uint16_t          handle
-		//
 		case ESP_GATTC_WRITE_CHAR_EVT: {
 			// Determine if this event is for us and, if not, pass onwards.
-			if (evtParam->write.handle != getHandle()) {
-				break;
-			}
+			if (evtParam->write.handle != getHandle()) break;
 
 			// There is nothing further we need to do here.  This is merely an indication
 			// that the write has completed and we can unlock the caller.
@@ -275,9 +242,8 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 		} // ESP_GATTC_WRITE_CHAR_EVT
 
 
-		default: {
+		default:
 			break;
-		}
 	} // End switch
 }; // gattClientEventHandler
 
@@ -294,7 +260,7 @@ void BLERemoteCharacteristic::retrieveDescriptors() {
 	// For each descriptor we find, create a BLERemoteDescriptor instance.
 	uint16_t offset = 0;
 	esp_gattc_descr_elem_t result;
-	while(1) {
+	while (true) {
 		uint16_t count = 1;
 		esp_gatt_status_t status = ::esp_ble_gattc_get_all_descr(
 			getRemoteService()->getClient()->getGattcIf(),
@@ -314,14 +280,12 @@ void BLERemoteCharacteristic::retrieveDescriptors() {
 			break;
 		}
 
-		if (count == 0) {
-			break;
-		}
+		if (count == 0) break;
 		ESP_LOGE(LOG_TAG, "");
 		ESP_LOGD(LOG_TAG, "Found a descriptor: Handle: %d, UUID: %s", result.handle, BLEUUID(result.uuid).toString().c_str());
 
 		// We now have a new characteristic ... let us add that to our set of known characteristics
-		BLERemoteDescriptor *pNewRemoteDescriptor = new BLERemoteDescriptor(
+		BLERemoteDescriptor* pNewRemoteDescriptor = new BLERemoteDescriptor(
 			result.handle,
 			BLEUUID(result.uuid),
 			this
@@ -339,7 +303,7 @@ void BLERemoteCharacteristic::retrieveDescriptors() {
 /**
  * @brief Retrieve the map of descriptors keyed by UUID.
  */
-std::map<std::string, BLERemoteDescriptor *>* BLERemoteCharacteristic::getDescriptors() {
+std::map<std::string, BLERemoteDescriptor*>* BLERemoteCharacteristic::getDescriptors() {
 	return &m_descriptorMap;
 } // getDescriptors
 
@@ -363,7 +327,7 @@ uint16_t BLERemoteCharacteristic::getHandle() {
 BLERemoteDescriptor* BLERemoteCharacteristic::getDescriptor(BLEUUID uuid) {
 	ESP_LOGD(LOG_TAG, ">> getDescriptor: uuid: %s", uuid.toString().c_str());
 	std::string v = uuid.toString();
-	for (auto &myPair : m_descriptorMap) {
+	for (auto& myPair : m_descriptorMap) {
 		if (myPair.first == v) {
 			ESP_LOGD(LOG_TAG, "<< getDescriptor: found");
 			return myPair.second;
@@ -396,10 +360,10 @@ BLEUUID BLERemoteCharacteristic::getUUID() {
  * @brief Read an unsigned 16 bit value
  * @return The unsigned 16 bit value.
  */
-uint16_t BLERemoteCharacteristic::readUInt16(void) {
+uint16_t BLERemoteCharacteristic::readUInt16() {
 	std::string value = readValue();
 	if (value.length() >= 2) {
-		return *(uint16_t*)(value.data());
+		return *(uint16_t*) value.data();
 	}
 	return 0;
 } // readUInt16
@@ -409,10 +373,10 @@ uint16_t BLERemoteCharacteristic::readUInt16(void) {
  * @brief Read an unsigned 32 bit value.
  * @return the unsigned 32 bit value.
  */
-uint32_t BLERemoteCharacteristic::readUInt32(void) {
+uint32_t BLERemoteCharacteristic::readUInt32() {
 	std::string value = readValue();
 	if (value.length() >= 4) {
-		return *(uint32_t*)(value.data());
+		return *(uint32_t*) value.data();
 	}
 	return 0;
 } // readUInt32
@@ -422,10 +386,10 @@ uint32_t BLERemoteCharacteristic::readUInt32(void) {
  * @brief Read a byte value
  * @return The value as a byte
  */
-uint8_t BLERemoteCharacteristic::readUInt8(void) {
+uint8_t BLERemoteCharacteristic::readUInt8() {
 	std::string value = readValue();
 	if (value.length() >= 1) {
-		return (uint8_t)value[0];
+		return (uint8_t) value[0];
 	}
 	return 0;
 } // readUInt8
@@ -499,9 +463,8 @@ void BLERemoteCharacteristic::registerForNotify(
 		}
 
 		uint8_t val[] = {0x01, 0x00};
-		if(!notifications)
-			val[0] = 0x02;
-		BLERemoteDescriptor *desc = getDescriptor(BLEUUID("0x2902"));
+		if (!notifications) val[0] = 0x02;
+		BLERemoteDescriptor* desc = getDescriptor(BLEUUID("0x2902"));
 		desc->writeValue(val, 2);
 	} // End Register
 	else {   // If we weren't passed a callback function, then this is an unregistration.
@@ -516,7 +479,7 @@ void BLERemoteCharacteristic::registerForNotify(
 		}
 
 		uint8_t val[] = {0x00, 0x00};
-		BLERemoteDescriptor *desc = getDescriptor(BLEUUID("0x2902"));
+		BLERemoteDescriptor* desc = getDescriptor(BLEUUID("0x2902"));
 		desc->writeValue(val, 2);
 	} // End Unregister
 
@@ -615,11 +578,11 @@ void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
  * @param [in] response Whether we require a response from the write.
  */
 void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool response) {
-	writeValue(std::string((char *)data, length), response);
+	writeValue(std::string((char*) data, length), response);
 } // writeValue
 
 /**
- * @brief Read raw data from remote characteristic as hex bytes 
+ * @brief Read raw data from remote characteristic as hex bytes
  * @return return pointer data read
  */
 uint8_t* BLERemoteCharacteristic::readRawData() {

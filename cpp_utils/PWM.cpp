@@ -97,7 +97,7 @@ void PWM::setDuty(uint32_t duty) {
  */
 void PWM::setDutyPercentage(uint8_t percent) {
 	uint32_t max;
-	switch(m_dutyResolution) {
+	switch (m_dutyResolution) {
 		case LEDC_TIMER_10_BIT:
 			max = 1 << 10;
 			break;
@@ -120,15 +120,10 @@ void PWM::setDutyPercentage(uint8_t percent) {
 			max = 1 << 10;
 			break;
 	}
-	if (percent > 100) {
-		percent = 100;
-	}
+	if (percent > 100) percent = 100;
 	uint32_t value = max * percent / 100;
-	if (value >= max) {
-		value = max-1;
-	}
+	if (value >= max) value = max - 1;
 	setDuty(value);
-
 } // setDutyPercentage
 
 

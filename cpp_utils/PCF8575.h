@@ -21,7 +21,7 @@ class PCF8575 {
 public:
 	PCF8575(uint8_t address);
 	virtual ~PCF8575();
-	void     init(gpio_num_t sdaPin=I2C::DEFAULT_SDA_PIN, gpio_num_t clkPin=I2C::DEFAULT_CLK_PIN);
+	void     init(gpio_num_t sdaPin = I2C::DEFAULT_SDA_PIN, gpio_num_t clkPin = I2C::DEFAULT_CLK_PIN);
 	uint16_t read();
 	bool     readBit(uint16_t bit);
 	void     setInvert(bool value);

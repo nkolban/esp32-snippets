@@ -65,40 +65,39 @@ void BLESecurity::setKeySize(uint8_t key_size) {
 /**
  * @brief Debug function to display what keys are exchanged by peers
  */
-char* BLESecurity::esp_key_type_to_str(esp_ble_key_type_t key_type)
-{
+char* BLESecurity::esp_key_type_to_str(esp_ble_key_type_t key_type) {
 	char* key_str = nullptr;
-	switch(key_type) {
-	case ESP_LE_KEY_NONE:
-		key_str = (char*)"ESP_LE_KEY_NONE";
-		break;
+	switch (key_type) {
+		case ESP_LE_KEY_NONE:
+			key_str = (char*) "ESP_LE_KEY_NONE";
+			break;
 		case ESP_LE_KEY_PENC:
-			key_str = (char*)"ESP_LE_KEY_PENC";
+			key_str = (char*) "ESP_LE_KEY_PENC";
 			break;
 		case ESP_LE_KEY_PID:
-			key_str = (char*)"ESP_LE_KEY_PID";
+			key_str = (char*) "ESP_LE_KEY_PID";
 			break;
 		case ESP_LE_KEY_PCSRK:
-			key_str = (char*)"ESP_LE_KEY_PCSRK";
+			key_str = (char*) "ESP_LE_KEY_PCSRK";
 			break;
 		case ESP_LE_KEY_PLK:
-			key_str = (char*)"ESP_LE_KEY_PLK";
+			key_str = (char*) "ESP_LE_KEY_PLK";
 			break;
 		case ESP_LE_KEY_LLK:
-			key_str = (char*)"ESP_LE_KEY_LLK";
+			key_str = (char*) "ESP_LE_KEY_LLK";
 			break;
-    case ESP_LE_KEY_LENC:
-    	key_str = (char*)"ESP_LE_KEY_LENC";
-    	break;
-    case ESP_LE_KEY_LID:
-    	key_str = (char*)"ESP_LE_KEY_LID";
-    	break;
-    case ESP_LE_KEY_LCSRK:
-    	key_str = (char*)"ESP_LE_KEY_LCSRK";
-    	break;
-    default:
-    	key_str = (char*)"INVALID BLE KEY TYPE";
-    	break;
+		case ESP_LE_KEY_LENC:
+			key_str = (char*) "ESP_LE_KEY_LENC";
+			break;
+		case ESP_LE_KEY_LID:
+			key_str = (char*) "ESP_LE_KEY_LID";
+			break;
+		case ESP_LE_KEY_LCSRK:
+			key_str = (char*) "ESP_LE_KEY_LCSRK";
+			break;
+		default:
+			key_str = (char*) "INVALID BLE KEY TYPE";
+			break;
 	}
 	return key_str;
 } // esp_key_type_to_str

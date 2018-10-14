@@ -25,6 +25,7 @@ public:
 	static void       deleteArray(JsonArray jsonArray);
 	static JsonObject parseObject(std::string text);
 	static JsonArray  parseArray(std::string text);
+
 }; // JSON
 
 
@@ -33,7 +34,6 @@ public:
  */
 class JsonArray {
 public:
-
 	int         getInt(int item);
 	JsonObject  getObject(int item);
 	std::string getString(int item);
@@ -47,6 +47,7 @@ public:
 	std::string toString();
 	std::string toStringUnformatted();
 	std::size_t size();
+
 private:
 	JsonArray(cJSON* node);
 	friend class JSON;
@@ -54,7 +55,8 @@ private:
 	/**
 	 * @brief The underlying cJSON node.
 	 */
-	cJSON *m_node;
+	cJSON* m_node;
+
 }; // JsonArray
 
 
@@ -88,6 +90,7 @@ private:
 	 * @brief The underlying cJSON node.
 	 */
 	cJSON* m_node;
+
 }; // JsonObject
 
 

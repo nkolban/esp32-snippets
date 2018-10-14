@@ -50,8 +50,8 @@ struct Frame {
  */
 static void dumpFrame(Frame frame) {
 	std::ostringstream oss;
-	oss << "Fin: " << (int)frame.fin << ", OpCode: " << (int)frame.opCode;
-	switch(frame.opCode) {
+	oss << "Fin: " << (int) frame.fin << ", OpCode: " << (int) frame.opCode;
+	switch (frame.opCode) {
 		case OPCODE_BINARY: {
 			oss << " BINARY";
 			break;
@@ -81,7 +81,7 @@ static void dumpFrame(Frame frame) {
 			break;
 		}
 	}
-	oss << ", Mask: " << (int)frame.mask << ", len: " << (int)frame.len;
+	oss << ", Mask: " << (int) frame.mask << ", len: " << (int) frame.len;
 	ESP_LOGD(LOG_TAG, "WebSocket frame: %s", oss.str().c_str());
 } // dumpFrame
 
@@ -101,6 +101,7 @@ public:
 	void end() {
 		m_end = true;
 	}
+
 private:
 	bool m_end;
 	/**
@@ -114,18 +115,16 @@ private:
 		Socket peerSocket = pWebSocket->getSocket();
 
 		Frame frame;
-		while(1) {
-			if (m_end) {
-				break;
-			}
-			ESP_LOGD("WebSocketReader", "Waiting on socket data for socket %s", peerSocket.toString().c_str());
-			int length = peerSocket.receive((uint8_t*)&frame, sizeof(frame), true); // Read exact
+		while (true) {
+			if (m_end) break;
+			ESP_LOGD(LOG_TAG, "Waiting on socket data for socket %s", peerSocket.toString().c_str());
+			int length = peerSocket.receive((uint8_t*) &frame, sizeof(frame), true); // Read exact
 			if (length != sizeof(frame)) {
 				ESP_LOGD(LOG_TAG, "Socket read error");
 				pWebSocket->close();
 				return;
 			}
-			ESP_LOGD("WebSocketReader", "Received data from web socket.  Length: %d", length);
+			ESP_LOGD(LOG_TAG, "Received data from web socket.  Length: %d", length);
 			dumpFrame(frame);
 
 			// The following section parses the WebSocket frame.
@@ -135,12 +134,12 @@ private:
 				payloadLen = frame.len;
 			} else if (frame.len == 126) {
 				uint16_t tempLen;
-				peerSocket.receive((uint8_t*)&tempLen, sizeof(tempLen), true);
+				peerSocket.receive((uint8_t*) &tempLen, sizeof(tempLen), true);
 				payloadLen = ntohs(tempLen);
 			} else if (frame.len == 127) {
 				uint64_t tempLen;
-				peerSocket.receive((uint8_t*)&tempLen, sizeof(tempLen), true);
-				payloadLen = ntohl((uint32_t)tempLen);
+				peerSocket.receive((uint8_t*) &tempLen, sizeof(tempLen), true);
+				payloadLen = ntohl((uint32_t) tempLen);
 			}
 			if (frame.mask == 1) {
 				peerSocket.receive(mask, sizeof(mask), true);
@@ -152,12 +151,12 @@ private:
 				ESP_LOGD("WebSocketReader", "Web socket payload, length=%d:", payloadLen);
 			}
 
-			WebSocketHandler *pWebSocketHandler = pWebSocket->getHandler();
-			switch(frame.opCode) {
+			WebSocketHandler* pWebSocketHandler = pWebSocket->getHandler();
+			switch (frame.opCode) {
 				case OPCODE_TEXT:
 				case OPCODE_BINARY: {
 					if (pWebSocketHandler != nullptr) {
-						WebSocketInputStreambuf streambuf(pWebSocket->getSocket(), payloadLen, frame.mask==1?mask:nullptr);
+						WebSocketInputStreambuf streambuf(pWebSocket->getSocket(), payloadLen, (frame.mask == 1) ? mask : nullptr);
 						pWebSocketHandler->onMessage(&streambuf, pWebSocket);
 						//streambuf.discard();
 					}
@@ -187,12 +186,12 @@ private:
 				}
 
 				default: {
-						ESP_LOGD("WebSocketReader", "Unknown opcode: %d", frame.opCode);
+					ESP_LOGD("WebSocketReader", "Unknown opcode: %d", frame.opCode);
 					break;
 				}
 			} // Switch opCode
 
-		} // While (1)
+		} // while (true)
 		ESP_LOGD("WebSocketReader", "<< run");
 	} // run
 }; // WebSocketReader
@@ -218,7 +217,7 @@ void WebSocketHandler::onClose() {
  * ```
  * This will read the whole message into the string stream.
  */
-void WebSocketHandler::onMessage(WebSocketInputStreambuf* pWebSocketInputStreambuf, WebSocket *pWebSocket) {
+void WebSocketHandler::onMessage(WebSocketInputStreambuf* pWebSocketInputStreambuf, WebSocket* pWebSocket) {
 	ESP_LOGD("WebSocketHandler", ">> onMessage");
 	ESP_LOGD("WebSocketHandler", "<< onMessage");
 } // onData
@@ -279,7 +278,7 @@ void WebSocket::close(uint16_t status, std::string message) {
 	frame.opCode = OPCODE_CLOSE;
 	frame.mask   = 0;
 	frame.len    = message.length() + 2;
-	int rc = m_socket.send((uint8_t *)&frame, sizeof(frame));
+	int rc = m_socket.send((uint8_t*) &frame, sizeof(frame));
 
 	if (rc > 0) {
 		rc = m_socket.send(status);
@@ -329,15 +328,15 @@ void WebSocket::send(std::string data, uint8_t sendType) {
 	frame.rsv1   = 0;
 	frame.rsv2   = 0;
 	frame.rsv3   = 0;
-	frame.opCode = sendType==SEND_TYPE_TEXT?OPCODE_TEXT:OPCODE_BINARY;
+	frame.opCode = (sendType == SEND_TYPE_TEXT) ? OPCODE_TEXT : OPCODE_BINARY;
 	frame.mask   = 0;
 	if (data.length() < 126) {
 		frame.len = data.length();
-		m_socket.send((uint8_t *)&frame, sizeof(frame));
+		m_socket.send((uint8_t*) &frame, sizeof(frame));
 	} else {
 		frame.len = 126;
-		m_socket.send((uint8_t *)&frame, sizeof(frame));
-		m_socket.send(htons((uint16_t)data.length()));  // Convert to network byte order from host byte order
+		m_socket.send((uint8_t*) &frame, sizeof(frame));
+		m_socket.send(htons((uint16_t) data.length()));  // Convert to network byte order from host byte order
 	}
 	m_socket.send((uint8_t*)data.data(), data.length());
 	ESP_LOGD(LOG_TAG, "<< send");
@@ -358,14 +357,14 @@ void WebSocket::send(uint8_t* data, uint16_t length, uint8_t sendType) {
 	frame.rsv1   = 0;
 	frame.rsv2   = 0;
 	frame.rsv3   = 0;
-	frame.opCode = sendType==SEND_TYPE_TEXT?OPCODE_TEXT:OPCODE_BINARY;
+	frame.opCode = (sendType==SEND_TYPE_TEXT) ? OPCODE_TEXT : OPCODE_BINARY;
 	frame.mask   = 0;
 	if (length < 126) {
 		frame.len = length;
-		m_socket.send((uint8_t *)&frame, sizeof(frame));
+		m_socket.send((uint8_t*) &frame, sizeof(frame));
 	} else {
 		frame.len = 126;
-		m_socket.send((uint8_t *)&frame, sizeof(frame));
+		m_socket.send((uint8_t*) &frame, sizeof(frame));
 		m_socket.send(htons(length));  // Convert to network byte order from host byte order
 	}
 	m_socket.send(data, length);
@@ -405,7 +404,7 @@ void WebSocket::startReader() {
 WebSocketInputStreambuf::WebSocketInputStreambuf(
 	Socket   socket,
 	size_t   dataLength,
-	uint8_t *pMask,
+	uint8_t* pMask,
 	size_t   bufferSize) {
 	m_socket     = socket;    // The socket we will be reading from
 	m_dataLength = dataLength; // The size of the record we wish to read.
@@ -476,7 +475,7 @@ WebSocketInputStreambuf::int_type WebSocketInputStreambuf::underflow() {
 	// We wish to refill the buffer.  We want to read data from the socket.  We want to read either
 	// the size of the buffer to fill it or the maximum number of bytes remaining to be read.
 	// We will choose which ever is smaller as the number of bytes to read into the buffer.
-	int remainingBytes = getRecordSize()-m_sizeRead;
+	int remainingBytes = getRecordSize() - m_sizeRead;
 	size_t sizeToRead;
 	if (remainingBytes < m_bufferSize) {
 		sizeToRead = remainingBytes;
@@ -485,7 +484,7 @@ WebSocketInputStreambuf::int_type WebSocketInputStreambuf::underflow() {
 	}
 
 	ESP_LOGD("WebSocketInputRecordStreambuf", "- getting next buffer of data; size request: %d", sizeToRead);
-	int bytesRead = m_socket.receive((uint8_t*)m_buffer, sizeToRead, true);
+	int bytesRead = m_socket.receive((uint8_t*) m_buffer, sizeToRead, true);
 	if (bytesRead == 0) {
 		ESP_LOGD("WebSocketInputRecordStreambuf", "<< underflow: Read 0 bytes");
 		return EOF;
@@ -493,8 +492,8 @@ WebSocketInputStreambuf::int_type WebSocketInputStreambuf::underflow() {
 
 	// If the WebSocket frame shows that we have a mask bit set then we have to unmask the data.
 	if (m_pMask != nullptr) {
-		for (int i=0; i<bytesRead; i++) {
-			m_buffer[i] = m_buffer[i] ^ m_pMask[(m_sizeRead+i)%4];
+		for (int i = 0; i < bytesRead; i++) {
+			m_buffer[i] = m_buffer[i] ^ m_pMask[(m_sizeRead + i) % 4];
 		}
 	}
 

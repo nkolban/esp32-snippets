@@ -23,12 +23,12 @@ public:
 	static const char*        addressTypeToString(esp_ble_addr_type_t type);
 	static std::string        adFlagsToString(uint8_t adFlags);
 	static const char*        advTypeToString(uint8_t advType);
-	static esp_gatt_id_t      buildGattId(esp_bt_uuid_t uuid, uint8_t inst_id=0);
-	static esp_gatt_srvc_id_t buildGattSrvcId(esp_gatt_id_t gattId, bool is_primary=true);
 	static char*              buildHexData(uint8_t* target, uint8_t* source, uint8_t length);
 	static std::string        buildPrintData(uint8_t* source, size_t length);
 	static std::string        characteristicPropertiesToString(esp_gatt_char_prop_t prop);
 	static const char*        devTypeToString(esp_bt_dev_type_t type);
+	static esp_gatt_id_t	  buildGattId(esp_bt_uuid_t uuid, uint8_t inst_id = 0);
+	static esp_gatt_srvc_id_t buildGattSrvcId(esp_gatt_id_t gattId, bool is_primary = true);
 	static void dumpGapEvent(
 		esp_gap_ble_cb_event_t  event,
 		esp_ble_gap_cb_param_t* param);
@@ -47,7 +47,7 @@ public:
 	static std::string gattCharacteristicUUIDToString(uint32_t characteristicUUID);
 	static std::string gattClientEventTypeToString(esp_gattc_cb_event_t eventType);
 	static std::string gattCloseReasonToString(esp_gatt_conn_reason_t reason);
-	static std::string gattcServiceElementToString(esp_gattc_service_elem_t *pGATTCServiceElement);
+	static std::string gattcServiceElementToString(esp_gattc_service_elem_t* pGATTCServiceElement);
 	static std::string gattDescriptorUUIDToString(uint32_t descriptorUUID);
 	static std::string gattServerEventTypeToString(esp_gatts_cb_event_t eventType);
 	static std::string gattServiceIdToString(esp_gatt_srvc_id_t srvcId);

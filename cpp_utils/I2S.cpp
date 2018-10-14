@@ -27,7 +27,6 @@ static const char* LOG_TAG = "I2S";
 static intr_handle_t i2s_intr_handle;
 
 
-
 /**
  * A representation of a DMA buffer.
  */
@@ -67,6 +66,7 @@ DMABuffer::~DMABuffer() {
 	delete[] m_desc.buf;
 } // ~DMABuffer
 
+
 /**
  * @brief Dump the state of the buffer.
  * @return N/A
@@ -74,7 +74,7 @@ DMABuffer::~DMABuffer() {
 void DMABuffer::dump() {
 	std::ostringstream ss;
 	ss << "size: "     << m_desc.size;
-	ss << ", buf: 0x"  << std::hex << (uint32_t)m_desc.buf << std::dec;
+	ss << ", buf: 0x"  << std::hex << (uint32_t) m_desc.buf << std::dec;
 	ss << ", length: " << m_desc.length;
 	ss << ", offset: " << m_desc.offset;
 	ss << ", sosf: "   << m_desc.sosf;
@@ -82,10 +82,8 @@ void DMABuffer::dump() {
 	ss << ", owner: "  << m_desc.owner;
 	ESP_LOGD(LOG_TAG, "Desc: %s", ss.str().c_str());
 	int length = 100;
-	if (length > m_desc.length) {
-		length = m_desc.length;
-	}
-	GeneralUtils::hexDump((uint8_t*)m_desc.buf, length);
+	if (length > m_desc.length) length = m_desc.length;
+	GeneralUtils::hexDump((uint8_t*) m_desc.buf, length);
 }
 
 /**
@@ -95,23 +93,15 @@ void DMABuffer::dump() {
  * @return The number of bytes actually copied.
  */
 uint32_t DMABuffer::getData(uint8_t* pData, uint32_t length) {
-	uint8_t* pBuf = (uint8_t*)m_desc.buf;
-	if (length > getLength()) {
-		length = getLength();
-	}
+	uint8_t* pBuf = (uint8_t*) m_desc.buf;
+	if (length > getLength()) length = getLength();
 	uint32_t i;
-	//
 	// The descriptor buffer is filled with data that contains:
-	//
 	// b1 00 b0 00  b3 00 b2 00  b5 00 b4 00  b7 00 b6 00
-	//
 	// Our goal is to populate the passed in buffer with data of the form:
-	//
 	// b0 b1 b2 b3  b4 b5 b6 b7 ...
-	//
 	// The following alogrithm does that.
-	//
-	for (i=0; i<length; i+=2) {
+	for (i = 0; i < length; i += 2) {
 		*pData = pBuf[2];
 		pData++;
 		*pData = pBuf[0];
@@ -136,7 +126,7 @@ lldesc_t* DMABuffer::getDesc() {
  * @return The number of populated bytes.
  */
 uint32_t DMABuffer::getLength() {
-	return m_desc.length/4;
+	return m_desc.length / 4;
 } // getLength
 
 
@@ -171,31 +161,27 @@ void DMABuffer::setNext(DMABuffer* pNext) {
 
 I2S::I2S() {
 	// TODO Auto-generated constructor stub
-
 }
 
 I2S::~I2S() {
 	// TODO Auto-generated destructor stub
 }
 
-DMABuffer *pCurrentDMABuffer;
-DMABuffer *pLastDMABuffer;
+DMABuffer* pCurrentDMABuffer;
+DMABuffer* pLastDMABuffer;
 
 
-static void i2s_conf_reset()
-{
-    const uint32_t lc_conf_reset_flags = I2S_IN_RST_M | I2S_AHBM_RST_M
-            | I2S_AHBM_FIFO_RST_M;
-    I2S0.lc_conf.val |= lc_conf_reset_flags;
-    I2S0.lc_conf.val &= ~lc_conf_reset_flags;
+static void i2s_conf_reset() {
+	const uint32_t lc_conf_reset_flags = I2S_IN_RST_M | I2S_AHBM_RST_M | I2S_AHBM_FIFO_RST_M;
+	I2S0.lc_conf.val |= lc_conf_reset_flags;
+	I2S0.lc_conf.val &= ~lc_conf_reset_flags;
 
-    const uint32_t conf_reset_flags = I2S_RX_RESET_M | I2S_RX_FIFO_RESET_M
-            | I2S_TX_RESET_M | I2S_TX_FIFO_RESET_M;
-    I2S0.conf.val |= conf_reset_flags;
-    I2S0.conf.val &= ~conf_reset_flags;
-    while (I2S0.state.rx_fifo_reset_back) {
-        ;
-    }
+	const uint32_t conf_reset_flags = I2S_RX_RESET_M | I2S_RX_FIFO_RESET_M | I2S_TX_RESET_M | I2S_TX_FIFO_RESET_M;
+	I2S0.conf.val |= conf_reset_flags;
+	I2S0.conf.val &= ~conf_reset_flags;
+	while (I2S0.state.rx_fifo_reset_back) {
+		;
+	}
 }
 
 /*
@@ -228,16 +214,15 @@ static void IRAM_ATTR logDesc(lldesc_t* pDesc) {
 /**
  * @brief I2S DMA Interrupt handler
  */
-static void IRAM_ATTR i2s_isr(void* arg)
-{
-	I2S* pI2S = (I2S*)arg;
-  //ESP_EARLY_LOGV(LOG_TAG, "I2S isr");
-  pLastDMABuffer = pCurrentDMABuffer;
-  //logI2SIntr();
-  //logDesc(pCurrentDMABuffer->getDesc());
-  pCurrentDMABuffer = pCurrentDMABuffer->getNext();
-  I2S0.int_clr.val = I2S0.int_raw.val;
-  pI2S->m_dmaSemaphore.giveFromISR();
+static void IRAM_ATTR i2s_isr(void* arg) {
+	I2S* pI2S = (I2S*) arg;
+	//ESP_EARLY_LOGV(LOG_TAG, "I2S isr");
+	pLastDMABuffer = pCurrentDMABuffer;
+	//logI2SIntr();
+	//logDesc(pCurrentDMABuffer->getDesc());
+	pCurrentDMABuffer = pCurrentDMABuffer->getNext();
+	I2S0.int_clr.val = I2S0.int_raw.val;
+	pI2S->m_dmaSemaphore.giveFromISR();
 }
 
 /**
@@ -261,20 +246,20 @@ void I2S::cameraMode(dma_config_t config, int desc_count, int sample_count) {
 
 	const uint32_t const_high = 0x38;
 
-  gpio_matrix_in(config.pin_d0,    I2S0I_DATA_IN0_IDX, false);
-  gpio_matrix_in(config.pin_d1,    I2S0I_DATA_IN1_IDX, false);
-  gpio_matrix_in(config.pin_d2,    I2S0I_DATA_IN2_IDX, false);
-  gpio_matrix_in(config.pin_d3,    I2S0I_DATA_IN3_IDX, false);
-  gpio_matrix_in(config.pin_d4,    I2S0I_DATA_IN4_IDX, false);
-  gpio_matrix_in(config.pin_d5,    I2S0I_DATA_IN5_IDX, false);
-  gpio_matrix_in(config.pin_d6,    I2S0I_DATA_IN6_IDX, false);
-  gpio_matrix_in(config.pin_d7,    I2S0I_DATA_IN7_IDX, false);
-  gpio_matrix_in(config.pin_vsync,       I2S0I_V_SYNC_IDX,   true);
-  gpio_matrix_in(config.pin_href,       I2S0I_H_SYNC_IDX,   false);
-  //gpio_matrix_in(const_high,       I2S0I_V_SYNC_IDX,   false);
-  //gpio_matrix_in(const_high,       I2S0I_H_SYNC_IDX,   false);
-  gpio_matrix_in(const_high,       I2S0I_H_ENABLE_IDX, false);
-  gpio_matrix_in(config.pin_pclk,  I2S0I_WS_IN_IDX,    false);
+	gpio_matrix_in(config.pin_d0,	   I2S0I_DATA_IN0_IDX, false);
+	gpio_matrix_in(config.pin_d1,	   I2S0I_DATA_IN1_IDX, false);
+	gpio_matrix_in(config.pin_d2,	   I2S0I_DATA_IN2_IDX, false);
+	gpio_matrix_in(config.pin_d3,	   I2S0I_DATA_IN3_IDX, false);
+	gpio_matrix_in(config.pin_d4,	   I2S0I_DATA_IN4_IDX, false);
+	gpio_matrix_in(config.pin_d5,	   I2S0I_DATA_IN5_IDX, false);
+	gpio_matrix_in(config.pin_d6,	   I2S0I_DATA_IN6_IDX, false);
+	gpio_matrix_in(config.pin_d7,	   I2S0I_DATA_IN7_IDX, false);
+	gpio_matrix_in(config.pin_vsync,	I2S0I_V_SYNC_IDX,   true);
+	gpio_matrix_in(config.pin_href,	 I2S0I_H_SYNC_IDX,   false);
+//	gpio_matrix_in(const_high,		  I2S0I_V_SYNC_IDX,   false);
+//	gpio_matrix_in(const_high,		  I2S0I_H_SYNC_IDX,   false);
+	gpio_matrix_in(const_high,		  I2S0I_H_ENABLE_IDX, false);
+	gpio_matrix_in(config.pin_pclk,	 I2S0I_WS_IN_IDX,	false);
 
 	// Enable and configure I2S peripheral
 	periph_module_enable(PERIPH_I2S0_MODULE);
@@ -345,10 +330,10 @@ void I2S::cameraMode(dma_config_t config, int desc_count, int sample_count) {
 
 
 	ESP_LOGD(LOG_TAG, "Initializing %d descriptors", desc_count);
-	DMABuffer *pFirst = new DMABuffer();
-	DMABuffer *pLast = pFirst;
-	for (int i=1; i<desc_count; i++) {
-		DMABuffer* pNewDMABuffer = new DMABuffer();
+	DMABuffer* pFirst = new DMABuffer(); // TODO: POTENTIAL LEAK
+	DMABuffer* pLast = pFirst;
+	for (int i = 1; i < desc_count; i++) {
+		DMABuffer* pNewDMABuffer = new DMABuffer();  // TODO: POTENTIAL LEAK
 		pLast->setNext(pNewDMABuffer);
 		pLast = pNewDMABuffer;
 	}
@@ -356,45 +341,45 @@ void I2S::cameraMode(dma_config_t config, int desc_count, int sample_count) {
 	pCurrentDMABuffer = pFirst;
 
 	// I2S_RX_EOF_NUM_REG
-  I2S0.rx_eof_num      = sample_count;
+	I2S0.rx_eof_num	  = sample_count;
 
-  // I2S_IN_LINK_REG -> I2S_INLINK_ADDR
-  I2S0.in_link.addr    = (uint32_t) pFirst;
+	// I2S_IN_LINK_REG -> I2S_INLINK_ADDR
+	I2S0.in_link.addr	= (uint32_t) pFirst;
 
-  // I2S_IN_LINK_REG -> I2S_INLINK_START
-  I2S0.in_link.start   = 1;
+	// I2S_IN_LINK_REG -> I2S_INLINK_START
+	I2S0.in_link.start   = 1;
 
-  I2S0.int_clr.val     = I2S0.int_raw.val;
-  I2S0.int_ena.val     = 0;
-  I2S0.int_ena.in_done = 1;
+	I2S0.int_clr.val	 = I2S0.int_raw.val;
+	I2S0.int_ena.val	 = 0;
+	I2S0.int_ena.in_done = 1;
 
-  // Register the interrupt handler.
-  esp_intr_alloc(
-  	ETS_I2S0_INTR_SOURCE,
-		ESP_INTR_FLAG_INTRDISABLED | ESP_INTR_FLAG_LEVEL1 | ESP_INTR_FLAG_IRAM,
-		&i2s_isr,
-		this,
-		&i2s_intr_handle);
+	// Register the interrupt handler.
+	esp_intr_alloc(
+			ETS_I2S0_INTR_SOURCE,
+			ESP_INTR_FLAG_INTRDISABLED | ESP_INTR_FLAG_LEVEL1 | ESP_INTR_FLAG_IRAM,
+			&i2s_isr,
+			this,
+			&i2s_intr_handle);
 
-  m_dmaSemaphore.take();
-  // Start the interrupt handler
-  esp_intr_enable(i2s_intr_handle);
+	m_dmaSemaphore.take();
+	// Start the interrupt handler
+	esp_intr_enable(i2s_intr_handle);
 
-  I2S0.conf.rx_start = 1;
+	I2S0.conf.rx_start = 1;
 
-  /*
-  while(1) {
-  	m_dmaSemaphore.wait();
-  	uint32_t dataLength = pLastDMABuffer->getLength();
-  	ESP_LOGD(LOG_TAG, "Got a DMA buffer; length=%d", dataLength);
-  	//pLastDMABuffer->dump();
-  	uint8_t *pData = new uint8_t[dataLength];
-  	pLastDMABuffer->getData(pData, dataLength);
+	/*
+	while(1) {
+		m_dmaSemaphore.wait();
+		uint32_t dataLength = pLastDMABuffer->getLength();
+		ESP_LOGD(LOG_TAG, "Got a DMA buffer; length=%d", dataLength);
+		//pLastDMABuffer->dump();
+		uint8_t *pData = new uint8_t[dataLength];
+		pLastDMABuffer->getData(pData, dataLength);
 		GeneralUtils::hexDump(pData, dataLength);
 		delete[] pData;
 		m_dmaSemaphore.take();
-  }
-  */
+	}
+	*/
 
 	ESP_LOGD(LOG_TAG, "<< cameraMode");
 }

@@ -26,11 +26,12 @@ const int HttpResponse::HTTP_STATUS_NOT_IMPLEMENTED       = 501;
 const int HttpResponse::HTTP_STATUS_SERVICE_UNAVAILABLE   = 503;
 
 static std::string lineTerminator = "\r\n";
-HttpResponse::HttpResponse(HttpRequest *request) {
 	m_request = request;
 	m_status  = 200;
+HttpResponse::HttpResponse(HttpRequest* request) {
 	m_headerCommitted = false; // We have not yet sent a header.
 }
+
 
 HttpResponse::~HttpResponse() {
 }
@@ -43,9 +44,7 @@ HttpResponse::~HttpResponse() {
  * @param [in] value The value of the header.
  */
 void HttpResponse::addHeader(const std::string name, const std::string value) {
-	if (m_headerCommitted) {
-		return;
-	}
+	if (m_headerCommitted) return;
 	m_responseHeaders.insert(std::pair<std::string, std::string>(name, value));
 } // addHeader
 
@@ -57,7 +56,7 @@ void HttpResponse::addHeader(const std::string name, const std::string value) {
  */
 void HttpResponse::close() {
 	// If we haven't yet sent the header of the data, send that now.
-	if (m_headerCommitted == false) {
+	if (!m_headerCommitted) {
 		sendHeader();
 	}
 	m_request->close();
@@ -70,9 +69,7 @@ void HttpResponse::close() {
  * @return The value of the named header.
  */
 std::string HttpResponse::getHeader(std::string name) {
-	if (m_responseHeaders.find(name) == m_responseHeaders.end()) {
-		return "";
-	}
+	if (m_responseHeaders.find(name) == m_responseHeaders.end()) return "";
 	return m_responseHeaders.at(name);
 } // getHeader
 
@@ -97,7 +94,7 @@ void HttpResponse::sendData(std::string data) {
 	}
 
 	// If we haven't yet sent the header of the data, send that now.
-	if (m_headerCommitted == false) {
+	if (!m_headerCommitted) {
 		sendHeader();
 	}
 
@@ -115,7 +112,7 @@ void HttpResponse::sendData(uint8_t* pData, size_t size) {
 	}
 
 	// If we haven't yet sent the header of the data, send that now.
-	if (m_headerCommitted == false) {
+	if (!m_headerCommitted) {
 		sendHeader();
 	}
 
@@ -124,8 +121,7 @@ void HttpResponse::sendData(uint8_t* pData, size_t size) {
 	ESP_LOGD(LOG_TAG, "<< sendData");
 } // sendData
 
-void HttpResponse::sendFile(std::string fileName, size_t bufSize)
-{
+void HttpResponse::sendFile(std::string fileName, size_t bufSize) {
 	ESP_LOGI(LOG_TAG, "Opening file: %s", fileName.c_str());
 	std::ifstream ifStream;
 	ifStream.open(fileName, std::ifstream::in | std::ifstream::binary);      // Attempt to open the file for reading.
@@ -139,15 +135,15 @@ void HttpResponse::sendFile(std::string fileName, size_t bufSize)
 		close();
 		return; // Since we failed to open the file, no further work to be done.
 	}
-	
+
 	// We now have an open file and want to push the content of that file through to the browser.
 	// because of defect #252 we have to do some pretty important re-work here.  Specifically, we can't host the whole file in
 	// RAM at one time.  Instead what we have to do is ensure that we only have enough data in RAM to be sent.
-	
+
 	setStatus(HttpResponse::HTTP_STATUS_OK, "OK");
 	uint8_t *pData = new uint8_t[bufSize];
-	while(!ifStream.eof()) {
-		ifStream.read((char *)pData, bufSize);
+	while (!ifStream.eof()) {
+		ifStream.read((char*) pData, bufSize);
 		sendData(pData, ifStream.gcount());
 	}
 	delete[] pData;
@@ -160,7 +156,7 @@ void HttpResponse::sendFile(std::string fileName, size_t bufSize)
  */
 void HttpResponse::sendHeader() {
 	// If we haven't yet sent the header of the data, send that now.
-	if (m_headerCommitted == false) {
+	if (!m_headerCommitted) {
 		std::ostringstream oss;
 		oss << m_request->getVersion() << " " << m_status << " " << m_statusMessage << lineTerminator;
 		for (auto it = m_responseHeaders.begin(); it != m_responseHeaders.end(); ++it) {
@@ -188,5 +184,3 @@ void HttpResponse::setStatus(const int status, const std::string message) {
 	m_status        = status;
 	m_statusMessage = message;
 } // setStatus
-
-

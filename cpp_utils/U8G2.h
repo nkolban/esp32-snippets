@@ -24,7 +24,7 @@ public:
 		u8g2_ClearBuffer(&m_u8g2);
 	}
 
-	void drawBitmap(uint32_t x, uint32_t y, uint32_t cnt, uint32_t h, const uint8_t *bitmap) {
+	void drawBitmap(uint32_t x, uint32_t y, uint32_t cnt, uint32_t h, const uint8_t* bitmap) {
 		u8g2_DrawBitmap(&m_u8g2, x, y, cnt, h, bitmap);
 	}
 
@@ -75,7 +75,6 @@ public:
 		u8g2_DrawRFrame(&m_u8g2, x, y, w, h, r);
 	}
 
-
 	uint32_t drawStr(uint32_t x, uint32_t y, std::string s) {
 		return u8g2_DrawStr(&m_u8g2, x, y, s.c_str());
 	}
@@ -92,11 +91,11 @@ public:
 		u8g2_DrawVLine(&m_u8g2, x, y, h);
 	}
 
-	int8_t getAscent(void) {
+	int8_t getAscent() {
 		return u8g2_GetAscent(&m_u8g2);
 	}
 
-	int8_t getDescent(void) {
+	int8_t getDescent() {
 		return u8g2_GetDescent(&m_u8g2);
 	}
 
@@ -107,19 +106,23 @@ public:
 	void initDisplay() {
 		u8g2_InitDisplay(&m_u8g2);
 	}
+
 	void sendBuffer() {
 		u8g2_SendBuffer(&m_u8g2);
 	}
 
-	void setFont(const uint8_t *font) {
+	void setFont(const uint8_t* font) {
 		u8g2_SetFont(&m_u8g2, font);
 	}
+
 	void setPowerSave(uint8_t is_enable) {
 		u8g2_SetPowerSave(&m_u8g2, is_enable); // wake up display
 	}
 
 private:
 	u8g2_t m_u8g2;
+
 };
+
 #endif // CONFIG_U8G2_PRESENT
 #endif /* COMPONENTS_CPP_UTILS_U8G2_H_ */

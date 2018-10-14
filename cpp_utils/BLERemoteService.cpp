@@ -60,8 +60,8 @@ static bool compareSrvcId(esp_gatt_srvc_id_t id1, esp_gatt_srvc_id_t id2) {
 void BLERemoteService::gattClientEventHandler(
 	esp_gattc_cb_event_t      event,
 	esp_gatt_if_t             gattc_if,
-	esp_ble_gattc_cb_param_t *evtParam) {
-	switch(event) {
+	esp_ble_gattc_cb_param_t* evtParam) {
+	switch (event) {
 		//
 		// ESP_GATTC_GET_CHAR_EVT
 		//
@@ -108,9 +108,8 @@ void BLERemoteService::gattClientEventHandler(
 			break;
 		} // ESP_GATTC_GET_CHAR_EVT
 */
-		default: {
+		default:
 			break;
-		}
 	} // switch
 
 	// Send the event to each of the characteristics owned by this service.
@@ -127,10 +126,10 @@ void BLERemoteService::gattClientEventHandler(
  * @throws BLEUuidNotFoundException
  */
 BLERemoteCharacteristic* BLERemoteService::getCharacteristic(const char* uuid) {
-    return getCharacteristic(BLEUUID(uuid));
+	return getCharacteristic(BLEUUID(uuid));
 } // getCharacteristic
-	
-	
+
+
 /**
  * @brief Get the characteristic object for the UUID.
  * @param [in] uuid Characteristic uuid.
@@ -163,14 +162,13 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
  * @return N/A
  */
 void BLERemoteService::retrieveCharacteristics() {
-
 	ESP_LOGD(LOG_TAG, ">> getCharacteristics() for service: %s", getUUID().toString().c_str());
 
 	removeCharacteristics(); // Forget any previous characteristics.
 
 	uint16_t offset = 0;
 	esp_gattc_char_elem_t result;
-	while(1) {
+	while (true) {
 		uint16_t count = 1;
 		esp_gatt_status_t status = ::esp_ble_gattc_get_all_char(
 			getClient()->getGattcIf(),
@@ -219,7 +217,7 @@ void BLERemoteService::retrieveCharacteristics() {
  * @brief Retrieve a map of all the characteristics of this service.
  * @return A map of all the characteristics of this service.
  */
-std::map<std::string, BLERemoteCharacteristic *> * BLERemoteService::getCharacteristics() {
+std::map<std::string, BLERemoteCharacteristic*>* BLERemoteService::getCharacteristics() {
 	ESP_LOGD(LOG_TAG, ">> getCharacteristics() for service: %s", getUUID().toString().c_str());
 	// If is possible that we have not read the characteristics associated with the service so do that
 	// now.  The request to retrieve the characteristics by calling "retrieveCharacteristics" is a blocking
@@ -234,7 +232,7 @@ std::map<std::string, BLERemoteCharacteristic *> * BLERemoteService::getCharacte
 /**
  * @brief This function is designed to get characteristics map when we have multiple characteristics with the same UUID
  */
-void BLERemoteService::getCharacteristics(std::map<uint16_t, BLERemoteCharacteristic*>* pCharacteristicMap){
+void BLERemoteService::getCharacteristics(std::map<uint16_t, BLERemoteCharacteristic*>* pCharacteristicMap) {
 	pCharacteristicMap = &m_characteristicMapByHandle;
 }  // Get the characteristics map.
 

@@ -14,15 +14,6 @@
 #include "HttpRequest.h"
 
 class HttpResponse {
-private:
-	bool                               m_headerCommitted;  // Has the header been sent?
-	HttpRequest*                       m_request;          // The request associated with this response.
-	std::map<std::string, std::string> m_responseHeaders;  // The headers to be sent with the response.
-	int                                m_status;           // The status to be sent with the response.
-	std::string                        m_statusMessage;    // The status message to be sent with the response.
-
-	void sendHeader();                                     // Send the header to the client.
-
 public:
 	static const int HTTP_STATUS_CONTINUE;
 	static const int HTTP_STATUS_SWITCHING_PROTOCOL;
@@ -46,8 +37,17 @@ public:
 	std::map<std::string, std::string> getHeaders();                                    // Get all headers.
 	void                               sendData(std::string data);                      // Send data to the client.
 	void                               sendData(uint8_t* pData, size_t size);           // Send data to the client.
-	void 							   sendFile(std::string fileName, size_t bufSize=4*1024);	// Send file contents if exists.
 	void                               setStatus(int status, std::string message);      // Set the response status.
+	void 							   sendFile(std::string fileName, size_t bufSize = 4 * 1024);	// Send file contents if exists.
+private:
+	bool							   m_headerCommitted;  // Has the header been sent?
+	HttpRequest*					   m_request;		  // The request associated with this response.
+	std::map<std::string, std::string> m_responseHeaders;  // The headers to be sent with the response.
+	int								m_status;		   // The status to be sent with the response.
+	std::string						m_statusMessage;	// The status message to be sent with the response.
+
+	void sendHeader();									 // Send the header to the client.
+
 };
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPRESPONSE_H_ */

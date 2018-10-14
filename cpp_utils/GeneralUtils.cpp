@@ -23,20 +23,20 @@
 static const char* LOG_TAG = "GeneralUtils";
 
 static const char kBase64Alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789+/";
+	"abcdefghijklmnopqrstuvwxyz"
+	"0123456789+/";
 
 static int base64EncodedLength(size_t length) {
 	return (length + 2 - ((length + 2) % 3)) / 3 * 4;
 } // base64EncodedLength
 
 
-static int base64EncodedLength(const std::string &in) {
+static int base64EncodedLength(const std::string& in) {
 	return base64EncodedLength(in.length());
 } // base64EncodedLength
 
 
-static void a3_to_a4(unsigned char * a4, unsigned char * a3) {
+static void a3_to_a4(unsigned char* a4, unsigned char* a3) {
 	a4[0] = (a3[0] & 0xfc) >> 2;
 	a4[1] = ((a3[0] & 0x03) << 4) + ((a3[1] & 0xf0) >> 4);
 	a4[2] = ((a3[1] & 0x0f) << 2) + ((a3[2] & 0xc0) >> 6);
@@ -44,7 +44,7 @@ static void a3_to_a4(unsigned char * a4, unsigned char * a3) {
 } // a3_to_a4
 
 
-static void a4_to_a3(unsigned char * a3, unsigned char * a4) {
+static void a4_to_a3(unsigned char* a3, unsigned char* a4) {
 	a3[0] = (a4[0] << 2) + ((a4[1] & 0x30) >> 4);
 	a3[1] = ((a4[1] & 0xf) << 4) + ((a4[2] & 0x3c) >> 2);
 	a3[2] = ((a4[2] & 0x3) << 6) + a4[3];
@@ -56,7 +56,7 @@ static void a4_to_a3(unsigned char * a3, unsigned char * a4) {
  * @param [in] in
  * @param [out] out
  */
-bool GeneralUtils::base64Encode(const std::string &in, std::string *out) {
+bool GeneralUtils::base64Encode(const std::string& in, std::string* out) {
 	int i = 0, j = 0;
 	size_t enc_len = 0;
 	unsigned char a3[3];
@@ -127,16 +127,16 @@ bool GeneralUtils::endsWith(std::string str, char c) {
 	if (str.empty()) {
 		return false;
 	}
-	if (str.at(str.length()-1) == c) {
+	if (str.at(str.length() - 1) == c) {
 		return true;
 	}
 	return false;
 } // endsWidth
 
 
-static int DecodedLength(const std::string &in) {
+static int DecodedLength(const std::string& in) {
 	int numEq = 0;
-	int n = in.size();
+	int n = (int) in.size();
 
 	for (std::string::const_reverse_iterator it = in.rbegin(); *it == '='; ++it) {
 		++numEq;
@@ -160,7 +160,7 @@ static unsigned char b64_lookup(unsigned char c) {
  * @param [in] in The string to be decoded.
  * @param [out] out The resulting data.
  */
-bool GeneralUtils::base64Decode(const std::string &in, std::string *out) {
+bool GeneralUtils::base64Decode(const std::string& in, std::string* out) {
 	int i = 0, j = 0;
 	size_t dec_len = 0;
 	unsigned char a3[3];
@@ -300,8 +300,8 @@ void GeneralUtils::hexDump(const uint8_t* pData, uint32_t length) {
 	ESP_LOGV(LOG_TAG, "     -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --");
 	strcpy(ascii, "");
 	strcpy(hex, "");
-	uint32_t index=0;
-	while(index < length) {
+	uint32_t index = 0;
+	while (index < length) {
 		sprintf(tempBuf, "%.2x ", pData[index]);
 		strcat(hex, tempBuf);
 		if (isprint(pData[index])) {
@@ -312,18 +312,18 @@ void GeneralUtils::hexDump(const uint8_t* pData, uint32_t length) {
 		strcat(ascii, tempBuf);
 		index++;
 		if (index % 16 == 0) {
-			ESP_LOGV(LOG_TAG, "%.4x %s %s", lineNumber*16, hex, ascii);
+			ESP_LOGV(LOG_TAG, "%.4x %s %s", lineNumber * 16, hex, ascii);
 			strcpy(ascii, "");
 			strcpy(hex, "");
 			lineNumber++;
 		}
 	}
 	if (index %16 != 0) {
-		while(index % 16 != 0) {
+		while (index % 16 != 0) {
 			strcat(hex, "   ");
 			index++;
 		}
-		ESP_LOGV(LOG_TAG, "%.4x %s %s", lineNumber*16, hex, ascii);
+		ESP_LOGV(LOG_TAG, "%.4x %s %s", lineNumber * 16, hex, ascii);
 	}
 } // hexDump
 
@@ -335,7 +335,7 @@ void GeneralUtils::hexDump(const uint8_t* pData, uint32_t length) {
  */
 std::string GeneralUtils::ipToString(uint8_t *ip) {
 	std::stringstream s;
-	s << (int)ip[0] << '.' << (int)ip[1] << '.' << (int)ip[2] << '.' << (int)ip[3];
+	s << (int) ip[0] << '.' << (int) ip[1] << '.' << (int) ip[2] << '.' << (int) ip[3];
 	return s.str();
 } // ipToString
 
@@ -351,7 +351,7 @@ std::vector<std::string> GeneralUtils::split(std::string source, char delimiter)
 	std::vector<std::string> strings;
 	std::istringstream iss(source);
 	std::string s;
-	while(std::getline(iss, s, delimiter)) {
+	while (std::getline(iss, s, delimiter)) {
 		strings.push_back(trim(s));
 	}
 	return strings;
@@ -364,7 +364,7 @@ std::vector<std::string> GeneralUtils::split(std::string source, char delimiter)
  * @return A string representation of the error code.
  */
 const char* GeneralUtils::errorToString(esp_err_t errCode) {
-	switch(errCode) {
+	switch (errCode) {
 		case ESP_OK:
 			return "ESP_OK";
 		case ESP_FAIL:
@@ -431,8 +431,9 @@ const char* GeneralUtils::errorToString(esp_err_t errCode) {
 			return "ESP_ERR_WIFI_TIMEOUT";
 		case ESP_ERR_WIFI_WAKE_FAIL:
 			return "ESP_ERR_WIFI_WAKE_FAIL";
+		default:
+			return "Unknown ESP_ERR error";
 		}
-	return "Unknown ESP_ERR error";
 } // errorToString
 
 /**
@@ -443,73 +444,70 @@ const char* GeneralUtils::errorToString(esp_err_t errCode) {
  * @note: wifi_err_reason_t values as of April 2018 are: (1-24, 200-204) and are defined in ~/esp-idf/components/esp32/include/esp_wifi_types.h.
  */
 const char* GeneralUtils::wifiErrorToString(uint8_t errCode) {
-  if (errCode == ESP_OK)
-    return "ESP_OK (received SYSTEM_EVENT_STA_GOT_IP event)";
-  if (errCode == UINT8_MAX)
-    return "Not Connected (default value)";
+	if (errCode == ESP_OK) return "ESP_OK (received SYSTEM_EVENT_STA_GOT_IP event)";
+	if (errCode == UINT8_MAX) return "Not Connected (default value)";
 
-	switch((wifi_err_reason_t) errCode) {
-	case WIFI_REASON_UNSPECIFIED:
-		return "WIFI_REASON_UNSPECIFIED";
-	case WIFI_REASON_AUTH_EXPIRE:
-		return "WIFI_REASON_AUTH_EXPIRE";
-	case WIFI_REASON_AUTH_LEAVE:
-		return "WIFI_REASON_AUTH_LEAVE";
-	case WIFI_REASON_ASSOC_EXPIRE:
-		return "WIFI_REASON_ASSOC_EXPIRE";
-	case WIFI_REASON_ASSOC_TOOMANY:
-		return "WIFI_REASON_ASSOC_TOOMANY";
-	case WIFI_REASON_NOT_AUTHED:
-		return "WIFI_REASON_NOT_AUTHED";
-	case WIFI_REASON_NOT_ASSOCED:
-		return "WIFI_REASON_NOT_ASSOCED";
-	case WIFI_REASON_ASSOC_LEAVE:
-		return "WIFI_REASON_ASSOC_LEAVE";
-	case WIFI_REASON_ASSOC_NOT_AUTHED:
-		return "WIFI_REASON_ASSOC_NOT_AUTHED";
-	case WIFI_REASON_DISASSOC_PWRCAP_BAD:
-		return "WIFI_REASON_DISASSOC_PWRCAP_BAD";
-	case WIFI_REASON_DISASSOC_SUPCHAN_BAD:
-		return "WIFI_REASON_DISASSOC_SUPCHAN_BAD";
-	case WIFI_REASON_IE_INVALID:
-		return "WIFI_REASON_IE_INVALID";
-	case WIFI_REASON_MIC_FAILURE:
-		return "WIFI_REASON_MIC_FAILURE";
-	case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
-		return "WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT";
-	case WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT:
-		return "WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT";
-	case WIFI_REASON_IE_IN_4WAY_DIFFERS:
-		return "WIFI_REASON_IE_IN_4WAY_DIFFERS";
-	case WIFI_REASON_GROUP_CIPHER_INVALID:
-		return "WIFI_REASON_GROUP_CIPHER_INVALID";
-	case WIFI_REASON_PAIRWISE_CIPHER_INVALID:
-		return "WIFI_REASON_PAIRWISE_CIPHER_INVALID";
-	case WIFI_REASON_AKMP_INVALID:
-		return "WIFI_REASON_AKMP_INVALID";
-	case WIFI_REASON_UNSUPP_RSN_IE_VERSION:
-		return "WIFI_REASON_UNSUPP_RSN_IE_VERSION";
-	case WIFI_REASON_INVALID_RSN_IE_CAP:
-		return "WIFI_REASON_INVALID_RSN_IE_CAP";
-	case WIFI_REASON_802_1X_AUTH_FAILED:
-		return "WIFI_REASON_802_1X_AUTH_FAILED";
-	case WIFI_REASON_CIPHER_SUITE_REJECTED:
-		return "WIFI_REASON_CIPHER_SUITE_REJECTED";
-
-	case WIFI_REASON_BEACON_TIMEOUT:
-		return "WIFI_REASON_BEACON_TIMEOUT";
-	case WIFI_REASON_NO_AP_FOUND:
-		return "WIFI_REASON_NO_AP_FOUND";
-	case WIFI_REASON_AUTH_FAIL:
-		return "WIFI_REASON_AUTH_FAIL";
-	case WIFI_REASON_ASSOC_FAIL:
-		return "WIFI_REASON_ASSOC_FAIL";
-	case WIFI_REASON_HANDSHAKE_TIMEOUT:
-		return "WIFI_REASON_HANDSHAKE_TIMEOUT";
+	switch ((wifi_err_reason_t) errCode) {
+		case WIFI_REASON_UNSPECIFIED:
+			return "WIFI_REASON_UNSPECIFIED";
+		case WIFI_REASON_AUTH_EXPIRE:
+			return "WIFI_REASON_AUTH_EXPIRE";
+		case WIFI_REASON_AUTH_LEAVE:
+			return "WIFI_REASON_AUTH_LEAVE";
+		case WIFI_REASON_ASSOC_EXPIRE:
+			return "WIFI_REASON_ASSOC_EXPIRE";
+		case WIFI_REASON_ASSOC_TOOMANY:
+			return "WIFI_REASON_ASSOC_TOOMANY";
+		case WIFI_REASON_NOT_AUTHED:
+			return "WIFI_REASON_NOT_AUTHED";
+		case WIFI_REASON_NOT_ASSOCED:
+			return "WIFI_REASON_NOT_ASSOCED";
+		case WIFI_REASON_ASSOC_LEAVE:
+			return "WIFI_REASON_ASSOC_LEAVE";
+		case WIFI_REASON_ASSOC_NOT_AUTHED:
+			return "WIFI_REASON_ASSOC_NOT_AUTHED";
+		case WIFI_REASON_DISASSOC_PWRCAP_BAD:
+			return "WIFI_REASON_DISASSOC_PWRCAP_BAD";
+		case WIFI_REASON_DISASSOC_SUPCHAN_BAD:
+			return "WIFI_REASON_DISASSOC_SUPCHAN_BAD";
+		case WIFI_REASON_IE_INVALID:
+			return "WIFI_REASON_IE_INVALID";
+		case WIFI_REASON_MIC_FAILURE:
+			return "WIFI_REASON_MIC_FAILURE";
+		case WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT:
+			return "WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT";
+		case WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT:
+			return "WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT";
+		case WIFI_REASON_IE_IN_4WAY_DIFFERS:
+			return "WIFI_REASON_IE_IN_4WAY_DIFFERS";
+		case WIFI_REASON_GROUP_CIPHER_INVALID:
+			return "WIFI_REASON_GROUP_CIPHER_INVALID";
+		case WIFI_REASON_PAIRWISE_CIPHER_INVALID:
+			return "WIFI_REASON_PAIRWISE_CIPHER_INVALID";
+		case WIFI_REASON_AKMP_INVALID:
+			return "WIFI_REASON_AKMP_INVALID";
+		case WIFI_REASON_UNSUPP_RSN_IE_VERSION:
+			return "WIFI_REASON_UNSUPP_RSN_IE_VERSION";
+		case WIFI_REASON_INVALID_RSN_IE_CAP:
+			return "WIFI_REASON_INVALID_RSN_IE_CAP";
+		case WIFI_REASON_802_1X_AUTH_FAILED:
+			return "WIFI_REASON_802_1X_AUTH_FAILED";
+		case WIFI_REASON_CIPHER_SUITE_REJECTED:
+			return "WIFI_REASON_CIPHER_SUITE_REJECTED";
+		case WIFI_REASON_BEACON_TIMEOUT:
+			return "WIFI_REASON_BEACON_TIMEOUT";
+		case WIFI_REASON_NO_AP_FOUND:
+			return "WIFI_REASON_NO_AP_FOUND";
+		case WIFI_REASON_AUTH_FAIL:
+			return "WIFI_REASON_AUTH_FAIL";
+		case WIFI_REASON_ASSOC_FAIL:
+			return "WIFI_REASON_ASSOC_FAIL";
+		case WIFI_REASON_HANDSHAKE_TIMEOUT:
+			return "WIFI_REASON_HANDSHAKE_TIMEOUT";
+		default:
+			return "Unknown ESP_ERR error";
 	}
-	return "Unknown ESP_ERR error";
 } // wifiErrorToString
-
 
 
 /**
@@ -528,15 +526,9 @@ std::string GeneralUtils::toLower(std::string& value) {
 /**
  * @brief Remove white space from a string.
  */
-std::string GeneralUtils::trim(const std::string& str)
-{
-    size_t first = str.find_first_not_of(' ');
-    if (std::string::npos == first)
-    {
-        return str;
-    }
-    size_t last = str.find_last_not_of(' ');
-    return str.substr(first, (last - first + 1));
+std::string GeneralUtils::trim(const std::string& str) {
+	size_t first = str.find_first_not_of(' ');
+	if (std::string::npos == first) return str;
+	size_t last = str.find_last_not_of(' ');
+	return str.substr(first, (last - first + 1));
 } // trim
-
-

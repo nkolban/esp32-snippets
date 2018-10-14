@@ -198,11 +198,13 @@ public:
 	void setRGBFormat(uint8_t value);
 	void setTestPattern(uint8_t value);
 	void resetCamera();
+
 private:
 	uint8_t readRegister(uint8_t reg);
 	void writeRegister(uint8_t reg, uint8_t value);
 	camera_config_t m_cameraConfig;
-	I2C *m_i2c;
+	I2C* m_i2c;
+
 };
 
 #endif /* CPP_UTILS_OV7670_H_ */

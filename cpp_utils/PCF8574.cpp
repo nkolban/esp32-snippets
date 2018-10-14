@@ -22,6 +22,7 @@ PCF8574::PCF8574(uint8_t address) {
 	lastWrite = 0;
 }
 
+
 /**
  * @brief Class instance destructor.
  */
@@ -49,11 +50,9 @@ uint8_t PCF8574::read() {
  * @return True if the pin is high, false otherwise.  Undefined if there is no signal on the pin.
  */
 bool PCF8574::readBit(uint8_t bit) {
-	if (bit > 7) {
-		return false;
-	}
+	if (bit > 7) return false;
 	uint8_t value = read();
-	return (value & (1<<bit)) != 0;
+	return (value & (1 << bit)) != 0;
 } // readBit
 
 
@@ -83,9 +82,7 @@ void PCF8574::write(uint8_t value) {
  * @param [in] value The logic level to appear on the identified output pin.
  */
 void PCF8574::writeBit(uint8_t bit, bool value) {
-	if (bit > 7) {
-		return;
-	}
+	if (bit > 7) return;
 	if (invert) {
 		value = !value;
 	}

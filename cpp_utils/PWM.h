@@ -32,11 +32,13 @@ public:
 	void     setDuty(uint32_t duty);
 	void     setDutyPercentage(uint8_t percent);
 	void     setFrequency(uint32_t freq);
-	void     stop(bool idleLevel=false);
+	void     stop(bool idleLevel = false);
+
 private:
 	ledc_channel_t   m_channel;
 	ledc_timer_t     m_timer;
 	ledc_timer_bit_t m_dutyResolution; // Bit size of timer.
+
 };
 
 #endif /* COMPONENTS_CPP_UTILS_PWM_H_ */

@@ -67,7 +67,7 @@ void I2C::endTransaction() {
 		ESP_LOGE(LOG_TAG, "i2c_master_stop: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 	}
 
-	errRc = ::i2c_master_cmd_begin(m_portNum, m_cmd, 1000/portTICK_PERIOD_MS);
+	errRc = ::i2c_master_cmd_begin(m_portNum, m_cmd, 1000 / portTICK_PERIOD_MS);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "i2c_master_cmd_begin: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 	}
@@ -81,8 +81,7 @@ void I2C::endTransaction() {
  *
  * @return The address of the %I2C slave.
  */
-uint8_t I2C::getAddress() const
-{
+uint8_t I2C::getAddress() const {
 	return m_address;
 }
 
@@ -136,7 +135,7 @@ void I2C::read(uint8_t* bytes, size_t length, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "read(size=%d, ack=%d)", length, ack);
 	}
-	if (m_directionKnown == false) {
+	if (!m_directionKnown) {
 		m_directionKnown = true;
 		esp_err_t errRc = ::i2c_master_write_byte(m_cmd, (m_address << 1) | I2C_MASTER_READ, !ack);
 		if (errRc != ESP_OK) {
@@ -157,11 +156,11 @@ void I2C::read(uint8_t* bytes, size_t length, bool ack) {
  * @param [in] ack Whether or not we should send an ACK to the slave after reading a byte.
  * @return N/A.
  */
-void I2C::read(uint8_t *byte, bool ack) {
+void I2C::read(uint8_t* byte, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "read(size=1, ack=%d)", ack);
 	}
-	if (m_directionKnown == false) {
+	if (!m_directionKnown) {
 		m_directionKnown = true;
 		esp_err_t errRc = ::i2c_master_write_byte(m_cmd, (m_address << 1) | I2C_MASTER_READ, !ack);
 		if (errRc != ESP_OK) {
@@ -180,12 +179,11 @@ void I2C::read(uint8_t *byte, bool ack) {
  * @return N/A.
  */
 void I2C::scan() {
-	uint8_t i;
 	printf("Data Pin: %d, Clock Pin: %d\n", this->m_sdaPin, this->m_sclPin);
 	printf("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\n");
 	printf("00:         ");
-	for (i=3; i<0x78; i++) {
-		if (i%16 == 0) {
+	for (uint8_t i = 3; i < 0x78; i++) {
+		if (i % 16 == 0) {
 			printf("\n%.2x:", i);
 		}
 		if (slavePresent(i)) {
@@ -203,8 +201,7 @@ void I2C::scan() {
  *
  * @param [in] address The address of the %I2C slave.
  */
-void I2C::setAddress(uint8_t address)
-{
+void I2C::setAddress(uint8_t address) {
 	this->m_address = address;
 } // setAddress
 
@@ -230,7 +227,7 @@ bool I2C::slavePresent(uint8_t address) {
 	::i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_WRITE, 1 /* expect ack */);
 	::i2c_master_stop(cmd);
 
-	esp_err_t espRc = ::i2c_master_cmd_begin(m_portNum, cmd, 100/portTICK_PERIOD_MS);
+	esp_err_t espRc = ::i2c_master_cmd_begin(m_portNum, cmd, 100 / portTICK_PERIOD_MS);
 	i2c_cmd_link_delete(cmd);
 	return espRc == 0;  // Return true if the slave is present and false otherwise.
 } // slavePresent
@@ -305,7 +302,7 @@ void I2C::write(uint8_t *bytes, size_t length, bool ack) {
 	if (debug) {
 		ESP_LOGD(LOG_TAG, "write(length=%d, ack=%d)", length, ack);
 	}
-	if (m_directionKnown == false) {
+	if (!m_directionKnown) {
 		m_directionKnown = true;
 		esp_err_t errRc = ::i2c_master_write_byte(m_cmd, (m_address << 1) | I2C_MASTER_WRITE, !ack);
 		if (errRc != ESP_OK) {
@@ -317,5 +314,3 @@ void I2C::write(uint8_t *bytes, size_t length, bool ack) {
 		ESP_LOGE(LOG_TAG, "i2c_master_write: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 	}
 } // write
-
-

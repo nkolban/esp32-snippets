@@ -42,7 +42,7 @@ BLEServer* BLEDevice::m_pServer = nullptr;
 BLEScan*   BLEDevice::m_pScan   = nullptr;
 BLEClient* BLEDevice::m_pClient = nullptr;
 bool       initialized          = false;   // Have we been initialized?
-esp_ble_sec_act_t 	BLEDevice::m_securityLevel = (esp_ble_sec_act_t)0;
+esp_ble_sec_act_t	 BLEDevice::m_securityLevel = (esp_ble_sec_act_t) 0;
 BLESecurityCallbacks* BLEDevice::m_securityCallbacks = nullptr;
 uint16_t   BLEDevice::m_localMTU = 23;
 BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
@@ -98,11 +98,11 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
 
 	BLEUtils::dumpGattServerEvent(event, gatts_if, param);
 
-	switch(event) {
+	switch (event) {
 		case ESP_GATTS_CONNECT_EVT: {
 			BLEDevice::m_localMTU = 23;
 #ifdef CONFIG_BLE_SMP_ENABLE   // Check that BLE SMP (security) is configured in make menuconfig
-			if(BLEDevice::m_securityLevel){
+			if (BLEDevice::m_securityLevel) {
 				esp_ble_set_encryption(param->connect.remote_bda, BLEDevice::m_securityLevel);
 			}
 #endif	// CONFIG_BLE_SMP_ENABLE
@@ -146,23 +146,22 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
 
 	switch(event) {
 		case ESP_GATTC_CONNECT_EVT: {
-			if(BLEDevice::getMTU() != 23){
+			if (BLEDevice::getMTU() != 23) {
 				esp_err_t errRc = esp_ble_gattc_send_mtu_req(gattc_if, param->connect.conn_id);
 				if (errRc != ESP_OK) {
 					ESP_LOGE(LOG_TAG, "esp_ble_gattc_send_mtu_req: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 				}
 			}
 #ifdef CONFIG_BLE_SMP_ENABLE   // Check that BLE SMP (security) is configured in make menuconfig
-			if(BLEDevice::m_securityLevel){
+			if (BLEDevice::m_securityLevel) {
 				esp_ble_set_encryption(param->connect.remote_bda, BLEDevice::m_securityLevel);
 			}
 #endif	// CONFIG_BLE_SMP_ENABLE
 			break;
 		} // ESP_GATTC_CONNECT_EVT
 
-		default: {
+		default:
 			break;
-		}
 	} // switch
 
 
@@ -179,34 +178,33 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
  */
 /* STATIC */ void BLEDevice::gapEventHandler(
 	esp_gap_ble_cb_event_t event,
-	esp_ble_gap_cb_param_t *param) {
+	esp_ble_gap_cb_param_t* param) {
 
 	BLEUtils::dumpGapEvent(event, param);
 
-	switch(event) {
-
-		 case ESP_GAP_BLE_OOB_REQ_EVT:                                /* OOB request event */
-			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_OOB_REQ_EVT");
-			 break;
-		 case ESP_GAP_BLE_LOCAL_IR_EVT:                               /* BLE local IR event */
-			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_LOCAL_IR_EVT");
-			 break;
-		 case ESP_GAP_BLE_LOCAL_ER_EVT:                               /* BLE local ER event */
-			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_LOCAL_ER_EVT");
-			 break;
-		 case ESP_GAP_BLE_NC_REQ_EVT:
-			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_NC_REQ_EVT");
-#ifdef CONFIG_BLE_SMP_ENABLE   // Check that BLE SMP (security) is configured in make menuconfig
-			if(BLEDevice::m_securityCallbacks!=nullptr){
-			 	 esp_ble_confirm_reply(param->ble_security.ble_req.bd_addr, BLEDevice::m_securityCallbacks->onConfirmPIN(param->ble_security.key_notif.passkey));
+	switch (event) {
+		case ESP_GAP_BLE_OOB_REQ_EVT:								/* OOB request event */
+			ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_OOB_REQ_EVT");
+			break;
+		case ESP_GAP_BLE_LOCAL_IR_EVT:							   /* BLE local IR event */
+			ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_LOCAL_IR_EVT");
+			break;
+		case ESP_GAP_BLE_LOCAL_ER_EVT:							   /* BLE local ER event */
+			ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_LOCAL_ER_EVT");
+			break;
+		case ESP_GAP_BLE_NC_REQ_EVT:
+			ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_NC_REQ_EVT");
+#ifdef CONFIG_BLE_SMP_ENABLE // Check that BLE SMP (security) is configured in make menuconfig
+			if (BLEDevice::m_securityCallbacks != nullptr) {
+				esp_ble_confirm_reply(param->ble_security.ble_req.bd_addr, BLEDevice::m_securityCallbacks->onConfirmPIN(param->ble_security.key_notif.passkey));
 			}
 #endif	// CONFIG_BLE_SMP_ENABLE
-			 break;
-		 case ESP_GAP_BLE_PASSKEY_REQ_EVT:                           /* passkey request event */
+			break;
+		case ESP_GAP_BLE_PASSKEY_REQ_EVT:						   /* passkey request event */
 			ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_PASSKEY_REQ_EVT: ");
 			// esp_log_buffer_hex(LOG_TAG, m_remote_bda, sizeof(m_remote_bda));
-#ifdef CONFIG_BLE_SMP_ENABLE   // Check that BLE SMP (security) is configured in make menuconfig
-			if(BLEDevice::m_securityCallbacks!=nullptr){
+#ifdef CONFIG_BLE_SMP_ENABLE // Check that BLE SMP (security) is configured in make menuconfig
+			if (BLEDevice::m_securityCallbacks != nullptr) {
 				esp_ble_passkey_reply(param->ble_security.ble_req.bd_addr, true, BLEDevice::m_securityCallbacks->onPassKeyRequest());
 			}
 #endif	// CONFIG_BLE_SMP_ENABLE
@@ -214,15 +212,14 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
 			/*
 			 * TODO should we add white/black list comparison?
 			 */
-		 case ESP_GAP_BLE_SEC_REQ_EVT:
-			 /* send the positive(true) security response to the peer device to accept the security request.
-			 If not accept the security request, should sent the security response with negative(false) accept value*/
-			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_SEC_REQ_EVT");
-#ifdef CONFIG_BLE_SMP_ENABLE   // Check that BLE SMP (security) is configured in make menuconfig
-			if(BLEDevice::m_securityCallbacks!=nullptr){
+		case ESP_GAP_BLE_SEC_REQ_EVT:
+			/* send the positive(true) security response to the peer device to accept the security request.
+			If not accept the security request, should sent the security response with negative(false) accept value*/
+			ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_SEC_REQ_EVT");
+#ifdef CONFIG_BLE_SMP_ENABLE // Check that BLE SMP (security) is configured in make menuconfig
+			if (BLEDevice::m_securityCallbacks != nullptr) {
 				esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, BLEDevice::m_securityCallbacks->onSecurityRequest());
-			}
-			else{
+			} else {
 				esp_ble_gap_security_rsp(param->ble_security.ble_req.bd_addr, true);
 			}
 #endif	// CONFIG_BLE_SMP_ENABLE
@@ -230,34 +227,33 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
 			 /*
 			  *
 			  */
-		 case ESP_GAP_BLE_PASSKEY_NOTIF_EVT:  ///the app will receive this evt when the IO  has Output capability and the peer device IO has Input capability.
-			 ///show the passkey number to the user to input it in the peer deivce.
-			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_PASSKEY_NOTIF_EVT");
-#ifdef CONFIG_BLE_SMP_ENABLE   // Check that BLE SMP (security) is configured in make menuconfig
-			if(BLEDevice::m_securityCallbacks!=nullptr){
+		case ESP_GAP_BLE_PASSKEY_NOTIF_EVT: // the app will receive this evt when the IO has Output capability and the peer device IO has Input capability.
+			// show the passkey number to the user to input it in the peer device.
+			ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_PASSKEY_NOTIF_EVT");
+#ifdef CONFIG_BLE_SMP_ENABLE // Check that BLE SMP (security) is configured in make menuconfig
+			if (BLEDevice::m_securityCallbacks != nullptr) {
 				ESP_LOGI(LOG_TAG, "passKey = %d", param->ble_security.key_notif.passkey);
 				BLEDevice::m_securityCallbacks->onPassKeyNotify(param->ble_security.key_notif.passkey);
 			}
 #endif	// CONFIG_BLE_SMP_ENABLE
-			 break;
-		 case ESP_GAP_BLE_KEY_EVT:
-			 //shows the ble key type info share with peer device to the user.
-			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_KEY_EVT");
-#ifdef CONFIG_BLE_SMP_ENABLE   // Check that BLE SMP (security) is configured in make menuconfig
-			 ESP_LOGI(LOG_TAG, "key type = %s", BLESecurity::esp_key_type_to_str(param->ble_security.ble_key.key_type));
-#endif	// CONFIG_BLE_SMP_ENABLE
-			 break;
-		 case ESP_GAP_BLE_AUTH_CMPL_EVT:
-			 ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_AUTH_CMPL_EVT");
-#ifdef CONFIG_BLE_SMP_ENABLE   // Check that BLE SMP (security) is configured in make menuconfig
-			 if(BLEDevice::m_securityCallbacks!=nullptr){
-				 BLEDevice::m_securityCallbacks->onAuthenticationComplete(param->ble_security.auth_cmpl);
-			 }
-#endif	// CONFIG_BLE_SMP_ENABLE
-			 break;
-		default: {
 			break;
-		}
+		case ESP_GAP_BLE_KEY_EVT:
+			//shows the ble key type info share with peer device to the user.
+			ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_KEY_EVT");
+#ifdef CONFIG_BLE_SMP_ENABLE // Check that BLE SMP (security) is configured in make menuconfig
+			ESP_LOGI(LOG_TAG, "key type = %s", BLESecurity::esp_key_type_to_str(param->ble_security.ble_key.key_type));
+#endif	// CONFIG_BLE_SMP_ENABLE
+			break;
+		case ESP_GAP_BLE_AUTH_CMPL_EVT:
+			ESP_LOGI(LOG_TAG, "ESP_GAP_BLE_AUTH_CMPL_EVT");
+#ifdef CONFIG_BLE_SMP_ENABLE // Check that BLE SMP (security) is configured in make menuconfig
+			if (BLEDevice::m_securityCallbacks != nullptr) {
+				BLEDevice::m_securityCallbacks->onAuthenticationComplete(param->ble_security.auth_cmpl);
+			}
+#endif	// CONFIG_BLE_SMP_ENABLE
+		break;
+		default:
+			break;
 	} // switch
 
 	if (BLEDevice::m_pServer != nullptr) {
@@ -316,7 +312,7 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
  */
 /* STATIC */ std::string BLEDevice::getValue(BLEAddress bdAddress, BLEUUID serviceUUID, BLEUUID characteristicUUID) {
 	ESP_LOGD(LOG_TAG, ">> getValue: bdAddress: %s, serviceUUID: %s, characteristicUUID: %s", bdAddress.toString().c_str(), serviceUUID.toString().c_str(), characteristicUUID.toString().c_str());
-	BLEClient *pClient = createClient();
+	BLEClient* pClient = createClient();
 	pClient->connect(bdAddress);
 	std::string ret = pClient->getValue(serviceUUID, characteristicUUID);
 	pClient->disconnect();
@@ -330,8 +326,8 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
  * @param deviceName The device name of the device.
  */
 /* STATIC */ void BLEDevice::init(std::string deviceName) {
-	if(!initialized){
-		initialized = true;   // Set the initialization flag to ensure we are only initialized once.
+	if (!initialized) {
+		initialized = true; // Set the initialization flag to ensure we are only initialized once.
 
 		esp_err_t errRc = ESP_OK;
 #ifdef ARDUINO_ARCH_ESP32
@@ -354,13 +350,7 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
 		}
 
 #ifndef CLASSIC_BT_ENABLED
-	//	esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);  //FIXME waiting for response from esp-idf issue
-		errRc = esp_bt_controller_enable(ESP_BT_MODE_BLE);
-		//errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
-		if (errRc != ESP_OK) {
-			ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-			return;
-		}
+		esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
 #else
 		errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
 		if (errRc != ESP_OK) {
@@ -371,7 +361,7 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
 #endif
 
 		esp_bluedroid_status_t bt_state = esp_bluedroid_get_status();
-		if (bt_state == ESP_BLUEDROID_STATUS_UNINITIALIZED){
+		if (bt_state == ESP_BLUEDROID_STATUS_UNINITIALIZED) {
 			errRc = esp_bluedroid_init();
 			if (errRc != ESP_OK) {
 				ESP_LOGE(LOG_TAG, "esp_bluedroid_init: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -379,7 +369,7 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
 			}
 		}
 
-		if (bt_state != ESP_BLUEDROID_STATUS_ENABLED){
+		if (bt_state != ESP_BLUEDROID_STATUS_ENABLED) {
 			errRc = esp_bluedroid_enable();
 			if (errRc != ESP_OK) {
 				ESP_LOGE(LOG_TAG, "esp_bluedroid_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -424,7 +414,7 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
 		};
 #endif // CONFIG_BLE_SMP_ENABLE
 	}
-	vTaskDelay(200/portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
+	vTaskDelay(200 / portTICK_PERIOD_MS); // Delay for 200 msecs as a workaround to an apparent Arduino environment issue.
 } // init
 
 
@@ -459,7 +449,7 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
  */
 /* STATIC */ void BLEDevice::setValue(BLEAddress bdAddress, BLEUUID serviceUUID, BLEUUID characteristicUUID, std::string value) {
 	ESP_LOGD(LOG_TAG, ">> setValue: bdAddress: %s, serviceUUID: %s, characteristicUUID: %s", bdAddress.toString().c_str(), serviceUUID.toString().c_str(), characteristicUUID.toString().c_str());
-	BLEClient *pClient = createClient();
+	BLEClient* pClient = createClient();
 	pClient->connect(bdAddress);
 	pClient->setValue(serviceUUID, characteristicUUID, value);
 	pClient->disconnect();
@@ -527,7 +517,7 @@ void BLEDevice::setSecurityCallbacks(BLESecurityCallbacks* callbacks) {
 esp_err_t BLEDevice::setMTU(uint16_t mtu) {
 	ESP_LOGD(LOG_TAG, ">> setLocalMTU: %d", mtu);
 	esp_err_t err = esp_ble_gatt_set_local_mtu(mtu);
-	if(err == ESP_OK){
+	if (err == ESP_OK) {
 		m_localMTU = mtu;
 	} else {
 		ESP_LOGE(LOG_TAG, "can't set local mtu value: %d", mtu);
@@ -548,8 +538,7 @@ bool BLEDevice::getInitialized() {
 }
 
 BLEAdvertising* BLEDevice::getAdvertising() {
-	if(m_bleAdvertising == nullptr)
-	{
+	if (m_bleAdvertising == nullptr) {
 		m_bleAdvertising = new BLEAdvertising();
 		ESP_LOGI(LOG_TAG, "create advertising");
 	}

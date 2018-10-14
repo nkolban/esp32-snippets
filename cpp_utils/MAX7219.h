@@ -50,18 +50,6 @@
  * and setColumn().
  */
 class MAX7219 {
-private:
-
-	/* Send out a single command to the device */
-	void spiTransfer(int addr, uint8_t opcode, uint8_t data);
-
-	/* We keep track of the led-status for all 8 devices in this array */
-	uint8_t status[64];
-
-	/* The maximum number of devices we use */
-	int maxDevices;
-	SPI *spi;
-
 public:
 	/**
 	 * @brief Create a new %MAX7219 controller
@@ -70,7 +58,7 @@ public:
 	 * @param [in] numDevices	maximum number of devices that can be controlled that are
 	 * daisy chained together.
 	 */
-	MAX7219(SPI *spi, int numDevices = 1);
+	MAX7219(SPI* spi, int numDevices = 1);
 
 
 	/**
@@ -101,7 +89,7 @@ public:
 	 * @param [in] dp	Sets the decimal point.
 	 * @param [in] addr	Address of the display.
 	 */
-	void setChar(int digit, char value, bool dp=false, int addr=0);
+	void setChar(int digit, char value, bool dp=false, int addr = 0);
 
 
 	/**
@@ -111,7 +99,7 @@ public:
 	 * @param [in] value	each bit set to 1 will light up the corresponding Led.
 	 * @param [in] addr	address of the display.
 	 */
-	void setColumn(int col, uint8_t value, int addr=0);
+	void setColumn(int col, uint8_t value, int addr = 0);
 
 
 	/**
@@ -122,7 +110,7 @@ public:
 	 * @param [in] dp	Sets the decimal point.
 	 * @param [in] addr	Address of the display.
 	 */
-	void setDigit(int digit, uint8_t value, bool dp=false, int addr=0);
+	void setDigit(int digit, uint8_t value, bool dp=false, int addr = 0);
 
 
 	/**
@@ -131,7 +119,7 @@ public:
 	 * @param [in] intensity	the brightness of the display. (0..15).
 	 * @param [in] addr		The address of the display to control.
 	 */
-	void setIntensity(int intensity, int addr=0);
+	void setIntensity(int intensity, int addr = 0);
 
 
 	/**
@@ -142,7 +130,7 @@ public:
 	 * @param [in] state	If true the led is switched on, if false it is switched off.
 	 * @param [in] addr	Address of the display.
 	 */
-	void setLed(int row, int col, bool state, int addr=0);
+	void setLed(int row, int col, bool state, int addr = 0);
 
 
 	/**
@@ -153,7 +141,7 @@ public:
 	 * @param [in] number The number to display.
 	 * @param [in] addr	Address of the display.
 	 */
-	void setNumber(uint32_t number, int addr=0);
+	void setNumber(uint32_t number, int addr = 0);
 
 
 	/**
@@ -163,7 +151,7 @@ public:
 	 * @param [in] value	Each bit set to 1 will light up the corresponding Led.
 	 * @param [in] addr	Address of the display.
 	 */
-	void setRow(int row, uint8_t value, int addr=0);
+	void setRow(int row, uint8_t value, int addr = 0);
 
 
 	/**
@@ -175,7 +163,7 @@ public:
 	 * @param [in] limit	Number of digits to be displayed (1..8).
 	 * @param [in] addr	Address of the display to control.
 	 */
-	void setScanLimit(int limit, int addr=0);
+	void setScanLimit(int limit, int addr = 0);
 
 
 	/**
@@ -185,7 +173,18 @@ public:
 	 *		for normal operation.
 	 * @param [in] addr	The address of the display to control.
 	 */
-	void shutdown(bool status, int addr=0);
+	void shutdown(bool status, int addr = 0);
+
+private:
+	/* Send out a single command to the device */
+	void spiTransfer(int addr, uint8_t opcode, uint8_t data);
+
+	/* We keep track of the led-status for all 8 devices in this array */
+	uint8_t status[64];
+
+	/* The maximum number of devices we use */
+	int maxDevices;
+	SPI* spi;
 
 };
 

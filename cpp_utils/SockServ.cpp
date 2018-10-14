@@ -61,14 +61,12 @@ SockServ::~SockServ() {
  * socket is placed on a queue and a semaphore signaled that a new client is available.
  */
 /* static */ void SockServ::acceptTask(void* data) {
-	SockServ* pSockServ = (SockServ*)data;
+	SockServ* pSockServ = (SockServ*) data;
 	try {
-		while(1) {
+		while (true) {
 			ESP_LOGD(LOG_TAG, "Waiting on accept");
 			Socket tempSock = pSockServ->m_serverSocket.accept();
-			if (!tempSock.isValid()) {
-				continue;
-			}
+			if (!tempSock.isValid()) continue;
 
 			pSockServ->m_clientSet.insert(tempSock);
 			xQueueSendToBack(pSockServ->m_acceptQueue, &tempSock, portMAX_DELAY);
@@ -80,7 +78,6 @@ SockServ::~SockServ() {
 		FreeRTOS::deleteTask();
 	}
 } // acceptTask
-
 
 
 /**
@@ -117,12 +114,12 @@ bool SockServ::getSSL() {
  * @return The amount of data returned or 0 if there was an error.
  */
 size_t SockServ::receiveData(Socket s, void* pData, size_t maxData) {
-	int rc = s.receive((uint8_t*)pData, maxData);
+	int rc = s.receive((uint8_t*) pData, maxData);
 	if (rc == -1) {
 		ESP_LOGE(LOG_TAG, "recv(): %s", strerror(errno));
 		return 0;
 	}
-	return rc;
+	return (size_t) rc;
 } // receiveData
 
 
@@ -132,7 +129,7 @@ size_t SockServ::receiveData(Socket s, void* pData, size_t maxData) {
  * @param[in] str A string from which sequence of bytes will be used to send to the partner.
  */
 void SockServ::sendData(std::string str) {
-	sendData((uint8_t *)str.data(), str.size());
+	sendData((uint8_t*) str.data(), str.size());
 } // sendData
 
 
@@ -144,7 +141,7 @@ void SockServ::sendData(std::string str) {
  */
 void SockServ::sendData(uint8_t* data, size_t length) {
   for (auto it = m_clientSet.begin(); it != m_clientSet.end(); ++it) {
-  	(*it).send(data, length);
+	  (*it).send(data, length);
   }
 } // sendData
 
@@ -173,7 +170,7 @@ void SockServ::start() {
 	//m_serverSocket.setSSL(m_useSSL);
 	m_serverSocket.listen(m_port);   // Create a socket and start listening on it.
 	ESP_LOGD(LOG_TAG, "Now listening on port %d", m_port);
-	FreeRTOS::startTask(acceptTask, "acceptTask", this, 8*1024);
+	FreeRTOS::startTask(acceptTask, "acceptTask", this, 8 * 1024);
 } // start
 
 
@@ -201,11 +198,11 @@ Socket SockServ::waitForData(std::set<Socket>& socketSet) {
 	} // End for
 
 	int rc = ::select(
-		maxFd+1,  // Number of sockets to scan
 		&readSet, // Set of read sockets
 		nullptr,  // Set of write sockets
 		nullptr,  // Set of exception sockets
 		nullptr   // Timeout
+		maxFd + 1,  // Number of sockets to scan
 	);
 	if (rc == -1) {
 		ESP_LOGE(LOG_TAG, "Error with select");
@@ -213,7 +210,7 @@ Socket SockServ::waitForData(std::set<Socket>& socketSet) {
 		return s;
 	}
 
-	for (	auto it = socketSet.begin(); it != socketSet.end(); ++it) {
+	for (auto it = socketSet.begin(); it != socketSet.end(); ++it) {
 		if (FD_ISSET(it->getFD(), &readSet)) {
 			return *it;
 		}
@@ -241,5 +238,3 @@ Socket SockServ::waitForNewClient() {
 	ESP_LOGD(LOG_TAG, "<< waitForNewClient");
 	return tempSocket;
 } // waitForNewClient
-
-

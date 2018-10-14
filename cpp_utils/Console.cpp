@@ -42,7 +42,7 @@ ArgTable::~ArgTable() {
 	 */
 	int size = m_argTableEntries.size();
 	m_argtable = new void*[size + 1];
-	int i=0;
+	int i = 0;
 	for (auto it = m_argTableEntries.begin(); it != m_argTableEntries.end(); ++it) {
 		m_argtable[i] = it->second->getEntry();
 		i++;
@@ -54,42 +54,42 @@ ArgTable::~ArgTable() {
 
 ArgTableEntry_Date ArgTable::addDate(std::string name, std::string shortopts, std::string longopts, std::string glossary) {
 	ArgTableEntry_Date* pDate = new ArgTableEntry_Date(shortopts, longopts, glossary);
-	m_argTableEntries.push_back(std::make_pair(name,	pDate));
+	m_argTableEntries.push_back(std::make_pair(name, pDate));
 	return *pDate;
 } // ArgTable#addDate
 
 
 ArgTableEntry_Double ArgTable::addDouble(std::string name, std::string shortopts, std::string longopts, std::string glossary) {
 	ArgTableEntry_Double* pDouble = new ArgTableEntry_Double(shortopts, longopts, glossary);
-	m_argTableEntries.push_back(std::make_pair(name,	pDouble));
+	m_argTableEntries.push_back(std::make_pair(name, pDouble));
 	return *pDouble;
 } // ArgTable#addDouble
 
 
 ArgTableEntry_File ArgTable::addFile(std::string name, std::string shortopts, std::string longopts, std::string glossary) {
 	ArgTableEntry_File* pFile = new ArgTableEntry_File(shortopts, longopts, glossary);
-	m_argTableEntries.push_back(std::make_pair(name,	pFile));
+	m_argTableEntries.push_back(std::make_pair(name, pFile));
 	return *pFile;
 } // ArgTable#addFile
 
 
 ArgTableEntry_Int ArgTable::addInt(std::string name, std::string shortopts, std::string longopts, std::string glossary) {
 	ArgTableEntry_Int* pInt = new ArgTableEntry_Int(shortopts, longopts, glossary);
-	m_argTableEntries.push_back(std::make_pair(name,	pInt));
+	m_argTableEntries.push_back(std::make_pair(name, pInt));
 	return *pInt;
 } // ArgTable#addInt
 
 
 ArgTableEntry_Lit ArgTable::addLit(std::string name, std::string shortopts, std::string longopts, std::string glossary) {
 	ArgTableEntry_Lit* pLit = new ArgTableEntry_Lit(shortopts, longopts, glossary);
-	m_argTableEntries.push_back(std::make_pair(name,	pLit));
+	m_argTableEntries.push_back(std::make_pair(name, pLit));
 	return *pLit;
 } // ArgTable#addLit
 
 
 ArgTableEntry_String ArgTable::addString(std::string name, std::string shortopts, std::string longopts, std::string glossary, int min, int max) {
 	ArgTableEntry_String* pStr = new ArgTableEntry_String(shortopts, longopts, glossary, min, max);
-	m_argTableEntries.push_back(std::make_pair(name,	pStr));
+	m_argTableEntries.push_back(std::make_pair(name, pStr));
 	return *pStr;
 } // ArgTable#addString
 
@@ -147,45 +147,55 @@ ArgTableEntry_Double::ArgTableEntry_Double(std::string shortopts, std::string lo
 	m_type   = ArgType_t::DBL;
 }
 
+
 int ArgTableEntry_Double::getCount() {
 	return m_argDbl->count;
 }
 
+
 ArgTableEntry_File::ArgTableEntry_File(std::string shortopts, std::string longopts, std::string glossary) {
 	m_argFile = arg_filen(shortopts.c_str(), longopts.c_str(), "", 0, 1, glossary.c_str());
-	m_type   = ArgType_t::FILE;
+	m_type = ArgType_t::FILE;
 }
+
 
 int ArgTableEntry_File::getCount() {
 	return m_argFile->count;
 }
+
 
 ArgTableEntry_Int::ArgTableEntry_Int(std::string shortopts, std::string longopts, std::string glossary) {
 	m_argInt = arg_intn(shortopts.c_str(), longopts.c_str(), "", 0, 1, glossary.c_str());
 	m_type   = ArgType_t::INT;
 }
 
+
 int ArgTableEntry_Int::getCount() {
 	return m_argInt->count;
 }
+
 
 ArgTableEntry_Lit::ArgTableEntry_Lit(std::string shortopts, std::string longopts, std::string glossary) {
 	m_argLit = arg_litn(shortopts.c_str(), longopts.c_str(), 0, 1, glossary.c_str());
 	m_type   = ArgType_t::LIT;
 }
 
+
 int ArgTableEntry_Lit::getCount() {
 	return m_argLit->count;
 }
+
 
 int ArgTableEntry_Regex::getCount() {
 	return m_argRex->count;
 }
 
+
 ArgTableEntry_String::ArgTableEntry_String(std::string shortopts, std::string longopts, std::string glossary, int min, int max) {
 	m_argStr = arg_strn(shortopts.c_str(), longopts.c_str(), "", min, max, glossary.c_str());
 	m_type   = ArgType_t::STR;
 }
+
 
 int ArgTableEntry_String::getCount() {
 	return m_argStr->count;
@@ -194,6 +204,7 @@ int ArgTableEntry_String::getCount() {
 
 Console::Console() {
 }
+
 
 Console::~Console() {
 }

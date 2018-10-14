@@ -15,7 +15,7 @@
  */
 class RMT {
 public:
-	RMT(gpio_num_t pin, rmt_channel_t channel=RMT_CHANNEL_0);
+	RMT(gpio_num_t pin, rmt_channel_t channel = RMT_CHANNEL_0);
 	virtual ~RMT();
 	void add(bool level, uint32_t duration);
 	void clear();
@@ -25,11 +25,11 @@ public:
 	void txStop();
 	void write();
 
-
 private:
 	rmt_channel_t channel;
 	std::vector<rmt_item32_t> items;
 	int bitCount = 0;
+
 };
 
 #endif /* COMPONENTS_CPP_UTILS_RMT_H_ */

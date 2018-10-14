@@ -29,7 +29,7 @@ size_t               Memory::m_lastHeapSize = 0;
  */
 /* STATIC */ bool Memory::checkIntegrity() {
 	bool rc = ::heap_caps_check_integrity_all(true);
-	if (rc == false && m_pRecords != nullptr) {
+	if (!rc && m_pRecords != nullptr) {
 		dumpRanges();
 		abort();
 	}
@@ -58,32 +58,29 @@ size_t               Memory::m_lastHeapSize = 0;
  */
 /* STATIC */ void Memory::dumpRanges() {
 	// Each record contained in the Heap trace has the following format:
-	//
 	// * uint32_t ccount – Timestamp of record.
 	// * void*    address – Address that was allocated or released.
 	// * size_t   size – Size of the block that was requested and allocated.
 	// * void*    alloced_by[CONFIG_HEAP_TRACING_STACK_DEPTH] – Call stack of allocator
 	// * void*    freed_by[CONFIG_HEAP_TRACING_STACK_DEPTH] – Call stack of releasor
-	//
-	if (m_pRecords == nullptr) {
-		return;
-	}
+	if (m_pRecords == nullptr) return;
+
 	esp_log_level_set("*", ESP_LOG_NONE);
-	size_t count = heap_trace_get_count();
+	size_t count = (size_t) heap_trace_get_count();
 	heap_trace_record_t record;
 	printf(">>> dumpRanges\n");
-	for (size_t i=0; i<count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		esp_err_t errRc = heap_trace_get(i, &record);
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "heap_trace_get: %d", errRc);
 		}
-		printf("0x%x:0x%x:%d:", (uint32_t)record.address, ((uint32_t)record.address) + record.size, record.size);
-		for (size_t j=0; j<CONFIG_HEAP_TRACING_STACK_DEPTH; j++) {
-			printf("%x ", (uint32_t)record.alloced_by[j]);
+		printf("0x%x:0x%x:%d:", (uint32_t) record.address, ((uint32_t) record.address) + record.size, record.size);
+		for (size_t j = 0; j < CONFIG_HEAP_TRACING_STACK_DEPTH; j++) {
+			printf("%x ", (uint32_t) record.alloced_by[j]);
 		}
 		printf(":");
-		for (size_t j=0; j<CONFIG_HEAP_TRACING_STACK_DEPTH; j++) {
-			printf("%x ", (uint32_t)record.freed_by[j]);
+		for (size_t j = 0; j < CONFIG_HEAP_TRACING_STACK_DEPTH; j++) {
+			printf("%x ", (uint32_t) record.freed_by[j]);
 		}
 		printf("\n");
 	}

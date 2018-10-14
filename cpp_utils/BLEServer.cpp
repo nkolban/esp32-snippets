@@ -38,7 +38,6 @@ BLEServer::BLEServer() {
 	m_connectedCount   = 0;
 	m_connId           = -1;
 	m_pServerCallbacks = nullptr;
-
 	//createApp(0);
 } // BLEServer
 
@@ -101,18 +100,20 @@ BLEService* BLEServer::createService(BLEUUID uuid, uint32_t numHandles, uint8_t 
  * @param [in] uuid The UUID of the new service.
  * @return A reference to the service object.
  */
-BLEService* 	BLEServer::getServiceByUUID(const char* uuid) {
+BLEService* BLEServer::getServiceByUUID(const char* uuid) {
 	return m_serviceMap.getByUUID(uuid);
 }
+
 
 /**
  * @brief Get a %BLE Service by its UUID
  * @param [in] uuid The UUID of the new service.
  * @return A reference to the service object.
  */
-BLEService* 	BLEServer::getServiceByUUID(BLEUUID uuid) {
+BLEService* BLEServer::getServiceByUUID(BLEUUID uuid) {
 	return m_serviceMap.getByUUID(uuid);
 }
+
 
 /**
  * @brief Retrieve the advertising object that can be used to advertise the existence of the server.
@@ -122,6 +123,7 @@ BLEService* 	BLEServer::getServiceByUUID(BLEUUID uuid) {
 BLEAdvertising* BLEServer::getAdvertising() {
 	return BLEDevice::getAdvertising();
 }
+
 
 uint16_t BLEServer::getConnId() {
 	return m_connId;
@@ -151,7 +153,7 @@ void BLEServer::handleGAPEvent(
 		esp_gap_ble_cb_event_t  event,
 		esp_ble_gap_cb_param_t* param) {
 	ESP_LOGD(LOG_TAG, "BLEServer ... handling GAP event!");
-	switch(event) {
+	switch (event) {
 		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT: {
 			/*
 			esp_ble_adv_params_t adv_params;
@@ -177,7 +179,6 @@ void BLEServer::handleGAPEvent(
 } // handleGAPEvent
 
 
-
 /**
  * @brief Handle a GATT Server Event.
  *
@@ -186,18 +187,13 @@ void BLEServer::handleGAPEvent(
  * @param [in] param
  *
  */
-void BLEServer::handleGATTServerEvent(
-		esp_gatts_cb_event_t      event,
-		esp_gatt_if_t             gatts_if,
-		esp_ble_gatts_cb_param_t* param) {
-
-	ESP_LOGD(LOG_TAG, ">> handleGATTServerEvent: %s",
-		BLEUtils::gattServerEventTypeToString(event).c_str());
+void BLEServer::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t* param) {
+	ESP_LOGD(LOG_TAG, ">> handleGATTServerEvent: %s", BLEUtils::gattServerEventTypeToString(event).c_str());
 
 	// Invoke the handler for every Service we have.
 	m_serviceMap.handleGATTServerEvent(event, gatts_if, param);
 
-	switch(event) {
+	switch (event) {
 		// ESP_GATTS_ADD_CHAR_EVT - Indicate that a characteristic was added to the service.
 		// add_char:
 		// - esp_gatt_status_t status
@@ -220,7 +216,7 @@ void BLEServer::handleGATTServerEvent(
 			m_connId = param->connect.conn_id; // Save the connection id.
 			if (m_pServerCallbacks != nullptr) {
 				m_pServerCallbacks->onConnect(this);
-				m_pServerCallbacks->onConnect(this, param);			
+				m_pServerCallbacks->onConnect(this, param);
 			}
 			m_connectedCount++;   // Increment the number of connected devices count.
 			break;
@@ -307,9 +303,8 @@ void BLEServer::handleGATTServerEvent(
 			break;
 		}
 
-		default: {
+		default:
 			break;
-		}
 	}
 	ESP_LOGD(LOG_TAG, "<< handleGATTServerEvent");
 } // handleGATTServerEvent
@@ -345,9 +340,9 @@ void BLEServer::setCallbacks(BLEServerCallbacks* pCallbacks) {
 /*
  * Remove service
  */
-void BLEServer::removeService(BLEService *service) {
+void BLEServer::removeService(BLEService* service) {
 	service->stop();
-	service->executeDelete();	
+	service->executeDelete();
 	m_serviceMap.removeService(service);
 }
 
@@ -370,7 +365,7 @@ void BLEServerCallbacks::onConnect(BLEServer* pServer) {
 	ESP_LOGD("BLEServerCallbacks", "<< onConnect()");
 } // onConnect
 
-void BLEServerCallbacks::onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t *param) {
+void BLEServerCallbacks::onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t* param) {
 	ESP_LOGD("BLEServerCallbacks", ">> onConnect(): Default");
 	ESP_LOGD("BLEServerCallbacks", "Device: %s", BLEDevice::toString().c_str());
 	ESP_LOGD("BLEServerCallbacks", "<< onConnect()");

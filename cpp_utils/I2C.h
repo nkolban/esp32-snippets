@@ -17,14 +17,6 @@
  * @brief Interface to %I2C functions.
  */
 class I2C {
-private:
-	uint8_t          m_address;
-	i2c_cmd_handle_t m_cmd;
-	bool             m_directionKnown;
-	gpio_num_t       m_sdaPin;
-	gpio_num_t       m_sclPin;
-	i2c_port_t       m_portNum;
-
 public:
 	/**
 	 * @brief The default SDA pin.
@@ -46,16 +38,25 @@ public:
 	void endTransaction();
 	uint8_t getAddress() const;
 	void init(uint8_t address, gpio_num_t sdaPin = DEFAULT_SDA_PIN, gpio_num_t sclPin = DEFAULT_CLK_PIN, uint32_t clkSpeed = DEFAULT_CLK_SPEED, i2c_port_t portNum = I2C_NUM_0);
-	void read(uint8_t* bytes, size_t length, bool ack=true);
-	void read(uint8_t* byte, bool ack=true);
+	void read(uint8_t* bytes, size_t length, bool ack = true);
+	void read(uint8_t* byte, bool ack = true);
 	void scan();
 	void setAddress(uint8_t address);
 	void setDebug(bool enabled);
 	bool slavePresent(uint8_t address);
 	void start();
 	void stop();
-	void write(uint8_t byte, bool ack=true);
-	void write(uint8_t* bytes, size_t length, bool ack=true);
+	void write(uint8_t byte, bool ack = true);
+	void write(uint8_t* bytes, size_t length, bool ack = true);
+
+private:
+	uint8_t		  m_address;
+	i2c_cmd_handle_t m_cmd;
+	bool			 m_directionKnown;
+	gpio_num_t	   m_sdaPin;
+	gpio_num_t	   m_sclPin;
+	i2c_port_t	   m_portNum;
+
 };
 
 #endif /* MAIN_I2C_H_ */

@@ -8,6 +8,7 @@
 #include "PCF8575.h"
 #include "I2C.h"
 
+
 /**
  * @brief Class constructor.
  *
@@ -21,6 +22,7 @@ PCF8575::PCF8575(uint8_t address) {
 	i2c.setAddress(address);
 	m_lastWrite = 0;
 }
+
 
 /**
  * @brief Class instance destructor.
@@ -36,8 +38,8 @@ PCF8575::~PCF8575() {
 uint16_t PCF8575::read() {
 	uint16_t value;
 	i2c.beginTransaction();
-	i2c.read((uint8_t*)&value,true);
-	i2c.read(((uint8_t*)&value) + 1,true);
+	i2c.read((uint8_t*) &value, true);
+	i2c.read(((uint8_t*) &value) + 1, true);
 	i2c.endTransaction();
 	return value;
 } // read
@@ -50,11 +52,9 @@ uint16_t PCF8575::read() {
  * @return True if the pin is high, false otherwise.  Undefined if there is no signal on the pin.
  */
 bool PCF8575::readBit(uint16_t bit) {
-	if (bit > 7) {
-		return false;
-	}
+	if (bit > 7) return false;
 	uint16_t value = read();
-	return (value & (1<<bit)) != 0;
+	return (value & (1 << bit)) != 0;
 } // readBit
 
 
@@ -85,16 +85,14 @@ void PCF8575::write(uint16_t value) {
  * @param [in] value The logic level to appear on the identified output pin.
  */
 void PCF8575::writeBit(uint16_t bit, bool value) {
-	if (bit > 15) {
-		return;
-	}
+	if (bit > 15) return;
 	if (invert) {
 		value = !value;
 	}
 	if (value) {
-		m_lastWrite |= (1<<bit);
+		m_lastWrite |= (1 << bit);
 	} else {
-		m_lastWrite &= ~(1<<bit);
+		m_lastWrite &= ~(1 << bit);
 	}
 	write(m_lastWrite);
 } // writeBit

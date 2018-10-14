@@ -101,6 +101,7 @@ void SPI::setHost(spi_host_device_t host) {
 	m_host = host;
 } // setHost
 
+
 /**
  * @brief Send and receive data through %SPI.  This is a blocking call.
  *
@@ -111,7 +112,7 @@ void SPI::transfer(uint8_t* data, size_t dataLen) {
 	assert(data != nullptr);
 	assert(dataLen > 0);
 #ifdef DEBUG
-	for (auto i=0; i<dataLen; i++) {
+	for (auto i = 0; i < dataLen; i++) {
 		ESP_LOGD(LOG_TAG, "> %2d %.2x", i, data[i]);
 	}
 #endif
@@ -141,5 +142,3 @@ uint8_t SPI::transferByte(uint8_t value) {
 	transfer(&value, 1);
 	return value;
 } // transferByte
-
-

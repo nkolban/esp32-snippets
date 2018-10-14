@@ -55,7 +55,7 @@ BLEUUID BLERemoteDescriptor::getUUID() {
 } // getUUID
 
 
-std::string BLERemoteDescriptor::readValue(void) {
+std::string BLERemoteDescriptor::readValue() {
 	ESP_LOGD(LOG_TAG, ">> readValue: %s", toString().c_str());
 
 	// Check to see that we are connected.
@@ -87,28 +87,28 @@ std::string BLERemoteDescriptor::readValue(void) {
 } // readValue
 
 
-uint8_t BLERemoteDescriptor::readUInt8(void) {
+uint8_t BLERemoteDescriptor::readUInt8() {
 	std::string value = readValue();
 	if (value.length() >= 1) {
-		return (uint8_t)value[0];
+		return (uint8_t) value[0];
 	}
 	return 0;
 } // readUInt8
 
 
-uint16_t BLERemoteDescriptor::readUInt16(void) {
+uint16_t BLERemoteDescriptor::readUInt16() {
 	std::string value = readValue();
 	if (value.length() >= 2) {
-		return *(uint16_t*)(value.data());
+		return *(uint16_t*) value.data();
 	}
 	return 0;
 } // readUInt16
 
 
-uint32_t BLERemoteDescriptor::readUInt32(void) {
+uint32_t BLERemoteDescriptor::readUInt32() {
 	std::string value = readValue();
 	if (value.length() >= 4) {
-		return *(uint32_t*)(value.data());
+		return *(uint32_t*) value.data();
 	}
 	return 0;
 } // readUInt32
@@ -118,7 +118,7 @@ uint32_t BLERemoteDescriptor::readUInt32(void) {
  * @brief Return a string representation of this BLE Remote Descriptor.
  * @retun A string representation of this BLE Remote Descriptor.
  */
-std::string BLERemoteDescriptor::toString(void) {
+std::string BLERemoteDescriptor::toString() {
 	std::stringstream ss;
 	ss << "handle: " << getHandle() << ", uuid: " << getUUID().toString();
 	return ss.str();
@@ -131,10 +131,7 @@ std::string BLERemoteDescriptor::toString(void) {
  * @param [in] length The length of the data to send.
  * @param [in] response True if we expect a response.
  */
-void BLERemoteDescriptor::writeValue(
-		uint8_t* data,
-		size_t   length,
-		bool     response) {
+void BLERemoteDescriptor::writeValue(uint8_t* data, size_t length, bool response) {
 	ESP_LOGD(LOG_TAG, ">> writeValue: %s", toString().c_str());
 	// Check to see that we are connected.
 	if (!getRemoteCharacteristic()->getRemoteService()->getClient()->isConnected()) {
@@ -163,10 +160,8 @@ void BLERemoteDescriptor::writeValue(
  * @param [in] newValue The data to send to the remote descriptor.
  * @param [in] response True if we expect a response.
  */
-void BLERemoteDescriptor::writeValue(
-		std::string newValue,
-		bool        response) {
-	writeValue(newValue.data(), newValue.length());
+void BLERemoteDescriptor::writeValue(std::string newValue, bool response) {
+	writeValue(newValue.data(), newValue.length(), response);
 } // writeValue
 
 
@@ -175,9 +170,7 @@ void BLERemoteDescriptor::writeValue(
  * @param [in] The single byte to write.
  * @param [in] True if we expect a response.
  */
-void BLERemoteDescriptor::writeValue(
-		uint8_t newValue,
-		bool    response) {
+void BLERemoteDescriptor::writeValue(uint8_t newValue, bool response) {
 	writeValue(&newValue, 1, response);
 } // writeValue
 

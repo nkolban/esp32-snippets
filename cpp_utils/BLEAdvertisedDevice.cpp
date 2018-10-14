@@ -138,8 +138,7 @@ BLEUUID BLEAdvertisedDevice::getServiceUUID() {  //TODO Remove it eventually, is
  */
 bool BLEAdvertisedDevice::isAdvertisingService(BLEUUID uuid){
 	for (int i = 0; i < m_serviceUUIDs.size(); i++) {
-		if(m_serviceUUIDs[i].equals(uuid))
-			return true;
+		if (m_serviceUUIDs[i].equals(uuid)) return true;
 	}
 	return false;
 }
@@ -236,9 +235,9 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 	bool finished = false;
 	setPayload(payload);
 
-	while(!finished) {
 		length = *payload;          // Retrieve the length of the record.
 		payload++;                  // Skip to type
+	while (!finished) {
 		sizeConsumed += 1 + length; // increase the size consumed.
 
 		if (length != 0) { // A length of 0 indicates that we have reached the end.
@@ -251,7 +250,7 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 					ad_type, BLEUtils::advTypeToString(ad_type), length, pHex);
 			free(pHex);
 
-			switch(ad_type) {
+			switch (ad_type) {
 				case ESP_BLE_AD_TYPE_NAME_CMPL: {   // Adv Data Type: 0x09
 					setName(std::string(reinterpret_cast<char*>(payload), length));
 					break;
@@ -274,16 +273,16 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 
 				case ESP_BLE_AD_TYPE_16SRV_CMPL:
 				case ESP_BLE_AD_TYPE_16SRV_PART: {   // Adv Data Type: 0x02
-					for (int var = 0; var < length/2; ++var) {
-						setServiceUUID(BLEUUID(*reinterpret_cast<uint16_t*>(payload+var*2)));
+					for (int var = 0; var < length / 2; ++var) {
+						setServiceUUID(BLEUUID(*reinterpret_cast<uint16_t*>(payload + var * 2)));
 					}
 					break;
 				} // ESP_BLE_AD_TYPE_16SRV_PART
 
 				case ESP_BLE_AD_TYPE_32SRV_CMPL:
 				case ESP_BLE_AD_TYPE_32SRV_PART: {   // Adv Data Type: 0x04
-					for (int var = 0; var < length/4; ++var) {
-						setServiceUUID(BLEUUID(*reinterpret_cast<uint32_t*>(payload+var*4)));
+					for (int var = 0; var < length / 4; ++var) {
+						setServiceUUID(BLEUUID(*reinterpret_cast<uint32_t*>(payload + var * 4)));
 					}
 					break;
 				} // ESP_BLE_AD_TYPE_32SRV_PART
@@ -309,10 +308,10 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 						ESP_LOGE(LOG_TAG, "Length too small for ESP_BLE_AD_TYPE_SERVICE_DATA");
 						break;
 					}
-					uint16_t uuid = *(uint16_t *)payload;
+					uint16_t uuid = *(uint16_t*) payload;
 					setServiceDataUUID(BLEUUID(uuid));
 					if (length > 2) {
-						setServiceData(std::string(reinterpret_cast<char*>(payload+2), length-2));
+						setServiceData(std::string(reinterpret_cast<char*>(payload + 2), length - 2));
 					}
 					break;
 				} //ESP_BLE_AD_TYPE_SERVICE_DATA
@@ -322,10 +321,10 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 						ESP_LOGE(LOG_TAG, "Length too small for ESP_BLE_AD_TYPE_32SERVICE_DATA");
 						break;
 					}
-					uint32_t uuid = *(uint32_t *)payload;
+					uint32_t uuid = *(uint32_t*) payload;
 					setServiceDataUUID(BLEUUID(uuid));
 					if (length > 4) {
-						setServiceData(std::string(reinterpret_cast<char*>(payload+4), length-4));
+						setServiceData(std::string(reinterpret_cast<char*>(payload + 4), length - 4));
 					}
 					break;
 				} //ESP_BLE_AD_TYPE_32SERVICE_DATA
@@ -336,9 +335,9 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 						break;
 					}
 
-					setServiceDataUUID(BLEUUID(payload, (size_t)16, false));
+					setServiceDataUUID(BLEUUID(payload, (size_t) 16, false));
 					if (length > 16) {
-						setServiceData(std::string(reinterpret_cast<char*>(payload+16), length-16));
+						setServiceData(std::string(reinterpret_cast<char*>(payload + 16), length - 16));
 					}
 					break;
 				} //ESP_BLE_AD_TYPE_32SERVICE_DATA
@@ -352,7 +351,7 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload) {
 		} // Length <> 0
 
 
-		if (sizeConsumed >=31 || length == 0) {
+		if (sizeConsumed >= 31 || length == 0) {
 			finished = true;
 		}
 	} // !finished
@@ -395,7 +394,7 @@ void BLEAdvertisedDevice::setAppearance(uint16_t appearance) {
 void BLEAdvertisedDevice::setManufacturerData(std::string manufacturerData) {
 	m_manufacturerData     = manufacturerData;
 	m_haveManufacturerData = true;
-	char* pHex = BLEUtils::buildHexData(nullptr, (uint8_t*)m_manufacturerData.data(), (uint8_t)m_manufacturerData.length());
+	char* pHex = BLEUtils::buildHexData(nullptr, (uint8_t*) m_manufacturerData.data(), (uint8_t) m_manufacturerData.length());
 	ESP_LOGD(LOG_TAG, "- manufacturer data: %s", pHex);
 	free(pHex);
 } // setManufacturerData
@@ -517,4 +516,3 @@ void BLEAdvertisedDevice::setPayload(uint8_t* payload) {
 
 
 #endif /* CONFIG_BT_ENABLED */
-

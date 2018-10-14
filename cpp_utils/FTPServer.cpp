@@ -22,24 +22,24 @@ static const char* LOG_TAG = "FTPServer";
 
 // trim from start (in place)
 static void ltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-        return !std::isspace(ch);
-    }));
+	s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+		return !std::isspace(ch);
+	}));
 } // ltrim
 
 
 // trim from end (in place)
 static void rtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
-        return !std::isspace(ch);
-    }).base(), s.end());
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+		return !std::isspace(ch);
+	}).base(), s.end());
 } // rtrim
 
 
 // trim from both ends (in place)
 static void trim(std::string &s) {
-    ltrim(s);
-    rtrim(s);
+	ltrim(s);
+	rtrim(s);
 } // trim
 
 
@@ -128,13 +128,13 @@ std::string FTPServer::listenPassive() {
 
 	struct sockaddr_in clientAddrInfo;
 	unsigned int addrInfoSize = sizeof(clientAddrInfo);
-	getsockname(m_clientSocket, (struct sockaddr*)&clientAddrInfo, &addrInfoSize);
+	getsockname(m_clientSocket, (struct sockaddr*) &clientAddrInfo, &addrInfoSize);
 
 	struct sockaddr_in serverAddress;
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
 	serverAddress.sin_port = htons(0);
-	int rc = bind(m_passiveSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+	int rc = bind(m_passiveSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress));
 	if (rc == -1) {
 		ESP_LOGD(LOG_TAG, "bind: %s", strerror(errno));
 	}
@@ -150,10 +150,9 @@ std::string FTPServer::listenPassive() {
 		ESP_LOGD(LOG_TAG, "getsockname: %s", strerror(errno));
 	}
 
-
 	std::stringstream ss;
-	ss    << ((clientAddrInfo.sin_addr.s_addr >> 0)  & 0xff) <<
-		"," << ((clientAddrInfo.sin_addr.s_addr >> 8)  & 0xff) <<
+	ss << ((clientAddrInfo.sin_addr.s_addr >> 0) & 0xff) <<
+		"," << ((clientAddrInfo.sin_addr.s_addr >> 8) & 0xff) <<
 		"," << ((clientAddrInfo.sin_addr.s_addr >> 16) & 0xff) <<
 		"," << ((clientAddrInfo.sin_addr.s_addr >> 24) & 0xff) <<
 		"," << ((serverAddress.sin_port >> 0) & 0xff) <<
@@ -203,7 +202,7 @@ void FTPServer::onList(std::istringstream& ss) {
 	sendResponse(FTPServer::RESPONSE_150_ABOUT_TO_OPEN_DATA_CONNECTION); // File status okay; about to open data connection.
 	if (m_callbacks != nullptr) {
 		std::string dirString = m_callbacks->onDir();
-		sendData((uint8_t *)dirString.data(), dirString.length());
+		sendData((uint8_t*) dirString.data(), dirString.length());
 	}
 	closeData();
 	sendResponse(FTPServer::RESPONSE_226_CLOSING_DATA_CONNECTION); // Closing data connection.
@@ -211,7 +210,7 @@ void FTPServer::onList(std::istringstream& ss) {
 } // FTPServer#onList
 
 
-void FTPServer::onMkd(std::istringstream &ss) {
+void FTPServer::onMkd(std::istringstream& ss) {
 	std::string path;
 	ss >> path;
 	ESP_LOGD(LOG_TAG, ">> onMkd: path=%s", path.c_str());
@@ -247,9 +246,9 @@ void FTPServer::onPort(std::istringstream& ss) {
 	char c;
 	uint16_t h1, h2, h3, h4, p1, p2;
 	ss >> h1 >> c >> h2 >> c >> h3 >> c >> h4 >> c >> p1 >> c >> p2;
-	m_dataPort = p1*256 + p2;
+	m_dataPort = p1 * 256 + p2;
 	ESP_LOGD(LOG_TAG, "%d.%d.%d.%d %d", h1, h2, h3, h4, m_dataPort);
-	m_dataIp = h1<<24 | h2<<16 | h3<<8 | h4;
+	m_dataIp = h1 << 24 | h2 << 16 | h3 << 8 | h4;
 	sendResponse(RESPONSE_200_COMMAND_OK); // Command okay.
 	m_isPassive = false;
 
@@ -351,7 +350,6 @@ void FTPServer::onQuit(std::istringstream& ss) {
  * @param ss The parameter stream.
  */
 void FTPServer::onRetr(std::istringstream& ss) {
-
 	// We open a data connection back to the client.  We then invoke the callback to indicate that we have
 	// started a retrieve operation.  We call the retrieve callback to request the next chunk of data and
 	// transmit this down the data connection.  We repeat this until there is no more data to send at which
@@ -362,12 +360,11 @@ void FTPServer::onRetr(std::istringstream& ss) {
 	ss >> fileName;
 	uint8_t data[m_chunkSize];
 
-
 	if (m_callbacks != nullptr) {
 		try {
 			m_callbacks->onRetrieveStart(fileName);
-		} catch(FTPServer::FileException& e) {
-			sendResponse(FTPServer::RESPONSE_550_ACTION_NOT_TAKEN);                                // Requested action not taken.
+		} catch (FTPServer::FileException& e) {
+			sendResponse(FTPServer::RESPONSE_550_ACTION_NOT_TAKEN);	  // Requested action not taken.
 			ESP_LOGD(LOG_TAG, "<< onRetr: Returned 550 to client.");
 			return;
 		}
@@ -377,7 +374,7 @@ void FTPServer::onRetr(std::istringstream& ss) {
 	openData();
 	if (m_callbacks != nullptr) {
 		int readSize = m_callbacks->onRetrieveData(data, m_chunkSize);
-		while(readSize > 0) {
+		while (readSize > 0) {
 			sendData(data, readSize);
 			readSize = m_callbacks->onRetrieveData(data, m_chunkSize);
 		}
@@ -432,11 +429,7 @@ void FTPServer::onType(std::istringstream& ss) {
 	ESP_LOGD(LOG_TAG, ">> onType");
 	std::string type;
 	ss >> type;
-	if (type.compare("I") == 0) {
-		m_isImage = true;
-	} else {
-		m_isImage = false;
-	}
+	m_isImage = (type.compare("I") == 0);
 	sendResponse(FTPServer::RESPONSE_200_COMMAND_OK);   // Command okay.
 	ESP_LOGD(LOG_TAG, "<< onType: isImage=%d", m_isImage);
 } // FTPServer#onType
@@ -455,15 +448,10 @@ void FTPServer::onType(std::istringstream& ss) {
 void FTPServer::onUser(std::istringstream& ss) {
 	// When we receive a user command, we next want to know if we should ask for a password.  If the m_loginRequired
 	// flag is set then we do indeed want a password and will send the response that we wish one.
-
 	std::string userName;
 	ss >> userName;
 	ESP_LOGD(LOG_TAG, ">> onUser: userName=%s", userName.c_str());
-	if (m_loginRequired) {
-		sendResponse(FTPServer::RESPONSE_331_PASSWORD_REQUIRED);
-	} else {
-		sendResponse(FTPServer::RESPONSE_200_COMMAND_OK); // Command okay.
-	}
+	sendResponse(m_loginRequired ? FTPServer::RESPONSE_331_PASSWORD_REQUIRED : FTPServer::RESPONSE_200_COMMAND_OK);
 	m_suppliedUserid = userName;   // Save the username that was supplied.
 	ESP_LOGD(LOG_TAG, "<< onUser");
 } // FTPServer#onUser
@@ -500,7 +488,7 @@ bool FTPServer::openData() {
 			return false;
 		}
 		closePassive();
-	}	else {
+	} else {
 		// Handle an active connection ... here we connect to the client.
 		m_dataSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
@@ -526,24 +514,20 @@ void FTPServer::processCommand() {
 	sendResponse(FTPServer::RESPONSE_220_SERVICE_READY); // Service ready.
 	ESP_LOGD(LOG_TAG, ">> FTPServer::processCommand");
 	m_lastCommand = "";
-	while(1) {
+	while (true) {
 		std::string line = "";
 		char currentChar;
 		char lastChar = '\0';
 		int rc = recv(m_clientSocket, &currentChar, 1, 0);
-		while(rc != -1 && rc!=0) {
+		while (rc != -1 && rc != 0) {
 			line += currentChar;
-			if (lastChar == '\r' && currentChar == '\n') {
-				break;
-			}
-			//printf("%c\n", currentChar);
+			if (lastChar == '\r' && currentChar == '\n') break;
+//			printf("%c\n", currentChar);
 			lastChar = currentChar;
 			rc = recv(m_clientSocket, &currentChar, 1, 0);
 		} // End while we are waiting for a line.
 
-		if (rc == 0 || rc == -1) {          // If we didn't get a line or an error, then we have finished processing commands.
-			break;
-		}
+		if (rc == 0 || rc == -1) break;		  // If we didn't get a line or an error, then we have finished processing commands.
 
 		std::string command;
 		std::istringstream ss(line);
@@ -553,58 +537,58 @@ void FTPServer::processCommand() {
 		// We now have a command to process.
 
 		ESP_LOGD(LOG_TAG, "Command: \"%s\"", command.c_str());
-		if (command.compare("USER")==0) {
+		if (command.compare("USER") == 0) {
 			onUser(ss);
 		}
-		else if (command.compare("PASS")==0) {
+		else if (command.compare("PASS") == 0) {
 			onPass(ss);
 		}
 		else if (m_loginRequired && !m_isAuthenticated) {
 			sendResponse(RESPONSE_530_NOT_LOGGED_IN);
 		}
-		else if (command.compare("PASV")==0) {
+		else if (command.compare("PASV") == 0) {
 			onPasv(ss);
 		}
-		else if (command.compare("SYST")==0) {
+		else if (command.compare("SYST") == 0) {
 			onSyst(ss);
 		}
-		else if (command.compare("PORT")==0) {
+		else if (command.compare("PORT") == 0) {
 			onPort(ss);
 		}
-		else if (command.compare("LIST")==0) {
+		else if (command.compare("LIST") == 0) {
 			onList(ss);
 		}
-		else if (command.compare("TYPE")==0) {
+		else if (command.compare("TYPE") == 0) {
 			onType(ss);
 		}
-		else if (command.compare("RETR")==0) {
+		else if (command.compare("RETR") == 0) {
 			onRetr(ss);
 		}
-		else if (command.compare("QUIT")==0) {
+		else if (command.compare("QUIT") == 0) {
 			onQuit(ss);
 		}
-		else if (command.compare("AUTH")==0) {
+		else if (command.compare("AUTH") == 0) {
 			onAuth(ss);
 		}
-		else if (command.compare("STOR")==0) {
+		else if (command.compare("STOR") == 0) {
 			onStor(ss);
 		}
-		else if (command.compare("PWD")==0) {
+		else if (command.compare("PWD") == 0) {
 			onPWD(ss);
 		}
-		else if (command.compare("MKD")==0) {
+		else if (command.compare("MKD") == 0) {
 			onMkd(ss);
 		}
-		else if (command.compare("XMKD")==0) {
+		else if (command.compare("XMKD") == 0) {
 			onXmkd(ss);
 		}
-		else if (command.compare("RMD")==0) {
+		else if (command.compare("RMD") == 0) {
 			onRmd(ss);
 		}
-		else if (command.compare("XRMD")==0) {
+		else if (command.compare("XRMD") == 0) {
 			onXrmd(ss);
 		}
-		else if (command.compare("CWD")==0) {
+		else if (command.compare("CWD") == 0) {
 			onCwd(ss);
 		}
 		else {
@@ -637,11 +621,9 @@ void FTPServer::receiveFile(std::string fileName) {
 	sendResponse(FTPServer::RESPONSE_150_ABOUT_TO_OPEN_DATA_CONNECTION); // File status okay; about to open data connection.
 	uint8_t buf[m_chunkSize];
 	uint32_t totalSizeRead = 0;
-	while(1) {
+	while (true) {
 		int rc = recv(m_dataSocket, &buf, m_chunkSize, 0);
-		if (rc <= 0) {
-			break;
-		}
+		if (rc <= 0) break;
 		if (m_callbacks != nullptr) {
 			m_callbacks->onRetrieveData(buf, rc);
 		}
@@ -789,7 +771,7 @@ void FTPServer::start() {
 	if (rc == -1) {
 		ESP_LOGD(LOG_TAG, "listen: %s", strerror(errno));
 	}
-	while(1) {
+	while (true) {
 		waitForFTPClient();
 		processCommand();
 	}
@@ -804,7 +786,7 @@ int FTPServer::waitForFTPClient() {
 
 	struct sockaddr_in clientAddress;
 	socklen_t clientAddressLength = sizeof(clientAddress);
-	m_clientSocket = accept(m_serverSocket, (struct sockaddr *)&clientAddress, &clientAddressLength);
+	m_clientSocket = accept(m_serverSocket, (struct sockaddr*) &clientAddress, &clientAddressLength);
 
 	char ipAddr[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &clientAddress.sin_addr, ipAddr, sizeof(ipAddr));
@@ -812,7 +794,7 @@ int FTPServer::waitForFTPClient() {
 
 	struct sockaddr_in socketAddressInfo;
 	unsigned int socketAddressInfoSize = sizeof(socketAddressInfo);
-	getsockname(m_clientSocket, (struct sockaddr*)&socketAddressInfo, &socketAddressInfoSize);
+	getsockname(m_clientSocket, (struct sockaddr*) &socketAddressInfo, &socketAddressInfoSize);
 
 	inet_ntop(AF_INET, &socketAddressInfo.sin_addr, ipAddr, sizeof(ipAddr));
 	ESP_LOGD(LOG_TAG, "Connected at %s [%d]", ipAddr, socketAddressInfo.sin_port);
