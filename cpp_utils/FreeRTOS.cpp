@@ -279,8 +279,8 @@ void Ringbuffer::returnItem(void* item) {
  * @param [in] wait How long to wait before giving up.  The default is to wait indefinitely.
  * @return
  */
-uint32_t Ringbuffer::send(void* data, size_t length, TickType_t wait) {
-	return ::xRingbufferSend(m_handle, data, length, wait);
+bool Ringbuffer::send(void* data, size_t length, TickType_t wait) {
+	return ::xRingbufferSend(m_handle, data, length, wait) == pdTRUE;
 } // send
 
 
