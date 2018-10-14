@@ -160,7 +160,7 @@ private:
 
    MQTT_CALLBACK_SIGNATURE;
    void setup			(void);
-   uint16_t 			readPacket();
+   size_t    			readPacket();
    bool write			(uint8_t header, uint8_t* buf, uint16_t length);
    uint16_t writeString(const char* string, uint8_t* buf, uint16_t pos);
    void parseData		(mqtt_message* msg, uint16_t len);
