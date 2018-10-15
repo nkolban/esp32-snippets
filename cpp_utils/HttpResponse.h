@@ -39,6 +39,7 @@ public:
 	void                               sendData(uint8_t* pData, size_t size);           // Send data to the client.
 	void                               setStatus(int status, std::string message);      // Set the response status.
 	void 							   sendFile(std::string fileName, size_t bufSize = 4 * 1024);	// Send file contents if exists.
+
 private:
 	bool							   m_headerCommitted;  // Has the header been sent?
 	HttpRequest*					   m_request;		  // The request associated with this response.

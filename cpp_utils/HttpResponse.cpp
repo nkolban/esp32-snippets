@@ -26,9 +26,9 @@ const int HttpResponse::HTTP_STATUS_NOT_IMPLEMENTED       = 501;
 const int HttpResponse::HTTP_STATUS_SERVICE_UNAVAILABLE   = 503;
 
 static std::string lineTerminator = "\r\n";
+HttpResponse::HttpResponse(HttpRequest* request) {
 	m_request = request;
 	m_status  = 200;
-HttpResponse::HttpResponse(HttpRequest* request) {
 	m_headerCommitted = false; // We have not yet sent a header.
 }
 
@@ -125,7 +125,7 @@ void HttpResponse::sendFile(std::string fileName, size_t bufSize) {
 	ESP_LOGI(LOG_TAG, "Opening file: %s", fileName.c_str());
 	std::ifstream ifStream;
 	ifStream.open(fileName, std::ifstream::in | std::ifstream::binary);      // Attempt to open the file for reading.
-	
+
 	// If we failed to open the requested file, then it probably didn't exist so return a not found.
 	if (!ifStream.is_open()) {
 		ESP_LOGE(LOG_TAG, "Unable to open file %s for reading", fileName.c_str());
