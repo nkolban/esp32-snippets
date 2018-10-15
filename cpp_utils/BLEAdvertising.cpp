@@ -300,7 +300,7 @@ void BLEAdvertisementData::setCompleteServices(BLEUUID uuid) {
 			// [Len] [0x04] [0] [1] ... [15]
 			cdata[0] = 17;
 			cdata[1] = ESP_BLE_AD_TYPE_128SRV_CMPL;  // 0x07
-			addData(std::string(cdata, 2) + std::string((char*) &uuid.getNative()->uuid.uuid128, 16));
+			addData(std::string(cdata, 2) + std::string((char*) uuid.getNative()->uuid.uuid128, 16));
 			break;
 		}
 
