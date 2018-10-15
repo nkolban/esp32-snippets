@@ -116,6 +116,21 @@ BLEService* BLEServer::getServiceByUUID(BLEUUID uuid) {
 
 
 /**
+ * @brief Returns the amount of services registered to this server
+ * @return The amount of registered services
+ */
+int BLEServer::getServiceCount() {
+	int count = 0;
+	if(m_serviceMap.getFirst() == nullptr) return 0;
+	while(m_serviceMap.getNext() != nullptr){
+		count++;
+	}
+
+	return count;
+}
+
+
+/**
  * @brief Retrieve the advertising object that can be used to advertise the existence of the server.
  *
  * @return An advertising object.
