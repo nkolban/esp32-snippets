@@ -117,7 +117,7 @@ void ESP32CPP::GPIO::low(gpio_num_t pin) {
  * @return True if the pin is high, false if the pin is low.
  */
 bool ESP32CPP::GPIO::read(gpio_num_t pin) {
-	return ::gpio_get_level(pin);
+	return ::gpio_get_level(pin) == 1;
 } // read
 
 
@@ -179,7 +179,7 @@ void ESP32CPP::GPIO::setOutput(gpio_num_t pin) {
  */
 void ESP32CPP::GPIO::write(gpio_num_t pin, bool value) {
 	//ESP_LOGD(LOG_TAG, ">> write: pin: %d, value: %d", pin, value);
-	esp_err_t errRc = ::gpio_set_level(pin, value);
+	esp_err_t errRc = ::gpio_set_level(pin, value ? 1 : 0);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "<< gpio_set_level: pin=%d, rc=%d %s", pin, errRc, GeneralUtils::errorToString(errRc));
 	}

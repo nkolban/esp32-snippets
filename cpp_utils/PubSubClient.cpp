@@ -188,10 +188,10 @@ void PubSubClient::setup() {
 	UNSUBACK_Outstanding = false;
 
 	keepAliveTimer = new FreeRTOSTimer((char*) "keepAliveTimer",
-			(MQTT_KEEPALIVE * 1000) / portTICK_PERIOD_MS, true, this,
+			(MQTT_KEEPALIVE * 1000) / portTICK_PERIOD_MS, pdTRUE, this,
 			keepAliveTimerMapper);
 	timeoutTimer = new FreeRTOSTimer((char*) "timeoutTimer",
-				(MQTT_KEEPALIVE * 1000) / portTICK_PERIOD_MS, true, this,
+				(MQTT_KEEPALIVE * 1000) / portTICK_PERIOD_MS, pdTRUE, this,
 				timeoutTimerMapper);
 	m_task = new PubSubClientTask("PubSubClientTask");
 } // setup
@@ -399,8 +399,7 @@ bool PubSubClient::connect() {
  * @param 	N/A.
  * @return 	Number of received bytes.
  */
-uint16_t PubSubClient::readPacket() {
-
+size_t PubSubClient::readPacket() {
 	size_t res = _client->receive(buffer, MQTT_MAX_PACKET_SIZE);
 
 	if (res > MQTT_MAX_PACKET_SIZE) {

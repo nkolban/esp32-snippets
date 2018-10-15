@@ -32,7 +32,7 @@ void FreeRTOS::sleep(uint32_t ms) {
  * @param[in] param An optional parameter to be passed to the started task.
  * @param[in] stackSize An optional paremeter supplying the size of the stack in which to run the task.
  */
-void FreeRTOS::startTask(void task(void*), std::string taskName, void* param, int stackSize) {
+void FreeRTOS::startTask(void task(void*), std::string taskName, void* param, uint32_t stackSize) {
 	::xTaskCreate(task, taskName.data(), stackSize, param, 5, NULL);
 } // startTask
 
@@ -162,7 +162,7 @@ bool FreeRTOS::Semaphore::take(std::string owner) {
 	if (m_usePthreads) {
 		pthread_mutex_lock(&m_pthread_mutex);
 	} else {
-		rc = ::xSemaphoreTake(m_semaphore, portMAX_DELAY);
+		rc = ::xSemaphoreTake(m_semaphore, portMAX_DELAY) == pdTRUE;
 	}
 	m_owner = owner;
 	if (rc) {
@@ -187,7 +187,7 @@ bool FreeRTOS::Semaphore::take(uint32_t timeoutMs, std::string owner) {
 	if (m_usePthreads) {
 		assert(false);  // We apparently don't have a timed wait for pthreads.
 	} else {
-		rc = ::xSemaphoreTake(m_semaphore, timeoutMs / portTICK_PERIOD_MS);
+		rc = ::xSemaphoreTake(m_semaphore, timeoutMs / portTICK_PERIOD_MS) == pdTRUE;
 	}
 	m_owner = owner;
 	if (rc) {
@@ -262,8 +262,8 @@ void Ringbuffer::returnItem(void* item) {
  * @param [in] wait How long to wait before giving up.  The default is to wait indefinitely.
  * @return
  */
-uint32_t Ringbuffer::send(void* data, size_t length, TickType_t wait) {
-	return ::xRingbufferSend(m_handle, data, length, wait);
+bool Ringbuffer::send(void* data, size_t length, TickType_t wait) {
+	return ::xRingbufferSend(m_handle, data, length, wait) == pdTRUE;
 } // send
 
 

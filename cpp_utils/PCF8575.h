@@ -29,8 +29,8 @@ public:
 	void     writeBit(uint16_t bit, bool value);
 
 private:
-	I2C     i2c = I2C();
-	uint8_t m_lastWrite;
+	I2C* i2c;
+	uint16_t m_lastWrite;
 	bool    invert = false;
 };
 

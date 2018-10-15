@@ -35,7 +35,7 @@ static const char* LOG_TAG = "BLEService"; // Tag for logging.
  * @param [in] uuid The UUID of the service.
  * @param [in] numHandles The maximum number of handles associated with the service.
  */
-BLEService::BLEService(const char* uuid, uint32_t numHandles) : BLEService(BLEUUID(uuid), numHandles) {
+BLEService::BLEService(const char* uuid, uint16_t numHandles) : BLEService(BLEUUID(uuid), numHandles) {
 }
 
 
@@ -44,7 +44,7 @@ BLEService::BLEService(const char* uuid, uint32_t numHandles) : BLEService(BLEUU
  * @param [in] uuid The UUID of the service.
  * @param [in] numHandles The maximum number of handles associated with the service.
  */
-BLEService::BLEService(BLEUUID uuid, uint32_t numHandles) {
+BLEService::BLEService(BLEUUID uuid, uint16_t numHandles) {
 	m_uuid      = uuid;
 	m_handle    = NULL_HANDLE;
 	m_pServer   = nullptr;

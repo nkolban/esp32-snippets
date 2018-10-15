@@ -29,7 +29,7 @@ public:
 	void writeBit(uint8_t bit, bool value);
 
 private:
-	I2C i2c = I2C();
+	I2C* i2c;
 	uint8_t lastWrite;
 	bool invert = false;
 

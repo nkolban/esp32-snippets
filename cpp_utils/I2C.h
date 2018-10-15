@@ -37,7 +37,7 @@ public:
 	void beginTransaction();
 	void endTransaction();
 	uint8_t getAddress() const;
-	void init(uint8_t address, gpio_num_t sdaPin = DEFAULT_SDA_PIN, gpio_num_t sclPin = DEFAULT_CLK_PIN, uint32_t clkSpeed = DEFAULT_CLK_SPEED, i2c_port_t portNum = I2C_NUM_0);
+	void init(uint8_t address, gpio_num_t sdaPin = DEFAULT_SDA_PIN, gpio_num_t sclPin = DEFAULT_CLK_PIN, uint32_t clkSpeed = DEFAULT_CLK_SPEED, i2c_port_t portNum = I2C_NUM_0, bool pullup = true);
 	void read(uint8_t* bytes, size_t length, bool ack = true);
 	void read(uint8_t* byte, bool ack = true);
 	void scan();

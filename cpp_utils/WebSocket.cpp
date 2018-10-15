@@ -21,12 +21,12 @@ extern "C" {
 static const char* LOG_TAG = "WebSocket";
 
 // WebSocket op codes as found in a WebSocket frame.
-static const int OPCODE_CONTINUE = 0x00;
-static const int OPCODE_TEXT     = 0x01;
-static const int OPCODE_BINARY   = 0x02;
-static const int OPCODE_CLOSE    = 0x08;
-static const int OPCODE_PING     = 0x09;
-static const int OPCODE_PONG     = 0x0a;
+static const uint8_t OPCODE_CONTINUE = 0x00;
+static const uint8_t OPCODE_TEXT     = 0x01;
+static const uint8_t OPCODE_BINARY   = 0x02;
+static const uint8_t OPCODE_CLOSE    = 0x08;
+static const uint8_t OPCODE_PING     = 0x09;
+static const uint8_t OPCODE_PONG     = 0x0a;
 
 
 // Structure definition for the WebSocket frame.
@@ -117,14 +117,14 @@ private:
 		Frame frame;
 		while (true) {
 			if (m_end) break;
-			ESP_LOGD(LOG_TAG, "Waiting on socket data for socket %s", peerSocket.toString().c_str());
+			ESP_LOGD("WebSocketReader", "Waiting on socket data for socket %s", peerSocket.toString().c_str());
 			int length = peerSocket.receive((uint8_t*) &frame, sizeof(frame), true); // Read exact
 			if (length != sizeof(frame)) {
-				ESP_LOGD(LOG_TAG, "Socket read error");
+				ESP_LOGD("WebSocketReader", "Socket read error");
 				pWebSocket->close();
 				return;
 			}
-			ESP_LOGD(LOG_TAG, "Received data from web socket.  Length: %d", length);
+			ESP_LOGD("WebSocketReader", "Received data from web socket.  Length: %d", length);
 			dumpFrame(frame);
 
 			// The following section parses the WebSocket frame.
@@ -475,7 +475,7 @@ WebSocketInputStreambuf::int_type WebSocketInputStreambuf::underflow() {
 	// We wish to refill the buffer.  We want to read data from the socket.  We want to read either
 	// the size of the buffer to fill it or the maximum number of bytes remaining to be read.
 	// We will choose which ever is smaller as the number of bytes to read into the buffer.
-	int remainingBytes = getRecordSize() - m_sizeRead;
+	size_t remainingBytes = getRecordSize() - m_sizeRead;
 	size_t sizeToRead;
 	if (remainingBytes < m_bufferSize) {
 		sizeToRead = remainingBytes;
@@ -484,7 +484,7 @@ WebSocketInputStreambuf::int_type WebSocketInputStreambuf::underflow() {
 	}
 
 	ESP_LOGD("WebSocketInputRecordStreambuf", "- getting next buffer of data; size request: %d", sizeToRead);
-	int bytesRead = m_socket.receive((uint8_t*) m_buffer, sizeToRead, true);
+	size_t bytesRead = m_socket.receive((uint8_t*) m_buffer, sizeToRead, true);
 	if (bytesRead == 0) {
 		ESP_LOGD("WebSocketInputRecordStreambuf", "<< underflow: Read 0 bytes");
 		return EOF;

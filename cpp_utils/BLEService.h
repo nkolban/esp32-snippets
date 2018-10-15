@@ -65,8 +65,8 @@ public:
 	uint8_t            m_id = 0;
 
 private:
-	BLEService(const char* uuid, uint32_t numHandles);
-	BLEService(BLEUUID uuid, uint32_t numHandles);
+	BLEService(const char* uuid, uint16_t numHandles);
+	BLEService(BLEUUID uuid, uint16_t numHandles);
 	friend class BLEServer;
 	friend class BLEServiceMap;
 	friend class BLEDescriptor;
@@ -84,7 +84,7 @@ private:
 	FreeRTOS::Semaphore  m_semaphoreStartEvt  = FreeRTOS::Semaphore("StartEvt");
 	FreeRTOS::Semaphore  m_semaphoreStopEvt   = FreeRTOS::Semaphore("StopEvt");
 
-	uint32_t             m_numHandles;
+	uint16_t             m_numHandles;
 
 	BLECharacteristic* getLastCreatedCharacteristic();
 	void			   handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t* param);

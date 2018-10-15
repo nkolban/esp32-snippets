@@ -47,7 +47,7 @@ size_t               Memory::m_lastHeapSize = 0;
 
 /* STATIC */ void Memory::dumpHeapChange(std::string tag) {
 	size_t currentUsage = heap_caps_get_free_size(MALLOC_CAP_8BIT);
-	int diff = currentUsage - m_lastHeapSize;
+	size_t diff = currentUsage - m_lastHeapSize;
 	ESP_LOGD(LOG_TAG, "%s: Heap changed by %d bytes  (%d to %d)", tag.c_str(), diff, m_lastHeapSize, currentUsage);
 	m_lastHeapSize = currentUsage;
 } // dumpHeapChange

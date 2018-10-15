@@ -145,5 +145,5 @@ void PWM::setFrequency(uint32_t freq) {
  * @return N/A.
  */
 void PWM::stop(bool idleLevel) {
-	ESP_ERROR_CHECK(::ledc_stop(LEDC_HIGH_SPEED_MODE, m_channel, idleLevel));
+	ESP_ERROR_CHECK(::ledc_stop(LEDC_HIGH_SPEED_MODE, m_channel, idleLevel ? 1 : 0));
 } // stop
