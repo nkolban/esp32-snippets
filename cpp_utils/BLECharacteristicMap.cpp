@@ -81,12 +81,9 @@ BLECharacteristic* BLECharacteristicMap::getNext() {
  * @param [in] gatts_if
  * @param [in] param
  */
-void BLECharacteristicMap::handleGATTServerEvent(
-		esp_gatts_cb_event_t      event,
-		esp_gatt_if_t             gatts_if,
-		esp_ble_gatts_cb_param_t* param) {
+void BLECharacteristicMap::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t* param) {
 	// Invoke the handler for every Service we have.
-	for (auto &myPair : m_uuidMap) {
+	for (auto& myPair : m_uuidMap) {
 		myPair.first->handleGATTServerEvent(event, gatts_if, param);
 	}
 } // handleGATTServerEvent
@@ -98,8 +95,7 @@ void BLECharacteristicMap::handleGATTServerEvent(
  * @param [in] characteristic The characteristic to cache.
  * @return N/A.
  */
-void BLECharacteristicMap::setByHandle(uint16_t handle,
-		BLECharacteristic* characteristic) {
+void BLECharacteristicMap::setByHandle(uint16_t handle, BLECharacteristic* characteristic) {
 	m_handleMap.insert(std::pair<uint16_t, BLECharacteristic*>(handle, characteristic));
 } // setByHandle
 
@@ -110,9 +106,7 @@ void BLECharacteristicMap::setByHandle(uint16_t handle,
  * @param [in] characteristic The characteristic to cache.
  * @return N/A.
  */
-void BLECharacteristicMap::setByUUID(
-		BLEUUID            uuid) {
-		BLECharacteristic* pCharacteristic,
+void BLECharacteristicMap::setByUUID(BLECharacteristic* pCharacteristic, BLEUUID uuid) {
 	m_uuidMap.insert(std::pair<BLECharacteristic*, std::string>(pCharacteristic, uuid.toString()));
 } // setByUUID
 

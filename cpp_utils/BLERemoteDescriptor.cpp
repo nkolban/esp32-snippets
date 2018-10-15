@@ -161,7 +161,7 @@ void BLERemoteDescriptor::writeValue(uint8_t* data, size_t length, bool response
  * @param [in] response True if we expect a response.
  */
 void BLERemoteDescriptor::writeValue(std::string newValue, bool response) {
-	writeValue(newValue.data(), newValue.length(), response);
+	writeValue((uint8_t*) newValue.data(), newValue.length(), response);
 } // writeValue
 
 

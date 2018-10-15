@@ -47,6 +47,9 @@ typedef volatile struct {
 	} pin_ctrl;
 
 	// The 36 exposed pads.
+	io_mux_reg_t pad_gpio36;     // GPIO36
+	io_mux_reg_t pad_gpio37;     // GPIO37
+	io_mux_reg_t pad_gpio38;     // GPIO38
 	io_mux_reg_t pad_gpio39;     // GPIO39
 	io_mux_reg_t pad_gpio34;     // GPIO34
 	io_mux_reg_t pad_gpio35;     // GPIO35
@@ -64,7 +67,6 @@ typedef volatile struct {
 	io_mux_reg_t pad_gpio4;      // GPIO4
 	io_mux_reg_t pad_gpio16;     // GPIO16
 	io_mux_reg_t pad_gpio17;     // GPIO17
-	io_mux_reg_t pad_gpio37;	 // GPIO37
 	io_mux_reg_t pad_sd_data2;   // GPIO9
 	io_mux_reg_t pad_sd_data3;   // GPIO10
 	io_mux_reg_t pad_sd_cmd;     // GPIO11
@@ -406,16 +408,16 @@ const static char* outSignalStrings[] = {
 	for (uint8_t i = 0; i < numPins; i++) {
 		const char *signal;
 		if (GPIO.func_out_sel_cfg[i].func_sel == 256) {
-			signal = (char *)"[GPIO]";
+			signal = (char*) "[GPIO]";
 		} else if (GPIO.func_out_sel_cfg[i].func_sel == 257) {
-			signal = (char *)"N/A";
+			signal = (char*) "N/A";
 		} else {
 			signal = outSignalStrings[GPIO.func_out_sel_cfg[i].func_sel];
 		}
 		printf("%2d %4d %s\n", i, GPIO.func_out_sel_cfg[i].func_sel, signal);
 		const io_mux_reg_t* io_mux = gpioToIoMux(i);
 		if (GPIO.func_out_sel_cfg[i].func_sel == 256 && io_mux != nullptr) {
-			printf("0x%x - function: %d, ie: %d\n", (uint32_t)io_mux, io_mux->mcu_sel + 1, io_mux->func_ie);
+			printf("0x%x - function: %d, ie: %d\n", (uint32_t) io_mux, io_mux->mcu_sel + 1, io_mux->func_ie);
 		}
 	}
 

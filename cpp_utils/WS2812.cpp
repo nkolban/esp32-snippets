@@ -158,7 +158,7 @@ void WS2812::show() {
 				(getChannelValueByType(this->colorOrder[2], this->pixels[i]));
 
 		ESP_LOGD(LOG_TAG, "Pixel value: %x", currentPixel);
-		for (uint8_t j = 23; j > =0; j--) {
+		for (uint8_t j = 23; j >= 0; j--) {
 			// We have 24 bits of data representing the red, green amd blue channels. The value of the
 			// 24 bits to output is in the variable current_pixel.  We now need to stream this value
 			// through RMT in most significant bit first.  To do this, we iterate through each of the 24

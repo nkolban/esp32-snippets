@@ -146,7 +146,7 @@ void MFRC522::PCD_ClearRegisterBitMask(PCD_Register reg, byte mask) {
  * @param result Out: Pointer to result buffer. Result is written to result[0..1], low byte first.
  * @return STATUS_OK on success, STATUS_??? otherwise.
  */
-MFRC522::StatusCode MFRC522::PCD_CalculateCRC(byte *data, byte length, byte *result) {
+MFRC522::StatusCode MFRC522::PCD_CalculateCRC(byte* data, byte length, byte* result) {
 	PCD_WriteRegister(CommandReg, PCD_Idle);		// Stop any active command.
 	PCD_WriteRegister(DivIrqReg, 0x04);				// Clear the CRCIRq interrupt request bit
 	PCD_WriteRegister(FIFOLevelReg, 0x80);			// FlushBuffer = 1, FIFO initialization
@@ -160,7 +160,6 @@ MFRC522::StatusCode MFRC522::PCD_CalculateCRC(byte *data, byte length, byte *res
 	for (uint16_t i = 5000; i > 0; i--) {
 		// DivIrqReg[7..0] bits are: Set2 reserved reserved MfinActIRq reserved CRCIRq reserved reserved
 		byte n = PCD_ReadRegister(DivIrqReg);
-		if (n & 0x04) {									// CRCIRq bit set - calculation done
 		if (n & 0x04) {								// CRCIRq bit set - calculation done
 			PCD_WriteRegister(CommandReg, PCD_Idle);	// Stop calculating CRC for new content in the FIFO.
 			// Transfer the result from the registers to the result buffer
@@ -403,8 +402,8 @@ bool MFRC522::PCD_PerformSelfTest() {
  * @param checkCRC In: True => The last two bytes of the response is assumed to be a CRC_A that must be validated.
  * @return STATUS_OK on success, STATUS_??? otherwise.
  */
-	byte waitIRq = 0x30;		// RxIRq and IdleIRq
 MFRC522::StatusCode MFRC522::PCD_TransceiveData(byte* sendData, byte sendLen, byte* backData, byte* backLen, byte* validBits, byte rxAlign, bool checkCRC) {
+	byte waitIRq = 0x30;		// RxIRq and IdleIRq
 	return PCD_CommunicateWithPICC(PCD_Transceive, waitIRq, sendData, sendLen, backData, backLen, validBits, rxAlign, checkCRC);
 } // End PCD_TransceiveData()
 
@@ -426,8 +425,8 @@ MFRC522::StatusCode MFRC522::PCD_TransceiveData(byte* sendData, byte sendLen, by
  */
 MFRC522::StatusCode MFRC522::PCD_CommunicateWithPICC(byte command, byte waitIRq, byte* sendData, byte sendLen, byte* backData, byte* backLen, byte* validBits, byte rxAlign, bool checkCRC) {
 	// Prepare values for BitFramingReg
-	byte bitFraming = (rxAlign << 4) + txLastBits;		// RxAlign = BitFramingReg[6..4]. TxLastBits = BitFramingReg[2..0]
 	byte txLastBits = validBits ? *validBits : (byte) 0;
+	byte bitFraming = (rxAlign << 4) + txLastBits;		// RxAlign = BitFramingReg[6..4]. TxLastBits = BitFramingReg[2..0]
 
 	PCD_WriteRegister(CommandReg, PCD_Idle);			// Stop any active command.
 	PCD_WriteRegister(ComIrqReg, 0x7F);					// Clear all seven interrupt request bits
@@ -808,8 +807,8 @@ MFRC522::StatusCode MFRC522::PICC_HaltA() {
  * @param uid Pointer to Uid struct. The first 4 bytes of the UID is used.
  * @return STATUS_OK on success, STATUS_??? otherwise. Probably STATUS_TIMEOUT if you supply the wrong key.
  */
-	byte waitIRq = 0x10;		// IdleIRq
 MFRC522::StatusCode MFRC522::PCD_Authenticate(byte command, byte blockAddr, MIFARE_Key* key, Uid* uid) {
+	byte waitIRq = 0x10;		// IdleIRq
 
 	// Build command buffer
 	byte sendData[12];

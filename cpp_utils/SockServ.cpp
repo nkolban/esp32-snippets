@@ -30,7 +30,6 @@ static const char* LOG_TAG = "SockServ";
  */
 SockServ::SockServ(uint16_t port) : SockServ() {
 	this->m_port = port;
-
 } // SockServ
 
 
@@ -62,8 +61,8 @@ SockServ::~SockServ() {
  */
 /* static */ void SockServ::acceptTask(void* data) {
 	SockServ* pSockServ = (SockServ*) data;
-	try {
-		while (true) {
+	while (true) {
+		try {
 			ESP_LOGD(LOG_TAG, "Waiting on accept");
 			Socket tempSock = pSockServ->m_serverSocket.accept();
 			if (!tempSock.isValid()) continue;
@@ -71,11 +70,12 @@ SockServ::~SockServ() {
 			pSockServ->m_clientSet.insert(tempSock);
 			xQueueSendToBack(pSockServ->m_acceptQueue, &tempSock, portMAX_DELAY);
 			pSockServ->m_clientSemaphore.give();
+		} catch (std::exception e) {
+			ESP_LOGD(LOG_TAG, "acceptTask ending");
+			pSockServ->m_clientSemaphore.give();   // Wake up any waiting clients.
+			FreeRTOS::deleteTask();
+			break;
 		}
-	} catch(std::exception e) {
-		ESP_LOGD(LOG_TAG, "acceptTask ending");
-		pSockServ->m_clientSemaphore.give();   // Wake up any waiting clients.
-		FreeRTOS::deleteTask();
 	}
 } // acceptTask
 
@@ -114,12 +114,12 @@ bool SockServ::getSSL() {
  * @return The amount of data returned or 0 if there was an error.
  */
 size_t SockServ::receiveData(Socket s, void* pData, size_t maxData) {
-	int rc = s.receive((uint8_t*) pData, maxData);
+	size_t rc = s.receive((uint8_t*) pData, maxData);
 	if (rc == -1) {
 		ESP_LOGE(LOG_TAG, "recv(): %s", strerror(errno));
 		return 0;
 	}
-	return (size_t) rc;
+	return rc;
 } // receiveData
 
 
@@ -190,7 +190,7 @@ Socket SockServ::waitForData(std::set<Socket>& socketSet) {
 	fd_set readSet;
 	int maxFd = -1;
 
-	for (	auto it = socketSet.begin(); it != socketSet.end(); ++it) {
+	for (auto it = socketSet.begin(); it != socketSet.end(); ++it) {
 		FD_SET(it->getFD(), &readSet);
 		if (it->getFD() > maxFd) {
 			maxFd = it->getFD();
@@ -198,11 +198,11 @@ Socket SockServ::waitForData(std::set<Socket>& socketSet) {
 	} // End for
 
 	int rc = ::select(
-		&readSet, // Set of read sockets
-		nullptr,  // Set of write sockets
-		nullptr,  // Set of exception sockets
-		nullptr   // Timeout
-		maxFd + 1,  // Number of sockets to scan
+			maxFd+1,  // Number of sockets to scan
+			&readSet, // Set of read sockets
+			nullptr,  // Set of write sockets
+			nullptr,  // Set of exception sockets
+			nullptr   // Timeout
 	);
 	if (rc == -1) {
 		ESP_LOGE(LOG_TAG, "Error with select");
