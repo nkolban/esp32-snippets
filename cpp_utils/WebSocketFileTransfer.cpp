@@ -29,7 +29,7 @@ WebSocketFileTransfer::WebSocketFileTransfer(std::string rootPath) {
 	m_pWebSocket = nullptr;
 	if (rootPath.empty()) {
 		ESP_LOGE(LOG_TAG, "Root path can not be empty");
-	} else if (m_rootPath.substr(m_rootPath.size()-1) != "/") {
+	} else if (m_rootPath.substr(m_rootPath.size() - 1) != "/") {
 		ESP_LOGE(LOG_TAG, "Root path must end with a \"/\"");
 	}
 } // WebSocketFileTransfer
@@ -42,16 +42,7 @@ namespace {
  * @brief Transfer handler.
  */
 class FileTransferWebSocketHandler : public WebSocketHandler {
-private:
-	std::string   m_fileName;      // The name of the file we are receiving.
-	uint32_t      m_fileLength;    // We may optionally receive a file length.
-	uint32_t      m_sizeReceived;  // The size of the data actually received so far.
-	bool          m_active;        // Are we actively processing a file.
-	std::ofstream m_ofStream;      // The file stream we are writing to when active.
-	std::string   m_rootPath;      // The root path for file names.
-
 public:
-
 	FileTransferWebSocketHandler(std::string rootPath) {
 		m_fileName     = "";
 		m_fileLength   = 0;
@@ -60,7 +51,6 @@ public:
 		m_rootPath     = rootPath;
 	} // FileTransferWebSocketHandler
 
-
 	/**
 	 * @brief Handler for the message received over the web socket.
 	 */
@@ -68,7 +58,6 @@ public:
 		ESP_LOGD("FileTransferWebSocketHandler", ">> onMessage");
 		// Test to see if we are currently active.  If not, this is the start of a transfer.
 		if (!m_active) {
-
 			ESP_LOGD("FileTransferWebSocketHandler", "Not yet active!");
 			// Read a chunk of data into memory.
 			std::stringstream buffer;
@@ -82,7 +71,7 @@ public:
 			//    "length": <lengthOfFile>   // Length of file. Optional.
 			// }
 			JsonObject jo = JSON::parseObject(buffer.str());
-			m_fileName    = jo.getString("name");
+			m_fileName	= jo.getString("name");
 			assert(m_fileName.length() > 0); // Doesn't make any sense to receive a zero length file name.
 			if (jo.hasItem("length")) {
 				m_fileLength  = jo.getInt("length");
@@ -91,9 +80,9 @@ public:
 			ESP_LOGD("FileTransferWebSocketHandler", "Target file is %s", fileName.c_str());
 
 			// If the file to create ends in a "/" then we are being asked to create a directory.
-			if (m_fileName.substr(m_fileName.size()-1)=="/") {
+			if (m_fileName.substr(m_fileName.size() - 1) == "/") {
 				ESP_LOGD("FileTransferWebSocketHandler", "Is a directory!!");
-				fileName = fileName.substr(0, fileName.size()-1);   // Remove the trailing slash
+				fileName = fileName.substr(0, fileName.size() - 1);   // Remove the trailing slash
 				struct stat statbuf;
 				if (stat(fileName.c_str(), &statbuf) == 0) {
 					if (S_ISREG(statbuf.st_mode)) {
@@ -114,7 +103,7 @@ public:
 					return;
 				}
 			}
-			m_active      = true;
+			m_active = true;
 			ESP_LOGD("FileTransferWebSocketHandler", "Filename: %s, length: %d", fileName.c_str(), m_fileLength);
 		} // !active --- Not active
 		else {
@@ -133,7 +122,6 @@ public:
 		}
 	} // onMessage
 
-
 	/**
 	 * @brief Handle a close event on the web socket.
 	 */
@@ -146,8 +134,17 @@ public:
 		if (m_ofStream.is_open()) {
 			m_ofStream.close();   // Close the file now that we have finished writing to it.
 		}
-		delete this;   // Delete ourself.
+		delete this;   // Delete ourselves.
 	} // onClose
+
+private:
+	std::string   m_fileName;	  // The name of the file we are receiving.
+	uint32_t      m_fileLength;	// We may optionally receive a file length.
+	uint32_t      m_sizeReceived;  // The size of the data actually received so far.
+	bool          m_active;		// Are we actively processing a file.
+	std::ofstream m_ofStream;	  // The file stream we are writing to when active.
+	std::string   m_rootPath;	  // The root path for file names.
+
 }; // FileTransferWebSocketHandler
 
 } // End un-named namespace

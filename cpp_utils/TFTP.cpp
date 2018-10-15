@@ -26,7 +26,7 @@ extern "C" {
 	extern uint32_t lwip_htonl(uint32_t);
 }
 
-static char tag[] = "TFTP";
+static const char* LOG_TAG = "TFTP";
 
 enum opcode {
 	TFTP_OPCODE_RRQ   = 1, // Read request
@@ -50,7 +50,7 @@ enum ERRORCODE {
 /**
  * Size of the TFTP data payload.
  */
-const int TFTP_DATA_SIZE=512;
+const int TFTP_DATA_SIZE = 512;
 
 struct data_packet {
 	uint16_t blockNumber;
@@ -91,15 +91,15 @@ void TFTP::TFTP_Transaction::processRRQ() {
  *  ----------------------------------
  *
  */
-	FILE *file;
+	FILE* file;
 	bool finished = false;
 
-	ESP_LOGD(tag, "Reading TFTP data from file: %s", m_filename.c_str());
+	ESP_LOGD(LOG_TAG, "Reading TFTP data from file: %s", m_filename.c_str());
 	std::string tmpName = m_baseDir + "/" + m_filename;
 	/*
 	struct stat buf;
 	if (stat(tmpName.c_str(), &buf) != 0) {
-		ESP_LOGE(tag, "Stat file: %s: %s", tmpName.c_str(), strerror(errno));
+		ESP_LOGE(LOG_TAG, "Stat file: %s: %s", tmpName.c_str(), strerror(errno));
 		return;
 	}
 	int length = buf.st_size;
@@ -109,7 +109,7 @@ void TFTP::TFTP_Transaction::processRRQ() {
 
 	file = fopen(tmpName.c_str(), "r");
 	if (file == nullptr) {
-		ESP_LOGE(tag, "Failed to open file for reading: %s: %s", tmpName.c_str(), strerror(errno));
+		ESP_LOGE(LOG_TAG, "Failed to open file for reading: %s: %s", tmpName.c_str(), strerror(errno));
 		sendError(ERROR_CODE_FILE_NOT_FOUND, tmpName);
 		return;
 	}
@@ -122,16 +122,15 @@ void TFTP::TFTP_Transaction::processRRQ() {
 
 	record.opCode = htons(TFTP_OPCODE_DATA); // Set the op code to be DATA.
 
-	while(!finished) {
-
+	while (!finished) {
 		record.blockNumber = htons(blockNumber);
 
 		int sizeRead = fread(record.buf, 1, TFTP_DATA_SIZE, file);
 
-		ESP_LOGD(tag, "Sending data to %s, blockNumber=%d, size=%d",
+		ESP_LOGD(LOG_TAG, "Sending data to %s, blockNumber=%d, size=%d",
 				Socket::addressToString(&m_partnerAddress).c_str(), blockNumber, sizeRead);
 
-		m_partnerSocket.sendTo((uint8_t*)&record, sizeRead+4, &m_partnerAddress);
+		m_partnerSocket.sendTo((uint8_t*) &record, sizeRead + 4, &m_partnerAddress);
 
 
 		if (sizeRead < TFTP_DATA_SIZE) {
@@ -141,7 +140,7 @@ void TFTP::TFTP_Transaction::processRRQ() {
 		}
 		blockNumber++; // Increment the block number.
 	}
-	ESP_LOGD(tag, "File sent");
+	ESP_LOGD(LOG_TAG, "File sent");
 } // processRRQ
 
 
@@ -167,27 +166,27 @@ void TFTP::TFTP_Transaction::processWRQ() {
 	uint8_t dataBuffer[TFTP_DATA_SIZE + 2 + 2];
 	bool finished = false;
 
-	FILE *file;
+	FILE* file;
 
-	ESP_LOGD(tag, "Writing TFTP data to file: %s", m_filename.c_str());
+	ESP_LOGD(LOG_TAG, "Writing TFTP data to file: %s", m_filename.c_str());
 	std::string tmpName = m_baseDir + "/" + m_filename;
 	file = fopen(tmpName.c_str(), "w");
 	if (file == nullptr) {
-		ESP_LOGE(tag, "Failed to open file for writing: %s: %s", tmpName.c_str(), strerror(errno));
+		ESP_LOGE(LOG_TAG, "Failed to open file for writing: %s: %s", tmpName.c_str(), strerror(errno));
 		return;
 	}
 	while(!finished) {
-		pRecv_data = (struct recv_data *)dataBuffer;
+		pRecv_data = (struct recv_data*) dataBuffer;
 		int receivedSize = m_partnerSocket.receiveFrom(dataBuffer, sizeof(dataBuffer), &recvAddr);
 		if (receivedSize == -1) {
-			ESP_LOGE(tag, "rc == -1 from receive_from");
+			ESP_LOGE(LOG_TAG, "rc == -1 from receive_from");
 		}
 		struct data_packet dp;
 		dp.blockNumber = ntohs(pRecv_data->blockNumber);
-		dp.data = std::string((char *)&pRecv_data->data, receivedSize-4);
+		dp.data = std::string((char*) &pRecv_data->data, receivedSize - 4);
 		fwrite(dp.data.data(), dp.data.length(), 1, file);
 		sendAck(dp.blockNumber);
-		ESP_LOGD(tag, "Block size: %d", dp.data.length());
+		ESP_LOGD(LOG_TAG, "Block size: %d", dp.data.length());
 		if (dp.data.length() < TFTP_DATA_SIZE) {
 			finished = true;
 		}
@@ -213,8 +212,8 @@ void TFTP::TFTP_Transaction::sendAck(uint16_t blockNumber) {
 	ackData.opCode      = htons(TFTP_OPCODE_ACK);
 	ackData.blockNumber = htons(blockNumber);
 
-	ESP_LOGD(tag, "Sending ack to %s, blockNumber=%d", Socket::addressToString(&m_partnerAddress).c_str(), blockNumber);
-	m_partnerSocket.sendTo((uint8_t *)&ackData, sizeof(ackData), &m_partnerAddress);
+	ESP_LOGD(LOG_TAG, "Sending ack to %s, blockNumber=%d", Socket::addressToString(&m_partnerAddress).c_str(), blockNumber);
+	m_partnerSocket.sendTo((uint8_t*) &ackData, sizeof(ackData), &m_partnerAddress);
 } // sendAck
 
 
@@ -233,26 +232,29 @@ void TFTP::start(uint16_t port) {
  * or write a file to the server.  Once we have received a request we then call the appropriate
  * handler to handle that type of request.  When the request has been completed, we start again.
  */
-	ESP_LOGD(tag, "Starting TFTP::start() on port %d", port);
+	ESP_LOGD(LOG_TAG, "Starting TFTP::start() on port %d", port);
 	Socket serverSocket;
 	serverSocket.listen(port, true); // Create a listening socket that is a datagram.
-	while(true) {
+	while (true) {
 		// This would be a good place to start a transaction in the background.
-		TFTP_Transaction *pTFTPTransaction = new TFTP_Transaction();
+		TFTP_Transaction* pTFTPTransaction = new TFTP_Transaction();
 		pTFTPTransaction->setBaseDir(m_baseDir);
 		uint16_t receivedOpCode = pTFTPTransaction->waitForRequest(&serverSocket);
-		switch(receivedOpCode) {
-		// Handle the write request (client file upload)
+		switch (receivedOpCode) {
+			// Handle the write request (client file upload)
 			case opcode::TFTP_OPCODE_WRQ: {
 				pTFTPTransaction->processWRQ();
 				break;
 			}
 
-		// Handle the read request (server file download)
+			// Handle the read request (server file download)
 			case opcode::TFTP_OPCODE_RRQ: {
 				pTFTPTransaction->processRRQ();
 				break;
 			}
+			default:
+				ESP_LOGE(LOG_TAG, "Unknown opcode: %d", receivedOpCode);
+				break;
 		}
 		delete pTFTPTransaction;
 	} // End while loop
@@ -292,12 +294,12 @@ void TFTP::TFTP_Transaction::waitForAck(uint16_t blockNumber) {
 		uint16_t blockNumber;
 	} ackData;
 
-	ESP_LOGD(tag, "TFTP: Waiting for an acknowledgment request");
-	int sizeRead = m_partnerSocket.receiveFrom((uint8_t *)&ackData, sizeof(ackData), &m_partnerAddress);
-	ESP_LOGD(tag, "TFTP: Received some data.");
+	ESP_LOGD(LOG_TAG, "TFTP: Waiting for an acknowledgment request");
+	int sizeRead = m_partnerSocket.receiveFrom((uint8_t*) &ackData, sizeof(ackData), &m_partnerAddress);
+	ESP_LOGD(LOG_TAG, "TFTP: Received some data.");
 
 	if (sizeRead != sizeof(ackData)) {
-		ESP_LOGE(tag, "waitForAck: Received %d but expected %d", sizeRead, sizeof(ackData));
+		ESP_LOGE(LOG_TAG, "waitForAck: Received %d but expected %d", sizeRead, sizeof(ackData));
 		sendError(ERROR_CODE_NOTDEFINED, "Ack not correct size");
 		return;
 	}
@@ -306,12 +308,12 @@ void TFTP::TFTP_Transaction::waitForAck(uint16_t blockNumber) {
 	ackData.blockNumber = ntohs(ackData.blockNumber);
 
 	if (ackData.opCode != opcode::TFTP_OPCODE_ACK) {
-		ESP_LOGE(tag, "waitForAck: Received opcode %d but expected %d", ackData.opCode, opcode::TFTP_OPCODE_ACK);
+		ESP_LOGE(LOG_TAG, "waitForAck: Received opcode %d but expected %d", ackData.opCode, opcode::TFTP_OPCODE_ACK);
 		return;
 	}
 
 	if (ackData.blockNumber != blockNumber) {
-		ESP_LOGE(tag, "waitForAck: Blocknumber received %d but expected %d", ackData.blockNumber, blockNumber);
+		ESP_LOGE(LOG_TAG, "waitForAck: Blocknumber received %d but expected %d", ackData.blockNumber, blockNumber);
 		return;
 	}
 } // waitForAck
@@ -326,29 +328,28 @@ void TFTP::TFTP_Transaction::waitForAck(uint16_t blockNumber) {
  * @param pServerSocket The server socket on which to listen for client requests.
  * @return The op code received.
  */
-uint16_t TFTP::TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
 /*
  *        2 bytes    string   1 byte     string   1 byte
  *        -----------------------------------------------
  * RRQ/  | 01/02 |  Filename  |   0  |    Mode    |   0  |
  * WRQ    -----------------------------------------------
  */
+uint16_t TFTP::TFTP_Transaction::waitForRequest(Socket* pServerSocket) {
 	union {
 		uint8_t buf[TFTP_DATA_SIZE];
 		uint16_t opCode;
 	} record;
 	size_t length = 100;
 
-	ESP_LOGD(tag, "TFTP: Waiting for a request");
+	ESP_LOGD(LOG_TAG, "TFTP: Waiting for a request");
 	pServerSocket->receiveFrom(record.buf, length, &m_partnerAddress);
 
 	// Save the filename, mode and op code.
 
-	m_filename = std::string((char *)(record.buf + 2));
-	m_mode     = std::string((char *)(record.buf + 3 + m_filename.length()));
+	m_filename = std::string((char*) (record.buf + 2));
+	m_mode	 = std::string((char*) (record.buf + 3 + m_filename.length()));
 	m_opCode   = ntohs(record.opCode);
-	switch(m_opCode) {
-
+	switch (m_opCode) {
 		// Handle the Write Request command.
 		case TFTP_OPCODE_WRQ: {
 			m_partnerSocket.createSocket(true);
@@ -356,7 +357,6 @@ uint16_t TFTP::TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
 			sendAck(0);
 			break;
 		}
-
 
 		// Handle the Read request command.
 		case TFTP_OPCODE_RRQ: {
@@ -366,7 +366,7 @@ uint16_t TFTP::TFTP_Transaction::waitForRequest(Socket *pServerSocket) {
 		}
 
 		default: {
-			ESP_LOGD(tag, "Un-handled opcode: %d", m_opCode);
+			ESP_LOGD(LOG_TAG, "Un-handled opcode: %d", m_opCode);
 			break;
 		}
 	}
@@ -387,10 +387,10 @@ void TFTP::TFTP_Transaction::sendError(uint16_t code, std::string message) {
  *  -----------------------------------------
  */
 	int size = 2  + 2 + message.length() + 1;
-	uint8_t *buf = (uint8_t *)malloc(size);
-	*(uint16_t *)(&buf[0]) = htons(opcode::TFTP_OPCODE_ERROR);
-	*(uint16_t *)(&buf[2]) = htons(code);
-	strcpy((char *)(&buf[4]), message.c_str());
+	uint8_t* buf = (uint8_t*) malloc(size);
+	*(uint16_t*) (&buf[0]) = htons(opcode::TFTP_OPCODE_ERROR);
+	*(uint16_t*) (&buf[2]) = htons(code);
+	strcpy((char*) (&buf[4]), message.c_str());
 	m_partnerSocket.sendTo(buf, size, &m_partnerAddress);
 	free(buf);
 } // sendError

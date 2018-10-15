@@ -14,7 +14,7 @@
 #include "Task.h"
 #include "sdkconfig.h"
 
-static char tag[] = "Task";
+static const char* LOG_TAG = "Task";
 
 
 /**
@@ -44,7 +44,7 @@ Task::~Task() {
  */
 
 /* static */ void Task::delay(int ms) {
-	::vTaskDelay(ms/portTICK_PERIOD_MS);
+	::vTaskDelay(ms / portTICK_PERIOD_MS);
 } // delay
 
 /**
@@ -54,10 +54,10 @@ Task::~Task() {
  * @param [in] pTaskInstance The task to run.
  */
 void Task::runTask(void* pTaskInstance) {
-	Task* pTask = (Task*)pTaskInstance;
-	ESP_LOGD(tag, ">> runTask: taskName=%s", pTask->m_taskName.c_str());
+	Task* pTask = (Task*) pTaskInstance;
+	ESP_LOGD(LOG_TAG, ">> runTask: taskName=%s", pTask->m_taskName.c_str());
 	pTask->run(pTask->m_taskData);
-	ESP_LOGD(tag, "<< runTask: taskName=%s", pTask->m_taskName.c_str());
+	ESP_LOGD(LOG_TAG, "<< runTask: taskName=%s", pTask->m_taskName.c_str());
 	pTask->stop();
 } // runTask
 
@@ -69,7 +69,7 @@ void Task::runTask(void* pTaskInstance) {
  */
 void Task::start(void* taskData) {
 	if (m_handle != nullptr) {
-		ESP_LOGW(tag, "Task::start - There might be a task already running!");
+		ESP_LOGW(LOG_TAG, "Task::start - There might be a task already running!");
 	}
 	m_taskData = taskData;
 	::xTaskCreatePinnedToCore(&runTask, m_taskName.c_str(), m_stackSize, this, m_priority, &m_handle, m_coreId);
@@ -82,9 +82,7 @@ void Task::start(void* taskData) {
  * @return N/A.
  */
 void Task::stop() {
-	if (m_handle == nullptr) {
-		return;
-	}
+	if (m_handle == nullptr) return;
 	xTaskHandle temp = m_handle;
 	m_handle = nullptr;
 	::vTaskDelete(temp);

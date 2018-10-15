@@ -17,7 +17,7 @@ private:
 
 public:
 	WebSocketFileTransfer(std::string rootPath);
-	void start(WebSocket *pWebSocket);
+	void start(WebSocket* pWebSocket);
 };
 
 #endif /* COMPONENTS_CPP_UTILS_WEBSOCKETFILETRANSFER_H_ */

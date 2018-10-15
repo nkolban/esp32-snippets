@@ -16,21 +16,21 @@ static const char LOG_TAG[] = "BLEEddystoneTLM";
 #define ENDIAN_CHANGE_U32(x) ((((x)&0xFF000000)>>24) + (((x)&0x00FF0000)>>8)) + ((((x)&0xFF00)<<8) + (((x)&0xFF)<<24))
 
 BLEEddystoneTLM::BLEEddystoneTLM() {
-  beconUUID = 0xFEAA;
-  m_eddystoneData.frameType = EDDYSTONE_TLM_FRAME_TYPE;
-  m_eddystoneData.version = 0;
-  m_eddystoneData.volt = 3300; // 3300mV = 3.3V
-  m_eddystoneData.temp = (uint16_t)((float)23.00);
-  m_eddystoneData.advCount = 0;
-  m_eddystoneData.tmil = 0;
+	beaconUUID = 0xFEAA;
+	m_eddystoneData.frameType = EDDYSTONE_TLM_FRAME_TYPE;
+	m_eddystoneData.version = 0;
+	m_eddystoneData.volt = 3300; // 3300mV = 3.3V
+	m_eddystoneData.temp = (uint16_t) ((float) 23.00);
+	m_eddystoneData.advCount = 0;
+	m_eddystoneData.tmil = 0;
 } // BLEEddystoneTLM
 
 std::string BLEEddystoneTLM::getData() {
-	return std::string((char*)&m_eddystoneData, sizeof(m_eddystoneData));
+	return std::string((char*) &m_eddystoneData, sizeof(m_eddystoneData));
 } // getData
 
 BLEUUID BLEEddystoneTLM::getUUID() {
-	return BLEUUID(beconUUID);
+	return BLEUUID(beaconUUID);
 } // getUUID
 
 uint8_t BLEEddystoneTLM::getVersion() {
@@ -60,35 +60,35 @@ std::string BLEEddystoneTLM::toString() {
   ss << "Version ";
   ss << std::dec << m_eddystoneData.version;
   ss << "\n";
-  
+
   ss << "Battery Voltage ";
   ss << std::dec << ENDIAN_CHANGE_U16(m_eddystoneData.volt);
   ss << " mV\n";
-  
-  ss <<  "Temperature ";
-  ss << (float)m_eddystoneData.temp;
-  ss <<  " °C\n";
-  
-  ss <<  "Adv. Count ";
+
+  ss << "Temperature ";
+  ss << (float) m_eddystoneData.temp;
+  ss << " °C\n";
+
+  ss << "Adv. Count ";
   ss << std::dec << ENDIAN_CHANGE_U32(m_eddystoneData.advCount);
 
   ss << "\n";
-  
+
   ss << "Time ";
 
   rawsec = ENDIAN_CHANGE_U32(m_eddystoneData.tmil);
   std::stringstream buffstream;
   buffstream << "0000";
-  buffstream << std::dec << rawsec/864000;
+  buffstream << std::dec << rawsec / 864000;
   std::string buff = buffstream.str();
 
-  ss << buff.substr(buff.length()-4, buff.length());
+  ss << buff.substr(buff.length() - 4, buff.length());
   ss << ".";
 
   buffstream.str("");
   buffstream.clear();
   buffstream << "00";
-  buffstream << std::dec << (rawsec/36000)%24;
+  buffstream << std::dec << (rawsec / 36000) % 24;
   buff = buffstream.str();
   ss << buff.substr(buff.length()-2, buff.length());
   ss << ":";
@@ -96,17 +96,17 @@ std::string BLEEddystoneTLM::toString() {
   buffstream.str("");
   buffstream.clear();
   buffstream << "00";
-  buffstream << std::dec << (rawsec/600)%60;
+  buffstream << std::dec << (rawsec / 600) % 60;
   buff = buffstream.str();
-  ss << buff.substr(buff.length()-2, buff.length());
+  ss << buff.substr(buff.length() - 2, buff.length());
   ss << ":";
 
   buffstream.str("");
   buffstream.clear();
   buffstream << "00";
-  buffstream << std::dec << (rawsec/10)%60;
+  buffstream << std::dec << (rawsec / 10) % 60;
   buff = buffstream.str();
-  ss << buff.substr(buff.length()-2, buff.length());
+  ss << buff.substr(buff.length() - 2, buff.length());
   ss << "\n";
 
   return ss.str();
@@ -124,7 +124,7 @@ void BLEEddystoneTLM::setData(std::string data) {
 } // setData
 
 void BLEEddystoneTLM::setUUID(BLEUUID l_uuid) {
-	beconUUID = l_uuid.getNative()->uuid.uuid16;
+	beaconUUID = l_uuid.getNative()->uuid.uuid16;
 } // setUUID
 
 void BLEEddystoneTLM::setVersion(uint8_t version) {

@@ -42,11 +42,11 @@ static std::string lineTerminator = "\r\n";
  * @param [in] str The string we are parsing.
  * @param [in] token The token delimiter.
  */
-static std::string toStringToken(std::string::iterator &it, std::string &str, std::string &token) {
+static std::string toStringToken(std::string::iterator& it, std::string& str, std::string& token) {
 	std::string ret;
 	std::string part;
 	auto itToken = token.begin();
-	for(; it != str.end(); ++it) {
+	for (; it != str.end(); ++it) {
 		if ((*it) == (*itToken)) {
 			part += (*itToken);
 			++itToken;
@@ -74,7 +74,7 @@ static std::string toStringToken(std::string::iterator &it, std::string &str, st
  * @param [in] token The token terminating the parse.
  * @return The parsed string token.
  */
-static std::string toCharToken(std::string::iterator &it, std::string &str, char token) {
+static std::string toCharToken(std::string::iterator& it, std::string& str, char token) {
 	std::string ret;
 	for(; it != str.end(); ++it) {
 		if ((*it) == token) {
@@ -97,9 +97,9 @@ static std::string toCharToken(std::string::iterator &it, std::string &str, char
  * @param [in] line The line of text to parse.
  * @return A pair of the form name/value.
  */
-std::pair<std::string, std::string> parseHeader(std::string &line) {
-	auto it    = line.begin();
-	std::string name  = toCharToken(it, line, ':'); // Parse the line until we find a ':'
+std::pair<std::string, std::string> parseHeader(std::string& line) {
+	auto it = line.begin();
+	std::string name = toCharToken(it, line, ':'); // Parse the line until we find a ':'
 	// We normalize the header name to be lower case.
 	GeneralUtils::toLower(name);
 	auto value = GeneralUtils::trim(toStringToken(it, line, lineTerminator));
@@ -142,9 +142,7 @@ std::string HttpParser::getHeader(const std::string& name) {
 	// We normalize the header name to be lower case.
 	std::string localName = name;
 	GeneralUtils::toLower(localName);
-	if (!hasHeader(localName)) {
-		return "";
-	}
+	if (!hasHeader(localName)) return "";
 	return m_headers.at(localName);
 } // getHeader
 
@@ -169,11 +167,11 @@ std::string HttpParser::getVersion() {
 } // getVersion
 
 std::string HttpParser::getStatus() {
-    return m_status;
+	return m_status;
 } // getStatus
 
 std::string HttpParser::getReason() {
-    return m_reason;
+	return m_reason;
 } // getReason
 
 /**
@@ -198,7 +196,7 @@ void HttpParser::parse(Socket s) {
 	line = s.readToDelim(lineTerminator);
 	parseRequestLine(line);
 	line = s.readToDelim(lineTerminator);
-	while(!line.empty()) {
+	while (!line.empty()) {
 		m_headers.insert(parseHeader(line));
 		line = s.readToDelim(lineTerminator);
 	}
@@ -216,13 +214,13 @@ void HttpParser::parse(Socket s) {
 		int length = std::atoi(val.c_str());
 		uint8_t data[length];
 		s.receive(data, length, true);
-		m_body = std::string((char *)data, length);
+		m_body = std::string((char*) data, length);
 	} else {
 		uint8_t data[512];
 		int rc = s.receive(data, sizeof(data));
-        if (rc > 0) {
-		    m_body = std::string((char *)data, rc);
-        }
+		if (rc > 0) {
+			m_body = std::string((char*) data, rc);
+		}
 	}
 	ESP_LOGD(LOG_TAG, "<< parse: Size of body: %d", m_body.length());
 } // parse
@@ -253,10 +251,9 @@ void HttpParser::parse(std::string message) {
  * @brief Parse A request line.
  * @param [in] line The request line to parse.
  */
-// A request Line is built from:
-// <method> <sp> <request-target> <sp> <HTTP-version>
-//
-void HttpParser::parseRequestLine(std::string &line) {
+void HttpParser::parseRequestLine(std::string& line) {
+	// A request Line is built from:
+	// <method> <sp> <request-target> <sp> <HTTP-version>
 	ESP_LOGD(LOG_TAG, ">> parseRequestLine: \"%s\" [%d]", line.c_str(), line.length());
 	std::string::iterator it = line.begin();
 
@@ -275,17 +272,15 @@ void HttpParser::parseRequestLine(std::string &line) {
  * @brief Parse a response message.
  * @param [in] line The response to parse.
  */
-// A response is built from:
-// A status line, any number of header lines, a body
-//
-void HttpParser::parseResponse(std::string message)
-{
+void HttpParser::parseResponse(std::string message) {
+	// A response is built from:
+	// A status line, any number of header lines, a body
 	auto it = message.begin();
 	auto line = toStringToken(it, message, lineTerminator);
 	parseStatusLine(line);
 
 	line = toStringToken(it, message, lineTerminator);
-	while(!line.empty()) {
+	while (!line.empty()) {
 		ESP_LOGD(LOG_TAG, "Header: \"%s\"", line.c_str());
 		m_headers.insert(parseHeader(line));
 		line = toStringToken(it, message, lineTerminator);
@@ -298,11 +293,9 @@ void HttpParser::parseResponse(std::string message)
  * @brief Parse A status line.
  * @param [in] line The status line to parse.
  */
-// A status Line is built from:
-// <HTTP-version> <sp> <status> <sp> <reason>
-//
-void HttpParser::parseStatusLine(std::string &line)
-{
+void HttpParser::parseStatusLine(std::string& line) {
+	// A status Line is built from:
+	// <HTTP-version> <sp> <status> <sp> <reason>
 	ESP_LOGD(LOG_TAG, ">> ParseStatusLine: \"%s\" [%d]", line.c_str(), line.length());
 	std::string::iterator it = line.begin();
 	// Get the version
@@ -314,4 +307,3 @@ void HttpParser::parseStatusLine(std::string &line)
 
 	ESP_LOGD(LOG_TAG, "<< ParseStatusLine: method: %s, version: %s, status: %s", m_method.c_str(), m_version.c_str(), m_status.c_str());
 } // parseRequestLine
-

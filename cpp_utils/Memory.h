@@ -26,7 +26,6 @@ public:
 	static void startTraceLeaks();
 	static void stopTrace();
 
-
 private:
 	static heap_trace_record_t* m_pRecords;
 	static size_t               m_lastHeapSize; // Size of last heap recorded.

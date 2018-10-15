@@ -9,14 +9,15 @@
 #define MPU6050_GYRO_XOUT_H  0x43
 #define MPU6050_PWR_MGMT_1   0x6B
 
+
 /**
  * @brief Construct an %MPU6050 handler.
  */
 MPU6050::MPU6050() {
 	accel_x = accel_y = accel_z = 0;
 	gyro_x  = gyro_y  = gyro_z  = 0;
-	i2c=nullptr;
-	inited=false;
+	i2c = nullptr;
+	inited = false;
 }
 
 
@@ -43,13 +44,14 @@ void MPU6050::readAccel() {
 	uint8_t data[6];
 	i2c->beginTransaction();
 	i2c->read(data, 5, true);
-	i2c->read(data+5, false);
+	i2c->read(data + 5, false);
 	i2c->endTransaction();
 
 	accel_x = (data[0] << 8) | data[1];
 	accel_y = (data[2] << 8) | data[3];
 	accel_z = (data[4] << 8) | data[5];
 } // readAccel
+
 
 /**
  * @brief Read the gyroscopic values from the device.
@@ -66,13 +68,14 @@ void MPU6050::readGyro() {
 	uint8_t data[6];
 	i2c->beginTransaction();
 	i2c->read(data, 5, true);
-	i2c->read(data+5, false);
+	i2c->read(data + 5, false);
 	i2c->endTransaction();
 
 	gyro_x = (data[0] << 8) | data[1];
 	gyro_y = (data[2] << 8) | data[3];
 	gyro_z = (data[4] << 8) | data[5];
 } // readGyro
+
 
 /**
  * @brief Initialize the %MPU6050.
@@ -94,5 +97,5 @@ void MPU6050::init(gpio_num_t sdaPin, gpio_num_t clkPin) {
 	i2c->write(MPU6050_PWR_MGMT_1);
 	i2c->write(0);
 	i2c->endTransaction();
-	inited=true;
+	inited = true;
 }

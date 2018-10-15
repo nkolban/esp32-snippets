@@ -37,13 +37,13 @@ BLEDescriptor::BLEDescriptor(const char* uuid) : BLEDescriptor(BLEUUID(uuid)) {
  */
 BLEDescriptor::BLEDescriptor(BLEUUID uuid) {
 	m_bleUUID            = uuid;
-	m_value.attr_value   = (uint8_t *)malloc(ESP_GATT_MAX_ATTR_LEN);  // Allocate storage for the value.
 	m_value.attr_len     = 0;                                         // Initial length is 0.
 	m_value.attr_max_len = ESP_GATT_MAX_ATTR_LEN;                     // Maximum length of the data.
 	m_handle             = NULL_HANDLE;                               // Handle is initially unknown.
 	m_pCharacteristic    = nullptr;                                   // No initial characteristic.
 	m_pCallback          = nullptr;                                   // No initial callback.
 
+	m_value.attr_value   = (uint8_t*) malloc(ESP_GATT_MAX_ATTR_LEN);  // Allocate storage for the value.
 } // BLEDescriptor
 
 
@@ -133,8 +133,8 @@ uint8_t* BLEDescriptor::getValue() {
 void BLEDescriptor::handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
 		esp_gatt_if_t             gatts_if,
-		esp_ble_gatts_cb_param_t *param) {
-	switch(event) {
+		esp_ble_gatts_cb_param_t* param) {
+	switch (event) {
 		// ESP_GATTS_ADD_CHAR_DESCR_EVT
 		//
 		// add_char_descr:
@@ -247,10 +247,9 @@ void BLEDescriptor::handleGATTServerEvent(
 			break;
 		} // ESP_GATTS_READ_EVT
 
-		default: {
+		default:
 			break;
-		}
-	}// switch event
+	} // switch event
 } // handleGATTServerEvent
 
 
@@ -259,7 +258,7 @@ void BLEDescriptor::handleGATTServerEvent(
  * @param [in] pCallbacks An instance of a callback structure used to define any callbacks for the descriptor.
  */
 void BLEDescriptor::setCallbacks(BLEDescriptorCallbacks* pCallback) {
-	ESP_LOGD(LOG_TAG, ">> setCallbacks: 0x%x", (uint32_t)pCallback);
+	ESP_LOGD(LOG_TAG, ">> setCallbacks: 0x%x", (uint32_t) pCallback);
 	m_pCallback = pCallback;
 	ESP_LOGD(LOG_TAG, "<< setCallbacks");
 } // setCallbacks
@@ -298,7 +297,7 @@ void BLEDescriptor::setValue(uint8_t* data, size_t length) {
  * @param [in] value The value of the descriptor in string form.
  */
 void BLEDescriptor::setValue(std::string value) {
-	setValue((uint8_t *)value.data(), value.length());
+	setValue((uint8_t*) value.data(), value.length());
 } // setValue
 
 void BLEDescriptor::setAccessPermissions(esp_gatt_perm_t perm) {

@@ -72,7 +72,6 @@ private:
 	void setTXPower(int8_t txPower);
 	void setPayload(uint8_t* payload);
 
-
 	bool m_haveAppearance;
 	bool m_haveManufacturerData;
 	bool m_haveName;
@@ -82,7 +81,6 @@ private:
 	bool m_haveTXPower;
 
 
-	BLEAddress  m_address = BLEAddress((uint8_t*)"\0\0\0\0\0\0");
 	uint8_t     m_adFlag;
 	uint16_t    m_appearance;
 	int         m_deviceType;
@@ -95,6 +93,7 @@ private:
 	std::string m_serviceData;
 	BLEUUID     m_serviceDataUUID;
 	uint8_t*	m_payload;
+	BLEAddress  m_address = BLEAddress((uint8_t*) "\0\0\0\0\0\0");
 };
 
 /**

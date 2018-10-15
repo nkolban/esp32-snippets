@@ -34,9 +34,9 @@ void SOC::I2S::dump() {
 		I2S0.clkm_conf.clka_en);
 	uint32_t clockSpeed;
 	if (I2S0.clkm_conf.clkm_div_a == 0) {
-		clockSpeed = 160000000/I2S0.clkm_conf.clkm_div_num;
+		clockSpeed = 160000000 / I2S0.clkm_conf.clkm_div_num;
 	} else {
-		clockSpeed = 160000000/(I2S0.clkm_conf.clkm_div_num + I2S0.clkm_conf.clkm_div_b/I2S0.clkm_conf.clkm_div_a);
+		clockSpeed = 160000000 / (I2S0.clkm_conf.clkm_div_num + I2S0.clkm_conf.clkm_div_b / I2S0.clkm_conf.clkm_div_a);
 	}
 	printf("Clock speed: %d\n", clockSpeed);
 	printf("\n");
@@ -44,8 +44,8 @@ void SOC::I2S::dump() {
 	printf("I2S_CONF_REG\n");
 	printf("------------\n");
 	printf("tx_slave_mod: %s, rx_slave_mod: %s, rx_msb_right: %d, rx_right_first: %d\n",
-		I2S0.conf.tx_slave_mod==0?"Master":"Slave",
-		I2S0.conf.rx_slave_mod==0?"Master":"Slave",
+		(I2S0.conf.tx_slave_mod == 0) ? "Master" : "Slave",
+		(I2S0.conf.rx_slave_mod == 0) ? "Master" : "Slave",
 		I2S0.conf.rx_msb_right,
 		I2S0.conf.rx_right_first);
 	printf("\n");

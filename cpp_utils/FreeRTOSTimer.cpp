@@ -11,10 +11,10 @@
 #include "FreeRTOSTimer.h"
 
 
-static std::map<void *, FreeRTOSTimer *> timersMap;
+static std::map<void*, FreeRTOSTimer*> timersMap;
 
 void FreeRTOSTimer::internalCallback(TimerHandle_t xTimer) {
-	FreeRTOSTimer *timer = timersMap.at(xTimer);
+	FreeRTOSTimer* timer = timersMap.at(xTimer);
 	timer->callback(timer);
 }
 
@@ -33,7 +33,7 @@ void FreeRTOSTimer::internalCallback(TimerHandle_t xTimer) {
  *
  * @code{.cpp}
  * void callback(FreeRTOSTimer *pTimer) {
- *    // Callback code here ...
+ *	// Callback code here ...
  * }
  * @endcode
  *
@@ -43,12 +43,7 @@ void FreeRTOSTimer::internalCallback(TimerHandle_t xTimer) {
  * @param [in] data Data to be passed to the callback.
  * @param [in] callback Callback function to be fired when the timer expires.
  */
-FreeRTOSTimer::FreeRTOSTimer(
-	char          *name,
-	TickType_t     period,
-	UBaseType_t    reload,
-	void          *data,
-	void         (*callback)(FreeRTOSTimer *pTimer)) {
+FreeRTOSTimer::FreeRTOSTimer(char* name, TickType_t period, UBaseType_t	reload, void* data, void (*callback)(FreeRTOSTimer* pTimer)) {
 	/*
 	 * The callback function to actually be called is saved as member data in the object and
 	 * a static callback function is called.  This will be passed the FreeRTOS timer handle
@@ -124,7 +119,7 @@ void FreeRTOSTimer::changePeriod(TickType_t newPeriod, TickType_t blockTime) {
  *
  * @return The name of the timer.
  */
-const char *FreeRTOSTimer::getName() {
+const char* FreeRTOSTimer::getName() {
 	return ::pcTimerGetTimerName(timerHandle);
 } // getName
 
@@ -134,6 +129,6 @@ const char *FreeRTOSTimer::getName() {
  *
  * @return The user supplied data associated with the timer.
  */
-void *FreeRTOSTimer::getData() {
+void* FreeRTOSTimer::getData() {
 	return ::pvTimerGetTimerID(timerHandle);
 } // getData

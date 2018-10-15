@@ -76,7 +76,6 @@
 #define MFRC522_h
 
 
-
 #include <stdint.h>
 #include <SPI.h>
 
@@ -258,7 +257,6 @@ public:
 		PICC_CMD_SEL_CL2		= 0x95,		// Anti collision/Select, Cascade Level 2
 		PICC_CMD_SEL_CL3		= 0x97,		// Anti collision/Select, Cascade Level 3
 		PICC_CMD_HLTA			= 0x50,		// HaLT command, Type A. Instructs an ACTIVE PICC to go to state HALT.
-		PICC_CMD_RATS           = 0xE0,     // Request command for Answer To Reset.
 		// The commands used for MIFARE Classic (from http://www.mouser.com/ds/2/302/MF1S503x-89574.pdf, Section 9)
 		// Use PCD_MFAuthent to authenticate access to a sector, then use these commands to read/write/modify the blocks on the sector.
 		// The read/write commands can also be used for MIFARE Ultralight.
@@ -329,18 +327,20 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Functions for setting up the Arduino
 	/////////////////////////////////////////////////////////////////////////////////////
+
 	//MFRC522();
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Basic interface functions for communicating with the MFRC522
 	/////////////////////////////////////////////////////////////////////////////////////
+
 	void PCD_WriteRegister(PCD_Register reg, byte value);
-	void PCD_WriteRegister(PCD_Register reg, byte count, byte *values);
+	void PCD_WriteRegister(PCD_Register reg, byte count, byte* values);
 	byte PCD_ReadRegister(PCD_Register reg);
-	void PCD_ReadRegister(PCD_Register reg, byte count, byte *values, byte rxAlign = 0);
+	void PCD_ReadRegister(PCD_Register reg, byte count, byte* values, byte rxAlign = 0);
 	void PCD_SetRegisterBitMask(PCD_Register reg, byte mask);
 	void PCD_ClearRegisterBitMask(PCD_Register reg, byte mask);
-	StatusCode PCD_CalculateCRC(byte *data, byte length, byte *result);
+	StatusCode PCD_CalculateCRC(byte* data, byte length, byte* result);
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Functions for manipulating the MFRC522
@@ -357,46 +357,46 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Functions for communicating with PICCs
 	/////////////////////////////////////////////////////////////////////////////////////
-	StatusCode PCD_TransceiveData(byte *sendData, byte sendLen, byte *backData, byte *backLen, byte *validBits = nullptr, byte rxAlign = 0, bool checkCRC = false);
-	StatusCode PCD_CommunicateWithPICC(byte command, byte waitIRq, byte *sendData, byte sendLen, byte *backData = nullptr, byte *backLen = nullptr, byte *validBits = nullptr, byte rxAlign = 0, bool checkCRC = false);
-	StatusCode PICC_RequestA(byte *bufferATQA, byte *bufferSize);
-	StatusCode PICC_WakeupA(byte *bufferATQA, byte *bufferSize);
-	StatusCode PICC_REQA_or_WUPA(byte command, byte *bufferATQA, byte *bufferSize);
-	virtual StatusCode PICC_Select(Uid *uid, byte validBits = 0);
+	StatusCode PCD_TransceiveData(byte* sendData, byte sendLen, byte* backData, byte* backLen, byte* validBits = nullptr, byte rxAlign = 0, bool checkCRC = false);
+	StatusCode PCD_CommunicateWithPICC(byte command, byte waitIRq, byte* sendData, byte sendLen, byte* backData = nullptr, byte* backLen = nullptr, byte* validBits = nullptr, byte rxAlign = 0, bool checkCRC = false);
+	StatusCode PICC_RequestA(byte* bufferATQA, byte* bufferSize);
+	StatusCode PICC_WakeupA(byte* bufferATQA, byte* bufferSize);
+	StatusCode PICC_REQA_or_WUPA(byte command, byte* bufferATQA, byte* bufferSize);
+	virtual StatusCode PICC_Select(Uid* uid, byte validBits = 0);
 	StatusCode PICC_HaltA();
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Functions for communicating with MIFARE PICCs
 	/////////////////////////////////////////////////////////////////////////////////////
-	StatusCode PCD_Authenticate(byte command, byte blockAddr, MIFARE_Key *key, Uid *uid);
+	StatusCode PCD_Authenticate(byte command, byte blockAddr, MIFARE_Key* key, Uid* uid);
 	void PCD_StopCrypto1();
-	StatusCode MIFARE_Read(byte blockAddr, byte *buffer, byte *bufferSize);
-	StatusCode MIFARE_Write(byte blockAddr, byte *buffer, byte bufferSize);
-	StatusCode MIFARE_Ultralight_Write(byte page, byte *buffer, byte bufferSize);
+	StatusCode MIFARE_Read(byte blockAddr, byte* buffer, byte* bufferSize);
+	StatusCode MIFARE_Write(byte blockAddr, byte* buffer, byte bufferSize);
+	StatusCode MIFARE_Ultralight_Write(byte page, byte* buffer, byte bufferSize);
 	StatusCode MIFARE_Decrement(byte blockAddr, int32_t delta);
 	StatusCode MIFARE_Increment(byte blockAddr, int32_t delta);
 	StatusCode MIFARE_Restore(byte blockAddr);
 	StatusCode MIFARE_Transfer(byte blockAddr);
-	StatusCode MIFARE_GetValue(byte blockAddr, int32_t *value);
+	StatusCode MIFARE_GetValue(byte blockAddr, int32_t* value);
 	StatusCode MIFARE_SetValue(byte blockAddr, int32_t value);
-	StatusCode PCD_NTAG216_AUTH(byte *passWord, byte pACK[]);
+	StatusCode PCD_NTAG216_AUTH(byte* passWord, byte pACK[]);
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Support functions
 	/////////////////////////////////////////////////////////////////////////////////////
-	StatusCode PCD_MIFARE_Transceive(byte *sendData, byte sendLen, bool acceptTimeout = false);
+	StatusCode PCD_MIFARE_Transceive(byte* sendData, byte sendLen, bool acceptTimeout = false);
 	static PICC_Type PICC_GetType(byte sak);
 
 	// Support functions for debuging
 	void PCD_DumpVersionToSerial();
-	void PICC_DumpToSerial(Uid *uid);
-	void PICC_DumpDetailsToSerial(Uid *uid);
-	void PICC_DumpMifareClassicToSerial(Uid *uid, PICC_Type piccType, MIFARE_Key *key);
-	void PICC_DumpMifareClassicSectorToSerial(Uid *uid, MIFARE_Key *key, byte sector);
+	void PICC_DumpToSerial(Uid* uid);
+	void PICC_DumpDetailsToSerial(Uid* uid);
+	void PICC_DumpMifareClassicToSerial(Uid* uid, PICC_Type piccType, MIFARE_Key* key);
+	void PICC_DumpMifareClassicSectorToSerial(Uid* uid, MIFARE_Key* key, byte sector);
 	void PICC_DumpMifareUltralightToSerial();
 
 	// Advanced functions for MIFARE
-	void MIFARE_SetAccessBits(byte *accessBitBuffer, byte g0, byte g1, byte g2, byte g3);
+	void MIFARE_SetAccessBits(byte* accessBitBuffer, byte g0, byte g1, byte g2, byte g3);
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Convenience functions - does not add extra functionality

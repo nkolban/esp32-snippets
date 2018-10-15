@@ -17,15 +17,15 @@
 #include "BLE2902.h"
 #include "HIDTypes.h"
 
-#define GENERIC_HID		960
-#define HID_KEYBOARD	961
-#define HID_MOUSE		962
-#define HID_JOYSTICK	963
-#define HID_GAMEPAD		964
-#define HID_TABLET		965
-#define HID_CARD_READER	966
-#define HID_DIGITAL_PEN	967
-#define HID_BARCODE		968
+#define GENERIC_HID		0x03C0
+#define HID_KEYBOARD	   0x03C1
+#define HID_MOUSE		  0x03C2
+#define HID_JOYSTICK	   0x03C3
+#define HID_GAMEPAD		0x03C4
+#define HID_TABLET		 0x03C5
+#define HID_CARD_READER	0x03C6
+#define HID_DIGITAL_PEN	0x03C7
+#define HID_BARCODE		0x03C8
 
 class BLEHIDDevice {
 public:

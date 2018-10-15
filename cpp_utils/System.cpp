@@ -85,7 +85,7 @@ typedef volatile struct {
 	io_mux_reg_t pad_gpio24;     // GPIO24
 } io_mux_dev_t;
 
-static io_mux_dev_t* IO_MUX = (io_mux_dev_t*)0x3ff49000;
+static io_mux_dev_t* IO_MUX = (io_mux_dev_t*) 0x3ff49000;
 
 static const io_mux_reg_t* io_mux_translate[] = {
 		&IO_MUX->pad_gpio0,      // 0
@@ -110,12 +110,6 @@ static const io_mux_reg_t* io_mux_translate[] = {
 		&IO_MUX->pad_gpio19,     // 19
 		&IO_MUX->pad_gpio20,     // 20
 		&IO_MUX->pad_gpio21,     // 21
-		&IO_MUX->pad_gpio22,     // 22
-		&IO_MUX->pad_gpio23,     // 23
-		&IO_MUX->pad_gpio24,     // 24
-		&IO_MUX->pad_gpio25,     // 25
-		&IO_MUX->pad_gpio26,     // 26
-		&IO_MUX->pad_gpio27,     // 27
 		nullptr,                 // 28
 		nullptr,                 // 29
 		nullptr,                 // 30
@@ -411,19 +405,19 @@ const static char* outSignalStrings[] = {
 	printf("GPIO_FUNCn_OUT_SEL_CFG_REG\n");
 	printf("--------------------------\n");
 	printf("%3s %4s\n", "Pin", "Func");
-	for (int i=0; i<numPins; i++) {
+	for (uint8_t i = 0; i < numPins; i++) {
 		const char *signal;
 		if (GPIO.func_out_sel_cfg[i].func_sel == 256) {
-			signal = (char *)"[GPIO]";
+			signal = (char*) "[GPIO]";
 		} else if (GPIO.func_out_sel_cfg[i].func_sel == 257) {
-			signal = (char *)"N/A";
+			signal = (char*) "N/A";
 		} else {
 			signal = outSignalStrings[GPIO.func_out_sel_cfg[i].func_sel];
 		}
 		printf("%2d %4d %s\n", i, GPIO.func_out_sel_cfg[i].func_sel, signal);
 		const io_mux_reg_t* io_mux = gpioToIoMux(i);
 		if (GPIO.func_out_sel_cfg[i].func_sel == 256 && io_mux != nullptr) {
-			printf("0x%x - function: %d, ie: %d\n", (uint32_t)io_mux, io_mux->mcu_sel + 1, io_mux->func_ie);
+			printf("0x%x - function: %d, ie: %d\n", (uint32_t) io_mux, io_mux->mcu_sel + 1, io_mux->func_ie);
 		}
 	}
 
@@ -459,7 +453,7 @@ const static char* outSignalStrings[] = {
  * @param [out] info The structure to be populated on return.
  * @return N/A.
  */
-void System::getChipInfo(esp_chip_info_t *info) {
+void System::getChipInfo(esp_chip_info_t* info) {
 	::esp_chip_info(info);
 } // getChipInfo
 
@@ -490,6 +484,7 @@ std::string System::getIDFVersion() {
 size_t System::getMinimumFreeHeapSize() {
 	return heap_caps_get_minimum_free_size(MALLOC_CAP_8BIT);
 } // getMinimumFreeHeapSize
+
 
 /**
  * @brief Restart the ESP32.

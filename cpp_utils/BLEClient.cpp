@@ -40,7 +40,6 @@
  * We will assume that a BLERemoteService contains a map that maps BLEUUIDs to the set of owned characteristics
  * and that a BLECharacteristic contains a map that maps BLEUUIDs to the set of owned descriptors.
  *
- *
  */
 static const char* LOG_TAG = "BLEClient";
 
@@ -151,7 +150,7 @@ void BLEClient::gattClientEventHandler(
 	esp_ble_gattc_cb_param_t* evtParam) {
 
 	// Execute handler code based on the type of event received.
-	switch(event) {
+	switch (event) {
 
 		//
 		// ESP_GATTC_DISCONNECT_EVT
@@ -238,7 +237,7 @@ void BLEClient::gattClientEventHandler(
 				evtParam->search_res.start_handle,
 				evtParam->search_res.end_handle
 			);
-			m_servicesMap.insert(std::pair<std::string, BLERemoteService *>(uuid.toString(), pRemoteService));
+			m_servicesMap.insert(std::pair<std::string, BLERemoteService*>(uuid.toString(), pRemoteService));
 			break;
 		} // ESP_GATTC_SEARCH_RES_EVT
 
@@ -369,7 +368,7 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_search_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return &m_servicesMap;
 	}
-	// If sucessfull, remember that we now have services.
+	// If successful, remember that we now have services.
 	m_haveServices = (m_semaphoreSearchCmplEvt.wait("getServices") == 0);
 	ESP_LOGD(LOG_TAG, "<< getServices");
 	return &m_servicesMap;
@@ -400,7 +399,7 @@ void BLEClient::handleGAPEvent(
 		esp_gap_ble_cb_event_t  event,
 		esp_ble_gap_cb_param_t* param) {
 	ESP_LOGD(LOG_TAG, "BLEClient ... handling GAP event!");
-	switch(event) {
+	switch (event) {
 		//
 		// ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
 		//
@@ -410,7 +409,7 @@ void BLEClient::handleGAPEvent(
 		// - esp_bd_addr_t remote_addr
 		//
 		case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT: {
-			m_semaphoreRssiCmplEvt.give((uint32_t)param->read_rssi_cmpl.rssi);
+			m_semaphoreRssiCmplEvt.give((uint32_t) param->read_rssi_cmpl.rssi);
 			break;
 		} // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
 

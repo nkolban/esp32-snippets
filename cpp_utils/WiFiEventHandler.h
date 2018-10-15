@@ -117,9 +117,10 @@ public:
 	 * Get the next WiFi event handler in the chain, if there is one.
 	 * @return The next WiFi event handler in the chain or nullptr if there is none.
 	 */
-	WiFiEventHandler *getNextHandler() {
+	WiFiEventHandler* getNextHandler() {
 		return m_nextHandler;
 	}
+
 	/**
 	 * Set the next WiFi event handler in the chain.
 	 * @param [in] nextHandler The next WiFi event handler in the chain.
@@ -132,6 +133,7 @@ private:
 	friend class WiFi;
 	WiFiEventHandler *m_nextHandler;
 	static esp_err_t eventHandler(void* ctx, system_event_t* event);
+
 };
 
 #endif /* MAIN_WIFIEVENTHANDLER_H_ */

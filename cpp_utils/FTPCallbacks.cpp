@@ -24,7 +24,7 @@ void FTPFileCallbacks::onStoreStart(std::string fileName) {
  */
 size_t FTPFileCallbacks::onStoreData(uint8_t* data, size_t size) {
 	ESP_LOGD(LOG_TAG,">> FTPFileCallbacks::onStoreData: size=%d", size);
-	m_storeFile.write((char *)data, size);                               // Store data received.
+	m_storeFile.write((char*) data, size);							   // Store data received.
 	ESP_LOGD(LOG_TAG,"<< FTPFileCallbacks::onStoreData: size=%d", size);
 	return size;
 } // FTPFileCallbacks#onStoreData
@@ -65,7 +65,7 @@ void FTPFileCallbacks::onRetrieveStart(std::string fileName) {
  */
 size_t FTPFileCallbacks::onRetrieveData(uint8_t* data, size_t size) {
 	ESP_LOGD(LOG_TAG,">> FTPFileCallbacks::onRetrieveData");
-	m_retrieveFile.read((char *)data, size);
+	m_retrieveFile.read((char*) data, size);
 	size_t readSize = m_retrieveFile.gcount();
 	m_byteCount += readSize;
 	ESP_LOGD(LOG_TAG,"<< FTPFileCallbacks::onRetrieveData: sizeRead=%d", readSize);
@@ -88,14 +88,11 @@ void FTPFileCallbacks::onRetrieveEnd() {
  * @return a list of files in the file system.
  */
 std::string FTPFileCallbacks::onDir() {
-
 	DIR* dir = opendir(FTPServer::getCurrentDirectory().c_str());
 	std::stringstream ss;
-	while(1) {
+	while (true) {
 		struct dirent* pDirentry = readdir(dir);
-		if (pDirentry == nullptr) {
-			break;
-		}
+		if (pDirentry == nullptr) break;
 		ss << pDirentry->d_name << "\r\n";
 	}
 	closedir(dir);
@@ -131,7 +128,7 @@ void FTPCallbacks::onRetrieveStart(std::string fileName) {
 } // FTPCallbacks#onRetrieveStart
 
 
-size_t FTPCallbacks::onRetrieveData(uint8_t *data, size_t size) {
+size_t FTPCallbacks::onRetrieveData(uint8_t* data, size_t size) {
 	ESP_LOGD(LOG_TAG,">> FTPCallbacks::onRetrieveData");
 	ESP_LOGD(LOG_TAG,"<< FTPCallbacks::onRetrieveData: 0");
 	return 0;

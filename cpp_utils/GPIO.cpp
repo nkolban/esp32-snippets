@@ -22,15 +22,11 @@ static bool g_isrServiceInstalled = false;
  * @param [in] handler The function to be invoked when the interrupt is detected.
  * @param [in] pArgs Optional arguments to pass to the handler.
  */
-void ESP32CPP::GPIO::addISRHandler(
-	gpio_num_t pin,
-	gpio_isr_t handler,
-	void*      pArgs) {
-
+void ESP32CPP::GPIO::addISRHandler(gpio_num_t pin, gpio_isr_t handler, void* pArgs) {
 	ESP_LOGD(LOG_TAG, ">> addISRHandler:  pin=%d", pin);
 
 	// If we have not yet installed the ISR service handler, install it now.
-	if (g_isrServiceInstalled == false) {
+	if (!g_isrServiceInstalled) {
 		ESP_LOGD(LOG_TAG, "Installing the global ISR service");
 		esp_err_t errRc = ::gpio_install_isr_service(0);
 		if (errRc != ESP_OK) {
@@ -70,10 +66,7 @@ void ESP32CPP::GPIO::high(gpio_num_t pin) {
  * @return The value of true if the pin is valid and false otherwise.
  */
 bool ESP32CPP::GPIO::inRange(gpio_num_t pin) {
-	if (pin>=0 && pin<=39) {
-		return true;
-	}
-	return false;
+	return (pin >= 0 && pin <= 39);
 } // inRange
 
 
@@ -155,14 +148,11 @@ void ESP32CPP::GPIO::setInput(gpio_num_t pin) {
  * @param [in] intrType The type of interrupt.
  * @return N/A.
  */
-void ESP32CPP::GPIO::setInterruptType(
-		gpio_num_t pin,
-		gpio_int_type_t intrType) {
+void ESP32CPP::GPIO::setInterruptType(gpio_num_t pin, gpio_int_type_t intrType) {
 	esp_err_t rc = ::gpio_set_intr_type(pin, intrType);
 	if (rc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "setInterruptType: %d", rc);
 	}
-
 } // setInterruptType
 
 
@@ -204,9 +194,9 @@ void ESP32CPP::GPIO::write(gpio_num_t pin, bool value) {
  */
 void ESP32CPP::GPIO::writeByte(gpio_num_t pins[], uint8_t value, int bits) {
 	ESP_LOGD(LOG_TAG, ">> writeByte: value: %.2x, bits: %d", value, bits);
-	for (int i=0; i<bits; i++) {
+	for (int i = 0; i < bits; i++) {
 		//ESP_LOGD(LOG_TAG, "i=%d, bits=%d", i, bits);
-		write(pins[i], (value & (1<<i)) != 0);
+		write(pins[i], (value & (1 << i)) != 0);
 	}
 	ESP_LOGD(LOG_TAG, "<< writeByte");
 } // writeByte

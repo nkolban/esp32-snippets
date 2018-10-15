@@ -85,7 +85,7 @@ int NVS::get(std::string key, std::string* result, bool isBlob) {
 			return rc;
 		}
 	}
-	char *data = (char *)malloc(length);
+	char* data = (char*) malloc(length);
 	if (isBlob) {
 		::nvs_get_blob(m_handle, key.c_str(), data, &length);
 	} else {

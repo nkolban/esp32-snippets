@@ -17,7 +17,7 @@ class File {
 public:
 	File(std::string name, uint8_t type = DT_UNKNOWN);
 
-	std::string getContent(bool base64Encode=false);
+	std::string getContent(bool base64Encode = false);
 	std::string getContent(uint32_t offset, uint32_t size);
 	std::string getName();
 	std::string getPath();
