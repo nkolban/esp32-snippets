@@ -43,7 +43,6 @@ public:
 	BLEService* getFirst();
 	BLEService* getNext();
 	void		removeService(BLEService* service);
-	int			getServiceCount();
 
 private:
 	std::map<uint16_t, BLEService*>    m_handleMap;
@@ -67,6 +66,7 @@ public:
 	BLEService* 	getServiceByUUID(const char* uuid);
 	BLEService* 	getServiceByUUID(BLEUUID uuid);
 	void			removeService(BLEService* service);
+	int				getServiceCount(bool includeDefaultServices = false);
 
 private:
 	BLEServer();
