@@ -17,9 +17,9 @@
  * @return The characteristic.
  */
 BLEService* BLEServiceMap::getByUUID(const char* uuid) {
-	return getByUUID(BLEUUID(uuid));
+    return getByUUID(BLEUUID(uuid));
 }
-
+	
 /**
  * @brief Return the service by UUID.
  * @param [in] UUID The UUID to look up the service.
@@ -53,8 +53,8 @@ BLEService* BLEServiceMap::getByHandle(uint16_t handle) {
  * @return N/A.
  */
 void BLEServiceMap::setByUUID(BLEUUID uuid,
-		BLEService* service) {
-	m_uuidMap.insert(std::pair<BLEService*, std::string>(service, uuid.toString()));
+		BLEService *service) {
+	m_uuidMap.insert(std::pair<BLEService *, std::string>(service, uuid.toString()));
 } // setByUUID
 
 
@@ -66,7 +66,7 @@ void BLEServiceMap::setByUUID(BLEUUID uuid,
  */
 void BLEServiceMap::setByHandle(uint16_t handle,
 		BLEService* service) {
-	m_handleMap.insert(std::pair<uint16_t, BLEService*>(handle, service));
+	m_handleMap.insert(std::pair<uint16_t, BLEService *>(handle, service));
 } // setByHandle
 
 
@@ -86,7 +86,7 @@ std::string BLEServiceMap::toString() {
 void BLEServiceMap::handleGATTServerEvent(
 		esp_gatts_cb_event_t      event,
 		esp_gatt_if_t             gatts_if,
-		esp_ble_gatts_cb_param_t* param) {
+		esp_ble_gatts_cb_param_t *param) {
 	// Invoke the handler for every Service we have.
 	for (auto &myPair : m_uuidMap) {
 		myPair.first->handleGATTServerEvent(event, gatts_if, param);
@@ -99,7 +99,9 @@ void BLEServiceMap::handleGATTServerEvent(
  */
 BLEService* BLEServiceMap::getFirst() {
 	m_iterator = m_uuidMap.begin();
-	if (m_iterator == m_uuidMap.end()) return nullptr;
+	if (m_iterator == m_uuidMap.end()) {
+		return nullptr;
+	}
 	BLEService* pRet = m_iterator->first;
 	m_iterator++;
 	return pRet;
@@ -110,7 +112,9 @@ BLEService* BLEServiceMap::getFirst() {
  * @return The next service in the map.
  */
 BLEService* BLEServiceMap::getNext() {
-	if (m_iterator == m_uuidMap.end()) return nullptr;
+	if (m_iterator == m_uuidMap.end()) {
+		return nullptr;
+	}
 	BLEService* pRet = m_iterator->first;
 	m_iterator++;
 	return pRet;
@@ -120,9 +124,17 @@ BLEService* BLEServiceMap::getNext() {
  * @brief Removes service from maps.
  * @return N/A.
  */
-void BLEServiceMap::removeService(BLEService* service) {
+void BLEServiceMap::removeService(BLEService *service){
 	m_handleMap.erase(service->getHandle());
 	m_uuidMap.erase(service);
 } // removeService
+
+/**
+ * @brief Returns the amount of registered services
+ * @return amount of registered services
+ */
+int BLEServiceMap::getRegisteredServiceCount(){
+	return m_handleMap.size();
+}
 
 #endif /* CONFIG_BT_ENABLED */

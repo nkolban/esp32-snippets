@@ -120,11 +120,11 @@ BLEService* BLEServer::getServiceByUUID(BLEUUID uuid) {
  * @param [in] includeDefaultServices Add the amount of default BluetoothLE services defined by the BLE standard
  * @return The amount of registered services
  */
-int BLEServer::getServiceCount(bool includeDefaultServices = false) {
+int BLEServer::getServiceCount(bool includeDefaultServices) {
 	if(includeDefaultServices){
-		return m_serviceMap.size() + 2;
+		return m_serviceMap.getRegisteredServiceCount() + 2;
 	}
-	return m_serviceMap.size();
+	return m_serviceMap.getRegisteredServiceCount();
 }
 
 
