@@ -116,6 +116,19 @@ BLEService* BLEServer::getServiceByUUID(BLEUUID uuid) {
 
 
 /**
+ * @brief Returns the amount of services registered to this server
+ * @param [in] includeDefaultServices Add the amount of default BluetoothLE services defined by the BLE standard
+ * @return The amount of registered services
+ */
+int BLEServer::getServiceCount(bool includeDefaultServices) {
+	if(includeDefaultServices){
+		return m_serviceMap.getRegisteredServiceCount() + 2;
+	}
+	return m_serviceMap.getRegisteredServiceCount();
+}
+
+
+/**
  * @brief Retrieve the advertising object that can be used to advertise the existence of the server.
  *
  * @return An advertising object.
