@@ -7,15 +7,15 @@
 
 #include <errno.h>
 #include <esp_log.h>
-#include <FreeRTOS.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
-
 #include <stdint.h>
+
 #include <string.h>
 #include <string>
 
 #include "sdkconfig.h"
+#include "FreeRTOS.h"
 #include "SockServ.h"
 #include "Socket.h"
 

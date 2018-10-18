@@ -13,7 +13,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include <FreeRTOS.h>
+#include "FreeRTOS.h"
 #include <esp_err.h>
 #include <nvs.h>
 #include <esp_wifi.h>
@@ -440,7 +440,7 @@ const char* GeneralUtils::errorToString(esp_err_t errCode) {
  * @brief Convert a wifi_err_reason_t code to a string.
  * @param [in] errCode The errCode to be converted.
  * @return A string representation of the error code.
- * 
+ *
  * @note: wifi_err_reason_t values as of April 2018 are: (1-24, 200-204) and are defined in ~/esp-idf/components/esp32/include/esp_wifi_types.h.
  */
 const char* GeneralUtils::wifiErrorToString(uint8_t errCode) {

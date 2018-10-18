@@ -9,13 +9,13 @@
 
 #include "TFTP.h"
 #include <esp_log.h>
-#include <FreeRTOS.h>
-#include <GeneralUtils.h>
+#include "FreeRTOS.h"
+#include "GeneralUtils.h"
 #include <string>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <Socket.h>
+#include "Socket.h"
 
 #include "sdkconfig.h"
 
