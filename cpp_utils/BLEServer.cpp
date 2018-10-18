@@ -121,7 +121,7 @@ BLEService* BLEServer::getServiceByUUID(BLEUUID uuid) {
  * @return The amount of registered services
  */
 int BLEServer::getServiceCount(bool includeDefaultServices) {
-	if(includeDefaultServices){
+	if (includeDefaultServices) {
 		return m_serviceMap.getRegisteredServiceCount() + 2;
 	}
 	return m_serviceMap.getRegisteredServiceCount();
