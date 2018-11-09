@@ -19,7 +19,6 @@
 class BLEAdvertisementData {
 	// Only a subset of the possible BLE architected advertisement fields are currently exposed.  Others will
 	// be exposed on demand/request or as time permits.
-	//
 public:
 	void setAppearance(uint16_t appearance);
 	void setCompleteServices(BLEUUID uuid);

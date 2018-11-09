@@ -26,23 +26,23 @@ static const char* LOG_TAG = "HttpServer";
 #undef close
 
 
-
 /**
  * Constructor for HTTP Server
  */
 HttpServer::HttpServer() {
-	m_fileBufferSize = 4*1024;    // Default size of the file buffer.
 	m_portNumber = 80;            // The default port number.
 	m_clientTimeout = 5;            // The default timeout 5 seconds.
 	m_rootPath   = "";            // The default path.
 	m_useSSL     = false;         // Default SSL is no.
 	setDirectoryListing(false);   // Default directory listing is disabled.
+	m_fileBufferSize = 4 * 1024;	// Default size of the file buffer.
 } // HttpServer
 
 
 HttpServer::~HttpServer() {
 	ESP_LOGD(LOG_TAG, "~HttpServer");
 }
+
 
 /**
  * @brief Be an HTTP server task.
@@ -52,7 +52,7 @@ HttpServer::~HttpServer() {
  */
 class HttpServerTask: public Task {
 public:
-	HttpServerTask(std::string name): Task(name, 16*1024) {
+	HttpServerTask(std::string name): Task(name, 16 * 1024) {
 		m_pHttpServer = nullptr;
 	};
 
@@ -70,7 +70,7 @@ private:
 	 *
 	 * @param [in] request The HTTP request to process.
 	 */
-	void processRequest(HttpRequest &request) {
+	void processRequest(HttpRequest& request) {
 		ESP_LOGD("HttpServerTask", ">> processRequest: Method: %s, Path: %s",
 			request.getMethod().c_str(), request.getPath().c_str());
 
@@ -107,9 +107,9 @@ private:
 
 		// If the file name ends with a '/' then remove it ... we are normalizing to NO trailing slashes.
 		if (GeneralUtils::endsWith(fileName, '/')) {
-			fileName = fileName.substr(0, fileName.length()-1);
+			fileName = fileName.substr(0, fileName.length() - 1);
 		}
-		
+
 		HttpResponse response(&request);
 		// Test if the path is a directory.
 		if (FileSystem::isDirectory(fileName)) {
@@ -129,20 +129,18 @@ private:
 	 * @param [in] data A reference to the HttpServer.
 	 */
 	void run(void* data) {
-		m_pHttpServer = (HttpServer*)data;             // The passed in data is an instance of an HttpServer.
+		m_pHttpServer = (HttpServer*) data;			 // The passed in data is an instance of an HttpServer.
 		m_pHttpServer->m_socket.setSSL(m_pHttpServer->m_useSSL);
 		m_pHttpServer->m_socket.listen(m_pHttpServer->m_portNumber, false /* is datagram */, true /* Allow address reuse */);
 		ESP_LOGD("HttpServerTask", "Listening on port %d", m_pHttpServer->getPort());
 		Socket clientSocket;
-		while(1) {   // Loop forever.
-
+		while (true) {   // Loop forever.
 			ESP_LOGD("HttpServerTask", "Waiting for new peer client");
 
 			try {
 				clientSocket = m_pHttpServer->m_socket.accept();   // Block waiting for a new external client connection.
 				clientSocket.setTimeout(m_pHttpServer->getClientTimeout());
-			}
-			catch(std::exception &e) {
+			} catch (std::exception& e) {
 				ESP_LOGE("HttpServerTask", "Caught an exception waiting for new client!");
 				m_pHttpServer->m_semaphoreServerStarted.give();  // Release the semaphore .. we are now no longer running.
 				return;
@@ -174,7 +172,7 @@ private:
  * Example:
  * @code{.cpp}
  * static void handle_REST_WiFi(WebServer::HttpRequest *pRequest, WebServer::HttpResponse *pResponse) {
- *    ...
+ *	...
  * }
  *
  * webServer.addPathHandler("GET", "\\/ESP32\\/WiFi", handle_REST_WiFi);
@@ -187,7 +185,7 @@ private:
 void HttpServer::addPathHandler(
 		std::string method,
 		std::regex* pathExpr,
-		void (*handler)(HttpRequest *pHttpRequest, HttpResponse *pHttpResponse)) {
+		void (*handler)(HttpRequest* pHttpRequest, HttpResponse* pHttpResponse)) {
 
 	// We are maintaining a C++ vector of PathHandler objects.  We add a new entry into that vector.
 	m_pathHandlers.push_back(PathHandler(method, pathExpr, handler));
@@ -204,7 +202,7 @@ void HttpServer::addPathHandler(
  * Example:
  * @code{.cpp}
  * static void handle_REST_WiFi(WebServer::HttpRequest *pRequest, WebServer::HttpResponse *pResponse) {
- *    ...
+ *	...
  * }
  *
  * webServer.addPathHandler("GET", "/ESP32/WiFi", handle_REST_WiFi);
@@ -217,7 +215,7 @@ void HttpServer::addPathHandler(
 void HttpServer::addPathHandler(
 		std::string method,
 		std::string path,
-		void (*handler)(HttpRequest *pHttpRequest, HttpResponse *pHttpResponse)) {
+		void (*handler)(HttpRequest* pHttpRequest, HttpResponse* pHttpResponse)) {
 
 	// We are maintaining a C++ vector of PathHandler objects.  We add a new entry into that vector.
 	m_pathHandlers.push_back(PathHandler(method, path, handler));
@@ -299,8 +297,7 @@ void HttpServer::listDirectory(std::string path, HttpResponse& response) {
 		ss << "<tr><td><a href='" << it->getName() << "'>" << it->getName() << "</a></td>";
 		if (it->isDirectory()) {
 			ss << "<td>&lt;dir&gt;</td>";
-		}
-		else {
+		} else {
 			ss << "<td>" << it->length() << "</td>";
 		}
 
@@ -314,6 +311,7 @@ void HttpServer::listDirectory(std::string path, HttpResponse& response) {
 	response.close();
 } // listDirectory
 
+
 /**
  * @brief Set different socket timeout for new connections.
  * @param [in] use Set to true to enable directory listing.
@@ -322,6 +320,7 @@ void HttpServer::setClientTimeout(uint32_t timeout) {
 	m_clientTimeout = timeout;
 }
 
+
 /**
  * @brief Get current socket's timeout for new connections.
  * @param [in] use Set to true to enable directory listing.
@@ -329,6 +328,7 @@ void HttpServer::setClientTimeout(uint32_t timeout) {
 uint32_t HttpServer::getClientTimeout() {
 	return m_clientTimeout;
 }
+
 
 /**
  * @brief Set whether or not we will list directories.
@@ -369,7 +369,6 @@ void HttpServer::setFileBufferSize(size_t fileBufferSize) {
  * @return N/A.
  */
 void HttpServer::setRootPath(std::string path) {
-
 	// Should the user have supplied a path that ends in a "/" remove the trailing slash.  This also
 	// means that "/" becomes "".
 	if (GeneralUtils::endsWith(path, '/')) {
@@ -393,7 +392,7 @@ void HttpServer::start(uint16_t portNumber, bool useSSL) {
 
 	// Take the semaphore that says that we are now running.  If we are already running, then end here as
 	// there is nothing further to do.
-	if (m_semaphoreServerStarted.take(100, "start") == false) {
+	if (!m_semaphoreServerStarted.take(100, "start")) {
 		ESP_LOGD(LOG_TAG, "<< start: Already running");
 		return;
 	}
@@ -428,7 +427,7 @@ void HttpServer::stop() {
  * @param [in] pathPattern The path pattern to be matched.
  * @param [in] webServerRequestHandler The request handler to be called.
  */
-PathHandler::PathHandler(std::string method, std::regex *pRegex,
+PathHandler::PathHandler(std::string method, std::regex* pRegex,
 		void (*pWebServerRequestHandler)
 		(
 			HttpRequest*  pHttpRequest,
@@ -471,12 +470,9 @@ PathHandler::PathHandler(std::string method, std::string matchPath,
  * @return True if the path matches.
  */
 bool PathHandler::match(std::string method, std::string path) {
-	if (method != m_method) {
-		return false;
-	}
+	if (method != m_method) return false;
 	if (m_isRegex) {
 		ESP_LOGD("PathHandler", "regex matching: %s with %s", m_textPattern.c_str(), path.c_str());
-
 		return std::regex_search(path, *m_pRegex);
 	}
 	ESP_LOGD("PathHandler", "plain matching: %s with %s", m_textPattern.c_str(), path.c_str());
@@ -490,10 +486,6 @@ bool PathHandler::match(std::string method, std::string path) {
  * @param [in] response An object representing the response.
  * @return N/A.
  */
-void PathHandler::invokePathHandler(HttpRequest* request, HttpResponse *response) {
+void PathHandler::invokePathHandler(HttpRequest* request, HttpResponse* response) {
 	m_pRequestHandler(request, response);
 } // invokePathHandler
-
-
-
-

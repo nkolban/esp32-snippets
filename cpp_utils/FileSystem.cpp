@@ -26,25 +26,28 @@ static const char* LOG_TAG = "FileSystem";
  * @return N/A.
  */
 void FileSystem::dumpDirectory(std::string path) {
-	DIR *pDir = ::opendir(path.c_str());
+	DIR* pDir = ::opendir(path.c_str());
 	if (pDir == nullptr) {
 		ESP_LOGD(LOG_TAG, "Unable to open directory: %s [errno=%d]", path.c_str(), errno);
 		return;
 	}
-	struct dirent *pDirent;
+	struct dirent* pDirent;
 	ESP_LOGD(LOG_TAG, "Directory dump of %s", path.c_str());
-	while((pDirent = readdir(pDir)) != nullptr) {
+	while ((pDirent = readdir(pDir)) != nullptr) {
 		std::string type;
-		switch(pDirent->d_type) {
-		case DT_UNKNOWN:
-			type = "Unknown";
-			break;
-		case DT_REG:
-			type = "Regular";
-			break;
-		case DT_DIR:
-			type = "Directory";
-			break;
+		switch (pDirent->d_type) {
+			case DT_UNKNOWN:
+				type = "Unknown";
+				break;
+			case DT_REG:
+				type = "Regular";
+				break;
+			case DT_DIR:
+				type = "Directory";
+				break;
+			default:
+				type = "Unknown";
+				break;
 		}
 		ESP_LOGD(LOG_TAG, "Entry: d_ino: %d, d_name: %s, d_type: %s", pDirent->d_ino, pDirent->d_name, type.c_str());
 	}
@@ -59,14 +62,14 @@ void FileSystem::dumpDirectory(std::string path) {
  */
 std::vector<File> FileSystem::getDirectoryContents(std::string path) {
 	std::vector<File> ret;
-	DIR *pDir = ::opendir(path.c_str());
+	DIR* pDir = ::opendir(path.c_str());
 	if (pDir == nullptr) {
 		ESP_LOGE(LOG_TAG, "getDirectoryContents:: Unable to open directory: %s [errno=%d]", path.c_str(), errno);
 		return ret;
 	}
-	struct dirent *pDirent;
+	struct dirent* pDirent;
 	ESP_LOGD(LOG_TAG, "Directory dump of %s", path.c_str());
-	while((pDirent = readdir(pDir)) != nullptr) {
+	while ((pDirent = readdir(pDir)) != nullptr) {
 		File file(path +"/" + std::string(pDirent->d_name), pDirent->d_type);
 		ret.push_back(file);
 	}
@@ -82,9 +85,7 @@ std::vector<File> FileSystem::getDirectoryContents(std::string path) {
 bool FileSystem::isDirectory(std::string path) {
 	struct stat statBuf;
 	int rc = stat(path.c_str(), &statBuf);
-	if (rc != 0) {
-		return false;
-	}
+	if (rc != 0) return false;
 	return S_ISDIR(statBuf.st_mode);
 } // isDirectory
 
@@ -129,11 +130,11 @@ std::vector<std::string> FileSystem::pathSplit(std::string path) {
 	std::istringstream stream(path);
 	std::vector<std::string> ret;
 	std::string pathPart;
-	while(std::getline(stream, pathPart, '/')) {
+	while (std::getline(stream, pathPart, '/')) {
 		ret.push_back(pathPart);
 	}
 	// Debug
-	for (int i=0; i<ret.size(); i++) {
+	for (int i = 0; i < ret.size(); i++) {
 		ESP_LOGD(LOG_TAG, "part[%d]: %s", i, ret[i].c_str());
 	}
 	return ret;

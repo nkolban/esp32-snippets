@@ -16,61 +16,49 @@
  * A call to init() must precede all other API calls.
  */
 class MPU6050 {
-private:
-	I2C *i2c;
-	short accel_x, accel_y, accel_z;
-	short gyro_x, gyro_y, gyro_z;
-	bool inited;
 public:
 	MPU6050();
 	virtual ~MPU6050();
 
-
 	/**
 	 * @brief Get the X acceleration value.
 	 */
-	short getAccelX() const
-	{
+	short getAccelX() const {
 		return accel_x;
 	}
 
 	/**
 	 * @brief Get the Y acceleration value.
 	 */
-	short getAccelY() const
-	{
+	short getAccelY() const {
 		return accel_y;
 	}
 
 	/**
 	 * @brief Get the Z acceleration value.
 	 */
-	short getAccelZ() const
-	{
+	short getAccelZ() const {
 		return accel_z;
 	}
 
 	/**
 	 * @brief Get the X gyroscopic value.
 	 */
-	short getGyroX() const
-	{
+	short getGyroX() const {
 		return gyro_x;
 	}
 
 	/**
 	 * @brief Get the Y gyroscopic value.
 	 */
-	short getGyroY() const
-	{
+	short getGyroY() const {
 		return gyro_y;
 	}
 
 	/**
 	 * @brief Get the Z gyroscopic value.
 	 */
-	short getGyroZ() const
-	{
+	short getGyroZ() const {
 		return gyro_z;
 	}
 
@@ -86,10 +74,16 @@ public:
 		return sqrt(accel_x * accel_x + accel_y * accel_y + accel_z * accel_z);
 	}
 
-	void init(gpio_num_t sdaPin=I2C::DEFAULT_SDA_PIN, gpio_num_t clkPin=I2C::DEFAULT_CLK_PIN);
+	void init(gpio_num_t sdaPin = I2C::DEFAULT_SDA_PIN, gpio_num_t clkPin = I2C::DEFAULT_CLK_PIN);
 	void readAccel();
-
 	void readGyro();
+
+private:
+	I2C* i2c;
+	short accel_x, accel_y, accel_z;
+	short gyro_x, gyro_y, gyro_z;
+	bool inited;
+
 };
 
 #endif /* MAIN_MPU6050_H_ */

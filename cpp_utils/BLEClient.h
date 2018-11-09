@@ -47,8 +47,8 @@ public:
 
 	bool                                       isConnected();                 // Return true if we are connected.
 
-	void                                       setClientCallbacks(BLEClientCallbacks *pClientCallbacks);
 	void                                       setValue(BLEUUID serviceUUID, BLEUUID characteristicUUID, std::string value);   // Set the value of a given characteristic at a given service.
+	void									   setClientCallbacks(BLEClientCallbacks* pClientCallbacks);
 
 	std::string                                toString();                    // Return a string representation of this client.
 
@@ -66,9 +66,9 @@ private:
 
 	uint16_t                                   getConnId();
 	esp_gatt_if_t                              getGattcIf();
-	BLEAddress    m_peerAddress = BLEAddress((uint8_t*)"\0\0\0\0\0\0");   // The BD address of the remote server.
 	uint16_t      m_conn_id;
 //	int           m_deviceType;
+	BLEAddress	m_peerAddress = BLEAddress((uint8_t*) "\0\0\0\0\0\0");   // The BD address of the remote server.
 	esp_gatt_if_t m_gattc_if;
 	bool          m_haveServices;    // Have we previously obtain the set of services from the remote server.
 	bool          m_isConnected;     // Are we currently connected.
@@ -80,7 +80,6 @@ private:
 	FreeRTOS::Semaphore m_semaphoreRssiCmplEvt   = FreeRTOS::Semaphore("RssiCmplEvt");
 	std::map<std::string, BLERemoteService*> m_servicesMap;
 	void clearServices();   // Clear any existing services.
-
 }; // class BLEDevice
 
 

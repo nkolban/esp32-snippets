@@ -17,14 +17,7 @@
 #undef close
 
 class HttpRequest {
-private:
-	Socket      m_clientSocket; // The socket connected to the client.
-	bool        m_isClosed;     // Is the client connection closed?
-	HttpParser  m_parser;       // The parse to parse HTTP data.
-	WebSocket*  m_pWebSocket;   // A possible reference to a WebSocket object instance.
-
 public:
-
 	HttpRequest(Socket s);
 	virtual ~HttpRequest();
 	static const char HTTP_HEADER_ACCEPT[];
@@ -68,6 +61,12 @@ public:
 	std::map<std::string, std::string> parseForm();                  // Parse the body as a form.
 	std::vector<std::string>           pathSplit();
 	std::string                        urlDecode(std::string str);   // Decode a URL.
+private:
+	Socket	  m_clientSocket; // The socket connected to the client.
+	bool		m_isClosed;	 // Is the client connection closed?
+	HttpParser  m_parser;	   // The parse to parse HTTP data.
+	WebSocket*  m_pWebSocket;   // A possible reference to a WebSocket object instance.
+
 };
 
 #endif /* COMPONENTS_CPP_UTILS_HTTPREQUEST_H_ */

@@ -33,15 +33,13 @@ File::File(std::string path, uint8_t type) {
 std::string File::getContent(bool base64Encode) {
 	uint32_t size = length();
 	ESP_LOGD(LOG_TAG, "File:: getContent(), path=%s, length=%d", m_path.c_str(), size);
-	if (size == 0) {
-		return "";
-	}
-	uint8_t *pData = (uint8_t *)malloc(size);
+	if (size == 0) return "";
+	uint8_t* pData = (uint8_t*) malloc(size);
 	if (pData == nullptr) {
 		ESP_LOGE(LOG_TAG, "getContent: Failed to allocate memory");
 		return "";
 	}
-	FILE *file = fopen(m_path.c_str(), "r");
+	FILE* file = fopen(m_path.c_str(), "r");
 	fread(pData, size, 1, file);
 	fclose(file);
 	std::string ret((char *)pData, size);
@@ -65,19 +63,17 @@ std::string File::getContent(uint32_t offset, uint32_t readSize) {
 	uint32_t fileSize = length();
 	ESP_LOGD(LOG_TAG, "File:: getContent(), name=%s, fileSize=%d, offset=%d, readSize=%d",
 		m_path.c_str(), fileSize, offset, readSize);
-	if (fileSize == 0 || offset > fileSize) {
-		return "";
-	}
-	uint8_t *pData = (uint8_t *)malloc(readSize);
+	if (fileSize == 0 || offset > fileSize) return "";
+	uint8_t* pData = (uint8_t*) malloc(readSize);
 	if (pData == nullptr) {
 		ESP_LOGE(LOG_TAG, "getContent: Failed to allocate memory");
 		return "";
 	}
-	FILE *file = fopen(m_path.c_str(), "r");
+	FILE* file = fopen(m_path.c_str(), "r");
 	fseek(file, offset, SEEK_SET);
 	size_t bytesRead = fread(pData, 1, readSize, file);
 	fclose(file);
-	std::string ret((char *)pData, bytesRead);
+	std::string ret((char*) pData, bytesRead);
 	free(pData);
 	return ret;
 } // getContent
@@ -92,10 +88,8 @@ std::string File::getPath() {
  */
 std::string File::getName() {
 	size_t pos = m_path.find_last_of('/');
-	if (pos == std::string::npos) {
-		return m_path;
-	}
-	return m_path.substr(pos+1);
+	if (pos == std::string::npos) return m_path;
+	return m_path.substr(pos + 1);
 } // getName
 
 
@@ -116,10 +110,8 @@ uint8_t File::getType() {
 uint32_t File::length() {
 	struct stat buf;
 	int rc = stat(m_path.c_str(), &buf);
-	if (rc != 0 || S_ISDIR(buf.st_mode)) {
-		return 0;
-	}
-	return buf.st_size;
+	if (rc != 0 || S_ISDIR(buf.st_mode)) return 0;
+	return (uint32_t) buf.st_size;
 } // length
 
 
@@ -130,8 +122,6 @@ uint32_t File::length() {
 bool File::isDirectory() {
 	struct stat buf;
 	int rc = stat(m_path.c_str(), &buf);
-	if (rc != 0) {
-		return false;
-	}
+	if (rc != 0) return false;
 	return S_ISDIR(buf.st_mode);
 } // isDirectory

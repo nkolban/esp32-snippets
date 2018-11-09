@@ -41,7 +41,7 @@ static const char* LOG_TAG = "BLEUUID";
  */
 static void memrcpy(uint8_t* target, uint8_t* source, uint32_t size) {
 	assert(size > 0);
-	target+=(size-1); // Point target to the last byte of the target data
+	target += (size - 1); // Point target to the last byte of the target data
 	while (size > 0) {
 		*target = *source;
 		target--;
@@ -80,11 +80,11 @@ BLEUUID::BLEUUID(std::string value) {
 	}
 	else if (value.length() == 16) {
 		m_uuid.len = ESP_UUID_LEN_128;
-		memrcpy(m_uuid.uuid.uuid128, (uint8_t*)value.data(), 16);
+		memrcpy(m_uuid.uuid.uuid128, (uint8_t*) value.data(), 16);
 	}
 	else if (value.length() == 36) {
-// If the length of the string is 36 bytes then we will assume it is a long hex string in
-// UUID format.
+		// If the length of the string is 36 bytes then we will assume it is a long hex string in
+		// UUID format.
 		m_uuid.len = ESP_UUID_LEN_128;
 		int vals[16];
 		sscanf(value.c_str(), "%2x%2x%2x%2x-%2x%2x-%2x%2x-%2x%2x-%2x%2x%2x%2x%2x%2x",
@@ -106,12 +106,10 @@ BLEUUID::BLEUUID(std::string value) {
 			&vals[0]
 		);
 
-		int i;
-		for (i=0; i<16; i++) {
+		for (int i = 0; i < 16; i++) {
 			m_uuid.uuid.uuid128[i] = vals[i];
 		}
-	}
-	else {
+	} else {
 		ESP_LOGE(LOG_TAG, "ERROR: UUID value not 2, 4, 16 or 36 bytes");
 		m_valueSet = false;
 	}
@@ -136,7 +134,7 @@ BLEUUID::BLEUUID(uint8_t* pData, size_t size, bool msbFirst) {
 	} else {
 		memcpy(m_uuid.uuid.uuid128, pData, 16);
 	}
-	m_valueSet         = true;
+	m_valueSet = true;
 } // BLEUUID
 
 
@@ -149,7 +147,6 @@ BLEUUID::BLEUUID(uint16_t uuid) {
 	m_uuid.len         = ESP_UUID_LEN_16;
 	m_uuid.uuid.uuid16 = uuid;
 	m_valueSet         = true;
-
 } // BLEUUID
 
 
@@ -194,24 +191,18 @@ BLEUUID::BLEUUID() {
  * @brief Get the number of bits in this uuid.
  * @return The number of bits in the UUID.  One of 16, 32 or 128.
  */
-int BLEUUID::bitSize() {
-	if (m_valueSet == false) {
-		return 0;
-	}
-	switch(m_uuid.len) {
-		case ESP_UUID_LEN_16: {
+uint8_t BLEUUID::bitSize() {
+	if (!m_valueSet) return 0;
+	switch (m_uuid.len) {
+		case ESP_UUID_LEN_16:
 			return 16;
-		}
-		case ESP_UUID_LEN_32: {
+		case ESP_UUID_LEN_32:
 			return 32;
-		}
-		case ESP_UUID_LEN_128: {
+		case ESP_UUID_LEN_128:
 			return 128;
-		}
-		default: {
+		default:
 			ESP_LOGE(LOG_TAG, "Unknown UUID length: %d", m_uuid.len);
 			return 0;
-		}
 	} // End of switch
 } // bitSize
 
@@ -224,9 +215,7 @@ int BLEUUID::bitSize() {
  */
 bool BLEUUID::equals(BLEUUID uuid) {
 	//ESP_LOGD(TAG, "Comparing: %s to %s", toString().c_str(), uuid.toString().c_str());
-	if (m_valueSet == false || uuid.m_valueSet == false) {
-		return false;
-	}
+	if (!m_valueSet || !uuid.m_valueSet) return false;
 
 	if (uuid.m_uuid.len != m_uuid.len) {
 		return uuid.toString() == toString();
@@ -253,14 +242,14 @@ bool BLEUUID::equals(BLEUUID uuid) {
  * NNNNNNNN
  * <UUID>
  */
-BLEUUID BLEUUID::fromString(std::string _uuid){
+BLEUUID BLEUUID::fromString(std::string _uuid) {
 	uint8_t start = 0;
 	if (strstr(_uuid.c_str(), "0x") != nullptr) { // If the string starts with 0x, skip those characters.
 		start = 2;
 	}
 	uint8_t len = _uuid.length() - start; // Calculate the length of the string we are going to use.
 
-	if( len == 4) {
+	if (len == 4) {
 		uint16_t x = strtoul(_uuid.substr(start, len).c_str(), NULL, 16);
 		return BLEUUID(x);
 	} else if (len == 8) {
@@ -280,7 +269,7 @@ BLEUUID BLEUUID::fromString(std::string _uuid){
  */
 esp_bt_uuid_t* BLEUUID::getNative() {
 	//ESP_LOGD(TAG, ">> getNative()")
-	if (m_valueSet == false) {
+	if (!m_valueSet) {
 		ESP_LOGD(LOG_TAG, "<< Return of un-initialized UUID!");
 		return nullptr;
 	}
@@ -299,7 +288,7 @@ BLEUUID BLEUUID::to128() {
 	//ESP_LOGD(LOG_TAG, ">> toFull() - %s", toString().c_str());
 
 	// If we either don't have a value or are already a 128 bit UUID, nothing further to do.
-	if (m_valueSet == false || m_uuid.len == ESP_UUID_LEN_128) {
+	if (!m_valueSet || m_uuid.len == ESP_UUID_LEN_128) {
 		return *this;
 	}
 
@@ -356,9 +345,7 @@ BLEUUID BLEUUID::to128() {
  * @return A string representation of the UUID.
  */
 std::string BLEUUID::toString() {
-	if (m_valueSet == false) {   // If we have no value, nothing to format.
-		return "<NULL>";
-	}
+	if (!m_valueSet) return "<NULL>";   // If we have no value, nothing to format.
 
 	// If the UUIDs are 16 or 32 bit, pad correctly.
 	std::stringstream ss;
@@ -386,24 +373,23 @@ std::string BLEUUID::toString() {
 	//
 	// UUID string format:
 	// AABBCCDD-EEFF-GGHH-IIJJ-KKLLMMNNOOPP
-	//
 	ss << std::hex << std::setfill('0') <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[15] <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[14] <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[13] <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[12] << "-" <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[11] <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[10] << "-" <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[9]  <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[8]  << "-" <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[7]  <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[6]  << "-" <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[5]  <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[4]  <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[3]  <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[2]  <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[1]  <<
-		std::setw(2) << (int)m_uuid.uuid.uuid128[0];
+		std::setw(2) << (int) m_uuid.uuid.uuid128[15] <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[14] <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[13] <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[12] << "-" <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[11] <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[10] << "-" <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[9]  <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[8]  << "-" <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[7]  <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[6]  << "-" <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[5]  <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[4]  <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[3]  <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[2]  <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[1]  <<
+		std::setw(2) << (int) m_uuid.uuid.uuid128[0];
 	return ss.str();
 } // toString
 

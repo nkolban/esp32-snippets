@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 BASE_URL="https://www.bluetooth.com/api/gatt/XmlFile?xmlFileName="
 RESULT=characteristics.json
 COUNT=0

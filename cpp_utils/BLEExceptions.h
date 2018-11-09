@@ -17,13 +17,13 @@
 
 
 class BLEDisconnectedException : public std::exception {
-	const char *what() const throw () {
+	const char* what() const throw () {
 		return "BLE Disconnected";
 	}
 };
 
 class BLEUuidNotFoundException : public std::exception {
-	const char *what() const throw () {
+	const char* what() const throw () {
 		return "No such UUID";
 	}
 };

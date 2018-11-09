@@ -41,6 +41,8 @@
 #include <esp_log.h>
 #include <hwcrypto/sha.h>
 
+#define STATE_NAME  0
+#define STATE_VALUE 1
 
 static const char* LOG_TAG="HttpRequest";
 
@@ -79,10 +81,10 @@ const char HttpRequest::HTTP_METHOD_PUT[]     = "PUT";
 std::string buildWebsocketKeyResponseHash(std::string requestKey) {
 	std::string newKey = requestKey + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 	uint8_t shaData[20];
-	esp_sha(SHA1, (uint8_t*)newKey.data(), newKey.length(), shaData);
+	esp_sha(SHA1, (uint8_t*) newKey.data(), newKey.length(), shaData);
 	//GeneralUtils::hexDump(shaData, 20);
 	std::string retStr;
-	GeneralUtils::base64Encode(std::string((char*)shaData, sizeof(shaData)), &retStr);
+	GeneralUtils::base64Encode(std::string((char*) shaData, sizeof(shaData)), &retStr);
 	return retStr;
 } // buildWebsocketKeyResponseHash
 
@@ -104,9 +106,8 @@ HttpRequest::HttpRequest(Socket clientSocket) {
 	// a delimiter and then examine each of the parts to see if any of those are "Upgrade".
 	std::vector<std::string> parts = GeneralUtils::split(getHeader(HTTP_HEADER_CONNECTION), ',');
 	bool upgradeFound = false;
-	if (std::find(parts.begin(), parts.end(), "Upgrade") != parts.end())
-	{
-	  upgradeFound = true;
+	if (std::find(parts.begin(), parts.end(), "Upgrade") != parts.end()) {
+		upgradeFound = true;
 	}
 
 	// Is this a Web Socket?
@@ -114,7 +115,7 @@ HttpRequest::HttpRequest(Socket clientSocket) {
 			!getHeader(HTTP_HEADER_HOST).empty() &&
 			getHeader(HTTP_HEADER_UPGRADE) == "websocket" &&
 			//getHeader(HTTP_HEADER_CONNECTION) == "Upgrade" &&
-			upgradeFound == true &&
+			upgradeFound &&
 			!getHeader(HTTP_HEADER_SEC_WEBSOCKET_KEY).empty() &&
 			!getHeader(HTTP_HEADER_SEC_WEBSOCKET_VERSION).empty()) {
 		ESP_LOGD(LOG_TAG, "Websocket detected!");
@@ -151,9 +152,6 @@ void HttpRequest::close() {
 	m_clientSocket.close();
 	m_isClosed = true;
 } // close_cpp
-
-
-
 
 
 /**
@@ -203,9 +201,6 @@ std::string HttpRequest::getPath() {
 } // getPath
 
 
-#define STATE_NAME  0
-#define STATE_VALUE 1
-
 /**
  * @brief Get the query part of the request.
  * The query is a set of name = value pairs.  The return is a map keyed by the name items.
@@ -218,9 +213,9 @@ std::map<std::string, std::string> HttpRequest::getQuery() {
 	std::map<std::string, std::string> queryMap;
 
 	std::string possibleQueryString = getPath();
-	int qindex = possibleQueryString.find_first_of("?") ;
+	int qindex = possibleQueryString.find_first_of("?");
 	if (qindex < 0) {
-		ESP_LOGD(LOG_TAG, "No query string present") ;
+		ESP_LOGD(LOG_TAG, "No query string present");
 		return queryMap ;
 	}
 	std::string queryString = possibleQueryString.substr(qindex + 1, -1) ;
@@ -235,7 +230,7 @@ std::map<std::string, std::string> HttpRequest::getQuery() {
 	std::string name = "";
 	std::string value;
 	// Loop through each character in the query string.
-	for (int i=0; i<queryString.length(); i++) {
+	for (int i = 0; i < queryString.length(); i++) {
 		char currentChar = queryString[i];
 		if (state == STATE_NAME) {
 			if (currentChar != '=') {
@@ -262,7 +257,6 @@ std::map<std::string, std::string> HttpRequest::getQuery() {
 	}
 	return queryMap;
 } // getQuery
-
 
 
 /**
@@ -353,11 +347,11 @@ std::vector<std::string> HttpRequest::pathSplit() {
 	std::istringstream stream(getPath());
 	std::vector<std::string> ret;
 	std::string pathPart;
-	while(std::getline(stream, pathPart, '/')) {
+	while (std::getline(stream, pathPart, '/')) {
 		ret.push_back(pathPart);
 	}
 	// Debug
-	for (int i=0; i<ret.size(); i++) {
+	for (int i = 0; i < ret.size(); i++) {
 		ESP_LOGD(LOG_TAG, "part[%d]: %s", i, ret[i].c_str());
 	}
 	return ret;
@@ -373,14 +367,13 @@ std::string HttpRequest::urlDecode(std::string str) {
 	// https://stackoverflow.com/questions/154536/encode-decode-urls-in-c
 	std::string ret;
 	char ch;
-	int i, ii, len = str.length();
+	int ii, len = str.length();
 
-	for (i=0; i < len; i++){
+	for (int i = 0; i < len; i++) {
 		if (str[i] != '%'){
 			if (str[i] == '+') {
 				ret += ' ';
-			}
-			else {
+			} else {
 				ret += str[i];
 			}
 		} else {

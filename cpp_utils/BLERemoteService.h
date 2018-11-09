@@ -26,7 +26,6 @@ class BLERemoteCharacteristic;
  */
 class BLERemoteService {
 public:
-
 	virtual ~BLERemoteService();
 
 	// Public methods
@@ -67,10 +66,10 @@ private:
 	// Properties
 
 	// We maintain a map of characteristics owned by this service keyed by a string representation of the UUID.
-	std::map<std::string, BLERemoteCharacteristic *> m_characteristicMap;
+	std::map<std::string, BLERemoteCharacteristic*> m_characteristicMap;
 
 	// We maintain a map of characteristics owned by this service keyed by a handle.
-	std::map<uint16_t, BLERemoteCharacteristic *> m_characteristicMapByHandle;
+	std::map<uint16_t, BLERemoteCharacteristic*> m_characteristicMapByHandle;
 
 	bool                m_haveCharacteristics; // Have we previously obtained the characteristics.
 	BLEClient*          m_pClient;

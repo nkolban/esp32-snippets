@@ -23,12 +23,13 @@ public:
 	WebSocketInputStreambuf(
 		Socket   socket,
 		size_t   dataLength,
-		uint8_t* pMask=nullptr,
-		size_t   bufferSize=2048);
+		uint8_t* pMask = nullptr,
+		size_t   bufferSize = 2048);
 	~WebSocketInputStreambuf();
 	int_type underflow();
 	void discard();
 	size_t getRecordSize();
+
 private:
 	char*    m_buffer;
 	Socket   m_socket;
@@ -36,6 +37,7 @@ private:
 	size_t   m_bufferSize;
 	size_t   m_sizeRead;
 	uint8_t* m_pMask;
+
 };
 
 
@@ -46,8 +48,9 @@ class WebSocketHandler {
 public:
 	virtual ~WebSocketHandler();
 	virtual void onClose();
-	virtual void onMessage(WebSocketInputStreambuf *pWebSocketInputStreambuf, WebSocket *pWebSocket);
+	virtual void onMessage(WebSocketInputStreambuf* pWebSocketInputStreambuf, WebSocket* pWebSocket);
 	virtual void onError(std::string error);
+
 };
 
 
@@ -55,16 +58,6 @@ public:
 // | WebSocket |
 // +-----------+
 class WebSocket {
-private:
-	friend class WebSocketReader;
-	friend class HttpServerTask;
-	void              startReader();
-	bool              m_receivedClose; // True when we have received a close request.
-	bool              m_sentClose;     // True when we have sent a close request.
-	Socket            m_socket;        // Partner socket.
-	WebSocketHandler *m_pWebSocketHandler;
-	WebSocketReader  *m_pWebSockerReader;
-
 public:
 	static const uint16_t CLOSE_NORMAL_CLOSURE        = 1000;
 	static const uint16_t CLOSE_GOING_AWAY            = 1001;
@@ -87,12 +80,23 @@ public:
 	WebSocket(Socket socket);
 	virtual ~WebSocket();
 
-	void              close(uint16_t status=CLOSE_NORMAL_CLOSURE, std::string message = "");
+	void              close(uint16_t status = CLOSE_NORMAL_CLOSURE, std::string message = "");
 	WebSocketHandler* getHandler();
 	Socket            getSocket();
 	void              send(std::string data, uint8_t sendType = SEND_TYPE_BINARY);
 	void              send(uint8_t* data, uint16_t length, uint8_t sendType = SEND_TYPE_BINARY);
 	void              setHandler(WebSocketHandler *handler);
+
+private:
+	friend class WebSocketReader;
+	friend class HttpServerTask;
+	void              startReader();
+	bool              m_receivedClose; // True when we have received a close request.
+	bool              m_sentClose;	 // True when we have sent a close request.
+	Socket            m_socket;		// Partner socket.
+	WebSocketHandler* m_pWebSocketHandler;
+	WebSocketReader*  m_pWebSockerReader;
+
 }; // WebSocket
 
 #endif /* COMPONENTS_WEBSOCKET_H_ */

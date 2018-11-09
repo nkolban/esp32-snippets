@@ -18,14 +18,17 @@
  * @param [in] address The %I2C address of the device on the %I2C bus.
  */
 PCF8574::PCF8574(uint8_t address) {
-	i2c.setAddress(address);
+	i2c = new I2C();
+	i2c->setAddress(address);
 	lastWrite = 0;
 }
+
 
 /**
  * @brief Class instance destructor.
  */
 PCF8574::~PCF8574() {
+	delete i2c;
 }
 
 
@@ -35,9 +38,9 @@ PCF8574::~PCF8574() {
  */
 uint8_t PCF8574::read() {
 	uint8_t value;
-	i2c.beginTransaction();
-	i2c.read(&value,true);
-	i2c.endTransaction();
+	i2c->beginTransaction();
+	i2c->read(&value,true);
+	i2c->endTransaction();
 	return value;
 } // read
 
@@ -49,11 +52,9 @@ uint8_t PCF8574::read() {
  * @return True if the pin is high, false otherwise.  Undefined if there is no signal on the pin.
  */
 bool PCF8574::readBit(uint8_t bit) {
-	if (bit > 7) {
-		return false;
-	}
+	if (bit > 7) return false;
 	uint8_t value = read();
-	return (value & (1<<bit)) != 0;
+	return (value & (1 << bit)) != 0;
 } // readBit
 
 
@@ -66,9 +67,9 @@ void PCF8574::write(uint8_t value) {
 	if (invert) {
 		value = ~value;
 	}
-	i2c.beginTransaction();
-	i2c.write(value, true);
-	i2c.endTransaction();
+	i2c->beginTransaction();
+	i2c->write(value, true);
+	i2c->endTransaction();
 	lastWrite = value;
 } // write
 
@@ -83,9 +84,7 @@ void PCF8574::write(uint8_t value) {
  * @param [in] value The logic level to appear on the identified output pin.
  */
 void PCF8574::writeBit(uint8_t bit, bool value) {
-	if (bit > 7) {
-		return;
-	}
+	if (bit > 7) return;
 	if (invert) {
 		value = !value;
 	}
@@ -117,5 +116,5 @@ void PCF8574::setInvert(bool value) {
  * @param [in] clkPin The pin to use for the %I2C CLK functions.
  */
 void PCF8574::init(gpio_num_t sdaPin, gpio_num_t clkPin) {
-	i2c.init(0, sdaPin, clkPin);
+	i2c->init(0, sdaPin, clkPin);
 } // init

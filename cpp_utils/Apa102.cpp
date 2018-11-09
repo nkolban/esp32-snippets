@@ -37,7 +37,7 @@ void Apa102::show() {
 
 	double brigthnessScale = getBrightness() / 100.0;
 	// Loop over all the pixels in the pixels array to set the colors.
-	for (int i=0; i<m_pixelCount; i++) {
+	for (uint16_t i = 0; i < m_pixelCount; i++) {
 		mySPI.transferByte(0xff); // Maximum brightness
 		mySPI.transferByte(m_pixels[i].blue * brigthnessScale);
 		mySPI.transferByte(m_pixels[i].green * brigthnessScale);

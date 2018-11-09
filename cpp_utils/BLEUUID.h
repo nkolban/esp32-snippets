@@ -24,7 +24,7 @@ public:
 	BLEUUID(uint8_t* pData, size_t size, bool msbFirst);
 	BLEUUID(esp_gatt_id_t gattId);
 	BLEUUID();
-	int            bitSize();   // Get the number of bits in this uuid.
+	uint8_t        bitSize();   // Get the number of bits in this uuid.
 	bool           equals(BLEUUID uuid);
 	esp_bt_uuid_t* getNative();
 	BLEUUID        to128();

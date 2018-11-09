@@ -4,10 +4,10 @@
  *  Created on: Mar 12, 2018
  *      Author: pcbreflux
  */
-#include "Arduino.h"
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 #include <string.h>
+#include <sstream>
 #include <esp_log.h>
 #include "BLEEddystoneTLM.h"
 
@@ -16,21 +16,21 @@ static const char LOG_TAG[] = "BLEEddystoneTLM";
 #define ENDIAN_CHANGE_U32(x) ((((x)&0xFF000000)>>24) + (((x)&0x00FF0000)>>8)) + ((((x)&0xFF00)<<8) + (((x)&0xFF)<<24))
 
 BLEEddystoneTLM::BLEEddystoneTLM() {
-  beconUUID = 0xFEAA;
-  m_eddystoneData.frameType = EDDYSTONE_TLM_FRAME_TYPE;
-  m_eddystoneData.version = 0;
-  m_eddystoneData.volt = 3300; // 3300mV = 3.3V
-  m_eddystoneData.temp = (uint16_t)((float)23.00);
-  m_eddystoneData.advCount = 0;
-  m_eddystoneData.tmil = 0;
+	beaconUUID = 0xFEAA;
+	m_eddystoneData.frameType = EDDYSTONE_TLM_FRAME_TYPE;
+	m_eddystoneData.version = 0;
+	m_eddystoneData.volt = 3300; // 3300mV = 3.3V
+	m_eddystoneData.temp = (uint16_t) ((float) 23.00);
+	m_eddystoneData.advCount = 0;
+	m_eddystoneData.tmil = 0;
 } // BLEEddystoneTLM
 
 std::string BLEEddystoneTLM::getData() {
-	return std::string((char*)&m_eddystoneData, sizeof(m_eddystoneData));
+	return std::string((char*) &m_eddystoneData, sizeof(m_eddystoneData));
 } // getData
 
 BLEUUID BLEEddystoneTLM::getUUID() {
-	return BLEUUID(beconUUID);
+	return BLEUUID(beaconUUID);
 } // getUUID
 
 uint8_t BLEEddystoneTLM::getVersion() {
@@ -54,46 +54,62 @@ uint32_t BLEEddystoneTLM::getTime() {
 } // getTime
 
 std::string BLEEddystoneTLM::toString() {
+	std::stringstream ss;
 	std::string out = "";
-  String buff;
   uint32_t rawsec;
-  
-  out += "Version ";
-  buff = String(m_eddystoneData.version, DEC);
-  out += buff.c_str();
-  out += "\n";
-  
-  out += "Battery Voltage ";
-  buff = String(ENDIAN_CHANGE_U16(m_eddystoneData.volt), DEC);
-  out += buff.c_str();
-  out += " mV\n";
-  
-  out += "Temperature ";
-  buff = String((float)m_eddystoneData.temp, 1);
-  out += buff.c_str();
-  out += " °C\n";
-  
-  out += "Adv. Count ";
-  buff = String(ENDIAN_CHANGE_U32(m_eddystoneData.advCount), DEC);
-  out += buff.c_str();
-  out += "\n";
-  
-  out += "Time ";
-  rawsec = ENDIAN_CHANGE_U32(m_eddystoneData.tmil);
-  buff = "0000"+String(rawsec/864000, DEC);
-  out += buff.substring(buff.length()-4,buff.length()).c_str();
-  out += ".";
-  buff = "00"+String((rawsec/36000)%24, DEC);
-  out += buff.substring(buff.length()-2,buff.length()).c_str();
-  out += ":";
-  buff = "00"+String((rawsec/600)%60, DEC);
-  out += buff.substring(buff.length()-2,buff.length()).c_str();
-  out += ":";
-  buff = "00"+String((rawsec/10)%60, DEC);
-  out += buff.substring(buff.length()-2,buff.length()).c_str();
-  out += "\n";
+  ss << "Version ";
+  ss << std::dec << m_eddystoneData.version;
+  ss << "\n";
 
-	return out;
+  ss << "Battery Voltage ";
+  ss << std::dec << ENDIAN_CHANGE_U16(m_eddystoneData.volt);
+  ss << " mV\n";
+
+  ss << "Temperature ";
+  ss << (float) m_eddystoneData.temp;
+  ss << " °C\n";
+
+  ss << "Adv. Count ";
+  ss << std::dec << ENDIAN_CHANGE_U32(m_eddystoneData.advCount);
+
+  ss << "\n";
+
+  ss << "Time ";
+
+  rawsec = ENDIAN_CHANGE_U32(m_eddystoneData.tmil);
+  std::stringstream buffstream;
+  buffstream << "0000";
+  buffstream << std::dec << rawsec / 864000;
+  std::string buff = buffstream.str();
+
+  ss << buff.substr(buff.length() - 4, buff.length());
+  ss << ".";
+
+  buffstream.str("");
+  buffstream.clear();
+  buffstream << "00";
+  buffstream << std::dec << (rawsec / 36000) % 24;
+  buff = buffstream.str();
+  ss << buff.substr(buff.length()-2, buff.length());
+  ss << ":";
+
+  buffstream.str("");
+  buffstream.clear();
+  buffstream << "00";
+  buffstream << std::dec << (rawsec / 600) % 60;
+  buff = buffstream.str();
+  ss << buff.substr(buff.length() - 2, buff.length());
+  ss << ":";
+
+  buffstream.str("");
+  buffstream.clear();
+  buffstream << "00";
+  buffstream << std::dec << (rawsec / 10) % 60;
+  buff = buffstream.str();
+  ss << buff.substr(buff.length() - 2, buff.length());
+  ss << "\n";
+
+  return ss.str();
 } // toString
 
 /**
@@ -108,7 +124,7 @@ void BLEEddystoneTLM::setData(std::string data) {
 } // setData
 
 void BLEEddystoneTLM::setUUID(BLEUUID l_uuid) {
-	beconUUID = l_uuid.getNative()->uuid.uuid16;
+	beaconUUID = l_uuid.getNative()->uuid.uuid16;
 } // setUUID
 
 void BLEEddystoneTLM::setVersion(uint8_t version) {

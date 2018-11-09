@@ -19,9 +19,10 @@ class RESTClient;
  */
 class RESTTimings {
 public:
-	RESTTimings(RESTClient *client);
+	RESTTimings(RESTClient* client);
 	void refresh();
 	std::string toString();
+
 private:
 	double m_namelookup = 0;
 	double m_connect = 0;
@@ -29,7 +30,8 @@ private:
 	double m_pretransfer = 0;
 	double m_starttransfer = 0;
 	double m_total = 0;
-	RESTClient *client = nullptr;
+	RESTClient* client = nullptr;
+
 };
 
 /**
@@ -107,19 +109,18 @@ public:
 		m_verbose = value;
 	};
 
-
-
 private:
-	CURL *m_curlHandle;
+	CURL* m_curlHandle;
 	std::string m_url;
 	char m_errbuf[CURL_ERROR_SIZE];
-	struct curl_slist *m_headers = nullptr;
+	struct curl_slist* m_headers = nullptr;
 	bool m_verbose = false;
 	friend class RESTTimings;
-	RESTTimings *m_timings;
+	RESTTimings* m_timings;
 	std::string m_response;
-	static size_t handleData(void *buffer, size_t size, size_t nmemb, void *userp);
+	static size_t handleData(void* buffer, size_t size, size_t nmemb, void* userp);
 	void prepForCall();
+
 };
 #endif /* CONFIG_LIBCURL_PRESENT */
 #endif /* MAIN_RESTCLIENT_H_ */

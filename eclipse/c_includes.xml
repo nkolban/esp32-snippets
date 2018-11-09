@@ -50,7 +50,6 @@
 <includepath>${IDF_PATH}/components/spi_flash/include</includepath>
 <includepath>${IDF_PATH}/components/mbedtls/include</includepath>
 <includepath>${IDF_PATH}/components/mdns/include</includepath>
-<includepath>${IDF_PATH}/components/json/include</includepath>
 <includepath>${IDF_PATH}/components/bt/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/bta/include</includepath>
 <includepath>${IDF_PATH}/components/bt/bluedroid/bta/sys/include</includepath>
@@ -128,17 +127,35 @@
 <macro>
 <name>ESP_PLATFORM</name><value>1</value>
 </macro>
+<macro>
+<name>PLATFORM_ID</name><value>11</value>
+</macro>
+<macro>
+<name>DEBUG_BUILD</name><value>1</value>
+</macro>
 
 </language>
 <language name="GNU C++">
 <macro>
 <name>ESP_PLATFORM</name><value>1</value>
 </macro>
+<macro>
+<name>PLATFORM_ID</name><value>11</value>
+</macro>
+<macro>
+<name>DEBUG_BUILD</name><value>1</value>
+</macro>
 
 </language>
 <language name="GNU C">
 <macro>
 <name>ESP_PLATFORM</name><value>1</value>
+</macro>
+<macro>
+<name>PLATFORM_ID</name><value>11</value>
+</macro>
+<macro>
+<name>DEBUG_BUILD</name><value>1</value>
 </macro>
 
 </language>

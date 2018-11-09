@@ -23,7 +23,7 @@ private:
 		uint16_t major;
 		uint16_t minor;
 		int8_t   signalPower;
-	} __attribute__((packed))m_beaconData;
+	} __attribute__((packed)) m_beaconData;
 public:
 	BLEBeacon();
 	std::string getData();

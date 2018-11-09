@@ -24,15 +24,15 @@ static const char* LOG_TAG = "WiFiEventHandler";
  * @return ESP_OK if the event was handled otherwise an error.
  */
 esp_err_t WiFiEventHandler::eventHandler(void* ctx, system_event_t* event) {
-	ESP_LOGD(LOG_TAG, ">> eventHandler called: ctx=0x%x, event=0x%x", (uint32_t)ctx, (uint32_t)event);
-	WiFiEventHandler *pWiFiEventHandler = (WiFiEventHandler *)ctx;
+	ESP_LOGD(LOG_TAG, ">> eventHandler called: ctx=0x%x, event=0x%x", (uint32_t) ctx, (uint32_t) event);
+	WiFiEventHandler* pWiFiEventHandler = (WiFiEventHandler*) ctx;
 	if (ctx == nullptr) {
 		ESP_LOGD(LOG_TAG, "No context");
 		return ESP_OK;
 	}
 
 	esp_err_t rc = ESP_OK;
-	switch(event->event_id) {
+	switch (event->event_id) {
 		case SYSTEM_EVENT_AP_START: {
 			rc =  pWiFiEventHandler->apStart();
 			break;
@@ -95,15 +95,15 @@ esp_err_t WiFiEventHandler::eventHandler(void* ctx, system_event_t* event) {
 
 		default:
 			break;
-    }
+	}
 
-    if (pWiFiEventHandler->m_nextHandler != nullptr) {
-        printf("Found a next handler\n");
-        rc = eventHandler(pWiFiEventHandler->m_nextHandler, event);
-    } else {
-        //printf("NOT Found a next handler\n");
-    }
-    return rc;
+	if (pWiFiEventHandler->m_nextHandler != nullptr) {
+		ESP_LOGD(LOG_TAG, "Found a next handler");
+		rc = eventHandler(pWiFiEventHandler->m_nextHandler, event);
+	} else {
+		//ESP_LOGD(LOG_TAG, "NOT Found a next handler");
+	}
+	return rc;
 } // eventHandler
 
 
@@ -134,8 +134,8 @@ system_event_cb_t WiFiEventHandler::getEventHandler() {
  * @return An indication of whether or not we processed the event successfully.
  */
 esp_err_t WiFiEventHandler::staGotIp(system_event_sta_got_ip_t info) {
-    ESP_LOGD(LOG_TAG, "default staGotIp");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default staGotIp");
+	return ESP_OK;
 } // staGotIp
 
 
@@ -145,8 +145,8 @@ esp_err_t WiFiEventHandler::staGotIp(system_event_sta_got_ip_t info) {
  * @return An indication of whether or not we processed the event successfully.
  */
 esp_err_t WiFiEventHandler::apStart() {
-    ESP_LOGD(LOG_TAG, "default apStart");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default apStart");
+	return ESP_OK;
 } // apStart
 
 
@@ -156,26 +156,26 @@ esp_err_t WiFiEventHandler::apStart() {
  * @return An indication of whether or not we processed the event successfully.
  */
 esp_err_t WiFiEventHandler::apStop() {
-    ESP_LOGD(LOG_TAG, "default apStop");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default apStop");
+	return ESP_OK;
 } // apStop
 
 
 esp_err_t WiFiEventHandler::wifiReady() {
-    ESP_LOGD(LOG_TAG, "default wifiReady");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default wifiReady");
+	return ESP_OK;
 } // wifiReady
 
 
 esp_err_t WiFiEventHandler::staStart() {
-    ESP_LOGD(LOG_TAG, "default staStart");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default staStart");
+	return ESP_OK;
 } // staStart
 
 
 esp_err_t WiFiEventHandler::staStop() {
-    ESP_LOGD(LOG_TAG, "default staStop");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default staStop");
+	return ESP_OK;
 } // staStop
 
 
@@ -186,8 +186,8 @@ esp_err_t WiFiEventHandler::staStop() {
  * @return An indication of whether or not we processed the event successfully.
  */
 esp_err_t WiFiEventHandler::staConnected(system_event_sta_connected_t info) {
-    ESP_LOGD(LOG_TAG, "default staConnected");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default staConnected");
+	return ESP_OK;
 } // staConnected
 
 
@@ -198,8 +198,8 @@ esp_err_t WiFiEventHandler::staConnected(system_event_sta_connected_t info) {
  * @return An indication of whether or not we processed the event successfully.
  */
 esp_err_t WiFiEventHandler::staDisconnected(system_event_sta_disconnected_t info) {
-    ESP_LOGD(LOG_TAG, "default staDisconnected");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default staDisconnected");
+	return ESP_OK;
 } // staDisconnected
 
 
@@ -210,8 +210,8 @@ esp_err_t WiFiEventHandler::staDisconnected(system_event_sta_disconnected_t info
  * @return An indication of whether or not we processed the event successfully.
  */
 esp_err_t WiFiEventHandler::apStaConnected(system_event_ap_staconnected_t info) {
-    ESP_LOGD(LOG_TAG, "default apStaConnected");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default apStaConnected");
+	return ESP_OK;
 } // apStaConnected
 
 
@@ -222,8 +222,8 @@ esp_err_t WiFiEventHandler::apStaConnected(system_event_ap_staconnected_t info) 
  * @return An indication of whether or not we processed the event successfully.
  */
 esp_err_t WiFiEventHandler::apStaDisconnected(system_event_ap_stadisconnected_t info) {
-    ESP_LOGD(LOG_TAG, "default apStaDisconnected");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default apStaDisconnected");
+	return ESP_OK;
 } // apStaDisconnected
 
 
@@ -234,8 +234,8 @@ esp_err_t WiFiEventHandler::apStaDisconnected(system_event_ap_stadisconnected_t 
  * @return An indication of whether or not we processed the event successfully.
  */
 esp_err_t WiFiEventHandler::staScanDone(system_event_sta_scan_done_t info) {
-    ESP_LOGD(LOG_TAG, "default staScanDone");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default staScanDone");
+	return ESP_OK;
 } // staScanDone
 
 
@@ -246,8 +246,8 @@ esp_err_t WiFiEventHandler::staScanDone(system_event_sta_scan_done_t info) {
  * @return An indication of whether or not we processed the event successfully.
  */
 esp_err_t WiFiEventHandler::staAuthChange(system_event_sta_authmode_change_t info) {
-    ESP_LOGD(LOG_TAG, "default staAuthChange");
-    return ESP_OK;
+	ESP_LOGD(LOG_TAG, "default staAuthChange");
+	return ESP_OK;
 } // staAuthChange
 
 

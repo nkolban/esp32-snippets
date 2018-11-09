@@ -76,7 +76,7 @@ const static uint8_t charTable[] = {
 		0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000 };
 
 
-MAX7219::MAX7219(SPI *spi, int numDevices) {
+MAX7219::MAX7219(SPI* spi, int numDevices) {
 	assert(spi != nullptr);
 	this->spi = spi;
 	if (numDevices <= 0 || numDevices > 8) {
@@ -84,7 +84,7 @@ MAX7219::MAX7219(SPI *spi, int numDevices) {
 	}
 	maxDevices = numDevices;
 
-	for (int i = 0; i < 64; i++) {
+	for (uint8_t i = 0; i < 64; i++) {
 		status[i] = 0x00;
 	}
 	for (int i = 0; i < maxDevices; i++) {
@@ -106,21 +106,18 @@ int MAX7219::getDeviceCount() {
 
 
 void MAX7219::shutdown(bool b, int addr) {
-	if (addr < 0 || addr >= maxDevices)
-		return;
+	if (addr < 0 || addr >= maxDevices) return;
+
 	if (b) {
 		spiTransfer(addr, OP_SHUTDOWN, 0);
-	}
-	else {
+	} else {
 		spiTransfer(addr, OP_SHUTDOWN, 1);
 	}
 }
 
 
 void MAX7219::setScanLimit(int limit, int addr) {
-	if (addr < 0 || addr >= maxDevices) {
-		return;
-	}
+	if (addr < 0 || addr >= maxDevices) return;
 	if (limit >= 0 && limit < 8) {
 		spiTransfer(addr, OP_SCANLIMIT, limit);
 	}
@@ -128,9 +125,7 @@ void MAX7219::setScanLimit(int limit, int addr) {
 
 
 void MAX7219::setIntensity(int intensity, int addr) {
-	if (addr < 0 || addr >= maxDevices) {
-		return;
-	}
+	if (addr < 0 || addr >= maxDevices) return;
 	if (intensity >= 0 && intensity < 16) {
 		spiTransfer(addr, OP_INTENSITY, intensity);
 	}
@@ -138,13 +133,11 @@ void MAX7219::setIntensity(int intensity, int addr) {
 
 
 void MAX7219::clearDisplay(int addr) {
-	int offset;
+	if (addr < 0 || addr >= maxDevices) return;
 
-	if (addr < 0 || addr >= maxDevices) {
-		return;
-	}
+	int offset;
 	offset = addr * 8;
-	for (int i = 0; i < 8; i++) {
+	for (uint8_t i = 0; i < 8; i++) {
 		status[offset + i] = 0;
 		spiTransfer(addr, i + 1, status[offset + i]);
 	}
@@ -152,12 +145,11 @@ void MAX7219::clearDisplay(int addr) {
 
 
 void MAX7219::setLed(int row, int column, bool state, int addr) {
-	int offset;
-	uint8_t val = 0x00;
+	if (addr < 0 || addr >= maxDevices) return;
 
-	if (addr < 0 || addr >= maxDevices) {
-		return;
-	}
+	int offset;
+	uint8_t val = 0;
+
 	if (row < 0 || row > 7 || column < 0 || column > 7) {
 		return;
 	}
@@ -165,8 +157,7 @@ void MAX7219::setLed(int row, int column, bool state, int addr) {
 	val = 0b10000000 >> column;
 	if (state) {
 		status[offset + row] = status[offset + row] | val;
-	}
-	else {
+	} else {
 		val = ~val;
 		status[offset + row] = status[offset + row] & val;
 	}
@@ -175,28 +166,20 @@ void MAX7219::setLed(int row, int column, bool state, int addr) {
 
 
 void MAX7219::setRow(int row, uint8_t value, int addr) {
-	int offset;
-	if (addr < 0 || addr >= maxDevices) {
-		return;
-	}
-	if (row < 0 || row > 7) {
-		return;
-	}
-	offset = addr * 8;
+	if (addr < 0 || addr >= maxDevices) return;
+	if (row < 0 || row > 7) return;
+
+	int offset = addr * 8;
 	status[offset + row] = value;
 	spiTransfer(addr, row + 1, status[offset + row]);
 }
 
 
 void MAX7219::setColumn(int col, uint8_t value, int addr) {
-	uint8_t val;
+	if (addr < 0 || addr >= maxDevices) return;
+	if (col < 0 || col > 7) return;
 
-	if (addr < 0 || addr >= maxDevices) {
-		return;
-	}
-	if (col < 0 || col > 7) {
-		return;
-	}
+	uint8_t val;
 	for (int row = 0; row < 8; row++) {
 		val = value >> (7 - row);
 		val = val & 0x01;
@@ -206,17 +189,11 @@ void MAX7219::setColumn(int col, uint8_t value, int addr) {
 
 
 void MAX7219::setDigit(int digit, uint8_t value, bool dp, int addr) {
-	int offset;
-	uint8_t v;
+	if (addr < 0 || addr >= maxDevices) return;
+	if (digit < 0 || digit > 7 || value > 15) return;
 
-	if (addr < 0 || addr >= maxDevices) {
-		return;
-	}
-	if (digit < 0 || digit > 7 || value > 15) {
-		return;
-	}
-	offset = addr * 8;
-	v = charTable[value];
+	int offset = addr * 8;
+	uint8_t v = charTable[value];
 	if (dp) {
 		v |= 0b10000000;
 	}
@@ -226,22 +203,13 @@ void MAX7219::setDigit(int digit, uint8_t value, bool dp, int addr) {
 
 
 void MAX7219::setChar(int digit, char value, bool dp, int addr) {
-	int offset;
-	uint8_t index, v;
+	if (addr < 0 || addr >= maxDevices) return;
+	if (digit < 0 || digit > 7) return;
 
-	if (addr < 0 || addr >= maxDevices) {
-		return;
-	}
-	if (digit < 0 || digit > 7) {
-		return;
-	}
-	offset = addr * 8;
-	index = (uint8_t) value;
-	if (index > 127) {
-		//no defined beyond index 127, so we use the space char
-		index = 32;
-	}
-	v = charTable[index];
+	int offset = addr * 8;
+	uint8_t index = (uint8_t) value;
+	if (index > 127) index = 32; // not defined beyond index 127, so we use the space char
+	uint8_t v = charTable[index];
 	if (dp) {
 		v |= 0b10000000;
 	}
@@ -250,7 +218,7 @@ void MAX7219::setChar(int digit, char value, bool dp, int addr) {
 }
 
 
-void MAX7219::spiTransfer(int addr, volatile uint8_t opcode,	volatile uint8_t data) {
+void MAX7219::spiTransfer(int addr, volatile uint8_t opcode, volatile uint8_t data) {
 	//Create an array with the data to shift out
 	int offset = addr * 2;
 	int maxbytes = maxDevices * 2;
@@ -268,13 +236,13 @@ void MAX7219::spiTransfer(int addr, volatile uint8_t opcode,	volatile uint8_t da
 }
 
 void MAX7219::setNumber(uint32_t number, int addr) {
-	//number = number % (uint32_t)pow(10, maxDevices);
-	for (auto i=0; i<8; i++) {
-		if (number == 0 && i > 0){
+	// number = number % (uint32_t) pow(10, maxDevices);
+	for (uint8_t i = 0; i < 8; i++) {
+		if (number == 0 && i > 0) {
 			setChar(i, ' ', addr);
 		} else {
-			setDigit(i, number%10, addr);
-			number = number/10;
+			setDigit(i, number % 10, addr);
+			number = number / 10;
 		}
 	}
 }

@@ -22,15 +22,15 @@ BLEHIDDevice::BLEHIDDevice(BLEServer* server) {
 	/*
 	 * Mandatory characteristic for device info service
 	 */
-	m_pnpCharacteristic = m_deviceInfoService->createCharacteristic((uint16_t)0x2a50, BLECharacteristic::PROPERTY_READ);
+	m_pnpCharacteristic = m_deviceInfoService->createCharacteristic((uint16_t) 0x2a50, BLECharacteristic::PROPERTY_READ);
 
 	/*
 	 * Mandatory characteristics for HID service
 	 */
-	m_hidInfoCharacteristic = m_hidService->createCharacteristic((uint16_t)0x2a4a, BLECharacteristic::PROPERTY_READ);
-	m_reportMapCharacteristic = m_hidService->createCharacteristic((uint16_t)0x2a4b, BLECharacteristic::PROPERTY_READ);
-	m_hidControlCharacteristic = m_hidService->createCharacteristic((uint16_t)0x2a4c, BLECharacteristic::PROPERTY_WRITE_NR);
-	m_protocolModeCharacteristic = m_hidService->createCharacteristic((uint16_t)0x2a4e, BLECharacteristic::PROPERTY_WRITE_NR | BLECharacteristic::PROPERTY_READ);
+	m_hidInfoCharacteristic = m_hidService->createCharacteristic((uint16_t) 0x2a4a, BLECharacteristic::PROPERTY_READ);
+	m_reportMapCharacteristic = m_hidService->createCharacteristic((uint16_t) 0x2a4b, BLECharacteristic::PROPERTY_READ);
+	m_hidControlCharacteristic = m_hidService->createCharacteristic((uint16_t) 0x2a4c, BLECharacteristic::PROPERTY_WRITE_NR);
+	m_protocolModeCharacteristic = m_hidService->createCharacteristic((uint16_t) 0x2a4e, BLECharacteristic::PROPERTY_WRITE_NR | BLECharacteristic::PROPERTY_READ);
 
 	/*
 	 * Mandatory battery level characteristic with notification and presence descriptor
@@ -40,7 +40,7 @@ BLEHIDDevice::BLEHIDDevice(BLEServer* server) {
 	batteryLevelDescriptor->setNamespace(1);
 	batteryLevelDescriptor->setUnit(0x27ad);
 
-	m_batteryLevelCharacteristic = m_batteryService->createCharacteristic((uint16_t)0x2a19, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+	m_batteryLevelCharacteristic = m_batteryService->createCharacteristic((uint16_t) 0x2a19, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
 	m_batteryLevelCharacteristic->addDescriptor(batteryLevelDescriptor);
 	m_batteryLevelCharacteristic->addDescriptor(new BLE2902());
 
@@ -48,8 +48,8 @@ BLEHIDDevice::BLEHIDDevice(BLEServer* server) {
 	 * This value is setup here because its default value in most usage cases, its very rare to use boot mode
 	 * and we want to simplify library using as much as possible
 	 */
-	const uint8_t pMode[] = {0x01};
-	protocolMode()->setValue((uint8_t*)pMode, 1);
+	const uint8_t pMode[] = { 0x01 };
+	protocolMode()->setValue((uint8_t*) pMode, 1);
 }
 
 BLEHIDDevice::~BLEHIDDevice() {
@@ -74,8 +74,8 @@ void BLEHIDDevice::startServices() {
 /*
  * @brief Create manufacturer characteristic (this characteristic is optional)
  */
-BLECharacteristic* 	BLEHIDDevice::manufacturer() {
-	m_manufacturerCharacteristic = m_deviceInfoService->createCharacteristic((uint16_t)0x2a29, BLECharacteristic::PROPERTY_READ);
+BLECharacteristic* BLEHIDDevice::manufacturer() {
+	m_manufacturerCharacteristic = m_deviceInfoService->createCharacteristic((uint16_t) 0x2a29, BLECharacteristic::PROPERTY_READ);
 	return m_manufacturerCharacteristic;
 }
 
@@ -91,7 +91,7 @@ void BLEHIDDevice::manufacturer(std::string name) {
  * @brief
  */
 void BLEHIDDevice::pnp(uint8_t sig, uint16_t vid, uint16_t pid, uint16_t version) {
-	uint8_t pnp[] = {sig, (uint8_t)(vid>>8), (uint8_t)vid, (uint8_t)(pid>>8), (uint8_t)pid, (uint8_t)(version>>8), (uint8_t)version};
+	uint8_t pnp[] = { sig, (uint8_t) (vid >> 8), (uint8_t) vid, (uint8_t) (pid >> 8), (uint8_t) pid, (uint8_t) (version >> 8), (uint8_t) version };
 	m_pnpCharacteristic->setValue(pnp, sizeof(pnp));
 }
 
@@ -99,8 +99,8 @@ void BLEHIDDevice::pnp(uint8_t sig, uint16_t vid, uint16_t pid, uint16_t version
  * @brief
  */
 void BLEHIDDevice::hidInfo(uint8_t country, uint8_t flags) {
-	uint8_t info[] = {0x11,0x1, country, flags};
-	m_hidInfoCharacteristic->setValue(info, sizeof(info));;
+	uint8_t info[] = { 0x11, 0x1, country, flags };
+	m_hidInfoCharacteristic->setValue(info, sizeof(info));
 }
 
 /*
@@ -109,12 +109,16 @@ void BLEHIDDevice::hidInfo(uint8_t country, uint8_t flags) {
  * @return pointer to new input report characteristic
  */
 BLECharacteristic* BLEHIDDevice::inputReport(uint8_t reportID) {
-	BLECharacteristic* 	inputReportCharacteristic = m_hidService->createCharacteristic((uint16_t)0x2a4d, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
-	BLEDescriptor* inputReportDescriptor = new BLEDescriptor(BLEUUID((uint16_t)0x2908));
+	BLECharacteristic* inputReportCharacteristic = m_hidService->createCharacteristic((uint16_t) 0x2a4d, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
+	BLEDescriptor* inputReportDescriptor = new BLEDescriptor(BLEUUID((uint16_t) 0x2908));
+	BLE2902* p2902 = new BLE2902();
+	inputReportCharacteristic->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
+	inputReportDescriptor->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
+	p2902->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
 
-	uint8_t desc1_val[] = {reportID, 0x01};
-	inputReportDescriptor->setValue((uint8_t*)desc1_val, 2);
-	inputReportCharacteristic->addDescriptor(new BLE2902());
+	uint8_t desc1_val[] = { reportID, 0x01 };
+	inputReportDescriptor->setValue((uint8_t*) desc1_val, 2);
+	inputReportCharacteristic->addDescriptor(p2902);
 	inputReportCharacteristic->addDescriptor(inputReportDescriptor);
 
 	return inputReportCharacteristic;
@@ -126,11 +130,13 @@ BLECharacteristic* BLEHIDDevice::inputReport(uint8_t reportID) {
  * @return Pointer to new output report characteristic
  */
 BLECharacteristic* BLEHIDDevice::outputReport(uint8_t reportID) {
-	BLECharacteristic* 	outputReportCharacteristic = m_hidService->createCharacteristic((uint16_t)0x2a4d, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR);
-	BLEDescriptor* outputReportDescriptor = new BLEDescriptor(BLEUUID((uint16_t)0x2908));
+	BLECharacteristic* outputReportCharacteristic = m_hidService->createCharacteristic((uint16_t) 0x2a4d, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR);
+	BLEDescriptor* outputReportDescriptor = new BLEDescriptor(BLEUUID((uint16_t) 0x2908));
+	outputReportCharacteristic->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
+	outputReportDescriptor->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
 
-	uint8_t desc1_val[] = {reportID, 0x02};
-	outputReportDescriptor->setValue((uint8_t*)desc1_val, 2);
+	uint8_t desc1_val[] = { reportID, 0x02 };
+	outputReportDescriptor->setValue((uint8_t*) desc1_val, 2);
 	outputReportCharacteristic->addDescriptor(outputReportDescriptor);
 
 	return outputReportCharacteristic;
@@ -142,11 +148,14 @@ BLECharacteristic* BLEHIDDevice::outputReport(uint8_t reportID) {
  * @return Pointer to new feature report characteristic
  */
 BLECharacteristic* BLEHIDDevice::featureReport(uint8_t reportID) {
-	BLECharacteristic* 	featureReportCharacteristic = m_hidService->createCharacteristic((uint16_t)0x2a4d, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
-	BLEDescriptor* featureReportDescriptor = new BLEDescriptor(BLEUUID((uint16_t)0x2908));
+	BLECharacteristic* featureReportCharacteristic = m_hidService->createCharacteristic((uint16_t) 0x2a4d, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+	BLEDescriptor* featureReportDescriptor = new BLEDescriptor(BLEUUID((uint16_t) 0x2908));
 
-	uint8_t desc1_val[] = {reportID, 0x03};
-	featureReportDescriptor->setValue((uint8_t*)desc1_val, 2);
+	featureReportCharacteristic->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
+	featureReportDescriptor->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
+
+	uint8_t desc1_val[] = { reportID, 0x03 };
+	featureReportDescriptor->setValue((uint8_t*) desc1_val, 2);
 	featureReportCharacteristic->addDescriptor(featureReportDescriptor);
 
 	return featureReportCharacteristic;
@@ -156,7 +165,7 @@ BLECharacteristic* BLEHIDDevice::featureReport(uint8_t reportID) {
  * @brief
  */
 BLECharacteristic* BLEHIDDevice::bootInput() {
-	BLECharacteristic* bootInputCharacteristic = m_hidService->createCharacteristic((uint16_t)0x2a22, BLECharacteristic::PROPERTY_NOTIFY);
+	BLECharacteristic* bootInputCharacteristic = m_hidService->createCharacteristic((uint16_t) 0x2a22, BLECharacteristic::PROPERTY_NOTIFY);
 	bootInputCharacteristic->addDescriptor(new BLE2902());
 
 	return bootInputCharacteristic;
@@ -166,20 +175,20 @@ BLECharacteristic* BLEHIDDevice::bootInput() {
  * @brief
  */
 BLECharacteristic* BLEHIDDevice::bootOutput() {
-	return m_hidService->createCharacteristic((uint16_t)0x2a32, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR);
+	return m_hidService->createCharacteristic((uint16_t) 0x2a32, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR);
 }
 
 /*
  * @brief
  */
-BLECharacteristic* 	BLEHIDDevice::hidControl() {
+BLECharacteristic* BLEHIDDevice::hidControl() {
 	return m_hidControlCharacteristic;
 }
 
 /*
  * @brief
  */
-BLECharacteristic* 	BLEHIDDevice::protocolMode() {
+BLECharacteristic* BLEHIDDevice::protocolMode() {
 	return m_protocolModeCharacteristic;
 }
 
@@ -196,11 +205,11 @@ BLECharacteristic* BLEHIDDevice::batteryLevel() {
 
 
 
-BLECharacteristic* 	BLEHIDDevice::reportMap() {
+BLECharacteristic*	 BLEHIDDevice::reportMap() {
 	return m_reportMapCharacteristic;
 }
 
-BLECharacteristic* 	BLEHIDDevice::pnp() {
+BLECharacteristic*	 BLEHIDDevice::pnp() {
 	return m_pnpCharacteristic;
 }
 

@@ -14,31 +14,34 @@
 #include "GeneralUtils.h"
 #include "sdkconfig.h"
 #include <esp_log.h>
+
+#define OV7670_I2C_ADDR (0x21)
+
 extern "C" {
 	#include <soc/i2s_reg.h>
 	#include <soc/i2s_struct.h>
 }
 
-static const char *LOG_TAG="OV7670";
+static const char* LOG_TAG = "OV7670";
 
 static bool getBit(uint8_t value, uint8_t bitNum) {
-	return (value & (1<<bitNum)) != 0;
+	return (value & (1 << bitNum)) != 0;
 }
 
 static uint8_t setBit(uint8_t value, uint8_t bitNum, bool bitValue) {
-	value = value & (~(1<<bitNum));
+	value = value & (~(1 << bitNum));
 	value = value | (bitValue << bitNum);
 	return value;
 }
 
 static void toGrayscale(uint8_t* pData, uint32_t length) {
-	uint32_t i=0;
-	uint8_t* pLine = new uint8_t[length/2];
+	uint32_t i = 0;
+	uint8_t* pLine = new uint8_t[length / 2];
 	uint8_t* pLineSave = pLine;
 	// RGB 565
 	// 76543210 76543210
 	//  RRRRRGGG GGGBBBBB
-	while(i < length) {
+	while (i < length) {
 		uint8_t byte1 = *pData;
 		pData++;
 		uint8_t byte2 = *pData;
@@ -46,12 +49,12 @@ static void toGrayscale(uint8_t* pData, uint32_t length) {
 		uint8_t red   = ((byte1 & 0b11111000) >> 3) << 3;
 		uint8_t green = (((byte1 & 0b111) << 3) | ((byte2 & 0b11100000) >> 5)) << 2;
 		uint8_t blue  = (byte2 & 0b11111) << 3;
-		*pLine = (red + green + blue)/3;
+		*pLine = (red + green + blue) / 3;
 		pLine++;
-		i+=2;
+		i += 2;
 	}
 	pLine = pLineSave;
-	GeneralUtils::hexDump(pLine, length/2);
+	GeneralUtils::hexDump(pLine, length / 2);
 }
 
 void OV7670::setFormat(uint8_t value) {
@@ -120,7 +123,6 @@ void OV7670::setTestPattern(uint8_t value) {
  *
  */
 
-#define OV7670_I2C_ADDR (0x21)
 /*
 static void IRAM_ATTR isr_vsync(void* arg) {
 	ESP_EARLY_LOGD(LOG_TAG, "VSYNC");
@@ -183,20 +185,19 @@ OV7670::~OV7670() {
 }
 
 
-static esp_err_t camera_enable_out_clock(camera_config_t* config)
-{
+static esp_err_t camera_enable_out_clock(camera_config_t* config) {
 	ESP_LOGD(LOG_TAG, ">> camera_enable_out_clock: freq_hz=%d, pin=%d", config->xclk_freq_hz, config->pin_xclk);
 	periph_module_enable(PERIPH_LEDC_MODULE);
 
 	ledc_timer_config_t timer_conf;
-	timer_conf.duty_resolution = (ledc_timer_bit_t)1;
 	timer_conf.freq_hz    = config->xclk_freq_hz;
+	timer_conf.duty_resolution = (ledc_timer_bit_t) 1;
 	timer_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
 	timer_conf.timer_num  = config->ledc_timer;
 	esp_err_t err = ledc_timer_config(&timer_conf);
 	if (err != ESP_OK) {
-			ESP_LOGE(LOG_TAG, "ledc_timer_config failed, rc=%x", err);
-			return err;
+		ESP_LOGE(LOG_TAG, "ledc_timer_config failed, rc=%x", err);
+		return err;
 	}
 
 	ledc_channel_config_t ch_conf;
@@ -209,8 +210,8 @@ static esp_err_t camera_enable_out_clock(camera_config_t* config)
 
 	err = ledc_channel_config(&ch_conf);
 	if (err != ESP_OK) {
-			ESP_LOGE(LOG_TAG, "ledc_channel_config failed, rc=%x", err);
-			return err;
+		ESP_LOGE(LOG_TAG, "ledc_channel_config failed, rc=%x", err);
+		return err;
 	}
 	ESP_LOGD(LOG_TAG, "<< camera_enable_out_clock");
 	return ESP_OK;
@@ -274,88 +275,90 @@ void OV7670::dump() {
 	uint32_t outputFormat = getBit(com7, 2) << 1 | getBit(com7, 0);
 	//uint32_t outputFormat = (com7 & (1<<2)) >> 1 | (com7 & (1<<0));
 	std::string outputFormatString;
-	switch(outputFormat) {
-	case 0b00:
-		outputFormatString = "YUV";
-		break;
-	case 0b10:
-		outputFormatString = "RGB";
-		break;
-	case 0b01:
-		outputFormatString = "Raw Bayer RGB";
-		break;
-	case 0b11:
-		outputFormatString = "Process Bayer RGB";
-		break;
-	default:
-		outputFormatString = "Unknown";
-		break;
+	switch (outputFormat) {
+		case 0b00:
+			outputFormatString = "YUV";
+			break;
+		case 0b10:
+			outputFormatString = "RGB";
+			break;
+		case 0b01:
+			outputFormatString = "Raw Bayer RGB";
+			break;
+		case 0b11:
+			outputFormatString = "Process Bayer RGB";
+			break;
+		default:
+			outputFormatString = "Unknown";
+			break;
 	}
 	ESP_LOGD(LOG_TAG, "Output format: %s", outputFormatString.c_str());
 	if (outputFormat == 0b10) {
 		uint8_t com15 = readRegister(OV7670_REG_COM15);
-		uint8_t rgbType = getBit(com15, 5) << 1 | getBit(com15,4);
-		char *rgbTypeString;
-		switch(rgbType) {
-		case 0b00:
-		case 0b10:
-			rgbTypeString = (char*)"Normal RGB Output";
-			break;
-		case 0b01:
-			rgbTypeString = (char*)"RGB 565";
-			break;
-		case 0b11:
-			rgbTypeString = (char*)"RGB 555";
-			break;
-		default:
-			rgbTypeString = (char*)"Unknown";
-			break;
+		uint8_t rgbType = getBit(com15, 5) << 1 | getBit(com15, 4);
+		char* rgbTypeString;
+		switch (rgbType) {
+			case 0b00:
+			case 0b10:
+				rgbTypeString = (char*) "Normal RGB Output";
+				break;
+			case 0b01:
+				rgbTypeString = (char*) "RGB 565";
+				break;
+			case 0b11:
+				rgbTypeString = (char*) "RGB 555";
+				break;
+			default:
+				rgbTypeString = (char*) "Unknown";
+				break;
 		}
 		ESP_LOGD(LOG_TAG, "Rgb Type: %s", rgbTypeString);
 	}
-	ESP_LOGD(LOG_TAG, "Color bar: %s", getBit(com7, 1)?"Enabled":"Disabled");
+	ESP_LOGD(LOG_TAG, "Color bar: %s", getBit(com7, 1) ? "Enabled" : "Disabled");
 
 	uint8_t scaling_xsc = readRegister(OV7670_REG_SCALING_XSC);
 	uint8_t scaling_ysc = readRegister(OV7670_REG_SCALING_YSC);
 	uint32_t testPattern = getBit(scaling_xsc, 7) << 1 | getBit(scaling_ysc, 7);
-	char *testPatternString;
-	switch(testPattern) {
-	case 0b00:
-		testPatternString = (char*)"No test output";
-		break;
-	case 0b01:
-		testPatternString = (char*)"Shifting 1";
-		break;
-	case 0b10:
-		testPatternString = (char*)"8-bar color bar";
-		break;
-	case 0b11:
-		testPatternString = (char*)"Fade to gray color bar";
-		break;
-	default:
-		testPatternString = (char*)"Unknown";
-		break;
+	char* testPatternString;
+	switch (testPattern) {
+		case 0b00:
+			testPatternString = (char*) "No test output";
+			break;
+		case 0b01:
+			testPatternString = (char*) "Shifting 1";
+			break;
+		case 0b10:
+			testPatternString = (char*) "8-bar color bar";
+			break;
+		case 0b11:
+			testPatternString = (char*) "Fade to gray color bar";
+			break;
+		default:
+			testPatternString = (char*) "Unknown";
+			break;
 	}
 	ESP_LOGD(LOG_TAG, "Test pattern: %s", testPatternString);
 	ESP_LOGD(LOG_TAG, "Horizontal scale factor: %d", scaling_xsc & 0x3f);
 	ESP_LOGD(LOG_TAG, "Vertical scale factor: %d", scaling_ysc & 0x3f);
 	uint8_t com15 = readRegister(OV7670_REG_COM15);
-	switch((com15 & 0b11000000) >> 6) {
-	case 0b00:
-	case 0b01:
-		ESP_LOGD(LOG_TAG, "Output range: 0x10 to 0xf0");
-		break;
-	case 0b10:
-		ESP_LOGD(LOG_TAG, "Output range: 0x01 to 0xfe");
-		break;
-	case 0b11:
-		ESP_LOGD(LOG_TAG, "Output range: 0x00 to 0xff");
-		break;
+	switch ((com15 & 0b11000000) >> 6) {
+		case 0b00:
+		case 0b01:
+			ESP_LOGD(LOG_TAG, "Output range: 0x10 to 0xf0");
+			break;
+		case 0b10:
+			ESP_LOGD(LOG_TAG, "Output range: 0x01 to 0xfe");
+			break;
+		case 0b11:
+			ESP_LOGD(LOG_TAG, "Output range: 0x00 to 0xff");
+			break;
+		default:
+			break;
 	}
 } // dump
 
 /*
-static void log(char *marker) {
+static void log(char* marker) {
 	ESP_LOGD(LOG_TAG, "%s", marker);
 	FreeRTOS::sleep(100);
 }
@@ -394,7 +397,7 @@ void OV7670::init(camera_config_t cameraConfig) {
 
 	// Create the I2C interface.
 	m_i2c = new I2C();
-	m_i2c->init(OV7670_I2C_ADDR, (gpio_num_t)m_cameraConfig.pin_sscb_sda, (gpio_num_t)m_cameraConfig.pin_sscb_scl);
+	m_i2c->init(OV7670_I2C_ADDR, (gpio_num_t) m_cameraConfig.pin_sscb_sda, (gpio_num_t) m_cameraConfig.pin_sscb_scl);
 	m_i2c->scan();
 	ESP_LOGD(LOG_TAG, "Do you see 0x21 listed?");
 	resetCamera();
@@ -430,46 +433,42 @@ void OV7670::init(camera_config_t cameraConfig) {
 	}
 	*/
 
-  I2S i2s;
-  dma_config_t dmaConfig;
-  dmaConfig.pin_d0    = cameraConfig.pin_d0;
-  dmaConfig.pin_d1    = cameraConfig.pin_d1;
-  dmaConfig.pin_d2    = cameraConfig.pin_d2;
-  dmaConfig.pin_d3    = cameraConfig.pin_d3;
-  dmaConfig.pin_d4    = cameraConfig.pin_d4;
-  dmaConfig.pin_d5    = cameraConfig.pin_d5;
-  dmaConfig.pin_d6    = cameraConfig.pin_d6;
-  dmaConfig.pin_d7    = cameraConfig.pin_d7;
-  dmaConfig.pin_href  = cameraConfig.pin_href;
-  dmaConfig.pin_pclk  = cameraConfig.pin_pclk;
-  dmaConfig.pin_vsync = cameraConfig.pin_vsync;
-  i2s.cameraMode(dmaConfig, 50, 360*2);
-  ESP_LOGD(LOG_TAG, "Waiting for data!");
-  while(1) {
-  	DMAData dmaData = i2s.waitForData();
-		//GeneralUtils::hexDump(dmaData.getData(), dmaData.getLength());
-  	toGrayscale(dmaData.getData(), dmaData.getLength());
-  	dmaData.free();
-  }
+	I2S i2s;
+	dma_config_t dmaConfig;
+	dmaConfig.pin_d0	= cameraConfig.pin_d0;
+	dmaConfig.pin_d1	= cameraConfig.pin_d1;
+	dmaConfig.pin_d2	= cameraConfig.pin_d2;
+	dmaConfig.pin_d3	= cameraConfig.pin_d3;
+	dmaConfig.pin_d4	= cameraConfig.pin_d4;
+	dmaConfig.pin_d5	= cameraConfig.pin_d5;
+	dmaConfig.pin_d6	= cameraConfig.pin_d6;
+	dmaConfig.pin_d7	= cameraConfig.pin_d7;
+	dmaConfig.pin_href  = cameraConfig.pin_href;
+	dmaConfig.pin_pclk  = cameraConfig.pin_pclk;
+	dmaConfig.pin_vsync = cameraConfig.pin_vsync;
+	i2s.cameraMode(dmaConfig, 50, 360 * 2);
+	ESP_LOGD(LOG_TAG, "Waiting for data!");
+	while (true) {
+	  DMAData dmaData = i2s.waitForData();
+//	  GeneralUtils::hexDump(dmaData.getData(), dmaData.getLength());
+	  toGrayscale(dmaData.getData(), dmaData.getLength());
+	  dmaData.free();
+	}
 
-  ESP_LOGD(LOG_TAG, "Waiting for positive edge on VSYNC");
-  while (gpio_get_level(m_cameraConfig.pin_vsync) == 0) {
-      ;
-  }
-  while (gpio_get_level(m_cameraConfig.pin_vsync) != 0) {
-      ;
-  }
+	ESP_LOGD(LOG_TAG, "Waiting for positive edge on VSYNC");
+	while (gpio_get_level(m_cameraConfig.pin_vsync) == 0) {
+	  ;
+	}
+	while (gpio_get_level(m_cameraConfig.pin_vsync) != 0) {
+	  ;
+	}
 
+	ESP_LOGD(LOG_TAG, "Got VSYNC");
 
-  ESP_LOGD(LOG_TAG, "Got VSYNC");
-
-
-
-
-  while(1) {
-  	FreeRTOS::sleep(1000);
-  	ESP_LOGD(LOG_TAG, "VSYNC Counter: %d, lastHref=%d, pclk=%d", vsyncCounter, lastHref, pclkCounter);
-  }
+	while (true) {
+	  FreeRTOS::sleep(1000);
+	  ESP_LOGD(LOG_TAG, "VSYNC Counter: %d, lastHref=%d, pclk=%d", vsyncCounter, lastHref, pclkCounter);
+	}
 
 	ESP_LOGD(LOG_TAG, "<< init");
 } // init

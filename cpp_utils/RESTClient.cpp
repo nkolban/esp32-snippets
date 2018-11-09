@@ -17,7 +17,7 @@
 
 #include "RESTClient.h"
 
-static char tag[] = "RESTClient";
+static const char* LOG_TAG = "RESTClient";
 
 
 RESTClient::RESTClient() {
@@ -37,15 +37,15 @@ RESTClient::~RESTClient() {
  * @brief Perform an HTTP GET request.
  */
 long RESTClient::get() {
-  long response_code;  // Added return response_code 2018_4_12
+	long response_code;  // Added return response_code 2018_4_12
 	prepForCall();
 	::curl_easy_setopt(m_curlHandle, CURLOPT_HTTPGET, 1);
 	int rc = ::curl_easy_perform(m_curlHandle);
 	if (rc != CURLE_OK) {
-		ESP_LOGE(tag, "get(): %s", getErrorMessage().c_str());
+		ESP_LOGE(LOG_TAG, "get(): %s", getErrorMessage().c_str());
 	}
-  curl_easy_getinfo(m_curlHandle, CURLINFO_RESPONSE_CODE, &response_code); // Added return response_code 2018_4_12
-  return response_code; // Added return response_code 2018_4_12
+	curl_easy_getinfo(m_curlHandle, CURLINFO_RESPONSE_CODE, &response_code); // Added return response_code 2018_4_12
+	return response_code; // Added return response_code 2018_4_12
 } // get
 
 
@@ -56,15 +56,15 @@ long RESTClient::get() {
  *
  */
 long RESTClient::post(std::string body) {
-  long response_code; // Added return response_code 2018_4_12
+	long response_code; // Added return response_code 2018_4_12
 	prepForCall();
 	::curl_easy_setopt(m_curlHandle, CURLOPT_POSTFIELDS, body.c_str());
 	int rc = ::curl_easy_perform(m_curlHandle);
 	if (rc != CURLE_OK) {
-		ESP_LOGE(tag, "post(): %s", getErrorMessage().c_str());
+		ESP_LOGE(LOG_TAG, "post(): %s", getErrorMessage().c_str());
 	}
-  curl_easy_getinfo(m_curlHandle, CURLINFO_RESPONSE_CODE, &response_code);// Added return response_code 2018_4_12
-  return response_code;// Added return response_code 2018_4_12
+	curl_easy_getinfo(m_curlHandle, CURLINFO_RESPONSE_CODE, &response_code);// Added return response_code 2018_4_12
+	return response_code;// Added return response_code 2018_4_12
 } // post
 
 
@@ -90,10 +90,10 @@ std::string RESTClient::getErrorMessage() {
  *
  * @return The number of bytes of data processed.
  */
-size_t RESTClient::handleData(void *buffer, size_t size, size_t nmemb, void *userp) {
+size_t RESTClient::handleData(void* buffer, size_t size, size_t nmemb, void* userp) {
 	//printf("handleData: size: %d, num: %d\n", size, nmemb);
-	RESTClient *pClient = (RESTClient *)userp;
-	pClient->m_response.append((const char *)buffer, size*nmemb);
+	RESTClient* pClient = (RESTClient*) userp;
+	pClient->m_response.append((const char*) buffer, size * nmemb);
 	return size * nmemb;
 } // handleData
 
@@ -139,7 +139,7 @@ void RESTClient::prepForCall() {
 } // prepForCall
 
 
-RESTTimings::RESTTimings(RESTClient *client) {
+RESTTimings::RESTTimings(RESTClient* client) {
 	this->client = client;
 }
 

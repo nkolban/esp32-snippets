@@ -36,7 +36,7 @@ class TFTP {
 public:
 	TFTP();
 	virtual ~TFTP();
-	void start(uint16_t port=TFTP_DEFAULT_PORT);
+	void start(uint16_t port = TFTP_DEFAULT_PORT);
 	void setBaseDir(std::string baseDir);
 	/**
 	 * @brief Internal class for %TFTP processing.
@@ -50,7 +50,8 @@ public:
 		void sendError(uint16_t code, std::string message);
 		void setBaseDir(std::string baseDir);
 		void waitForAck(uint16_t blockNumber);
-		uint16_t waitForRequest(Socket *pServerSocket);
+		uint16_t waitForRequest(Socket* pServerSocket);
+
 	private:
 		/**
 		 * Socket on which the server will communicate with the client..
@@ -61,9 +62,12 @@ public:
 		std::string m_filename; // The name of the file.
 		std::string m_mode;
 		std::string m_baseDir; // The base directory.
+
 	};
+
 private:
 	std::string m_baseDir;
+
 };
 
 #endif /* COMPONENTS_CPP_UTILS_TFTP_H_ */

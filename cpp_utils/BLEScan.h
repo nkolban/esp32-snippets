@@ -53,7 +53,8 @@ public:
 										bool wantDuplicates = false);
 	void           setInterval(uint16_t intervalMSecs);
 	void           setWindow(uint16_t windowMSecs);
-	BLEScanResults start(uint32_t duration, void (*scanCompleteCB)(BLEScanResults) = nullptr);
+	bool           start(uint32_t duration, void (*scanCompleteCB)(BLEScanResults));
+	BLEScanResults start(uint32_t duration);
 	void           stop();
 
 private:
@@ -62,7 +63,7 @@ private:
 	void         handleGAPEvent(
 		esp_gap_ble_cb_event_t  event,
 		esp_ble_gap_cb_param_t* param);
-	void parseAdvertisement(BLEClient* pRemoteDevice, uint8_t *payload);
+	void parseAdvertisement(BLEClient* pRemoteDevice, uint8_t* payload);
 
 
 	esp_ble_scan_params_t         m_scan_params;

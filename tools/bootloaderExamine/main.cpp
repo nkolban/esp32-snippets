@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <unistd.h>
 
 /* Main header of binary image */
 typedef struct {
@@ -117,6 +118,11 @@ int main(int argc, char *argv[]) {
 	size_t count = fread(&header, sizeof(esp_image_header_t), 1, file);
 	if (count != 1) {
 		printf("Failed to read esp_image_header_t\n");
+		return 0;
+	}
+
+	if (header.magic != 0xE9) {
+		printf("Failed to find magic number (0xE9) in BIN file header.\n");
 		return 0;
 	}
 

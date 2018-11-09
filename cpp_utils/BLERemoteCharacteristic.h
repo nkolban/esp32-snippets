@@ -37,18 +37,19 @@ public:
 	bool        canWrite();
 	bool        canWriteNoResponse();
 	BLERemoteDescriptor* getDescriptor(BLEUUID uuid);
-	std::map<std::string, BLERemoteDescriptor *>* getDescriptors();
 	uint16_t    getHandle();
 	BLEUUID     getUUID();
+	std::map<std::string, BLERemoteDescriptor*>* getDescriptors();
 	std::string readValue(void);
 	uint8_t     readUInt8(void);
 	uint16_t    readUInt16(void);
 	uint32_t    readUInt32(void);
-	void        registerForNotify(void (*notifyCallback)(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify));
+	void        registerForNotify(void (*notifyCallback)(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify), bool notifications = true);
 	void        writeValue(uint8_t* data, size_t length, bool response = false);
 	void        writeValue(std::string newValue, bool response = false);
 	void        writeValue(uint8_t newValue, bool response = false);
 	std::string toString(void);
+	uint8_t*	readRawData();
 
 private:
 	BLERemoteCharacteristic(uint16_t handle, BLEUUID uuid, esp_gatt_char_prop_t charProp, BLERemoteService* pRemoteService);
@@ -58,24 +59,24 @@ private:
 
 	// Private member functions
 	void gattClientEventHandler(
-		esp_gattc_cb_event_t      event,
-		esp_gatt_if_t             gattc_if,
+		esp_gattc_cb_event_t	  event,
+		esp_gatt_if_t			 gattc_if,
 		esp_ble_gattc_cb_param_t* evtParam);
 
-
 	BLERemoteService* getRemoteService();
-	void              removeDescriptors();
-	void              retrieveDescriptors();
+	void			  removeDescriptors();
+	void			  retrieveDescriptors();
 
 	// Private properties
-	BLEUUID              m_uuid;
+	BLEUUID			  m_uuid;
 	esp_gatt_char_prop_t m_charProp;
-	uint16_t             m_handle;
-	BLERemoteService*    m_pRemoteService;
-	FreeRTOS::Semaphore  m_semaphoreReadCharEvt      = FreeRTOS::Semaphore("ReadCharEvt");
+	uint16_t			 m_handle;
+	BLERemoteService*	m_pRemoteService;
+	FreeRTOS::Semaphore  m_semaphoreReadCharEvt	  = FreeRTOS::Semaphore("ReadCharEvt");
 	FreeRTOS::Semaphore  m_semaphoreRegForNotifyEvt  = FreeRTOS::Semaphore("RegForNotifyEvt");
-	FreeRTOS::Semaphore  m_semaphoreWriteCharEvt     = FreeRTOS::Semaphore("WriteCharEvt");
-	std::string          m_value;
+	FreeRTOS::Semaphore  m_semaphoreWriteCharEvt	 = FreeRTOS::Semaphore("WriteCharEvt");
+	std::string		  m_value;
+	uint8_t*			 m_rawData;
   void (*m_notifyCallback)(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify);
 
 	// We maintain a map of descriptors owned by this characteristic keyed by a string representation of the UUID.
