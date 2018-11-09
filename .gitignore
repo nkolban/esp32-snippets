@@ -1,4 +1,10 @@
 .project
 .cproject
 .settings/
-/esp32-snippets/.vs
+
+# IDEs
+.vs/
+.idea/
+
+# CMake
+cmake-build-debug/

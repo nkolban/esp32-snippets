@@ -18,8 +18,8 @@
 
 #include "MFRC522.h"
 #include "MFRC522Debug.h"
-#include <FreeRTOS.h>
-#include <GPIO.h>
+#include "FreeRTOS.h"
+#include "GPIO.h"
 #include <string.h>
 #include <sstream>
 #include <iomanip>
