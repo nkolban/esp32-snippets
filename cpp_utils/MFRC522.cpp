@@ -48,7 +48,11 @@ void MFRC522::PCD_WriteRegister(PCD_Register reg, byte value) {
 	uint8_t data[2];
 	data[0] = reg;
 	data[1] = value;
+
+	ESP32CPP::GPIO::low((gpio_num_t)_chipSelectPin); // Select slave
 	m_spi.transfer(data, 2);
+	ESP32CPP::GPIO::high((gpio_num_t)_chipSelectPin); // Release slave
+
 } // End PCD_WriteRegister()
 
 
@@ -63,7 +67,11 @@ void MFRC522::PCD_WriteRegister(PCD_Register reg, byte count, byte* values) {
 	uint8_t* pData = new uint8_t[count + 1];
 	pData[0] = reg;
 	memcpy(pData + 1, values, count);
+
+	ESP32CPP::GPIO::low((gpio_num_t)_chipSelectPin); // Select slave
 	m_spi.transfer(pData, count + 1);
+	ESP32CPP::GPIO::high((gpio_num_t)_chipSelectPin); // Release slave
+
 	delete[] pData;
 } // End PCD_WriteRegister()
 
@@ -77,7 +85,11 @@ byte MFRC522::PCD_ReadRegister(PCD_Register reg) {
 	uint8_t data[2];
 	data[0] = reg | 0x80;
 	data[1] = 0;
+
+	ESP32CPP::GPIO::low((gpio_num_t)_chipSelectPin); // Select slave
 	m_spi.transfer(data, 2);
+	ESP32CPP::GPIO::high((gpio_num_t)_chipSelectPin); // Release slave
+
 	return data[1];
 } // End PCD_ReadRegister()
 
@@ -97,6 +109,8 @@ void MFRC522::PCD_ReadRegister(PCD_Register reg, byte count, byte* values, byte 
 	byte address = 0x80 | reg;				// MSB == 1 is for reading. LSB is not used in address. Datasheet section 8.1.2.3.
 	byte index = 0;							// Index in values array.
 	count--;								// One read is performed outside of the loop
+
+	ESP32CPP::GPIO::low((gpio_num_t)_chipSelectPin); // Select slave
 	m_spi.transferByte(address);					// Tell MFRC522 which address we want to read
 	if (rxAlign) {		// Only update bit positions rxAlign..7 in values[0]
 		// Create bit mask for bit positions rxAlign..7
@@ -112,6 +126,7 @@ void MFRC522::PCD_ReadRegister(PCD_Register reg, byte count, byte* values, byte 
 		index++;
 	}
 	values[index] = m_spi.transferByte(0);			// Read the final byte. Send 0 to stop reading.
+	ESP32CPP::GPIO::high((gpio_num_t)_chipSelectPin); // Release slave
 } // End PCD_ReadRegister()
 
 
@@ -181,6 +196,8 @@ MFRC522::StatusCode MFRC522::PCD_CalculateCRC(byte* data, byte length, byte* res
  */
 void MFRC522::PCD_Init() {
 	//m_spi.setHost(VSPI_HOST);
+  	
+	ESP32CPP::GPIO::setOutput((gpio_num_t)_chipSelectPin);
 	m_spi.init();
 
 	bool hardReset = false;
