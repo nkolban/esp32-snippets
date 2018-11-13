@@ -350,7 +350,13 @@ BLEAdvertising* BLEDevice::m_bleAdvertising = nullptr;
 		}
 
 #ifndef CLASSIC_BT_ENABLED
-		esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
+	//	esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);  //FIXME waiting for response from esp-idf issue
+		errRc = esp_bt_controller_enable(ESP_BT_MODE_BLE);
+		//errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
+		if (errRc != ESP_OK) {
+			ESP_LOGE(LOG_TAG, "esp_bt_controller_enable: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+			return;
+		}
 #else
 		errRc = esp_bt_controller_enable(ESP_BT_MODE_BTDM);
 		if (errRc != ESP_OK) {
