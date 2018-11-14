@@ -70,46 +70,56 @@ static void memrcpy(uint8_t* target, uint8_t* source, uint32_t size) {
  */
 BLEUUID::BLEUUID(std::string value) {
 	m_valueSet = true;
-	if (value.length() == 2) {
+	if (value.length() == 4) {
 		m_uuid.len         = ESP_UUID_LEN_16;
-		m_uuid.uuid.uuid16 = value[0] | (value[1] << 8);
+		m_uuid.uuid.uuid16 = 0;
+		for(int i=0;i<value.length();){
+			uint8_t MSB = value.c_str()[i];
+			uint8_t LSB = value.c_str()[i+1];
+			
+			if(MSB > '9') MSB -= 7;
+			if(LSB > '9') LSB -= 7;
+			m_uuid.uuid.uuid16 += (((MSB&0x0F) <<4) | (LSB & 0x0F))<<(2-i)*4;
+			i+=2;	
+		}
 	}
-	else if (value.length() == 4) {
+	else if (value.length() == 8) {
 		m_uuid.len         = ESP_UUID_LEN_32;
-		m_uuid.uuid.uuid32 = value[0] | (value[1] << 8) | (value[2] << 16) | (value[3] << 24);
+		m_uuid.uuid.uuid32 = 0;
+		for(int i=0;i<value.length();){
+			uint8_t MSB = value.c_str()[i];
+			uint8_t LSB = value.c_str()[i+1];
+			
+			if(MSB > '9') MSB -= 7; 
+			if(LSB > '9') LSB -= 7;
+			m_uuid.uuid.uuid32 += (((MSB&0x0F) <<4) | (LSB & 0x0F))<<(6-i)*4;
+			i+=2;
+		}		
 	}
-	else if (value.length() == 16) {
+		}		
+	}
+	else if (value.length() == 16) {  // how we can have 16 byte length string reprezenting 128 bit uuid??? needs to be investigated (lack of time)
 		m_uuid.len = ESP_UUID_LEN_128;
-		memrcpy(m_uuid.uuid.uuid128, (uint8_t*) value.data(), 16);
+		memrcpy(m_uuid.uuid.uuid128, (uint8_t*)value.data(), 16);
 	}
 	else if (value.length() == 36) {
 		// If the length of the string is 36 bytes then we will assume it is a long hex string in
 		// UUID format.
 		m_uuid.len = ESP_UUID_LEN_128;
-		int vals[16];
-		sscanf(value.c_str(), "%2x%2x%2x%2x-%2x%2x-%2x%2x-%2x%2x-%2x%2x%2x%2x%2x%2x",
-			&vals[15],
-			&vals[14],
-			&vals[13],
-			&vals[12],
-			&vals[11],
-			&vals[10],
-			&vals[9],
-			&vals[8],
-			&vals[7],
-			&vals[6],
-			&vals[5],
-			&vals[4],
-			&vals[3],
-			&vals[2],
-			&vals[1],
-			&vals[0]
-		);
-
-		for (int i = 0; i < 16; i++) {
-			m_uuid.uuid.uuid128[i] = vals[i];
+		int n = 0;
+		for(int i=0;i<value.length();){
+			if(value.c_str()[i] == '-')
+				i++;
+			uint8_t MSB = value.c_str()[i];
+			uint8_t LSB = value.c_str()[i+1];
+			
+			if(MSB > '9') MSB -= 7; 
+			if(LSB > '9') LSB -= 7;
+			m_uuid.uuid.uuid128[15-n++] = ((MSB&0x0F) <<4) | (LSB & 0x0F);
+			i+=2;	
 		}
-	} else {
+	}
+	else {
 		ESP_LOGE(LOG_TAG, "ERROR: UUID value not 2, 4, 16 or 36 bytes");
 		m_valueSet = false;
 	}
@@ -249,7 +259,7 @@ BLEUUID BLEUUID::fromString(std::string _uuid) {
 	}
 	uint8_t len = _uuid.length() - start; // Calculate the length of the string we are going to use.
 
-	if (len == 4) {
+	if(len == 4) {
 		uint16_t x = strtoul(_uuid.substr(start, len).c_str(), NULL, 16);
 		return BLEUUID(x);
 	} else if (len == 8) {
@@ -269,7 +279,7 @@ BLEUUID BLEUUID::fromString(std::string _uuid) {
  */
 esp_bt_uuid_t* BLEUUID::getNative() {
 	//ESP_LOGD(TAG, ">> getNative()")
-	if (!m_valueSet) {
+	if (m_valueSet == false) {
 		ESP_LOGD(LOG_TAG, "<< Return of un-initialized UUID!");
 		return nullptr;
 	}

@@ -32,8 +32,8 @@ public:
 	static BLEUUID fromString(std::string uuid);  // Create a BLEUUID from a string
 
 private:
-	esp_bt_uuid_t m_uuid;       // The underlying UUID structure that this class wraps.
-	bool          m_valueSet;   // Is there a value set for this instance.
+	esp_bt_uuid_t m_uuid;       		// The underlying UUID structure that this class wraps.
+	bool          m_valueSet = false;   // Is there a value set for this instance.
 }; // BLEUUID
 #endif /* CONFIG_BT_ENABLED */
 #endif /* COMPONENTS_CPP_UTILS_BLEUUID_H_ */
