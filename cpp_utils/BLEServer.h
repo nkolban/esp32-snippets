@@ -13,6 +13,7 @@
 
 #include <string>
 #include <string.h>
+// #include "BLEDevice.h"
 
 #include "BLEUUID.h"
 #include "BLEAdvertising.h"
@@ -20,8 +21,15 @@
 #include "BLEService.h"
 #include "BLESecurity.h"
 #include "FreeRTOS.h"
+#include "BLEAddress.h"
 
 class BLEServerCallbacks;
+/* TODO possibly refactor this struct */ 
+typedef struct {
+	void *peer_device;		// peer device BLEClient or BLEServer - maybe its better to have 2 structures or union here
+	bool connected;			// do we need it?
+	uint16_t mtu;			// every peer device negotiate own mtu
+} conn_status_t;
 
 
 /**
@@ -31,26 +39,20 @@ class BLEServiceMap {
 public:
 	BLEService* getByHandle(uint16_t handle);
 	BLEService* getByUUID(const char* uuid);	
-	BLEService* getByUUID(BLEUUID uuid);
-	void        handleGATTServerEvent(
-		esp_gatts_cb_event_t      event,
-		esp_gatt_if_t             gatts_if,
-		esp_ble_gatts_cb_param_t* param);
+	BLEService* getByUUID(BLEUUID uuid, uint8_t inst_id = 0);
+	void        handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t* param);
 	void        setByHandle(uint16_t handle, BLEService* service);
 	void        setByUUID(const char* uuid, BLEService* service);
 	void        setByUUID(BLEUUID uuid, BLEService* service);
 	std::string toString();
 	BLEService* getFirst();
 	BLEService* getNext();
-	void		removeService(BLEService* service);
-	int 		getRegisteredServiceCount();
-
+	void 		removeService(BLEService *service);
 
 private:
 	std::map<uint16_t, BLEService*>    m_handleMap;
 	std::map<BLEService*, std::string> m_uuidMap;
 	std::map<BLEService*, std::string>::iterator m_iterator;
-
 };
 
 
@@ -61,14 +63,24 @@ class BLEServer {
 public:
 	uint32_t        getConnectedCount();
 	BLEService*     createService(const char* uuid);	
-	BLEService*	 createService(BLEUUID uuid, uint32_t numHandles = 15, uint8_t inst_id = 0);
+	BLEService*     createService(BLEUUID uuid, uint32_t numHandles=15, uint8_t inst_id=0);
 	BLEAdvertising* getAdvertising();
 	void            setCallbacks(BLEServerCallbacks* pCallbacks);
 	void            startAdvertising();
+	void 			removeService(BLEService* service);
 	BLEService* 	getServiceByUUID(const char* uuid);
 	BLEService* 	getServiceByUUID(BLEUUID uuid);
-	void			removeService(BLEService* service);
-	int				getServiceCount(bool includeDefaultServices);
+	bool 			connect(BLEAddress address);
+	uint16_t		m_appId;
+
+	/* multi connection support */
+	std::map<uint16_t, conn_status_t> getPeerDevices(bool client);
+	void addPeerDevice(void* peer, bool is_client, uint16_t conn_id);
+	void removePeerDevice(uint16_t conn_id, bool client);
+	BLEServer* getServerByConnId(uint16_t conn_id);
+	void updatePeerMTU(uint16_t connId, uint16_t mtu);
+	uint16_t getPeerMTU(uint16_t conn_id);
+
 
 private:
 	BLEServer();
@@ -76,22 +88,23 @@ private:
 	friend class BLECharacteristic;
 	friend class BLEDevice;
 	esp_ble_adv_data_t  m_adv_data;
-	uint16_t            m_appId;
 	// BLEAdvertising      m_bleAdvertising;
-  uint16_t						m_connId;
-  uint32_t            m_connectedCount;
-  uint16_t            m_gatts_if;
-	FreeRTOS::Semaphore m_semaphoreRegisterAppEvt = FreeRTOS::Semaphore("RegisterAppEvt");
-	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
+	uint16_t			m_connId;
+	uint32_t            m_connectedCount;
+	uint16_t            m_gatts_if;
+  	std::map<uint16_t, conn_status_t> m_connectedServersMap;
+
+	FreeRTOS::Semaphore m_semaphoreRegisterAppEvt 	= FreeRTOS::Semaphore("RegisterAppEvt");
+	FreeRTOS::Semaphore m_semaphoreCreateEvt 		= FreeRTOS::Semaphore("CreateEvt");
+	FreeRTOS::Semaphore m_semaphoreOpenEvt   		= FreeRTOS::Semaphore("OpenEvt");
 	BLEServiceMap       m_serviceMap;
-	BLEServerCallbacks* m_pServerCallbacks;
+	BLEServerCallbacks* m_pServerCallbacks = nullptr;
 
 	void            createApp(uint16_t appId);
 	uint16_t        getConnId();
 	uint16_t        getGattsIf();
 	void            handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
-	void            registerApp();
-	void			handleGAPEvent(esp_gap_ble_cb_event_t event,	esp_ble_gap_cb_param_t* param);
+	void            registerApp(uint16_t);
 }; // BLEServer
 
 
@@ -109,7 +122,7 @@ public:
 	 * @param [in] pServer A reference to the %BLE server that received the client connection.
 	 */
 	virtual void onConnect(BLEServer* pServer);
-	virtual void onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t* param);
+	virtual void onConnect(BLEServer* pServer, esp_ble_gatts_cb_param_t *param);
 	/**
 	 * @brief Handle an existing client disconnection.
 	 *

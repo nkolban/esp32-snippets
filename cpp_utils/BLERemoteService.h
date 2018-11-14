@@ -33,7 +33,7 @@ public:
 	BLERemoteCharacteristic* getCharacteristic(BLEUUID uuid);       // Get the specified characteristic reference.
 	BLERemoteCharacteristic* getCharacteristic(uint16_t uuid);      // Get the specified characteristic reference.
 	std::map<std::string, BLERemoteCharacteristic*>* getCharacteristics();
-	void getCharacteristics(std::map<uint16_t, BLERemoteCharacteristic*>* pCharacteristicMap);  // Get the characteristics map.
+	std::map<uint16_t, BLERemoteCharacteristic*>* getCharacteristicsByHandle();  // Get the characteristics map.
 
 	BLEClient*               getClient(void);                                           // Get a reference to the client associated with this service.
 	uint16_t                 getHandle();                                               // Get the handle of this service.

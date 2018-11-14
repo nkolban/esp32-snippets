@@ -126,10 +126,9 @@ void BLERemoteService::gattClientEventHandler(
  * @throws BLEUuidNotFoundException
  */
 BLERemoteCharacteristic* BLERemoteService::getCharacteristic(const char* uuid) {
-	return getCharacteristic(BLEUUID(uuid));
+    return getCharacteristic(BLEUUID(uuid));
 } // getCharacteristic
-
-
+	
 /**
  * @brief Get the characteristic object for the UUID.
  * @param [in] uuid Characteristic uuid.
@@ -152,7 +151,8 @@ BLERemoteCharacteristic* BLERemoteService::getCharacteristic(BLEUUID uuid) {
 			return myPair.second;
 		}
 	}
-	throw new BLEUuidNotFoundException();
+	// throw new BLEUuidNotFoundException();  // <-- we dont want exception here, which will cause app crash, we want to search if any characteristic can be found one after another
+	return nullptr;
 } // getCharacteristic
 
 
@@ -169,7 +169,7 @@ void BLERemoteService::retrieveCharacteristics() {
 	uint16_t offset = 0;
 	esp_gattc_char_elem_t result;
 	while (true) {
-		uint16_t count = 1;
+		uint16_t count = 10;  // this value is used as in parameter that allows to search max 10 chars with the same uuid
 		esp_gatt_status_t status = ::esp_ble_gattc_get_all_char(
 			getClient()->getGattcIf(),
 			getClient()->getConnId(),

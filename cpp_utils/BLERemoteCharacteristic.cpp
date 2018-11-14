@@ -147,7 +147,7 @@ static bool compareGattId(esp_gatt_id_t id1, esp_gatt_id_t id2) {
  * @returns N/A
  */
 void BLERemoteCharacteristic::gattClientEventHandler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t* evtParam) {
-	switch (event) {
+	switch(event) {
 		// ESP_GATTC_NOTIFY_EVT
 		//
 		// notify
@@ -187,8 +187,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(esp_gattc_cb_event_t event,
 			// and unlock the semaphore to ensure that the requestor of the data can continue.
 			if (evtParam->read.status == ESP_GATT_OK) {
 				m_value = std::string((char*) evtParam->read.value, evtParam->read.value_len);
-				if (m_rawData != nullptr) free(m_rawData);
-
+				if(m_rawData != nullptr) free(m_rawData);
 				m_rawData = (uint8_t*) calloc(evtParam->read.value_len, sizeof(uint8_t));
 				memcpy(m_rawData, evtParam->read.value, evtParam->read.value_len);
 			} else {
@@ -260,8 +259,8 @@ void BLERemoteCharacteristic::retrieveDescriptors() {
 	// For each descriptor we find, create a BLERemoteDescriptor instance.
 	uint16_t offset = 0;
 	esp_gattc_descr_elem_t result;
-	while (true) {
-		uint16_t count = 1;
+	while(true) {
+		uint16_t count = 10;
 		esp_gatt_status_t status = ::esp_ble_gattc_get_all_descr(
 			getRemoteService()->getClient()->getGattcIf(),
 			getRemoteService()->getClient()->getConnId(),
@@ -281,7 +280,7 @@ void BLERemoteCharacteristic::retrieveDescriptors() {
 		}
 
 		if (count == 0) break;
-		ESP_LOGE(LOG_TAG, "");
+
 		ESP_LOGD(LOG_TAG, "Found a descriptor: Handle: %d, UUID: %s", result.handle, BLEUUID(result.uuid).toString().c_str());
 
 		// We now have a new characteristic ... let us add that to our set of known characteristics
@@ -327,7 +326,7 @@ uint16_t BLERemoteCharacteristic::getHandle() {
 BLERemoteDescriptor* BLERemoteCharacteristic::getDescriptor(BLEUUID uuid) {
 	ESP_LOGD(LOG_TAG, ">> getDescriptor: uuid: %s", uuid.toString().c_str());
 	std::string v = uuid.toString();
-	for (auto& myPair : m_descriptorMap) {
+	for (auto &myPair : m_descriptorMap) {
 		if (myPair.first == v) {
 			ESP_LOGD(LOG_TAG, "<< getDescriptor: found");
 			return myPair.second;
@@ -363,7 +362,7 @@ BLEUUID BLERemoteCharacteristic::getUUID() {
 uint16_t BLERemoteCharacteristic::readUInt16() {
 	std::string value = readValue();
 	if (value.length() >= 2) {
-		return *(uint16_t*) value.data();
+		return *(uint16_t*)(value.data());
 	}
 	return 0;
 } // readUInt16
@@ -376,7 +375,7 @@ uint16_t BLERemoteCharacteristic::readUInt16() {
 uint32_t BLERemoteCharacteristic::readUInt32() {
 	std::string value = readValue();
 	if (value.length() >= 4) {
-		return *(uint32_t*) value.data();
+		return *(uint32_t*)(value.data());
 	}
 	return 0;
 } // readUInt32
@@ -389,7 +388,7 @@ uint32_t BLERemoteCharacteristic::readUInt32() {
 uint8_t BLERemoteCharacteristic::readUInt8() {
 	std::string value = readValue();
 	if (value.length() >= 1) {
-		return (uint8_t) value[0];
+		return (uint8_t)value[0];
 	}
 	return 0;
 } // readUInt8
@@ -439,12 +438,7 @@ std::string BLERemoteCharacteristic::readValue() {
  * unregistering a notification.
  * @return N/A.
  */
-void BLERemoteCharacteristic::registerForNotify(
-		void (*notifyCallback)(
-			BLERemoteCharacteristic* pBLERemoteCharacteristic,
-			uint8_t*                 pData,
-			size_t                   length,
-			bool                     isNotify), bool notifications) {
+void BLERemoteCharacteristic::registerForNotify(notify_callback notifyCallback, bool notifications) {
 	ESP_LOGD(LOG_TAG, ">> registerForNotify(): %s", toString().c_str());
 
 	m_notifyCallback = notifyCallback;   // Save the notification callback.
@@ -463,8 +457,8 @@ void BLERemoteCharacteristic::registerForNotify(
 		}
 
 		uint8_t val[] = {0x01, 0x00};
-		if (!notifications) val[0] = 0x02;
-		BLERemoteDescriptor* desc = getDescriptor(BLEUUID("0x2902"));
+		if(!notifications) val[0] = 0x02;
+		BLERemoteDescriptor* desc = getDescriptor(BLEUUID((uint16_t)0x2902));
 		desc->writeValue(val, 2);
 	} // End Register
 	else {   // If we weren't passed a callback function, then this is an unregistration.
@@ -535,7 +529,6 @@ void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
 	}
 
 	m_semaphoreWriteCharEvt.take("writeValue");
-
 	// Invoke the ESP-IDF API to perform the write.
 	esp_err_t errRc = ::esp_ble_gattc_write_char(
 		m_pRemoteService->getClient()->getGattcIf(),
@@ -578,7 +571,7 @@ void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
  * @param [in] response Whether we require a response from the write.
  */
 void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool response) {
-	writeValue(std::string((char*) data, length), response);
+	writeValue(std::string((char*)data, length), response);
 } // writeValue
 
 /**
