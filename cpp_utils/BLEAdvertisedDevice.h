@@ -40,6 +40,8 @@ public:
 	BLEUUID     getServiceUUID();
 	int8_t      getTXPower();
 	uint8_t* 	getPayload();
+	esp_ble_addr_type_t getAddressType();
+	void setAddressType(esp_ble_addr_type_t type);
 
 
 	bool		isAdvertisingService(BLEUUID uuid);
@@ -56,7 +58,7 @@ public:
 private:
 	friend class BLEScan;
 
-	void parseAdvertisement(uint8_t* payload);
+	void parseAdvertisement(uint8_t* payload, size_t total_len=62);
 	void setAddress(BLEAddress address);
 	void setAdFlag(uint8_t adFlag);
 	void setAdvertizementResult(uint8_t* payload);
@@ -81,6 +83,7 @@ private:
 	bool m_haveTXPower;
 
 
+	BLEAddress  m_address = BLEAddress((uint8_t*)"\0\0\0\0\0\0");
 	uint8_t     m_adFlag;
 	uint16_t    m_appearance;
 	int         m_deviceType;
@@ -93,7 +96,7 @@ private:
 	std::string m_serviceData;
 	BLEUUID     m_serviceDataUUID;
 	uint8_t*	m_payload;
-	BLEAddress  m_address = BLEAddress((uint8_t*) "\0\0\0\0\0\0");
+	esp_ble_addr_type_t m_addressType;
 };
 
 /**
