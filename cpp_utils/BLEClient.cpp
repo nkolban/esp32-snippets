@@ -414,8 +414,7 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
 // TODO implement retrieving services from cache
 	clearServices(); // Clear any services that may exist.
 
-	ESP_LOGD(LOG_TAG, "esp_ble_gattc_get_service: %d services from peer device", count);
-	errRc = esp_ble_gattc_search_service(
+	esp_err_t errRc = esp_ble_gattc_search_service(
 		getGattcIf(),
 		getConnId(),
 		NULL            // Filter UUID
