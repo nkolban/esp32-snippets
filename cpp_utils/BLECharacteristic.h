@@ -38,9 +38,9 @@ public:
 	BLEDescriptor* getFirst();
 	BLEDescriptor* getNext();
 private:
-	std::map<std::string, BLEDescriptor*> m_uuidMap;
+	std::map<BLEDescriptor*, std::string> m_uuidMap;
 	std::map<uint16_t, BLEDescriptor*> m_handleMap;
-	std::map<std::string, BLEDescriptor*>::iterator m_iterator;
+	std::map<BLEDescriptor*, std::string>::iterator m_iterator;
 };
 
 

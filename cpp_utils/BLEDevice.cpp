@@ -271,7 +271,7 @@ gatts_event_handler BLEDevice::m_customGattsHandler = nullptr;
 	}
 
 	if(m_bleAdvertising != nullptr) {
-		BLEDevice::getAdvertising()->gapEventHandler(event, param);
+		BLEDevice::getAdvertising()->handleGAPEvent(event, param);
 	}
 
 	if(m_customGapHandler != nullptr) {

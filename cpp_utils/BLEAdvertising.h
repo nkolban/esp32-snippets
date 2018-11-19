@@ -59,7 +59,10 @@ public:
 	void setScanResponseData(BLEAdvertisementData& advertisementData);
 	void setPrivateAddress(esp_ble_addr_type_t type = BLE_ADDR_TYPE_RANDOM);
 
-	void gapEventHandler(esp_gap_ble_cb_event_t  event, esp_ble_gap_cb_param_t* param);
+	void handleGAPEvent(esp_gap_ble_cb_event_t  event, esp_ble_gap_cb_param_t* param);
+	void setMinPreferred(uint16_t);
+	void setMaxPreferred(uint16_t);
+	void setScanResponse(bool);
 
 private:
 	esp_ble_adv_data_t   m_advData;
@@ -68,6 +71,7 @@ private:
 	bool                 m_customAdvData = false;  // Are we using custom advertising data?
 	bool                 m_customScanResponseData = false;  // Are we using custom scan response data?
 	FreeRTOS::Semaphore  m_semaphoreSetAdv = FreeRTOS::Semaphore("startAdvert");
+	bool				m_scanResp = true;
 
 };
 #endif /* CONFIG_BT_ENABLED */

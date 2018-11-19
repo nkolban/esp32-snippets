@@ -292,7 +292,6 @@ void BLEService::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t
 				}
 				pCharacteristic->setHandle(param->add_char.attr_handle);
 				m_characteristicMap.setByHandle(param->add_char.attr_handle, pCharacteristic);
-				//ESP_LOGD(tag, "Characteristic map: %s", m_characteristicMap.toString().c_str());
 				break;
 			} // Reached the correct service.
 			break;

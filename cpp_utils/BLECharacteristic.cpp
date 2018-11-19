@@ -96,13 +96,12 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 	esp_attr_control_t control;
 	control.auto_rsp = ESP_GATT_RSP_BY_APP;
 
-
+	m_semaphoreCreateEvt.take("executeCreate");
 	esp_err_t errRc = ::esp_ble_gatts_add_char(
 		m_pService->getHandle(),
 		getUUID().getNative(),
 		static_cast<esp_gatt_perm_t>(m_permissions),
 		getProperties(),
-		//&value,
 		nullptr,
 		&control); // Whether to auto respond or not.
 
@@ -110,6 +109,13 @@ void BLECharacteristic::executeCreate(BLEService* pService) {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_add_char: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		return;
 	}
+	m_semaphoreCreateEvt.wait("executeCreate");
+
+	BLEDescriptor* pDescriptor = m_descriptorMap.getFirst();
+	while (pDescriptor != nullptr) {
+		pDescriptor->executeCreate(this);
+		pDescriptor = m_descriptorMap.getNext();
+	} // End while
 
 	ESP_LOGD(LOG_TAG, "<< executeCreate");
 } // executeCreate
@@ -244,17 +250,14 @@ void BLECharacteristic::handleGATTServerEvent(
 		// - uint16_t service_handle
 		// - esp_bt_uuid_t char_uuid
 		case ESP_GATTS_ADD_CHAR_EVT: {
-			if (getUUID().equals(BLEUUID(param->add_char.char_uuid)) &&
-					getHandle() == param->add_char.attr_handle &&
-					getService()->getHandle()==param->add_char.service_handle) {
-
+			if (getHandle() == param->add_char.attr_handle) {
 				// we have created characteristic, now we can create descriptors
-				BLEDescriptor* pDescriptor = m_descriptorMap.getFirst();
-				while (pDescriptor != nullptr) {
-					pDescriptor->executeCreate(this);
-					pDescriptor = m_descriptorMap.getNext();
-				} // End while
-
+				// BLEDescriptor* pDescriptor = m_descriptorMap.getFirst();
+				// while (pDescriptor != nullptr) {
+				// 	pDescriptor->executeCreate(this);
+				// 	pDescriptor = m_descriptorMap.getNext();
+				// } // End while
+				m_semaphoreCreateEvt.give();
 			}
 			break;
 		} // ESP_GATTS_ADD_CHAR_EVT
@@ -427,7 +430,7 @@ void BLECharacteristic::handleGATTServerEvent(
 		// - uint16_t          conn_id – The connection used.
 		//
 		case ESP_GATTS_CONF_EVT: {
-			// ESP_LOGD(LOG_TAG, "m_handle = %d", m_handle);
+			ESP_LOGD(LOG_TAG, "m_handle = %d, conf->handle = %d", m_handle, param->conf.handle);
 			if(param->conf.conn_id == getService()->getServer()->getConnId()) // && param->conf.handle == m_handle) // bug in esp-idf and not implemented in arduino yet
 				m_semaphoreConfEvt.give(param->conf.status);
 			break;
