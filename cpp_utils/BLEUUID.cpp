@@ -96,8 +96,6 @@ BLEUUID::BLEUUID(std::string value) {
 			i+=2;
 		}		
 	}
-		}		
-	}
 	else if (value.length() == 16) {  // how we can have 16 byte length string reprezenting 128 bit uuid??? needs to be investigated (lack of time)
 		m_uuid.len = ESP_UUID_LEN_128;
 		memrcpy(m_uuid.uuid.uuid128, (uint8_t*)value.data(), 16);
