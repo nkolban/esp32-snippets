@@ -25,7 +25,7 @@ BLEService* BLEServiceMap::getByUUID(const char* uuid) {
  * @param [in] UUID The UUID to look up the service.
  * @return The characteristic.
  */
-BLEService* BLEServiceMap::getByUUID(BLEUUID uuid) {
+BLEService* BLEServiceMap::getByUUID(BLEUUID uuid, uint8_t inst_id) {
 	for (auto &myPair : m_uuidMap) {
 		if (myPair.first->getUUID().equals(uuid)) {
 			return myPair.first;

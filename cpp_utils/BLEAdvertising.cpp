@@ -56,6 +56,7 @@ BLEAdvertising::BLEAdvertising() {
 	m_advParams.own_addr_type     = BLE_ADDR_TYPE_PUBLIC;
 	m_advParams.channel_map       = ADV_CHNL_ALL;
 	m_advParams.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY;
+	m_advParams.peer_addr_type    = BLE_ADDR_TYPE_PUBLIC;
 
 	m_customAdvData               = false;   // No custom advertising data
 	m_customScanResponseData      = false;   // No custom scan response data
@@ -92,15 +93,24 @@ void BLEAdvertising::setAppearance(uint16_t appearance) {
 } // setAppearance
 
 void BLEAdvertising::setMinInterval(uint16_t mininterval) {
-	m_advData.min_interval = mininterval;
 	m_advParams.adv_int_min = mininterval;
 } // setMinInterval
 
 void BLEAdvertising::setMaxInterval(uint16_t maxinterval) {
-	m_advData.max_interval = maxinterval;
 	m_advParams.adv_int_max = maxinterval;
 } // setMaxInterval
 
+void BLEAdvertising::setMinPreferred(uint16_t mininterval) {
+	m_advData.min_interval = mininterval;
+} // 
+
+void BLEAdvertising::setMaxPreferred(uint16_t maxinterval) {
+	m_advData.max_interval = maxinterval;
+} // 
+
+void BLEAdvertising::setScanResponse(bool set) {
+	m_scanResp = set;
+}
 
 /**
  * @brief Set the filtering for the scan filter.
@@ -198,6 +208,8 @@ void BLEAdvertising::start() {
 	if (!m_customAdvData) {
 		// Set the configuration for advertising.
 		m_advData.set_scan_rsp = false;
+		m_advData.include_name = !m_scanResp;
+		m_advData.include_txpower = !m_scanResp;
 		errRc = ::esp_ble_gap_config_adv_data(&m_advData);
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "<< esp_ble_gap_config_adv_data: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -205,8 +217,10 @@ void BLEAdvertising::start() {
 		}
 	}
 
-	if (!m_customScanResponseData) {
+	if (!m_customScanResponseData && m_scanResp) {
 		m_advData.set_scan_rsp = true;
+		m_advData.include_name = m_scanResp;
+		m_advData.include_txpower = m_scanResp;
 		errRc = ::esp_ble_gap_config_adv_data(&m_advData);
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "<< esp_ble_gap_config_adv_data (Scan response): rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
@@ -455,6 +469,35 @@ void BLEAdvertisementData::setShortName(std::string name) {
 std::string BLEAdvertisementData::getPayload() {
 	return m_payload;
 } // getPayload
+
+void BLEAdvertising::handleGAPEvent(
+		esp_gap_ble_cb_event_t  event,
+		esp_ble_gap_cb_param_t* param)  {
+
+	ESP_LOGD(LOG_TAG, "handleGAPEvent [event no: %d]", (int)event);
+
+	switch(event) {
+		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT: {
+			// m_semaphoreSetAdv.give();
+			break;
+		}
+		case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT: {
+			// m_semaphoreSetAdv.give();
+			break;
+		}
+		case ESP_GAP_BLE_ADV_START_COMPLETE_EVT: {
+			// m_semaphoreSetAdv.give();
+			break;
+		}
+		case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT: {
+			ESP_LOGI(LOG_TAG, "STOP advertising");
+			start();
+			break;
+		}
+		default:
+			break;
+	}
+}
 
 
 #endif /* CONFIG_BT_ENABLED */

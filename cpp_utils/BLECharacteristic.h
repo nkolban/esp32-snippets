@@ -27,30 +27,27 @@ class BLECharacteristicCallbacks;
  */
 class BLEDescriptorMap {
 public:
-	void setByUUID(const char* uuid,  BLEDescriptor* pDescriptor);
-	void setByUUID(BLEUUID uuid,	  BLEDescriptor* pDescriptor);
+	void setByUUID(const char* uuid, BLEDescriptor* pDescriptor);
+	void setByUUID(BLEUUID uuid, BLEDescriptor* pDescriptor);
 	void setByHandle(uint16_t handle, BLEDescriptor* pDescriptor);
 	BLEDescriptor* getByUUID(const char* uuid);
 	BLEDescriptor* getByUUID(BLEUUID uuid);
 	BLEDescriptor* getByHandle(uint16_t handle);
 	std::string	toString();
-	void handleGATTServerEvent(
-			esp_gatts_cb_event_t	  event,
-			esp_gatt_if_t			 gatts_if,
-			esp_ble_gatts_cb_param_t* param);
+	void handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t* param);
 	BLEDescriptor* getFirst();
 	BLEDescriptor* getNext();
 private:
-	std::map<std::string, BLEDescriptor*> m_uuidMap;
-	std::map<uint16_t,	BLEDescriptor*> m_handleMap;
-	std::map<std::string, BLEDescriptor*>::iterator m_iterator;
+	std::map<BLEDescriptor*, std::string> m_uuidMap;
+	std::map<uint16_t, BLEDescriptor*> m_handleMap;
+	std::map<BLEDescriptor*, std::string>::iterator m_iterator;
 };
 
 
 /**
  * @brief The model of a %BLE Characteristic.
  *
- * A %BLE Characteristic is an identified value container that manages a value. It is exposed by a %BLE server and
+ * A BLE Characteristic is an identified value container that manages a value. It is exposed by a BLE server and
  * can be read and written to by a %BLE client.
  */
 class BLECharacteristic {
@@ -59,16 +56,15 @@ public:
 	BLECharacteristic(BLEUUID uuid, uint32_t properties = 0);
 	virtual ~BLECharacteristic();
 
-	void		   addDescriptor(BLEDescriptor* pDescriptor);
+	void           addDescriptor(BLEDescriptor* pDescriptor);
 	BLEDescriptor* getDescriptorByUUID(const char* descriptorUUID);
 	BLEDescriptor* getDescriptorByUUID(BLEUUID descriptorUUID);
-	//size_t		 getLength();
-	BLEUUID		getUUID();
-	std::string	getValue();
-	uint8_t*	   getData();
+	BLEUUID        getUUID();
+	std::string    getValue();
+	uint8_t*       getData();
 
 	void indicate();
-	void notify();
+	void notify(bool is_notification = true);
 	void setBroadcastProperty(bool value);
 	void setCallbacks(BLECharacteristicCallbacks* pCallbacks);
 	void setIndicateProperty(bool value);
@@ -80,19 +76,19 @@ public:
 	void setValue(uint32_t& data32);
 	void setValue(int& data32);
 	void setValue(float& data32);
-	void setValue(double& data64);
+	void setValue(double& data64); 
 	void setWriteProperty(bool value);
 	void setWriteNoResponseProperty(bool value);
 	std::string toString();
 	uint16_t getHandle();
 	void setAccessPermissions(esp_gatt_perm_t perm);
 
-	static const uint32_t PROPERTY_READ	  = 1 << 0;
-	static const uint32_t PROPERTY_WRITE	 = 1 << 1;
-	static const uint32_t PROPERTY_NOTIFY	= 1 << 2;
-	static const uint32_t PROPERTY_BROADCAST = 1 << 3;
-	static const uint32_t PROPERTY_INDICATE  = 1 << 4;
-	static const uint32_t PROPERTY_WRITE_NR  = 1 << 5;
+	static const uint32_t PROPERTY_READ      = 1<<0;
+	static const uint32_t PROPERTY_WRITE     = 1<<1;
+	static const uint32_t PROPERTY_NOTIFY    = 1<<2;
+	static const uint32_t PROPERTY_BROADCAST = 1<<3;
+	static const uint32_t PROPERTY_INDICATE  = 1<<4;
+	static const uint32_t PROPERTY_WRITE_NR  = 1<<5;
 
 private:
 
@@ -101,24 +97,24 @@ private:
 	friend class BLEDescriptor;
 	friend class BLECharacteristicMap;
 
-	BLEUUID					 m_bleUUID;
-	BLEDescriptorMap			m_descriptorMap;
-	uint16_t					m_handle;
-	esp_gatt_char_prop_t		m_properties;
+	BLEUUID                     m_bleUUID;
+	BLEDescriptorMap            m_descriptorMap;
+	uint16_t                    m_handle;
+	esp_gatt_char_prop_t        m_properties;
 	BLECharacteristicCallbacks* m_pCallbacks;
-	BLEService*				 m_pService;
-	BLEValue					m_value;
-	esp_gatt_perm_t			 m_permissions = ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE;
+	BLEService*                 m_pService;
+	BLEValue                    m_value;
+	esp_gatt_perm_t             m_permissions = ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE;
 
 	void handleGATTServerEvent(
-			esp_gatts_cb_event_t	  event,
-			esp_gatt_if_t			 gatts_if,
+			esp_gatts_cb_event_t      event,
+			esp_gatt_if_t             gatts_if,
 			esp_ble_gatts_cb_param_t* param);
 
-	void				 executeCreate(BLEService* pService);
+	void                 executeCreate(BLEService* pService);
 	esp_gatt_char_prop_t getProperties();
-	BLEService*		  getService();
-	void				 setHandle(uint16_t handle);
+	BLEService*          getService();
+	void                 setHandle(uint16_t handle);
 	FreeRTOS::Semaphore m_semaphoreCreateEvt = FreeRTOS::Semaphore("CreateEvt");
 	FreeRTOS::Semaphore m_semaphoreConfEvt   = FreeRTOS::Semaphore("ConfEvt");
 }; // BLECharacteristic
