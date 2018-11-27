@@ -405,4 +405,17 @@ void BLEServer::removePeerDevice(uint16_t conn_id, bool _client) {
 	m_connectedServersMap.erase(conn_id);
 }
 /* multi connect support */
+
+/**
+ * Update connection parameters can be called only after connection has been established
+ */
+void BLEServer::updateConnParams(esp_bd_addr_t remote_bda, uint16_t minInterval, uint16_t maxInterval, uint16_t latency, uint16_t timeout) {
+	esp_ble_conn_update_params_t conn_params;
+	memcpy(conn_params.bda, remote_bda, sizeof(esp_bd_addr_t));
+	conn_params.latency = latency;
+	conn_params.max_int = maxInterval;    // max_int = 0x20*1.25ms = 40ms
+	conn_params.min_int = minInterval;    // min_int = 0x10*1.25ms = 20ms
+	conn_params.timeout = timeout;    // timeout = 400*10ms = 4000ms
+	esp_ble_gap_update_conn_params(&conn_params); 
+}
 #endif // CONFIG_BT_ENABLED

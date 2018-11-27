@@ -947,7 +947,7 @@ std::string BLEUtils::gattClientEventTypeToString(esp_gattc_cb_event_t eventType
 			return "ESP_GATTC_WRITE_DESCR_EVT";
 #endif
 		default:
-			ESP_LOGW(LOG_TAG, "Unknown GATT Client event type: %d", eventType);
+			ESP_LOGV(LOG_TAG, "Unknown GATT Client event type: %d", eventType);
 			return "Unknown";
 	}
 } // gattClientEventTypeToString

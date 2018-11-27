@@ -101,7 +101,7 @@ void BLEScan::handleGAPEvent(
 
 					if (found && !m_wantDuplicates) {  // If we found a previous entry AND we don't want duplicates, then we are done.
 						ESP_LOGD(LOG_TAG, "Ignoring %s, already seen it.", advertisedAddress.toString().c_str());
-						vTaskDelay(1);  // <--- allow to switch task in case we scan infinity and dont have new devices to report, or we will blocked here
+						vTaskDelay(1);  // <--- allow to switch task in case we scan infinity and dont have new devices to report, or we are blocked here
 						break;
 					}
 
@@ -314,5 +314,15 @@ BLEAdvertisedDevice BLEScanResults::getDevice(uint32_t i) {
 	return dev;
 }
 
+BLEScanResults BLEScan::getResults() {
+	return m_scanResults;
+}
+
+void BLEScan::clearResults() {
+	for(auto _dev : m_scanResults.m_vectorAdvertisedDevices){
+		delete _dev.second;
+	}
+	m_scanResults.m_vectorAdvertisedDevices.clear();
+}
 
 #endif /* CONFIG_BT_ENABLED */

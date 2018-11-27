@@ -473,7 +473,7 @@ void BLERemoteCharacteristic::registerForNotify(notify_callback notifyCallback, 
 		}
 
 		uint8_t val[] = {0x00, 0x00};
-		BLERemoteDescriptor* desc = getDescriptor(BLEUUID("0x2902"));
+		BLERemoteDescriptor* desc = getDescriptor((uint16_t)0x2902);
 		desc->writeValue(val, 2);
 	} // End Unregister
 
@@ -520,7 +520,32 @@ std::string BLERemoteCharacteristic::toString() {
  * @return N/A.
  */
 void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
-	ESP_LOGD(LOG_TAG, ">> writeValue(), length: %d", newValue.length());
+	writeValue((uint8_t*)newValue.c_str(), strlen(newValue.c_str()), response);
+} // writeValue
+
+
+/**
+ * @brief Write the new value for the characteristic.
+ *
+ * This is a convenience function.  Many BLE characteristics are a single byte of data.
+ * @param [in] newValue The new byte value to write.
+ * @param [in] response Whether we require a response from the write.
+ * @return N/A.
+ */
+void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
+	writeValue(&newValue, 1, response);
+} // writeValue
+
+
+/**
+ * @brief Write the new value for the characteristic from a data buffer.
+ * @param [in] data A pointer to a data buffer.
+ * @param [in] length The length of the data in the data buffer.
+ * @param [in] response Whether we require a response from the write.
+ */
+void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool response) {
+	// writeValue(std::string((char*)data, length), response);
+	ESP_LOGD(LOG_TAG, ">> writeValue(), length: %d", length);
 
 	// Check to see that we are connected.
 	if (!getRemoteService()->getClient()->isConnected()) {
@@ -534,8 +559,8 @@ void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
 		m_pRemoteService->getClient()->getGattcIf(),
 		m_pRemoteService->getClient()->getConnId(),
 		getHandle(),
-		newValue.length(),
-		(uint8_t*)newValue.data(),
+		length,
+		data,
 		response?ESP_GATT_WRITE_TYPE_RSP:ESP_GATT_WRITE_TYPE_NO_RSP,
 		ESP_GATT_AUTH_REQ_NONE
 	);
@@ -548,30 +573,6 @@ void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
 	m_semaphoreWriteCharEvt.wait("writeValue");
 
 	ESP_LOGD(LOG_TAG, "<< writeValue");
-} // writeValue
-
-
-/**
- * @brief Write the new value for the characteristic.
- *
- * This is a convenience function.  Many BLE characteristics are a single byte of data.
- * @param [in] newValue The new byte value to write.
- * @param [in] response Whether we require a response from the write.
- * @return N/A.
- */
-void BLERemoteCharacteristic::writeValue(uint8_t newValue, bool response) {
-	writeValue(std::string(reinterpret_cast<char*>(&newValue), 1), response);
-} // writeValue
-
-
-/**
- * @brief Write the new value for the characteristic from a data buffer.
- * @param [in] data A pointer to a data buffer.
- * @param [in] length The length of the data in the data buffer.
- * @param [in] response Whether we require a response from the write.
- */
-void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool response) {
-	writeValue(std::string((char*)data, length), response);
 } // writeValue
 
 /**

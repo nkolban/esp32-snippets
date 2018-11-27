@@ -40,6 +40,7 @@ public:
 	BLEUUID     getServiceUUID();
 	int8_t      getTXPower();
 	uint8_t* 	getPayload();
+	size_t		getPayloadLength();
 	esp_ble_addr_type_t getAddressType();
 	void setAddressType(esp_ble_addr_type_t type);
 
@@ -72,7 +73,6 @@ private:
 	void setServiceUUID(const char* serviceUUID);
 	void setServiceUUID(BLEUUID serviceUUID);
 	void setTXPower(int8_t txPower);
-	void setPayload(uint8_t* payload);
 
 	bool m_haveAppearance;
 	bool m_haveManufacturerData;
@@ -96,6 +96,7 @@ private:
 	std::string m_serviceData;
 	BLEUUID     m_serviceDataUUID;
 	uint8_t*	m_payload;
+	size_t		m_payloadLength = 0;
 	esp_ble_addr_type_t m_addressType;
 };
 

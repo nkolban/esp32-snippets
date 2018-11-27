@@ -73,6 +73,7 @@ public:
 	BLEService* 	getServiceByUUID(BLEUUID uuid);
 	bool 			connect(BLEAddress address);
 	uint16_t		m_appId;
+	void			updateConnParams(esp_bd_addr_t remote_bda, uint16_t minInterval, uint16_t maxInterval, uint16_t latency, uint16_t timeout);
 
 	/* multi connection support */
 	std::map<uint16_t, conn_status_t> getPeerDevices(bool client);
@@ -81,6 +82,7 @@ public:
 	BLEServer* getServerByConnId(uint16_t conn_id);
 	void updatePeerMTU(uint16_t connId, uint16_t mtu);
 	uint16_t getPeerMTU(uint16_t conn_id);
+	uint16_t        getConnId();
 
 
 private:
@@ -102,7 +104,6 @@ private:
 	BLEServerCallbacks* m_pServerCallbacks = nullptr;
 
 	void            createApp(uint16_t appId);
-	uint16_t        getConnId();
 	uint16_t        getGattsIf();
 	void            handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
 	void            registerApp(uint16_t);

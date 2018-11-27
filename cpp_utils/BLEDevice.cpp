@@ -603,7 +603,8 @@ void BLEDevice::addPeerDevice(void* peer, bool _client, uint16_t conn_id) {
 
 void BLEDevice::removePeerDevice(uint16_t conn_id, bool _client) {
 	ESP_LOGI(LOG_TAG, "remove: %d, GATT role %s", conn_id, _client?"client":"server");
-	m_connectedClientsMap.erase(conn_id);
+	if(m_connectedClientsMap.find(conn_id) != m_connectedClientsMap.end())
+		m_connectedClientsMap.erase(conn_id);
 }
 
 /* multi connect support */
@@ -621,7 +622,7 @@ void BLEDevice::removePeerDevice(uint16_t conn_id, bool _client) {
     esp_bt_controller_deinit();
 #ifndef ARDUINO_ARCH_ESP32
     if (release_memory) {
-        esp_bt_mem_release(ESP_BT_MODE_BTDM);  // <-- require tests because we released classic BT memory and this can cause crash (most likely not, esp-idf takes care of it)
+        esp_bt_controller_mem_release(ESP_BT_MODE_BTDM);  // <-- require tests because we released classic BT memory and this can cause crash (most likely not, esp-idf takes care of it)
     } else {
         initialized = false;   
     } 

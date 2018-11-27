@@ -430,7 +430,7 @@ void BLECharacteristic::handleGATTServerEvent(
 		// - uint16_t          conn_id – The connection used.
 		//
 		case ESP_GATTS_CONF_EVT: {
-			ESP_LOGD(LOG_TAG, "m_handle = %d, conf->handle = %d", m_handle, param->conf.handle);
+			// ESP_LOGD(LOG_TAG, "m_handle = %d, conf->handle = %d", m_handle, param->conf.handle);
 			if(param->conf.conn_id == getService()->getServer()->getConnId()) // && param->conf.handle == m_handle) // bug in esp-idf and not implemented in arduino yet
 				m_semaphoreConfEvt.give(param->conf.status);
 			break;
