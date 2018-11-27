@@ -58,7 +58,8 @@ public:
 	BLEScanResults start(uint32_t duration, bool is_continue = false);
 	void           stop();
 	void 		   erase(BLEAddress address);
-	// void 		   setPower(esp_power_level_t powerLevel);
+	BLEScanResults getResults();
+	void			clearResults();
 
 private:
 	BLEScan();   // One doesn't create a new instance instead one asks the BLEDevice for the singleton.
