@@ -6,7 +6,6 @@
  */
 
 #include "GeneralUtils.h"
-#include <esp_log.h>
 #include <esp_system.h>
 #include <string.h>
 #include <stdio.h>
@@ -20,7 +19,14 @@
 #include <esp_heap_caps.h>
 #include <esp_system.h>
 
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
+#include "esp32-hal-log.h"
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
 static const char* LOG_TAG = "GeneralUtils";
+#endif
+
 
 static const char kBase64Alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	"abcdefghijklmnopqrstuvwxyz"

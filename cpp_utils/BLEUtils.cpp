@@ -19,16 +19,18 @@
 #include <esp_gap_ble_api.h> // ESP32 BLE
 #include <esp_gattc_api.h>   // ESP32 BLE
 #include <esp_err.h>         // ESP32 ESP-IDF
-#include <esp_log.h>         // ESP32 ESP-IDF
 #include <map>               // Part of C++ STL
 #include <sstream>
 #include <iomanip>
 
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
+static const char* LOG_TAG = "BLEUtils";  // Tag for logging.
 #endif
 
-static const char* LOG_TAG = "BLEUtils";  // Tag for logging.
 
 /*
 static std::map<std::string, BLEClient*> g_addressMap;

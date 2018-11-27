@@ -11,13 +11,16 @@
 #include "BLERemoteService.h"
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
-#include <esp_log.h>
 #include <esp_err.h>
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
+static const char* LOG_TAG = "BLERemoteService";
 #endif
 
-static const char* LOG_TAG = "BLERemoteService";
+
 
 BLERemoteService::BLERemoteService(
 		esp_gatt_id_t srvcId,

@@ -7,7 +7,6 @@
 
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
-#include <esp_log.h>
 #include <esp_bt.h>
 #include <esp_bt_main.h>
 #include "GeneralUtils.h"
@@ -18,11 +17,15 @@
 #include <string.h>
 #include <string>
 #include <unordered_set>
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
+static const char* LOG_TAG = "BLEServer";
 #endif
 
-static const char* LOG_TAG = "BLEServer";
+
 
 
 /**
