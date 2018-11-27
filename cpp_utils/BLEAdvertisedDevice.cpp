@@ -233,7 +233,8 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload, size_t total_len)
 	uint8_t ad_type;
 	uint8_t sizeConsumed = 0;
 	bool finished = false;
-	setPayload(payload);
+	m_payload = payload;
+	m_payloadLength = total_len;
 
 	while(!finished) {
 		length = *payload;          // Retrieve the length of the record.
@@ -351,9 +352,9 @@ void BLEAdvertisedDevice::parseAdvertisement(uint8_t* payload, size_t total_len)
 		} // Length <> 0
 
 
-		if (sizeConsumed >= total_len || length == 0) {
+		if (sizeConsumed >= total_len)
 			finished = true;
-		}
+
 	} // !finished
 } // parseAdvertisement
 
@@ -510,10 +511,6 @@ uint8_t* BLEAdvertisedDevice::getPayload() {
 	return m_payload;
 }
 
-void BLEAdvertisedDevice::setPayload(uint8_t* payload) {
-	m_payload = payload;
-}
-
 esp_ble_addr_type_t BLEAdvertisedDevice::getAddressType() {
 	return m_addressType;
 }
@@ -522,6 +519,9 @@ void BLEAdvertisedDevice::setAddressType(esp_ble_addr_type_t type) {
 	m_addressType = type;
 }
 
+size_t BLEAdvertisedDevice::getPayloadLength() {
+	return m_payloadLength;
+}
 
 #endif /* CONFIG_BT_ENABLED */
 

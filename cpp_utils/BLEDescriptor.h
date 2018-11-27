@@ -24,8 +24,8 @@ class BLEDescriptorCallbacks;
  */
 class BLEDescriptor {
 public:
-	BLEDescriptor(const char* uuid);
-	BLEDescriptor(BLEUUID uuid);
+	BLEDescriptor(const char* uuid, uint16_t max_len = 100);
+	BLEDescriptor(BLEUUID uuid, uint16_t max_len = 100);
 	virtual ~BLEDescriptor();
 
 	uint16_t getHandle();                                   // Get the handle of the descriptor.

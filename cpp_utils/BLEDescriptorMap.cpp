@@ -32,8 +32,8 @@ BLEDescriptor* BLEDescriptorMap::getByUUID(const char* uuid) {
  */
 BLEDescriptor* BLEDescriptorMap::getByUUID(BLEUUID uuid) {
 	for (auto &myPair : m_uuidMap) {
-		if (myPair.second->getUUID().equals(uuid)) {
-			return myPair.second;
+		if (myPair.first->getUUID().equals(uuid)) {
+			return myPair.first;
 		}
 	}
 	//return m_uuidMap.at(uuid.toString());
@@ -58,7 +58,7 @@ BLEDescriptor* BLEDescriptorMap::getByHandle(uint16_t handle) {
  * @return N/A.
  */
 void BLEDescriptorMap::setByUUID(const char* uuid, BLEDescriptor* pDescriptor){
-	m_uuidMap.insert(std::pair<std::string, BLEDescriptor*>(uuid, pDescriptor));
+	m_uuidMap.insert(std::pair<BLEDescriptor*, std::string>(pDescriptor, uuid));
 } // setByUUID
 
 
@@ -70,7 +70,7 @@ void BLEDescriptorMap::setByUUID(const char* uuid, BLEDescriptor* pDescriptor){
  * @return N/A.
  */
 void BLEDescriptorMap::setByUUID(BLEUUID uuid, BLEDescriptor* pDescriptor) {
-	m_uuidMap.insert(std::pair<std::string, BLEDescriptor*>(uuid.toString(), pDescriptor));
+	m_uuidMap.insert(std::pair<BLEDescriptor*, std::string>(pDescriptor, uuid.toString()));
 } // setByUUID
 
 
@@ -98,7 +98,7 @@ std::string BLEDescriptorMap::toString() {
 			stringStream << "\n";
 		}
 		count++;
-		stringStream << "handle: 0x" << std::setw(2) << myPair.second->getHandle() << ", uuid: " + myPair.second->getUUID().toString();
+		stringStream << "handle: 0x" << std::setw(2) << myPair.first->getHandle() << ", uuid: " + myPair.first->getUUID().toString();
 	}
 	return stringStream.str();
 } // toString
@@ -116,7 +116,7 @@ void BLEDescriptorMap::handleGATTServerEvent(
 		esp_ble_gatts_cb_param_t* param) {
 	// Invoke the handler for every descriptor we have.
 	for (auto &myPair : m_uuidMap) {
-		myPair.second->handleGATTServerEvent(event, gatts_if, param);
+		myPair.first->handleGATTServerEvent(event, gatts_if, param);
 	}
 } // handleGATTServerEvent
 
@@ -128,7 +128,7 @@ void BLEDescriptorMap::handleGATTServerEvent(
 BLEDescriptor* BLEDescriptorMap::getFirst() {
 	m_iterator = m_uuidMap.begin();
 	if (m_iterator == m_uuidMap.end()) return nullptr;
-	BLEDescriptor* pRet = m_iterator->second;
+	BLEDescriptor* pRet = m_iterator->first;
 	m_iterator++;
 	return pRet;
 } // getFirst
@@ -140,7 +140,7 @@ BLEDescriptor* BLEDescriptorMap::getFirst() {
  */
 BLEDescriptor* BLEDescriptorMap::getNext() {
 	if (m_iterator == m_uuidMap.end()) return nullptr;
-	BLEDescriptor* pRet = m_iterator->second;
+	BLEDescriptor* pRet = m_iterator->first;
 	m_iterator++;
 	return pRet;
 } // getNext

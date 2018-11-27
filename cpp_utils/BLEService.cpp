@@ -62,18 +62,13 @@ BLEService::BLEService(BLEUUID uuid, uint16_t numHandles) {
  */
 
 void BLEService::executeCreate(BLEServer* pServer) {
-	//ESP_LOGD(LOG_TAG, ">> executeCreate() - Creating service (esp_ble_gatts_create_service) service uuid: %s", getUUID().toString().c_str());
-	//getUUID(); // Needed for a weird bug fix
-	//char x[1000];
-	//memcpy(x, &m_uuid, sizeof(m_uuid));
-	//char x[10];
-	//memcpy(x, &deleteMe, 10);
+	ESP_LOGD(LOG_TAG, ">> executeCreate() - Creating service (esp_ble_gatts_create_service) service uuid: %s", getUUID().toString().c_str());
 	m_pServer          = pServer;
 	m_semaphoreCreateEvt.take("executeCreate"); // Take the mutex and release at event ESP_GATTS_CREATE_EVT
 
 	esp_gatt_srvc_id_t srvc_id;
 	srvc_id.is_primary = true;
-	srvc_id.id.inst_id = m_id;
+	srvc_id.id.inst_id = m_instId;
 	srvc_id.id.uuid    = *m_uuid.getNative();
 	esp_err_t errRc = ::esp_ble_gatts_create_service(getServer()->getGattsIf(), &srvc_id, m_numHandles); // The maximum number of handles associated with the service.
 
@@ -137,10 +132,10 @@ BLEUUID BLEService::getUUID() {
  * @return Start the service.
  */
 void BLEService::start() {
-	// We ask the BLE runtime to start the service and then create each of the characteristics.
-	// We start the service through its local handle which was returned in the ESP_GATTS_CREATE_EVT event
-	// obtained as a result of calling esp_ble_gatts_create_service().
-	//
+// We ask the BLE runtime to start the service and then create each of the characteristics.
+// We start the service through its local handle which was returned in the ESP_GATTS_CREATE_EVT event
+// obtained as a result of calling esp_ble_gatts_create_service().
+//
 	ESP_LOGD(LOG_TAG, ">> start(): Starting service (esp_ble_gatts_start_service): %s", toString().c_str());
 	if (m_handle == NULL_HANDLE) {
 		ESP_LOGE(LOG_TAG, "<< !!! We attempted to start a service but don't know its handle!");
@@ -174,9 +169,9 @@ void BLEService::start() {
  * @brief Stop the service.
  */
 void BLEService::stop() {
-	// We ask the BLE runtime to start the service and then create each of the characteristics.
-	// We start the service through its local handle which was returned in the ESP_GATTS_CREATE_EVT event
-	// obtained as a result of calling esp_ble_gatts_create_service().
+// We ask the BLE runtime to start the service and then create each of the characteristics.
+// We start the service through its local handle which was returned in the ESP_GATTS_CREATE_EVT event
+// obtained as a result of calling esp_ble_gatts_create_service().
 	ESP_LOGD(LOG_TAG, ">> stop(): Stopping service (esp_ble_gatts_stop_service): %s", toString().c_str());
 	if (m_handle == NULL_HANDLE) {
 		ESP_LOGE(LOG_TAG, "<< !!! We attempted to stop a service but don't know its handle!");
@@ -228,6 +223,7 @@ void BLEService::addCharacteristic(BLECharacteristic* pCharacteristic) {
 	// We maintain a mapping of characteristics owned by this service.  These are managed by the
 	// BLECharacteristicMap class instance found in m_characteristicMap.  We add the characteristic
 	// to the map and then ask the service to add the characteristic at the BLE level (ESP-IDF).
+
 	ESP_LOGD(LOG_TAG, ">> addCharacteristic()");
 	ESP_LOGD(LOG_TAG, "Adding characteristic: uuid=%s to service: %s",
 		pCharacteristic->getUUID().toString().c_str(),
@@ -256,7 +252,7 @@ void BLEService::addCharacteristic(BLECharacteristic* pCharacteristic) {
 BLECharacteristic* BLEService::createCharacteristic(const char* uuid, uint32_t properties) {
 	return createCharacteristic(BLEUUID(uuid), properties);
 }
-
+	
 
 /**
  * @brief Create a new BLE Characteristic associated with this service.
@@ -296,7 +292,6 @@ void BLEService::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t
 				}
 				pCharacteristic->setHandle(param->add_char.attr_handle);
 				m_characteristicMap.setByHandle(param->add_char.attr_handle, pCharacteristic);
-				//ESP_LOGD(tag, "Characteristic map: %s", m_characteristicMap.toString().c_str());
 				break;
 			} // Reached the correct service.
 			break;
@@ -342,7 +337,7 @@ void BLEService::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t
 		// * - bool is_primary
 		//
 		case ESP_GATTS_CREATE_EVT: {
-			if (getUUID().equals(BLEUUID(param->create.service_id.id.uuid)) && m_id == param->create.service_id.id.inst_id) {
+			if (getUUID().equals(BLEUUID(param->create.service_id.id.uuid)) && m_instId == param->create.service_id.id.inst_id) {
 				setHandle(param->create.service_handle);
 				m_semaphoreCreateEvt.give();
 			}
