@@ -47,7 +47,7 @@ static uint32_t flashPageToOffset(uint32_t page) {
 	const uint32_t mappingInvalid = 1 << 8;
 
 	printf("PRO CPU MMU\n");
-	for (uint8_t i = 0; i < 256; i++) {
+	for (uint16_t i = 0; i < 256; i++) {
 		if (!(DPORT_PRO_FLASH_MMU_TABLE[i] & mappingInvalid)) {
 			addressRange_t addressRange = entryNumberToAddressRange(i);
 			printf("Entry: %2d (0x%8.8x - 0x%8.8x), Page: %d - offset: 0x%x\n",
@@ -59,7 +59,7 @@ static uint32_t flashPageToOffset(uint32_t page) {
 	}
 	printf("\n");
 	printf("APP CPU MMU\n");
-	for (uint8_t i = 0; i < 256; i++) {
+	for (uint16_t i = 0; i < 256; i++) {
 		if (!(DPORT_APP_FLASH_MMU_TABLE[i] & mappingInvalid)) {
 			addressRange_t addressRange = entryNumberToAddressRange(i);
 			printf("Entry: %2d (0x%8.8x - 0x%8.8x), Page: %d - offset: 0x%x\n",
