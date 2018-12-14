@@ -51,6 +51,7 @@ public:
 	void        writeValue(uint8_t newValue, bool response = false);
 	std::string toString();
 	uint8_t*	readRawData();
+	BLEAddress  getRemoteAddress();
 
 private:
 	BLERemoteCharacteristic(uint16_t handle, BLEUUID uuid, esp_gatt_char_prop_t charProp, BLERemoteService* pRemoteService);

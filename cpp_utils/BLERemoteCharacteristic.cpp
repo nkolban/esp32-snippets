@@ -582,5 +582,13 @@ void BLERemoteCharacteristic::writeValue(uint8_t* data, size_t length, bool resp
 uint8_t* BLERemoteCharacteristic::readRawData() {
 	return m_rawData;
 }
+/**
+ * @brief Get the address of the remote server
+ * @return RemoteAddress
+ */
+BLEAddress  BLERemoteCharacteristic::getRemoteAddress(){
+	return m_pRemoteService->getClient()->getPeerAddress();
+}
+
 
 #endif /* CONFIG_BT_ENABLED */
