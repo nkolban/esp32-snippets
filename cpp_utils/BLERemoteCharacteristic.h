@@ -17,6 +17,7 @@
 #include "BLERemoteService.h"
 #include "BLERemoteDescriptor.h"
 #include "BLEUUID.h"
+#include "BLEAddress.h"
 #include "FreeRTOS.h"
 
 class BLERemoteService;
