@@ -44,6 +44,7 @@ BLERemoteCharacteristic::BLERemoteCharacteristic(
 	m_charProp       = charProp;
 	m_pRemoteService = pRemoteService;
 	m_notifyCallback = nullptr;
+	m_rawData        = nullptr;
 
 	retrieveDescriptors(); // Get the descriptors for this characteristic
 	ESP_LOGD(LOG_TAG, "<< BLERemoteCharacteristic");
@@ -54,6 +55,7 @@ BLERemoteCharacteristic::BLERemoteCharacteristic(
  *@brief Destructor.
  */
 BLERemoteCharacteristic::~BLERemoteCharacteristic() {
+	if(m_rawData != nullptr) free(m_rawData);
 	removeDescriptors();   // Release resources for any descriptor information we may have allocated.
 } // ~BLERemoteCharacteristic
 
