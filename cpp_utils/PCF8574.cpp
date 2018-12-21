@@ -116,5 +116,6 @@ void PCF8574::setInvert(bool value) {
  * @param [in] clkPin The pin to use for the %I2C CLK functions.
  */
 void PCF8574::init(gpio_num_t sdaPin, gpio_num_t clkPin) {
-	i2c->init(0, sdaPin, clkPin);
+    uint8_t addr = i2c->getAddress();
+    i2c->init(addr, sdaPin, clkPin);
 } // init
