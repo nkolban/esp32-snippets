@@ -1,0 +1,25 @@
+language: cpp
+
+addons:
+  apt:
+    packages:
+    - doxygen
+
+jobs:
+  include:
+    - stage: build-docs
+      script:
+        - cd cpp_utils
+        - doxygen .
+
+stages:
+  - build-docs
+
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep-history: true
+  local-dir: cpp_utils/html
+  on:
+    branch: srounce-add-gh-pages

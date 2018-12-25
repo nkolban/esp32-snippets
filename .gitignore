@@ -6,5 +6,12 @@
 .vs/
 .idea/
 
+# OS Meta
+.DS_Store
+
 # CMake
 cmake-build-debug/
+
+# Generated docs
+html/
+latex/
