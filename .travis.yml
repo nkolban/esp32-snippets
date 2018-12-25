@@ -12,6 +12,10 @@ jobs:
         - cd cpp_utils
         - doxygen .
 
+branches:
+  only:
+    - srounce-add-gh-pages
+
 stages:
   - build-docs
 
