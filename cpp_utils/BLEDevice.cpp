@@ -162,22 +162,10 @@ gatts_event_handler BLEDevice::m_customGattsHandler = nullptr;
 			break;
 	} // switch
 	for(auto &myPair : BLEDevice::getPeerDevices(true)) {
-		BLEClient* client = (BLEClient*)((conn_status_t)myPair.second).peer_device;
-		bool raiseEvent = false;
-		switch(event)	{
-			case ESP_GATTC_REG_EVT:
-				raiseEvent = (myPair.first == param->reg.app_id);
-				break;
-			case ESP_GATTC_DISCONNECT_EVT:
-				raiseEvent = (client->getConnId() == param->disconnect.conn_id && client->getGattcIf() == gattc_if);
-				break;
-			default:
-				raiseEvent = (client->getGattcIf() == gattc_if || client->getGattcIf() == ESP_GATT_IF_NONE || gattc_if == ESP_GATT_IF_NONE);
-				break;
+		conn_status_t conn_status = (conn_status_t)myPair.second;
+		if(((BLEClient*)conn_status.peer_device)->getGattcIf() == gattc_if || ((BLEClient*)conn_status.peer_device)->getGattcIf() == ESP_GATT_IF_NONE || gattc_if == ESP_GATT_IF_NONE){
+			((BLEClient*)conn_status.peer_device)->gattClientEventHandler(event, gattc_if, param);
 		}
-
-		if(raiseEvent)
-			client->gattClientEventHandler(event, gattc_if, param);
 	}
 
 	if(m_customGattcHandler != nullptr) {
