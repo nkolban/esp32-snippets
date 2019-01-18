@@ -182,19 +182,22 @@ void BLEClient::gattClientEventHandler(
 		// - uint16_t          conn_id
 		// - esp_bd_addr_t     remote_bda
 		case ESP_GATTC_DISCONNECT_EVT: {
-				// If we receive a disconnect event, set the class flag that indicates that we are
-				// no longer connected.
-				m_isConnected = false;
-				if (m_pClientCallbacks != nullptr) {
-					m_pClientCallbacks->onDisconnect(this);
-				}
-				BLEDevice::removePeerDevice(m_appId, true);
-				esp_ble_gattc_app_unregister(m_gattc_if);
-				m_semaphoreRssiCmplEvt.give();
-				m_semaphoreSearchCmplEvt.give(1);
+			ESP_LOGE(__func__, "disconnect event, conn_id: %d", evtParam->disconnect.conn_id);
+			if(getConnId() != evtParam->disconnect.conn_id)
 				break;
+			m_semaphoreOpenEvt.give(evtParam->disconnect.reason);
+			if(!m_isConnected)
+				break;
+			// If we receive a disconnect event, set the class flag that indicates that we are
+			// no longer connected.
+			esp_ble_gattc_close(m_gattc_if, m_conn_id);
+			m_isConnected = false;
+			if (m_pClientCallbacks != nullptr) {
+				m_pClientCallbacks->onDisconnect(this);
+			}
+			break;
 		} // ESP_GATTC_DISCONNECT_EVT
-
+		
 		//
 		// ESP_GATTC_OPEN_EVT
 		//
@@ -224,8 +227,12 @@ void BLEClient::gattClientEventHandler(
 		// uint16_t          app_id
 		//
 		case ESP_GATTC_REG_EVT: {
-			m_gattc_if = gattc_if;
-			m_semaphoreRegEvt.give();
+			if(m_appId == evtParam->reg.app_id){
+				ESP_LOGI(__func__, "register app id: %d, %d, gattc_if: %d", m_appId, evtParam->reg.app_id, gattc_if);
+				m_gattc_if = gattc_if;
+				m_appId = evtParam->reg.app_id;
+				m_semaphoreRegEvt.give();
+			}
 			break;
 		} // ESP_GATTC_REG_EVT
 
