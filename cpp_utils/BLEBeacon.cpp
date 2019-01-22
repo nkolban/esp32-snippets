@@ -7,12 +7,17 @@
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
 #include <string.h>
-#include <esp_log.h>
 #include "BLEBeacon.h"
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
+#include "esp32-hal-log.h"
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
+static const char* LOG_TAG = "BLEBeacon";
+#endif
 
 #define ENDIAN_CHANGE_U16(x) ((((x)&0xFF00)>>8) + (((x)&0xFF)<<8))
 
-static const char LOG_TAG[] = "BLEBeacon";
 
 BLEBeacon::BLEBeacon() {
 	m_beaconData.manufacturerId = 0x4c00;

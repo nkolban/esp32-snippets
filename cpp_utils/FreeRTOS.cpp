@@ -11,10 +11,14 @@
 #include <sstream>
 #include <iomanip>
 #include "FreeRTOS.h"
-#include <esp_log.h>
 #include "sdkconfig.h"
-
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
+#include "esp32-hal-log.h"
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
 static const char* LOG_TAG = "FreeRTOS";
+#endif
 
 /**
  * Sleep for the specified number of milliseconds.

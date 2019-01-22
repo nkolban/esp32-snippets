@@ -8,7 +8,6 @@
 #if defined(CONFIG_BT_ENABLED)
 
 
-#include <esp_log.h>
 #include <esp_err.h>
 
 #include <map>
@@ -17,11 +16,15 @@
 #include "BLEScan.h"
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
+static const char* LOG_TAG = "BLEScan";
 #endif
 
-static const char* LOG_TAG = "BLEScan";
+
 
 
 /**
@@ -122,6 +125,7 @@ void BLEScan::handleGAPEvent(
 					}
 
 					if (m_pAdvertisedDeviceCallbacks) {
+						m_pAdvertisedDeviceCallbacks->onResult(advertisedDevice);
 						m_pAdvertisedDeviceCallbacks->onResult(*advertisedDevice);
 					}
 					if(found)

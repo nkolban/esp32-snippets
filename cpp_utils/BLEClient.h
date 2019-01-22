@@ -65,14 +65,10 @@ private:
 	friend class BLERemoteCharacteristic;
 	friend class BLERemoteDescriptor;
 
-	void                                       gattClientEventHandler(
-		esp_gattc_cb_event_t event,
-		esp_gatt_if_t gattc_if,
-		esp_ble_gattc_cb_param_t* param);
+	void gattClientEventHandler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t* param);
 
 	BLEAddress    m_peerAddress = BLEAddress((uint8_t*)"\0\0\0\0\0\0");   // The BD address of the remote server.
 	uint16_t      m_conn_id;
-//	int           m_deviceType;
 	esp_gatt_if_t m_gattc_if;
 	bool          m_haveServices = false;    // Have we previously obtain the set of services from the remote server.
 	bool          m_isConnected = false;     // Are we currently connected.
