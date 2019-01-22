@@ -11,13 +11,16 @@
 #include "BLERemoteService.h"
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
-#include <esp_log.h>
 #include <esp_err.h>
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
+static const char* LOG_TAG = "BLERemoteService";
 #endif
 
-static const char* LOG_TAG = "BLERemoteService";
+
 
 BLERemoteService::BLERemoteService(
 		esp_gatt_id_t srvcId,
@@ -61,57 +64,7 @@ void BLERemoteService::gattClientEventHandler(
 	esp_gattc_cb_event_t      event,
 	esp_gatt_if_t             gattc_if,
 	esp_ble_gattc_cb_param_t* evtParam) {
-
-	ESP_LOGD(LOG_TAG, "gattClientEventHandler [esp_gatt_if: %d] ... %s",
-		gattc_if, BLEUtils::gattClientEventTypeToString(event).c_str());
-
 	switch (event) {
-		//
-		// ESP_GATTC_GET_CHAR_EVT
-		//
-		// get_char:
-		// - esp_gatt_status_t    status
-		// - uin1t6_t             conn_id
-		// - esp_gatt_srvc_id_t   srvc_id
-		// - esp_gatt_id_t        char_id
-		// - esp_gatt_char_prop_t char_prop
-		//
-	/*
-		case ESP_GATTC_GET_CHAR_EVT: {
-			// Is this event for this service?  If yes, then the local srvc_id and the event srvc_id will be
-			// the same.
-			if (compareSrvcId(m_srvcId, evtParam->get_char.srvc_id) == false) {
-				break;
-			}
-
-			// If the status is NOT OK then we have a problem and continue.
-			if (evtParam->get_char.status != ESP_GATT_OK) {
-				m_semaphoreGetCharEvt.give();
-				break;
-			}
-
-			// This is an indication that we now have the characteristic details for a characteristic owned
-			// by this service so remember it.
-			m_characteristicMap.insert(std::pair<std::string, BLERemoteCharacteristic*>(
-					BLEUUID(evtParam->get_char.char_id.uuid).toString(),
-					new BLERemoteCharacteristic(evtParam->get_char.char_id, evtParam->get_char.char_prop, this)	));
-
-
-			// Now that we have received a characteristic, lets ask for the next one.
-			esp_err_t errRc = ::esp_ble_gattc_get_characteristic(
-					m_pClient->getGattcIf(),
-					m_pClient->getConnId(),
-					&m_srvcId,
-					&evtParam->get_char.char_id);
-			if (errRc != ESP_OK) {
-				ESP_LOGE(LOG_TAG, "esp_ble_gattc_get_characteristic: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
-				break;
-			}
-
-			//m_semaphoreGetCharEvt.give();
-			break;
-		} // ESP_GATTC_GET_CHAR_EVT
-*/
 		default:
 			break;
 	} // switch
@@ -173,7 +126,7 @@ void BLERemoteService::retrieveCharacteristics() {
 	uint16_t offset = 0;
 	esp_gattc_char_elem_t result;
 	while (true) {
-		uint16_t count = 1;
+		uint16_t count = 1;  // this value is used as in parameter that allows to search max 10 chars with the same uuid
 		esp_gatt_status_t status = ::esp_ble_gattc_get_all_char(
 			getClient()->getGattcIf(),
 			getClient()->getConnId(),
@@ -254,7 +207,7 @@ std::map<uint16_t, BLERemoteCharacteristic*>* BLERemoteService::getCharacteristi
  */
 void BLERemoteService::getCharacteristics(std::map<uint16_t, BLERemoteCharacteristic*>* pCharacteristicMap) {
 #pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
-	pCharacteristicMap = &m_characteristicMapByHandle;
+	*pCharacteristicMap = m_characteristicMapByHandle;
 }  // Get the characteristics map.
 
 /**

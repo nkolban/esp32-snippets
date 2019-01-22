@@ -19,7 +19,6 @@
 #include <esp_gattc_api.h>     // ESP32 BLE
 #include <esp_gatt_common_api.h>// ESP32 BLE
 #include <esp_err.h>           // ESP32 ESP-IDF
-#include <esp_log.h>           // ESP32 ESP-IDF
 #include <map>                 // Part of C++ Standard library
 #include <sstream>             // Part of C++ Standard library
 #include <iomanip>             // Part of C++ Standard library
@@ -28,19 +27,24 @@
 #include "BLEClient.h"
 #include "BLEUtils.h"
 #include "GeneralUtils.h"
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
-#include "esp32-hal-bt.h"
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
+static const char* LOG_TAG = "BLEDevice";
 #endif
 
-static const char* LOG_TAG = "BLEDevice";
+#if defined(ARDUINO_ARCH_ESP32) 
+#include "esp32-hal-bt.h"
+#endif
 
 /**
  * Singletons for the BLEDevice.
  */
-BLEServer* BLEDevice::m_pServer = nullptr;
+// BLEServer* BLEDevice::m_pServer = nullptr;
 BLEScan*   BLEDevice::m_pScan   = nullptr;
-BLEClient* BLEDevice::m_pClient = nullptr;
+// BLEClient* BLEDevice::m_pClient = nullptr;
 bool       initialized          = false;  
 esp_ble_sec_act_t BLEDevice::m_securityLevel = (esp_ble_sec_act_t)0;
 BLESecurityCallbacks* BLEDevice::m_securityCallbacks = nullptr;
@@ -62,7 +66,7 @@ gatts_event_handler BLEDevice::m_customGattsHandler = nullptr;
 	ESP_LOGE(LOG_TAG, "BLE GATTC is not enabled - CONFIG_GATTC_ENABLE not defined");
 	abort();
 #endif  // CONFIG_GATTC_ENABLE
-	m_pClient = new BLEClient();
+	BLEClient* m_pClient = new BLEClient();
 	ESP_LOGD(LOG_TAG, "<< createClient");
 	return m_pClient;
 } // createClient
@@ -78,7 +82,7 @@ gatts_event_handler BLEDevice::m_customGattsHandler = nullptr;
 	ESP_LOGE(LOG_TAG, "BLE GATTS is not enabled - CONFIG_GATTS_ENABLE not defined");
 	abort();
 #endif // CONFIG_GATTS_ENABLE
-	m_pServer = new BLEServer();
+	BLEServer* m_pServer = new BLEServer();
 	m_pServer->createApp(m_appId++);
 	ESP_LOGD(LOG_TAG, "<< createServer");
 	return m_pServer;

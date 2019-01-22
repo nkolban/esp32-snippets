@@ -13,14 +13,16 @@
  */
 #include "sdkconfig.h"
 #if defined(CONFIG_BT_ENABLED)
-#include <esp_log.h>
 #include <sstream>
 #include "BLEAdvertisedDevice.h"
 #include "BLEUtils.h"
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
-#endif
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
 static const char* LOG_TAG="BLEAdvertisedDevice";
+#endif
 
 BLEAdvertisedDevice::BLEAdvertisedDevice() {
 	m_adFlag           = 0;
@@ -522,6 +524,9 @@ void BLEAdvertisedDevice::setAddressType(esp_ble_addr_type_t type) {
 size_t BLEAdvertisedDevice::getPayloadLength() {
 	return m_payloadLength;
 }
+
+void BLEAdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice dev) {}
+void BLEAdvertisedDeviceCallbacks::onResult(BLEAdvertisedDevice* dev) {}
 
 #endif /* CONFIG_BT_ENABLED */
 

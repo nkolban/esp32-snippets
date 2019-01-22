@@ -11,16 +11,19 @@
 #include <iomanip>
 #include <stdlib.h>
 #include "sdkconfig.h"
-#include <esp_log.h>
 #include <esp_err.h>
 #include "BLEService.h"
 #include "BLEDescriptor.h"
 #include "GeneralUtils.h"
-#ifdef ARDUINO_ARCH_ESP32
+#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
 #include "esp32-hal-log.h"
+#define LOG_TAG ""
+#else
+#include "esp_log.h"
+static const char* LOG_TAG = "BLEDescriptor";
 #endif
 
-static const char* LOG_TAG = "BLEDescriptor";
+
 
 
 #define NULL_HANDLE (0xffff)
