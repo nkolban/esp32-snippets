@@ -6,9 +6,9 @@
 //#include "BLEScan.h"
 
 // The remote service we wish to connect to.
-static BLEUUID serviceUUID("91bad492-b950-4226-aa2b-4ede9fa42f59");
+static BLEUUID serviceUUID("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
 // The characteristic of the remote service we are interested in.
-static BLEUUID    charUUID("0d563a58-196a-48ce-ace2-dfec78acc814");
+static BLEUUID    charUUID("beb5483e-36e1-4688-b7f5-ea07361b26a8");
 
 static BLEAddress *pServerAddress;
 static boolean doConnect = false;

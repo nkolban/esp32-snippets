@@ -14,7 +14,11 @@
 #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
 class MySecurity : public BLESecurityCallbacks {
-
+  
+  bool onConfirmPIN(uint32_t pin){
+    return false;
+  }
+  
 	uint32_t onPassKeyRequest(){
         ESP_LOGI(LOG_TAG, "PassKeyRequest");
 		return 123456;

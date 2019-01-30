@@ -17,7 +17,10 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Starting BLE work!");
 
-  BLEDevice::init("MyESP32");
+  BLEDevice::init("ESP32");
+  /*
+   * Required in authentication process to provide displaying and/or input passkey or yes/no butttons confirmation
+   */
   BLEServer *pServer = BLEDevice::createServer();
   BLEService *pService = pServer->createService(SERVICE_UUID);
   BLECharacteristic *pCharacteristic = pService->createCharacteristic(
@@ -25,12 +28,16 @@ void setup() {
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_WRITE
                                        );
-
+  pCharacteristic->setAccessPermissions(ESP_GATT_PERM_READ_ENCRYPTED | ESP_GATT_PERM_WRITE_ENCRYPTED);
   pCharacteristic->setValue("Hello World says Neil");
   pService->start();
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
-  pAdvertising->addServiceUUID(SERVICE_UUID);
   pAdvertising->start();
+
+  BLESecurity *pSecurity = new BLESecurity();
+  pSecurity->setStaticPIN(123456); 
+  
+  //set static passkey
   Serial.println("Characteristic defined! Now you can read it in your phone!");
 }
 
