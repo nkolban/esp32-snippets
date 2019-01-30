@@ -95,7 +95,7 @@ private:
 	int8_t      m_txPower;
 	std::string m_serviceData;
 	BLEUUID     m_serviceDataUUID;
-	uint8_t*	m_payload;
+	uint8_t*	m_payload = nullptr;
 	size_t		m_payloadLength = 0;
 	esp_ble_addr_type_t m_addressType;
 };
