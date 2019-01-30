@@ -42,7 +42,7 @@ static const char* LOG_TAG = "BLEDevice";
 /**
  * Singletons for the BLEDevice.
  */
-// BLEServer* BLEDevice::m_pServer = nullptr;
+BLEServer* BLEDevice::m_pServer = nullptr;
 BLEScan*   BLEDevice::m_pScan   = nullptr;
 // BLEClient* BLEDevice::m_pClient = nullptr;
 bool       initialized          = false;  
@@ -82,7 +82,7 @@ gatts_event_handler BLEDevice::m_customGattsHandler = nullptr;
 	ESP_LOGE(LOG_TAG, "BLE GATTS is not enabled - CONFIG_GATTS_ENABLE not defined");
 	abort();
 #endif // CONFIG_GATTS_ENABLE
-	BLEServer* m_pServer = new BLEServer();
+	BLEDevice::m_pServer = new BLEServer();
 	m_pServer->createApp(m_appId++);
 	ESP_LOGD(LOG_TAG, "<< createServer");
 	return m_pServer;
@@ -265,10 +265,6 @@ gatts_event_handler BLEDevice::m_customGattsHandler = nullptr;
 			break;
 		}
 	} // switch
-
-	if (BLEDevice::m_pClient != nullptr) {
-		BLEDevice::m_pClient->handleGAPEvent(event, param);
-	}
 
 	if (BLEDevice::m_pScan != nullptr) {
 		BLEDevice::getScan()->handleGAPEvent(event, param);

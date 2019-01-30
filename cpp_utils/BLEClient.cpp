@@ -81,6 +81,8 @@ BLEClient::~BLEClient() {
 	clearServices();
 	esp_ble_gattc_app_unregister(m_gattc_if);
 	BLEDevice::removePeerDevice(m_appId, true);
+	if(m_deleteCallbacks)
+		delete m_pClientCallbacks;
 
 } // ~BLEClient
 
@@ -171,15 +173,14 @@ void BLEClient::gattClientEventHandler(
 	switch(event) {
 
 		case ESP_GATTC_SRVC_CHG_EVT:
-			if(getConnId() != evtParam->search_res.conn_id)
+			if(m_gattc_if != gattc_if)
 				break;
 
 			ESP_LOGI(LOG_TAG, "SERVICE CHANGED");
 			break;
 
-		case ESP_GATTC_CLOSE_EVT: {
+		case ESP_GATTC_CLOSE_EVT: 
 			break;
-		}
 
 		//
 		// ESP_GATTC_DISCONNECT_EVT
@@ -189,8 +190,8 @@ void BLEClient::gattClientEventHandler(
 		// - uint16_t          conn_id
 		// - esp_bd_addr_t     remote_bda
 		case ESP_GATTC_DISCONNECT_EVT: {
-			ESP_LOGE(__func__, "disconnect event, conn_id: %d", evtParam->disconnect.conn_id);
-			if(getConnId() != evtParam->disconnect.conn_id)
+			ESP_LOGE(__func__, "disconnect event, reason: %d, connId: %d, my connId: %d, my IF: %d, gattc_if: %d", (int)evtParam->disconnect.reason, evtParam->disconnect.conn_id, getConnId(), getGattcIf(), gattc_if);
+			if(m_gattc_if != gattc_if)
 				break;
 			m_semaphoreOpenEvt.give(evtParam->disconnect.reason);
 			if(!m_isConnected)
@@ -214,7 +215,7 @@ void BLEClient::gattClientEventHandler(
 		// - esp_bd_addr_t     remote_bda
 		//
 		case ESP_GATTC_OPEN_EVT: {
-			if(getConnId() != ESP_GATT_IF_NONE)
+			if(m_gattc_if != gattc_if)
 				break;
 			m_conn_id = evtParam->open.conn_id;
 			if (m_pClientCallbacks != nullptr) {
@@ -240,7 +241,6 @@ void BLEClient::gattClientEventHandler(
 			if(m_appId == evtParam->reg.app_id){
 				ESP_LOGI(__func__, "register app id: %d, %d, gattc_if: %d", m_appId, evtParam->reg.app_id, gattc_if);
 				m_gattc_if = gattc_if;
-				m_appId = evtParam->reg.app_id;
 				m_semaphoreRegEvt.give();
 			}
 			break;
@@ -255,8 +255,9 @@ void BLEClient::gattClientEventHandler(
 			break;
 
 		case ESP_GATTC_CONNECT_EVT: {
-			if(evtParam->connect.conn_id != getConnId())
+			if(m_gattc_if != gattc_if)
 				break;
+			m_conn_id = evtParam->connect.conn_id;
 			BLEDevice::updatePeerDevice(this, true, m_gattc_if);
 			esp_err_t errRc = esp_ble_gattc_send_mtu_req(gattc_if, evtParam->connect.conn_id);
 			if (errRc != ESP_OK) {
@@ -278,7 +279,7 @@ void BLEClient::gattClientEventHandler(
 		// - uint16_t          conn_id
 		//
 		case ESP_GATTC_SEARCH_CMPL_EVT: {
-			if(evtParam->search_cmpl.conn_id != getConnId())
+			if(m_gattc_if != gattc_if)
 				break;
 			if (evtParam->search_cmpl.status != ESP_GATT_OK){
 				ESP_LOGE(LOG_TAG, "search service failed, error status = %x", evtParam->search_cmpl.status);
@@ -308,8 +309,9 @@ void BLEClient::gattClientEventHandler(
 		// - esp_gatt_id_t srvc_id
 		//
 		case ESP_GATTC_SEARCH_RES_EVT: {
-			if(getConnId() != evtParam->search_res.conn_id)
+			if(m_gattc_if != gattc_if)
 				break;
+
 			BLEUUID uuid = BLEUUID(evtParam->search_res.srvc_id);
 			BLERemoteService* pRemoteService = new BLERemoteService(
 				evtParam->search_res.srvc_id,
@@ -515,8 +517,9 @@ bool BLEClient::isConnected() {
 /**
  * @brief Set the callbacks that will be invoked.
  */
-void BLEClient::setClientCallbacks(BLEClientCallbacks* pClientCallbacks) {
+void BLEClient::setClientCallbacks(BLEClientCallbacks* pClientCallbacks, bool deleteCallbacks) {
 	m_pClientCallbacks = pClientCallbacks;
+	m_deleteCallbacks = deleteCallbacks;
 } // setClientCallbacks
 
 
