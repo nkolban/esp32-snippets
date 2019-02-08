@@ -289,10 +289,10 @@ void BLECharacteristic::handleGATTServerEvent(
 					m_value.addPart(param->write.value, param->write.len);
 					m_writeEvt = true;
 				} else {
+					setValue(param->write.value, param->write.len);
 					if (m_pCallbacks != nullptr && param->write.is_prep != true) {
 						m_pCallbacks->onWrite(this); // Invoke the onWrite callback handler.
 					}
-					setValue(param->write.value, param->write.len);
 				}
 
 				ESP_LOGD(LOG_TAG, " - Response to write event: New value: handle: %.2x, uuid: %s",
@@ -503,7 +503,11 @@ void BLECharacteristic::notify(bool is_notification) {
 	// Test to see if we have a 0x2902 descriptor.  If we do, then check to see if notification is enabled
 	// and, if not, prevent the notification.
 
-	BLE2902 *p2902 = (BLE2902*)getDescriptorByUUID((uint16_t)0x2902);
+	BLE2902* p2902 = (BLE2902*)getDescriptorByUUID((uint16_t)0x2902);
+	if(p2902 == nullptr){
+		ESP_LOGE(LOG_TAG, "Characteristic without 0x2902 descriptor");
+		return;
+	}
 	if(is_notification) {
 		if (p2902 != nullptr && !p2902->getNotifications()) {
 			ESP_LOGD(LOG_TAG, "<< notifications disabled; ignoring");
@@ -537,7 +541,6 @@ void BLECharacteristic::notify(bool is_notification) {
 		if(!is_notification)
 			m_semaphoreConfEvt.wait("indicate");
 	}
-	delete(p2902);
 	ESP_LOGD(LOG_TAG, "<< notify");
 } // Notify
 
