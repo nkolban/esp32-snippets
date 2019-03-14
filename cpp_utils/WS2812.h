@@ -39,7 +39,7 @@ typedef struct {
  *
  * @code{.cpp}
  * WS2812 ws2812 = WS2812(
- *   16, // Pin
+ *   GPIO_NUM_16, // Pin
  *   8   // Pixel count
  * );
  * ws2812.setPixel(0, 128, 0, 0);
