@@ -440,7 +440,7 @@ void BLECharacteristic::handleGATTServerEvent(
 		case ESP_GATTS_CONF_EVT: {
 			// ESP_LOGD(LOG_TAG, "m_handle = %d, conf->handle = %d", m_handle, param->conf.handle);
 			if(param->conf.conn_id == getService()->getServer()->getConnId()) // && param->conf.handle == m_handle) // bug in esp-idf and not implemented in arduino yet
-				m_semaphoreConfEvt.giveFromISR(param->conf.status);
+				m_semaphoreConfEvt.giveFromISR();
 			break;
 		}
 
