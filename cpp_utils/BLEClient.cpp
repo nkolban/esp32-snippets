@@ -193,7 +193,7 @@ void BLEClient::gattClientEventHandler(
 			ESP_LOGE(__func__, "disconnect event, reason: %d, connId: %d, my connId: %d, my IF: %d, gattc_if: %d", (int)evtParam->disconnect.reason, evtParam->disconnect.conn_id, getConnId(), getGattcIf(), gattc_if);
 			if(m_gattc_if != gattc_if)
 				break;
-			m_semaphoreOpenEvt.give(evtParam->disconnect.reason);
+			m_semaphoreOpenEvt.giveFromISR(evtParam->disconnect.reason);
 			if(!m_isConnected)
 				break;
 			// If we receive a disconnect event, set the class flag that indicates that we are
