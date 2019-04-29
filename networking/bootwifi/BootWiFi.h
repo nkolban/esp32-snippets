@@ -12,6 +12,9 @@
 #include <HttpServer.h>
 #include <FreeRTOS.h>
 
+#define RESTART_COUNTER
+#define MAX_RESTART_TO_CONFIG (3)
+
 typedef void (*bootwifi_callback_t)(int rc);
 class BootWifiEventHandler;
 
@@ -29,8 +32,11 @@ private:
 
 public:
 	BootWiFi();
+	BootWiFi(char *);
 	void setAccessPointCredentials(std::string ssid, std::string password);
 	uint8_t boot();
+	uint8_t boot(std::string);
+	std::string getIp(void);
 };
 
 #endif /* MAIN_BOOTWIFI_H_ */

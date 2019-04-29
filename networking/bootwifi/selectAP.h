@@ -1,3 +1,56 @@
+std::string formPrefix =
+		"<!DOCTYPE html>\n"
+		"<html>\n"
+		"<head>\n"
+		"<meta charset=\"UTF-8\">\n"
+		"<title>Select WiFi</title>\n"
+		"</head>\n"
+		"<body>\n"
+		"<!-- Start -->\n"
+		"<div style=\"zoom: 350%;\">\n"
+		"<h1>Select WiFi</h1>\n"
+		"<form action=\"ssidSelected\" method=\"post\">\n"
+		"<table>\n"
+		"<tbody>\n"
+		"<tr>\n";
+#if 0
+		"<td>SSID:</td>\n";
+		"<td><input type=\"text\" autocorrect=\"off\" autocapitalize=\"none\" name=\"ssid\" /></td>\n"
+#endif
+
+std::string formPostfix =
+		"</tr>\n"
+		"<tr>\n"
+		"<td>Password:</td>\n"
+		"<td><input type=\"text\" autocorrect=\"off\" autocapitalize=\"none\" name=\"password\" /></td>\n"
+		"</tr>\n"
+		"<tr>\n"
+		"<td>IP address:</td>\n"
+		"<td><input type=\"text\" autocorrect=\"off\" autocapitalize=\"none\" name=\"ip\" /></td>\n"
+		"</tr>\n"
+		"<tr>\n"
+		"<td>Gateway address:</td>\n"
+		"<td><input type=\"text\" autocorrect=\"off\" autocapitalize=\"none\" name=\"gw\" /></td>\n"
+		"</tr>\n"
+		"<tr>\n"
+		"<td>Netmask:</td>\n"
+		"<td><input type=\"text\" autocorrect=\"off\" autocapitalize=\"none\" name=\"netmask\" /></td>\n"
+		"</tr>\n"
+		"</tbody>\n"
+		"</table>\n"
+		"<p>\n"
+		"<input type=\"submit\" value=\"Submit\">\n"
+		"</p>\n"
+		"</form>\n"
+		"<div style=\"margin: 6px;\">\n"
+		"The IP address, gateway address and netmask are optional.  If not supplied "
+		"these values will be issued by the WiFi access point."
+		"</div>\n"
+		"</div>\n"
+		"<!-- End -->\n"
+		"</body>\n"
+		"</html>\n"
+		;
 unsigned char selectAP_html[] = {
   0x3c, 0x21, 0x44, 0x4f, 0x43, 0x54, 0x59, 0x50, 0x45, 0x20, 0x68, 0x74,
   0x6d, 0x6c, 0x3e, 0x0a, 0x3c, 0x68, 0x74, 0x6d, 0x6c, 0x3e, 0x0a, 0x3c,
