@@ -472,12 +472,13 @@ PathHandler::PathHandler(std::string method, std::string matchPath,
 bool PathHandler::match(std::string method, std::string path) {
 	if (method != m_method) return false;
 	if (m_isRegex) {
-		ESP_LOGD("PathHandler", "regex matching: %s with %s", m_textPattern.c_str(), path.c_str());
+		ESP_LOGI("PathHandler", "regex matching: %s with %s", m_textPattern.c_str(), path.c_str());
 		return std::regex_search(path, *m_pRegex);
 	}
-	ESP_LOGD("PathHandler", "plain matching: %s with %s", m_textPattern.c_str(), path.c_str());
+	ESP_LOGI("PathHandler", "plain matching: %s with %s", m_textPattern.c_str(), path.c_str());
 	return m_textPattern.compare(0, m_textPattern.length(), path) ==0;
 } // match
+
 
 
 /**

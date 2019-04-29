@@ -15,8 +15,48 @@
 #define MG_ENABLE_FILESYSTEM 1
 #include "WebServer.h"
 #include <esp_log.h>
-#include <mongoose.h>
+#include "mongoose.h"
 #include <string>
+#include <utility>
+
+const char WebServer::HTTPRequest::HTTP_HEADER_ACCEPT[]         = "Accept";
+const char WebServer::HTTPRequest::HTTP_HEADER_ALLOW[]          = "Allow";
+const char WebServer::HTTPRequest::HTTP_HEADER_CONNECTION[]     = "Connection";
+const char WebServer::HTTPRequest::HTTP_HEADER_CONTENT_LENGTH[] = "Content-Length";
+const char WebServer::HTTPRequest::HTTP_HEADER_CONTENT_TYPE[]   = "Content-Type";
+const char WebServer::HTTPRequest::HTTP_HEADER_CONTENT_ENCODING[]   = "Content-Encoding";
+const char WebServer::HTTPRequest::HTTP_HEADER_COOKIE[]         = "Cookie";
+const char WebServer::HTTPRequest::HTTP_HEADER_HOST[]           = "Host";
+const char WebServer::HTTPRequest::HTTP_HEADER_LAST_MODIFIED[]  = "Last-Modified";
+const char WebServer::HTTPRequest::HTTP_HEADER_ORIGIN[]         = "Origin";
+const char WebServer::HTTPRequest::HTTP_HEADER_SEC_WEBSOCKET_ACCEPT[]   = "Sec-WebSocket-Accept";
+const char WebServer::HTTPRequest::HTTP_HEADER_SEC_WEBSOCKET_PROTOCOL[] = "Sec-WebSocket-Protocol";
+const char WebServer::HTTPRequest::HTTP_HEADER_SEC_WEBSOCKET_KEY[]      = "Sec-WebSocket-Key";
+const char WebServer::HTTPRequest::HTTP_HEADER_SEC_WEBSOCKET_VERSION[]  = "Sec-WebSocket-Version";
+const char WebServer::HTTPRequest::HTTP_HEADER_UPGRADE[]        = "Upgrade";
+const char WebServer::HTTPRequest::HTTP_HEADER_USER_AGENT[]     = "User-Agent";
+
+const char WebServer::HTTPRequest::HTTP_METHOD_CONNECT[] = "CONNECT";
+const char WebServer::HTTPRequest::HTTP_METHOD_DELETE[]  = "DELETE";
+const char WebServer::HTTPRequest::HTTP_METHOD_GET[]     = "GET";
+const char WebServer::HTTPRequest::HTTP_METHOD_HEAD[]    = "HEAD";
+const char WebServer::HTTPRequest::HTTP_METHOD_OPTIONS[] = "OPTIONS";
+const char WebServer::HTTPRequest::HTTP_METHOD_PATCH[]   = "PATCH";
+const char WebServer::HTTPRequest::HTTP_METHOD_POST[]    = "POST";
+const char WebServer::HTTPRequest::HTTP_METHOD_PUT[]     = "PUT";
+
+const int WebServer::HTTPResponse::HTTP_STATUS_CONTINUE              = 100;
+const int WebServer::HTTPResponse::HTTP_STATUS_SWITCHING_PROTOCOL    = 101;
+const int WebServer::HTTPResponse::HTTP_STATUS_OK                    = 200;
+const int WebServer::HTTPResponse::HTTP_STATUS_MOVED_PERMANENTLY     = 301;
+const int WebServer::HTTPResponse::HTTP_STATUS_BAD_REQUEST           = 400;
+const int WebServer::HTTPResponse::HTTP_STATUS_UNAUTHORIZED          = 401;
+const int WebServer::HTTPResponse::HTTP_STATUS_FORBIDDEN             = 403;
+const int WebServer::HTTPResponse::HTTP_STATUS_NOT_FOUND             = 404;
+const int WebServer::HTTPResponse::HTTP_STATUS_METHOD_NOT_ALLOWED    = 405;
+const int WebServer::HTTPResponse::HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
+const int WebServer::HTTPResponse::HTTP_STATUS_NOT_IMPLEMENTED       = 501;
+const int WebServer::HTTPResponse::HTTP_STATUS_SERVICE_UNAVAILABLE   = 503;
 
 #define STATE_NAME 0
 #define STATE_VALUE 1
@@ -30,6 +70,35 @@ struct WebServerUserData {
 	void* originalUserData;
 };
 
+
+static std::string getContentType(std::string filename)
+{
+	if (GeneralUtils::endsWith(filename,".htm"))
+		return "text/html; charset=UTF-8";
+	else if (GeneralUtils::endsWith(filename,".html"))
+		return "text/html; charset=UTF-8";
+	else if (GeneralUtils::endsWith(filename,".css"))
+		return "text/css; charset=UTF-8";
+	else if (GeneralUtils::endsWith(filename,".js"))
+		return "application/javascript; charset=UTF-8";
+	else if (GeneralUtils::endsWith(filename,".png"))
+		return "image/png";
+	else if (GeneralUtils::endsWith(filename,".gif"))
+		return "image/gif";
+	else if (GeneralUtils::endsWith(filename,".jpg"))
+		return "image/jpeg";
+	else if (GeneralUtils::endsWith(filename,".ico"))
+		return "image/x-icon";
+	else if (GeneralUtils::endsWith(filename,".xml"))
+		return "text/xml; charset=UTF-8";
+	else if (GeneralUtils::endsWith(filename,".pdf"))
+		return "application/x-pdf";
+	else if (GeneralUtils::endsWith(filename,".zip"))
+		return "application/x-zip";
+	else if (GeneralUtils::endsWith(filename,".gz"))
+		return "application/x-gzip";
+	return "text/plain; charset=UTF-8";
+}
 
 /**
  * @brief Convert a Mongoose event type to a string.
@@ -157,34 +226,38 @@ static void mongoose_event_handler_web_server(struct mg_connection* mgConnection
 		} // MG_EV_HTTP_REQUEST
 
 		case MG_EV_HTTP_MULTIPART_REQUEST: {
-			struct WebServerUserData *pWebServerUserData = (struct WebServerUserData*) mgConnection->user_data;
-			ESP_LOGD(LOG_TAG, "User_data address 0x%d", (uint32_t) pWebServerUserData);
+			struct http_message* message = (struct http_message*) eventData;
+			ESP_LOGD(LOG_TAG, "Multipart Request user data %p", mgConnection->user_data);
+//			dumpHttpMessage(message);
+			struct WebServerUserData* pWebServerUserData = (struct WebServerUserData*) mgConnection->user_data;
 			WebServer* pWebServer = pWebServerUserData->pWebServer;
-			if (pWebServer->m_pMultiPartFactory == nullptr) return;
-			WebServer::HTTPMultiPart* pMultiPart = pWebServer->m_pMultiPartFactory->newInstance();
-			struct WebServerUserData* p2 = new WebServerUserData();
-			ESP_LOGD(LOG_TAG, "New User_data address 0x%d", (uint32_t) p2);
-			p2->originalUserData	= pWebServerUserData;
-			p2->pWebServer		  = pWebServerUserData->pWebServer;
-			p2->pMultiPart		  = pMultiPart;
-			p2->pWebSocketHandler   = nullptr;
-			mgConnection->user_data = p2;
-			//struct http_message* message = (struct http_message*) eventData;
-			//dumpHttpMessage(message);
+			pWebServer->processMultiRequest(mgConnection, message);
 			break;
 		} // MG_EV_HTTP_MULTIPART_REQUEST
 
 		case MG_EV_HTTP_MULTIPART_REQUEST_END: {
 			struct WebServerUserData* pWebServerUserData = (struct WebServerUserData*) mgConnection->user_data;
+			ESP_LOGD(LOG_TAG, "Multipart Request End orig user data %p user data %p", pWebServerUserData->originalUserData,
+					mgConnection->user_data);
 			if (pWebServerUserData->pMultiPart != nullptr) {
+				// get the status of this upload
+				int status = pWebServerUserData->pMultiPart->getStatus();
 				delete pWebServerUserData->pMultiPart;
 				pWebServerUserData->pMultiPart = nullptr;
+				mgConnection->user_data = pWebServerUserData->originalUserData;
+				delete pWebServerUserData;
+				WebServer::HTTPResponse httpResponse = WebServer::HTTPResponse(mgConnection);
+				httpResponse.setStatus(status);
+				ESP_LOGI(LOG_TAG, "MultiPart status %d", status);
+				if (status == 200)
+				{
+					httpResponse.sendData("File uploaded OK");
+				}
+				else
+				{
+					httpResponse.sendData("File upload FAILED");
+				}
 			}
-			mgConnection->user_data = pWebServerUserData->originalUserData;
-			delete pWebServerUserData;
-			WebServer::HTTPResponse httpResponse = WebServer::HTTPResponse(mgConnection);
-			httpResponse.setStatus(200);
-			httpResponse.sendData("");
 			break;
 		} // MG_EV_HTTP_MULTIPART_REQUEST_END
 
@@ -447,21 +520,24 @@ std::string WebServer::HTTPResponse::buildHeaders() {
 			if (iter != m_headers.begin()) {
 				headers_len += 2;
 			}
+
 			headers_len += iter->first.length();
 			headers_len += 2;
 			headers_len += iter->second.length();
 	}
 	headers_len += 1;
-	headers.resize(headers_len); // Will not have to resize and recopy during the next loop, we have 2 loops but it still ends up being faster
+//	headers.resize(headers_len); // Will not have to resize and recopy during the next loop, we have 2 loops but it still ends up being faster
 
 	for (auto iter = m_headers.begin(); iter != m_headers.end(); iter++) {
 			if (iter != m_headers.begin()) {
 				headers += "\r\n";
 			}
+
 			headers += iter->first;
 			headers += ": ";
 			headers += iter->second;
 	}
+
 	return headers;
 } // buildHeaders
 
@@ -598,6 +674,10 @@ void WebServer::processRequest(struct mg_connection* mgConnection, struct http_m
 	ESP_LOGD(LOG_TAG, "WebServer::processRequest: Matching: %.*s", (int) message->uri.len, message->uri.p);
 	HTTPResponse httpResponse = HTTPResponse(mgConnection);
 
+	// make all rootPaths match
+	httpResponse.setRootPath(getRootPath());
+
+	ESP_LOGD(LOG_TAG, "Root = %s", httpResponse.getRootPath().c_str());
 	/*
 	 * Iterate through each of the path handlers looking for a match with the method and specified path.
 	 */
@@ -617,13 +697,43 @@ void WebServer::processRequest(struct mg_connection* mgConnection, struct http_m
 	filePath.reserve(httpResponse.getRootPath().length() + message->uri.len + 1);
 	filePath += httpResponse.getRootPath();
 	filePath.append(message->uri.p, message->uri.len);
+
 	ESP_LOGD(LOG_TAG, "Opening file: %s", filePath.c_str());
 	FILE* file = nullptr;
 
 	if (strcmp(filePath.c_str(), "/") != 0) {
-		file = fopen(filePath.c_str(), "rb");
+		// only try this if it is NOT a .gz file request
+
+		if (!GeneralUtils::endsWith(filePath, "gz")) {
+			// if they are willing to handle a gzipped file we should serve one, assuming we
+			// have it
+
+			// test to see if they are willing
+			HTTPRequest myHttpRequest(message);
+			std::string encoding = myHttpRequest.getHeader("Accept-Encoding");
+
+			if (encoding.find("gzip") != std::string::npos) {
+				// they seem willing to accept gzipped files, see if we have one
+				std::string gzFilePath(filePath + ".gz");
+				file = fopen(gzFilePath.c_str(), "rb");
+
+				if (file != nullptr) {
+					// add some needed headers
+					httpResponse.addHeader("Content-Encoding", "gzip");
+				}
+			}
+		}
+
+		if ( file == nullptr ){
+			file = fopen(filePath.c_str(), "rb");
+		}
 	}
+
 	if (file != nullptr) {
+		// we should be setting the type in the response
+
+		httpResponse.addHeader("Content-Type", getContentType(filePath));
+
 		auto pData = (uint8_t*)malloc(MAX_CHUNK_LENGTH);
 		size_t read = fread(pData, 1, MAX_CHUNK_LENGTH, file);
 
@@ -643,6 +753,73 @@ void WebServer::processRequest(struct mg_connection* mgConnection, struct http_m
 		httpResponse.sendData("");
 	}
 } // processRequest
+
+/**
+ * @brief Process an incoming HTTP multipart request.
+ *
+ * We look at the path of the request and see if it has a matching path handler.  If it does,
+ * we invoke the proper multipart factory.  If it does not, we fail with 404
+ *
+ * @param [in] mgConnection The network connection on which the request was received.
+ * @param [in] message The message representing the request.
+ */
+void WebServer::processMultiRequest(struct mg_connection* mgConnection, struct http_message* message) {
+	ESP_LOGD(LOG_TAG, "WebServer::processMultiRequest: Matching: %.*s", (int) message->uri.len, message->uri.p);
+	HTTPResponse httpResponse = HTTPResponse(mgConnection);
+
+	// make all rootPaths match
+	httpResponse.setRootPath(getRootPath());
+
+	ESP_LOGD(LOG_TAG, "Root = %s", httpResponse.getRootPath().c_str());
+
+	// are they looking for a POST method?
+
+	std::string method;
+	method.append(message->method.p, message->method.len);
+
+	if (method == "POST" || method == "DELETE")
+	{
+		std::string matchMethod = method + "_MULTI";
+
+		/*
+		 * Iterate through each of the path handlers looking for a match with the method and specified path.
+		 */
+		std::vector<PathHandler>::iterator it;
+		for (it = m_pathHandlers.begin(); it != m_pathHandlers.end(); ++it) {
+			if ((*it).match(matchMethod.c_str(), matchMethod.length(), message->uri.p)) {
+				ESP_LOGD(LOG_TAG, "Found a match!!");
+
+				struct WebServerUserData *pWebServerUserData = (struct WebServerUserData*) mgConnection->user_data;
+				ESP_LOGD(LOG_TAG, "User_data address 0x%d", (uint32_t) pWebServerUserData);
+				WebServer* pWebServer = pWebServerUserData->pWebServer;
+
+				if (pWebServer->m_pMultiPartFactory == nullptr)
+					break;
+
+				WebServer::HTTPMultiPart* pMultiPart = pWebServer->m_pMultiPartFactory->newInstance();
+				std::string uri;
+				uri.append(message->uri.p, message->uri.len);
+				pMultiPart->setUri(uri);
+				pMultiPart->setMethod(method);
+				struct WebServerUserData* p2 = new WebServerUserData();
+
+				ESP_LOGD(LOG_TAG, "New User_data address 0x%d", (uint32_t) p2);
+
+				p2->originalUserData	= pWebServerUserData;
+				p2->pWebServer		  = pWebServerUserData->pWebServer;
+				p2->pMultiPart		  = pMultiPart;
+				p2->pWebSocketHandler   = nullptr;
+				mgConnection->user_data = p2;
+				return;
+			}
+		} // End of examine path handlers.
+	}
+
+	// Handle unable to handle multipart post
+	httpResponse.setStatus(404); // Not found
+	httpResponse.sendData("No Multipart handler");
+
+} // processMultiRequest
 
 void WebServer::continueConnection(struct mg_connection* mgConnection) {
 	if (unfinishedConnection.count(mgConnection->sock) == 0) return;
@@ -720,6 +897,31 @@ void WebServer::PathHandler::invoke(WebServer::HTTPRequest* request, WebServer::
  */
 WebServer::HTTPRequest::HTTPRequest(struct http_message* message) {
 	m_message = message;
+
+	// loop through the possible headers (there are only 20)
+
+	for (int x = 0; x < MG_MAX_HTTP_HEADERS; x++)
+	{
+		std::string headerName;
+		std::string headerValue;
+
+		if (m_message->header_names[x].len <= 0)
+		{
+			break; // we are done
+		}
+
+		// get a string of the name
+		headerName.clear();
+		headerName.append(m_message->header_names[x].p, m_message->header_names[x].len);
+
+		// get a string of the value
+
+		headerValue.clear();
+		headerValue.append(m_message->header_values[x].p, m_message->header_values[x].len);
+
+		// now add the entry to the map
+		m_headers.insert(HeaderPair(headerName, headerValue));
+	}
 } // HTTPRequest
 
 
@@ -877,6 +1079,89 @@ std::vector<std::string> WebServer::HTTPRequest::pathSplit() const {
 } // pathSplit
 
 /**
+ * @brief Return a std::map of the headers.
+ *
+ * @return A map of header strings and their values.
+ */
+
+HeaderMap WebServer::HTTPRequest::getHeaders(void) const {
+	return m_headers;
+} //getHeaders
+
+/**
+ * @brief Return a std::map of the headers.
+ *
+ * @return A map of header strings and their values.
+ */
+std::string WebServer::HTTPRequest::getHeader(std::string headerName) const {
+	// get all the headers in a map
+
+	HeaderMap::const_iterator headerIt = m_headers.find(headerName);
+
+	if (headerIt != m_headers.end())
+	{
+		return headerIt->second;
+	}
+
+	return std::string();
+}
+
+/**
+ * @brief Parse the request message as a form.
+ * @return A map containing the names/values of the form elements that were found.
+ */
+std::map<std::string, std::string> WebServer::HTTPRequest::parseForm() {
+	ESP_LOGD(LOG_TAG, ">> parseForm");
+	std::map<std::string, std::string> map;
+	// A form is composed of name=value pairs where each pair is separated with an "&" character.
+	// Our algorithm is to split all the pairs by "&" and then split all the name/value pairs by "=".
+	std::istringstream ss(getBody());         // Get the body of the request.
+	std::string currentEntry;
+	while (std::getline(ss, currentEntry, '&')) {   // For each form entry.
+		ESP_LOGD(LOG_TAG, "Processing: %s", currentEntry.c_str());   // Debug
+		std::istringstream currentPair(currentEntry);   // Prepare to parse the name=value string.
+		std::string name;                               // Declare the name variable.
+		std::string value;                              // Declare the value variable.
+
+		std::getline(currentPair, name, '=');           // Parse the current form entry into name/value.
+		currentPair >> value;                           // The value is what remains.
+		map[name] = urlDecode(value);                   // Decode the field which may have been encoded.
+		ESP_LOGD(LOG_TAG, " %s = \"%s\"", name.c_str(), map[name].c_str());   // Debug
+                              // Add the form entry into the map.
+	} // Processed all form entries.
+	ESP_LOGD(LOG_TAG, "<< parseForm");                // Debug
+	return map;                                       // Return the map of form entries.
+} // parseForm
+
+/**
+ * @brief Decode a URL/form
+ * @param [in] str
+ * @return The decoded string.
+ */
+std::string WebServer::HTTPRequest::urlDecode(std::string str) {
+	// https://stackoverflow.com/questions/154536/encode-decode-urls-in-c
+	std::string ret;
+	char ch;
+	int ii, len = str.length();
+
+	for (int i = 0; i < len; i++) {
+		if (str[i] != '%'){
+			if (str[i] == '+') {
+				ret += ' ';
+			} else {
+				ret += str[i];
+			}
+		} else {
+			sscanf(str.substr(i + 1, 2).c_str(), "%x", &ii);
+			ch = static_cast<char>(ii);
+			ret += ch;
+			i = i + 2;
+		}
+	}
+	return ret;
+} // urlDecode
+
+/**
  * @brief Indicate the beginning of a multipart part.
  * An HTTP Multipart form is where each of the fields in the form are broken out into distinct
  * sections.  We commonly see this with file uploads.
@@ -929,6 +1214,113 @@ void WebServer::HTTPMultiPart::multipartStart() {
 	ESP_LOGD(LOG_TAG, "WebServer::HTTPMultiPart::multipartStart()");
 } // WebServer::HTTPMultiPart::multipartStart
 
+void WebServer::HTTPMultiPart::setUri(std::string uri) {
+	ESP_LOGD(LOG_TAG, "WebServer::HTTPMultiPart::setUri(%s)", uri.c_str());
+} // WebServer::HTTPMultiPart::setUri
+
+std::string WebServer::HTTPMultiPart::getUri() {
+	ESP_LOGD(LOG_TAG, "WebServer::HTTPMultiPart::getUri()");
+	return "UNKNOWN";
+} // WebServer::HTTPMultiPart::geturi
+
+void WebServer::HTTPMultiPart::setMethod(std::string method) {
+	ESP_LOGD(LOG_TAG, "WebServer::HTTPMultiPart::setMethod(%s0)", method.c_str());
+} // WebServer::HTTPMultiPart::setMethod
+
+std::string WebServer::HTTPMultiPart::getMethod() {
+	ESP_LOGD(LOG_TAG, "WebServer::HTTPMultiPart::getMethod()");
+	return "UNKNOWN";
+} // WebServer::HTTPMultiPart::getMethod
+
+int WebServer::HTTPMultiPart::getStatus() {
+	ESP_LOGD(LOG_TAG, "WebServer::HTTPMultiPart::getStatus()");
+	return 404;
+} // WebServer::HTTPMultiPart::getStatus
+
+class MyMultiPart : public WebServer::HTTPMultiPart {
+public:
+	void begin(std::string varName,	std::string fileName) {
+		ESP_LOGD(LOG_TAG, "MyMultiPart begin(): varName=%s, fileName=%s",
+			varName.c_str(), fileName.c_str());
+		m_currentVar = varName;
+		if (varName == "path") {
+			m_path = "";
+		} else if (varName == "myfile") {
+			m_fileData = "";
+			m_fileName = fileName;
+		}
+	} // begin
+
+	void end() {
+		ESP_LOGD(LOG_TAG, "MyMultiPart end()");
+		if (m_currentVar == "myfile") {
+			std::string fileName = m_path + "/" + m_fileName;
+			ESP_LOGD(LOG_TAG, "Write to file: %s ... data: %s", fileName.c_str(), m_fileData.c_str());
+
+			//std::ofstream myfile;
+			//myfile.open(fileName, std::ios::out | std::ios::binary | std::ios::trunc);
+			//myfile << m_fileData;
+			//myfile.close();
+
+			FILE *ffile = fopen(fileName.c_str(), "w");
+			fwrite(m_fileData.data(), m_fileData.length(), 1, ffile);
+			fclose(ffile);
+		}
+	} // end
+
+	void data(std::string data) {
+		ESP_LOGD(LOG_TAG, "MyMultiPart data(): length=%d", data.length());
+		if (m_currentVar == "path") {
+			m_path += data;
+		}
+		else if (m_currentVar == "myfile") {
+			m_fileData += data;
+		}
+	} // data
+
+	void multipartEnd() {
+		ESP_LOGD(LOG_TAG, "MyMultiPart multipartEnd()");
+	} // multipartEnd
+
+	void multipartStart() {
+		ESP_LOGD(LOG_TAG, "MyMultiPart multipartStart()");
+	} // multipartStart
+
+	void setUri(std::string uri) {
+		m_uri = uri;
+	}
+
+	std::string getUri(void) {
+		return m_uri;
+	}
+
+	void setMethod(std::string method) {
+		m_method = method;
+	}
+
+	std::string getMethod(void) {
+		return m_method;
+	}
+
+	int getStatus(void) {
+		return m_status;
+	}
+
+private:
+	std::string m_fileName;
+	std::string m_path;
+	std::string m_currentVar;
+	std::string m_fileData;
+	std::string m_method;
+	std::string m_uri;
+	int m_status;
+};
+
+class MyMultiPartFactory : public WebServer::HTTPMultiPartFactory {
+	WebServer::HTTPMultiPart* newInstance() {
+		return new MyMultiPart();
+	}
+};
 
 /**
  * @brief Indicate that a new WebSocket instance has been created.

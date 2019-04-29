@@ -25,6 +25,7 @@ public:
 	static const char HTTP_HEADER_CONNECTION[];
 	static const char HTTP_HEADER_CONTENT_LENGTH[];
 	static const char HTTP_HEADER_CONTENT_TYPE[];
+	static const char HTTP_HEADER_CONTENT_ENCODING[];
 	static const char HTTP_HEADER_COOKIE[];
 	static const char HTTP_HEADER_HOST[];
 	static const char HTTP_HEADER_LAST_MODIFIED[];

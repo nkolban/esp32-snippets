@@ -508,13 +508,24 @@ std::string WiFi::getStaSSID() {
 std::vector<WiFiAPRecord> WiFi::scan() {
 	ESP_LOGD(LOG_TAG, ">> scan");
 	std::vector<WiFiAPRecord> apRecords;
+	wifi_mode_t wifiMode;
 
 	init();
 
-	esp_err_t errRc = ::esp_wifi_set_mode(WIFI_MODE_STA);
+	esp_err_t errRc = ::esp_wifi_get_mode(&wifiMode);
+
 	if (errRc != ESP_OK) {
-		ESP_LOGE(LOG_TAG, "esp_wifi_set_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		ESP_LOGE(LOG_TAG, "esp_wifi_get_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();
+	}
+
+	if (wifiMode != WIFI_MODE_APSTA)
+	{
+		esp_err_t errRc = ::esp_wifi_set_mode(WIFI_MODE_APSTA);
+		if (errRc != ESP_OK) {
+			ESP_LOGE(LOG_TAG, "esp_wifi_set_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+			abort();
+		}
 	}
 
 	errRc = ::esp_wifi_start();
@@ -611,7 +622,7 @@ void WiFi::startAP(const std::string& ssid, const std::string& password, wifi_au
 
 	init();
 
-	esp_err_t errRc = ::esp_wifi_set_mode(WIFI_MODE_AP);
+	esp_err_t errRc = ::esp_wifi_set_mode(WIFI_MODE_APSTA); // change to APSTA so we can scan
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_wifi_set_mode: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		abort();

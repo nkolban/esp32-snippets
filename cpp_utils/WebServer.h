@@ -11,12 +11,16 @@
 #include <vector>
 #include <regex>
 #include <map>
+#include "GeneralUtils.h"
 #include "sdkconfig.h"
 
 #ifdef CONFIG_MONGOOSE_PRESENT
-#include <mongoose.h>
+#include "mongoose.h"
 
 #define MAX_CHUNK_LENGTH 4090 // 4 kilobytes
+
+typedef std::map<std::string, std::string> HeaderMap;
+typedef std::pair<std::string, std::string> HeaderPair;
 
 class WebServer;
 
@@ -25,6 +29,7 @@ class WebServer;
  *
  * A web server.
  */
+
 class WebServer {
 public:
 	/**
@@ -33,6 +38,32 @@ public:
 	class HTTPRequest {
 		public:
 			HTTPRequest(struct http_message* message);
+			static const char HTTP_HEADER_ACCEPT[];
+			static const char HTTP_HEADER_ALLOW[];
+			static const char HTTP_HEADER_CONNECTION[];
+			static const char HTTP_HEADER_CONTENT_LENGTH[];
+			static const char HTTP_HEADER_CONTENT_TYPE[];
+			static const char HTTP_HEADER_CONTENT_ENCODING[];
+			static const char HTTP_HEADER_COOKIE[];
+			static const char HTTP_HEADER_HOST[];
+			static const char HTTP_HEADER_LAST_MODIFIED[];
+			static const char HTTP_HEADER_ORIGIN[];
+			static const char HTTP_HEADER_SEC_WEBSOCKET_ACCEPT[];
+			static const char HTTP_HEADER_SEC_WEBSOCKET_PROTOCOL[];
+			static const char HTTP_HEADER_SEC_WEBSOCKET_KEY[];
+			static const char HTTP_HEADER_SEC_WEBSOCKET_VERSION[];
+			static const char HTTP_HEADER_UPGRADE[];
+			static const char HTTP_HEADER_USER_AGENT[];
+
+			static const char HTTP_METHOD_CONNECT[];
+			static const char HTTP_METHOD_DELETE[];
+			static const char HTTP_METHOD_GET[];
+			static const char HTTP_METHOD_HEAD[];
+			static const char HTTP_METHOD_OPTIONS[];
+			static const char HTTP_METHOD_PATCH[];
+			static const char HTTP_METHOD_POST[];
+			static const char HTTP_METHOD_PUT[];
+
 			const char* getMethod() const;
 			const char* getPath() const;
 			const char* getBody() const;
@@ -41,9 +72,14 @@ public:
 			size_t getBodyLen() const;
 			std::map<std::string, std::string> getQuery() const;
 			std::vector<std::string> pathSplit() const;
+			HeaderMap getHeaders() const;
+			std::string getHeader(std::string) const;
+			std::map<std::string, std::string> parseForm();
+			std::string urlDecode(std::string str);
 
 		private:
 			struct http_message* m_message;
+			HeaderMap m_headers;
 
 	}; // HTTPRequest
 
@@ -53,6 +89,20 @@ public:
 	class HTTPResponse {
 		public:
 			HTTPResponse(struct mg_connection* nc);
+
+			static const int HTTP_STATUS_CONTINUE;
+			static const int HTTP_STATUS_SWITCHING_PROTOCOL;
+			static const int HTTP_STATUS_OK;
+			static const int HTTP_STATUS_MOVED_PERMANENTLY;
+			static const int HTTP_STATUS_BAD_REQUEST;
+			static const int HTTP_STATUS_UNAUTHORIZED;
+			static const int HTTP_STATUS_FORBIDDEN;
+			static const int HTTP_STATUS_NOT_FOUND;
+			static const int HTTP_STATUS_METHOD_NOT_ALLOWED;
+			static const int HTTP_STATUS_INTERNAL_SERVER_ERROR;
+			static const int HTTP_STATUS_NOT_IMPLEMENTED;
+			static const int HTTP_STATUS_SERVICE_UNAVAILABLE;
+
 			void addHeader(const std::string& name, const std::string& value);
 			void addHeader(std::string&& name, std::string&& value);
 			void setStatus(int status);
@@ -107,7 +157,11 @@ public:
 		virtual void data(const std::string& data);
 		virtual void multipartEnd();
 		virtual void multipartStart();
-
+		virtual void setUri(std::string);
+		virtual std::string getUri(void);
+		virtual void setMethod(std::string);
+		virtual std::string getMethod(void);
+		virtual int getStatus(void);
 	}; // HTTPMultiPart
 
 	/**
@@ -208,6 +262,7 @@ public:
 	void setWebSocketHandlerFactory(WebSocketHandlerFactory* pWebSocketHandlerFactory);
 	void start(unsigned short port = 80);
 	void processRequest(struct mg_connection* mgConnection, struct http_message* message);
+	void processMultiRequest(struct mg_connection* mgConnection, struct http_message* message);
 	void continueConnection(struct mg_connection* mgConnection);
 	HTTPMultiPartFactory* m_pMultiPartFactory;
 	WebSocketHandlerFactory* m_pWebSocketHandlerFactory;

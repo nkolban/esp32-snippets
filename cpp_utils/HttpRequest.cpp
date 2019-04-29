@@ -53,6 +53,7 @@ const char HttpRequest::HTTP_HEADER_ALLOW[]          = "Allow";
 const char HttpRequest::HTTP_HEADER_CONNECTION[]     = "Connection";
 const char HttpRequest::HTTP_HEADER_CONTENT_LENGTH[] = "Content-Length";
 const char HttpRequest::HTTP_HEADER_CONTENT_TYPE[]   = "Content-Type";
+const char HttpRequest::HTTP_HEADER_CONTENT_ENCODING[]   = "Content-Encoding";
 const char HttpRequest::HTTP_HEADER_COOKIE[]         = "Cookie";
 const char HttpRequest::HTTP_HEADER_HOST[]           = "Host";
 const char HttpRequest::HTTP_HEADER_LAST_MODIFIED[]  = "Last-Modified";

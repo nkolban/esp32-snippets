@@ -22,6 +22,7 @@ public:
 	static bool        base64Encode(const std::string& in, std::string* out);
 	static void        dumpInfo();
 	static bool        endsWith(std::string str, char c);
+	static bool        endsWith(std::string str, std::string);
 	static const char* errorToString(esp_err_t errCode);
 	static const char* wifiErrorToString(uint8_t value);
 	static void        hexDump(const uint8_t* pData, uint32_t length);
@@ -29,7 +30,7 @@ public:
 	static std::vector<std::string> split(std::string source, char delimiter);
 	static std::string toLower(std::string& value);
 	static std::string trim(const std::string& str);
-
+	static std::string makePath(std::string base, std::string path);
 };
 
 #endif /* COMPONENTS_CPP_UTILS_GENERALUTILS_H_ */

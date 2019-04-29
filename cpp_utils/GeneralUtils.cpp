@@ -126,7 +126,7 @@ void GeneralUtils::dumpInfo() {
 /**
  * @brief Does the string end with a specific character?
  * @param [in] str The string to examine.
- * @param [in] c The character to look form.
+ * @param [in] c The character to look for.
  * @return True if the string ends with the given character.
  */
 bool GeneralUtils::endsWith(std::string str, char c) {
@@ -137,6 +137,19 @@ bool GeneralUtils::endsWith(std::string str, char c) {
 		return true;
 	}
 	return false;
+} // endsWidth
+
+/**
+ * @brief Does the string end with a specific string?
+ * @param [in] str The string to examine.
+ * @param [in] suffix the string to look for.
+ * @return True if the string ends with the given suffix.
+ */
+bool GeneralUtils::endsWith(std::string str, std::string suffix) {
+	if (str.empty() || suffix.empty() || (suffix.size() > str.size())) {
+		return false;
+	}
+    return std::equal(str.begin() + str.size() - suffix.size(), str.end(), suffix.begin());
 } // endsWidth
 
 
@@ -542,3 +555,14 @@ std::string GeneralUtils::trim(const std::string& str) {
 	size_t last = str.find_last_not_of(' ');
 	return str.substr(first, (last - first + 1));
 } // trim
+
+/**
+ * @brief combine the base and path, include only one "/" */
+std::string GeneralUtils::makePath(std::string base, std::string path) {
+	if ( path[0] == '/')
+	{
+		return (base + path);
+	}
+
+	return (base + "/" + path);
+} // makePath

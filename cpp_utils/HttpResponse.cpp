@@ -8,6 +8,7 @@
 #include <fstream>
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "GeneralUtils.h"
 #include <esp_log.h>
 
 static const char* LOG_TAG = "HttpResponse";
@@ -121,19 +122,84 @@ void HttpResponse::sendData(uint8_t* pData, size_t size) {
 	ESP_LOGD(LOG_TAG, "<< sendData");
 } // sendData
 
+class String : std::string
+{
+public:
+    String(std::string initStr) : std::string(initStr)
+    {
+    }
+    
+    bool endsWith(const std::string& suffix) {
+    if (suffix.size() > size()) return false;
+    return std::equal(begin() + size() - suffix.size(), end(), suffix.begin());
+    };
+};
+
+std::string getContentType(std::string fileStr) {
+    //	if (server.hasArg("download"))
+    //		return "application/octet-stream";
+    //	else
+
+    if (GeneralUtils::endsWith(fileStr, ".htm"))
+	return "text/html";
+    else if (GeneralUtils::endsWith(fileStr, ".html"))
+	return "text/html";
+    else if (GeneralUtils::endsWith(fileStr, ".css"))
+	return "text/css";
+    else if (GeneralUtils::endsWith(fileStr, ".js"))
+	return "application/javascript";
+    else if (GeneralUtils::endsWith(fileStr, ".png"))
+	return "image/png";
+    else if (GeneralUtils::endsWith(fileStr, ".gif"))
+	return "image/gif";
+    else if (GeneralUtils::endsWith(fileStr, ".jpg"))
+	return "image/jpeg";
+    else if (GeneralUtils::endsWith(fileStr, ".ico"))
+	return "image/x-icon";
+    else if (GeneralUtils::endsWith(fileStr, ".xml"))
+	return "text/xml";
+    else if (GeneralUtils::endsWith(fileStr, ".pdf"))
+	return "application/x-pdf";
+    else if (GeneralUtils::endsWith(fileStr, ".zip"))
+	return "application/x-zip";
+    else if (GeneralUtils::endsWith(fileStr, ".gz"))
+	return "application/x-gzip";
+    return "text/plain";
+}
+
 void HttpResponse::sendFile(std::string fileName, size_t bufSize) {
 	ESP_LOGI(LOG_TAG, "Opening file: %s", fileName.c_str());
+	std::string contentType = getContentType(fileName);
+	ESP_LOGD(LOG_TAG, "content type: %s", contentType.c_str());
+	std::string encodingStr = m_request->getHeader("Accept-Encoding");
+	bool canGz = encodingStr.find("gzip") != encodingStr.npos;
+	ESP_LOGD(LOG_TAG, "canGz: %d",canGz);
+	
 	std::ifstream ifStream;
 	ifStream.open(fileName, std::ifstream::in | std::ifstream::binary);      // Attempt to open the file for reading.
 
 	// If we failed to open the requested file, then it probably didn't exist so return a not found.
 	if (!ifStream.is_open()) {
+	    if (canGz)
+	    {
+		// try to find a compressed version of the file
+		std::string fileNameGz = fileName + ".gz";
+		ifStream.open(fileNameGz, std::ifstream::in | std::ifstream::binary);      // Attempt to open the file for reading.
+	    }
+	    
+	    if (!ifStream.is_open()) {
 		ESP_LOGE(LOG_TAG, "Unable to open file %s for reading", fileName.c_str());
 		setStatus(HttpResponse::HTTP_STATUS_NOT_FOUND, "Not Found");
 		addHeader(HttpRequest::HTTP_HEADER_CONTENT_TYPE, "text/plain");
 		sendData("Not Found");
 		close();
 		return; // Since we failed to open the file, no further work to be done.
+	    }
+
+	    // the type should now be compressed
+
+	    //	    contentType = std::string("application/x-gzip");
+	    addHeader(HttpRequest::HTTP_HEADER_CONTENT_ENCODING, "gzip");
 	}
 
 	// We now have an open file and want to push the content of that file through to the browser.
@@ -141,6 +207,8 @@ void HttpResponse::sendFile(std::string fileName, size_t bufSize) {
 	// RAM at one time.  Instead what we have to do is ensure that we only have enough data in RAM to be sent.
 
 	setStatus(HttpResponse::HTTP_STATUS_OK, "OK");
+	addHeader(HttpRequest::HTTP_HEADER_CONTENT_TYPE, contentType);
+	
 	uint8_t *pData = new uint8_t[bufSize];
 	while (!ifStream.eof()) {
 		ifStream.read((char*) pData, bufSize);
