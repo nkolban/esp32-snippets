@@ -1,9 +1,2 @@
 # ESP32 Snippets
-This repository hosts a set of ESP32 snippets that are in different
-stages of completeness.  They are made available in the hope that there
-may be something of value to you and under the notion that something
-is better than nothing.  The samples are being categorized.
-
-* vfs - Virtual File System
-* wifi - WiFi access
-* curl - Examples of curl usage
+This repository is no longer being actively maintained.  It was previously archived to make it read-only but, by request, has been un-archived so that others may continue to post comments and issues.  However, please understand that issues raised are unlikely to be resolved against this repository.
