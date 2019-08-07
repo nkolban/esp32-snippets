@@ -57,19 +57,10 @@ uint8_t u8g2_esp32_spi_byte_cb(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void 
 		  ESP_ERROR_CHECK(spi_bus_initialize(HSPI_HOST, &bus_config, 1));
 
 		  spi_device_interface_config_t dev_config;
-		  dev_config.address_bits     = 0;
-		  dev_config.command_bits     = 0;
-		  dev_config.dummy_bits       = 0;
-		  dev_config.mode             = 0;
-		  dev_config.duty_cycle_pos   = 0;
-		  dev_config.cs_ena_posttrans = 0;
-		  dev_config.cs_ena_pretrans  = 0;
+		  memset(&dev_config, 0, sizeof(spi_device_interface_config_t));
 		  dev_config.clock_speed_hz   = 10000;
 		  dev_config.spics_io_num     = u8g2_esp32_hal.cs;
-		  dev_config.flags            = 0;
 		  dev_config.queue_size       = 200;
-		  dev_config.pre_cb           = NULL;
-		  dev_config.post_cb          = NULL;
 		  //ESP_LOGI(TAG, "... Adding device bus.");
 		  ESP_ERROR_CHECK(spi_bus_add_device(HSPI_HOST, &dev_config, &handle_spi));
 
