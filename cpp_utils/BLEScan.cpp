@@ -77,7 +77,7 @@ void BLEScan::handleGAPEvent(
 				case ESP_GAP_SEARCH_INQ_CMPL_EVT: {
 					ESP_LOGW(LOG_TAG, "ESP_GAP_SEARCH_INQ_CMPL_EVT");
 					m_stopped = true;
-					m_semaphoreScanEnd.give();
+					m_semaphoreScanEnd.giveFromISR();
 					if (m_scanCompleteCB != nullptr) {
 						m_scanCompleteCB(m_scanResults);
 					}

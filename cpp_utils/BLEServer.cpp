@@ -197,7 +197,7 @@ void BLEServer::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t 
 		case ESP_GATTS_CREATE_EVT: {
 			BLEService* pService = m_serviceMap.getByUUID(param->create.service_id.id.uuid, param->create.service_id.id.inst_id);  // <--- very big bug for multi services with the same uuid
 			m_serviceMap.setByHandle(param->create.service_handle, pService);
-			m_semaphoreCreateEvt.give();
+			m_semaphoreCreateEvt.giveFromISR();
 			break;
 		} // ESP_GATTS_CREATE_EVT
 
@@ -245,7 +245,7 @@ void BLEServer::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t 
 		//
 		case ESP_GATTS_REG_EVT: {
 			m_gatts_if = gatts_if;
-			m_semaphoreRegisterAppEvt.give(); // Unlock the mutex waiting for the registration of the app.
+			m_semaphoreRegisterAppEvt.giveFromISR(); // Unlock the mutex waiting for the registration of the app.
 			break;
 		} // ESP_GATTS_REG_EVT
 
@@ -268,7 +268,7 @@ void BLEServer::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t 
 		}
 
 		case ESP_GATTS_OPEN_EVT:
-			m_semaphoreOpenEvt.give(param->open.status);
+			m_semaphoreOpenEvt.giveFromISR(param->open.status);
 			break;
 
 		default:

@@ -155,6 +155,17 @@ void FreeRTOS::Semaphore::giveFromISR() {
 
 
 /**
+ * @brief Give a semaphore from an ISR.
+ * The Semaphore is given with an associated value.
+ * @param [in] value The value to associate with the semaphore.
+ */
+void FreeRTOS::Semaphore::giveFromISR(uint32_t value) {
+	m_value = value;
+	giveFromISR();
+} // giveFromISR
+
+
+/**
  * @brief Take a semaphore.
  * Take a semaphore and wait indefinitely.
  * @param [in] owner The new owner (for debugging)

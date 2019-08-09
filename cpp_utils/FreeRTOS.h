@@ -35,6 +35,7 @@ public:
 		void        give();
 		void        give(uint32_t value);
 		void        giveFromISR();
+		void        giveFromISR(uint32_t value);
 		void        setName(std::string name);
 		bool        take(std::string owner = "<Unknown>");
 		bool        take(uint32_t timeoutMs, std::string owner = "<Unknown>");

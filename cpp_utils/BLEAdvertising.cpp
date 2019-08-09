@@ -480,15 +480,15 @@ void BLEAdvertising::handleGAPEvent(
 
 	switch(event) {
 		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT: {
-			// m_semaphoreSetAdv.give();
+			// m_semaphoreSetAdv.giveFromISR();
 			break;
 		}
 		case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT: {
-			// m_semaphoreSetAdv.give();
+			// m_semaphoreSetAdv.giveFromISR();
 			break;
 		}
 		case ESP_GAP_BLE_ADV_START_COMPLETE_EVT: {
-			// m_semaphoreSetAdv.give();
+			// m_semaphoreSetAdv.giveFromISR();
 			break;
 		}
 		case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT: {

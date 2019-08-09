@@ -197,7 +197,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(esp_gattc_cb_event_t event,
 				m_value = "";
 			}
 
-			m_semaphoreReadCharEvt.give();
+			m_semaphoreReadCharEvt.giveFromISR();
 			break;
 		} // ESP_GATTC_READ_CHAR_EVT
 
@@ -211,7 +211,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(esp_gattc_cb_event_t event,
 			if (evtParam->reg_for_notify.handle != getHandle()) break;
 
 			// We have processed the notify registration and can unlock the semaphore.
-			m_semaphoreRegForNotifyEvt.give();
+			m_semaphoreRegForNotifyEvt.giveFromISR();
 			break;
 		} // ESP_GATTC_REG_FOR_NOTIFY_EVT
 
@@ -223,7 +223,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(esp_gattc_cb_event_t event,
 		case ESP_GATTC_UNREG_FOR_NOTIFY_EVT: {
 			if (evtParam->unreg_for_notify.handle != getHandle()) break;
 			// We have processed the notify un-registration and can unlock the semaphore.
-			m_semaphoreRegForNotifyEvt.give();
+			m_semaphoreRegForNotifyEvt.giveFromISR();
 			break;
 		} // ESP_GATTC_UNREG_FOR_NOTIFY_EVT:
 
@@ -239,7 +239,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(esp_gattc_cb_event_t event,
 
 			// There is nothing further we need to do here.  This is merely an indication
 			// that the write has completed and we can unlock the caller.
-			m_semaphoreWriteCharEvt.give();
+			m_semaphoreWriteCharEvt.giveFromISR();
 			break;
 		} // ESP_GATTC_WRITE_CHAR_EVT
 

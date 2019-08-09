@@ -307,7 +307,7 @@ void BLEService::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t
 		// uint16_t service_handle
 		case ESP_GATTS_START_EVT: {
 			if (param->start.service_handle == getHandle()) {
-				m_semaphoreStartEvt.give();
+				m_semaphoreStartEvt.giveFromISR();
 			}
 			break;
 		} // ESP_GATTS_START_EVT
@@ -320,7 +320,7 @@ void BLEService::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t
 		//
 		case ESP_GATTS_STOP_EVT: {
 			if (param->stop.service_handle == getHandle()) {
-				m_semaphoreStopEvt.give();
+				m_semaphoreStopEvt.giveFromISR();
 			}
 			break;
 		} // ESP_GATTS_STOP_EVT
@@ -341,7 +341,7 @@ void BLEService::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t
 		case ESP_GATTS_CREATE_EVT: {
 			if (getUUID().equals(BLEUUID(param->create.service_id.id.uuid)) && m_instId == param->create.service_id.id.inst_id) {
 				setHandle(param->create.service_handle);
-				m_semaphoreCreateEvt.give();
+				m_semaphoreCreateEvt.giveFromISR();
 			}
 			break;
 		} // ESP_GATTS_CREATE_EVT
@@ -356,7 +356,7 @@ void BLEService::handleGATTServerEvent(esp_gatts_cb_event_t event, esp_gatt_if_t
 		//
 		case ESP_GATTS_DELETE_EVT: {
 			if (param->del.service_handle == getHandle()) {
-				m_semaphoreDeleteEvt.give();
+				m_semaphoreDeleteEvt.giveFromISR();
 			}
 			break;
 		} // ESP_GATTS_DELETE_EVT

@@ -193,7 +193,7 @@ void BLEClient::gattClientEventHandler(
 			ESP_LOGE(__func__, "disconnect event, reason: %d, connId: %d, my connId: %d, my IF: %d, gattc_if: %d", (int)evtParam->disconnect.reason, evtParam->disconnect.conn_id, getConnId(), getGattcIf(), gattc_if);
 			if(m_gattc_if != gattc_if)
 				break;
-			m_semaphoreOpenEvt.give(evtParam->disconnect.reason);
+			m_semaphoreOpenEvt.giveFromISR(evtParam->disconnect.reason);
 			if(!m_isConnected)
 				break;
 			// If we receive a disconnect event, set the class flag that indicates that we are
@@ -225,7 +225,7 @@ void BLEClient::gattClientEventHandler(
 				m_isConnected = true;   // Flag us as connected.
 				m_mtu = evtParam->open.mtu;
 			}
-			m_semaphoreOpenEvt.give(evtParam->open.status);
+			m_semaphoreOpenEvt.giveFromISR(evtParam->open.status);
 			break;
 		} // ESP_GATTC_OPEN_EVT
 
@@ -241,7 +241,7 @@ void BLEClient::gattClientEventHandler(
 			if(m_appId == evtParam->reg.app_id){
 				ESP_LOGI(__func__, "register app id: %d, %d, gattc_if: %d", m_appId, evtParam->reg.app_id, gattc_if);
 				m_gattc_if = gattc_if;
-				m_semaphoreRegEvt.give();
+				m_semaphoreRegEvt.giveFromISR();
 			}
 			break;
 		} // ESP_GATTC_REG_EVT
@@ -294,7 +294,7 @@ void BLEClient::gattClientEventHandler(
 			// 	ESP_LOGI(LOG_TAG, "unknown service source");
 			// }
 #endif
-			m_semaphoreSearchCmplEvt.give(evtParam->search_cmpl.status);
+			m_semaphoreSearchCmplEvt.giveFromISR(evtParam->search_cmpl.status);
 			break;
 		} // ESP_GATTC_SEARCH_CMPL_EVT
 
@@ -493,7 +493,7 @@ void BLEClient::handleGAPEvent(
 		// - esp_bd_addr_t remote_addr
 		//
 		case ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT: {
-			m_semaphoreRssiCmplEvt.give((uint32_t) param->read_rssi_cmpl.rssi);
+			m_semaphoreRssiCmplEvt.giveFromISR((uint32_t) param->read_rssi_cmpl.rssi);
 			break;
 		} // ESP_GAP_BLE_READ_RSSI_COMPLETE_EVT
 

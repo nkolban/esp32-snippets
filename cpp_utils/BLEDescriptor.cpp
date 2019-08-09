@@ -151,7 +151,7 @@ void BLEDescriptor::handleGATTServerEvent(
 					m_pCharacteristic->getService()->getHandle() == param->add_char_descr.service_handle &&
 					m_pCharacteristic == m_pCharacteristic->getService()->getLastCreatedCharacteristic()) {
 				setHandle(param->add_char_descr.attr_handle);
-				m_semaphoreCreateEvt.give();
+				m_semaphoreCreateEvt.giveFromISR();
 			}
 			break;
 		} // ESP_GATTS_ADD_CHAR_DESCR_EVT
