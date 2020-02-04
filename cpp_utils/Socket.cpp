@@ -60,7 +60,7 @@ Socket Socket::accept() {
 	ESP_LOGD(LOG_TAG, ">> accept: Accepting on %s; sockFd: %d, using SSL: %d", addressToString(&addr).c_str(), m_sock, getSSL());
 	struct sockaddr_in client_addr;
 	socklen_t sin_size;
-	int clientSockFD = ::lwip_accept_r(m_sock,  (struct sockaddr*) &client_addr, &sin_size);
+	int clientSockFD = ::lwip_accept(m_sock,  (struct sockaddr*) &client_addr, &sin_size);
 	//printf("------> new connection client %s:%d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 	if (clientSockFD == -1) {
 		SocketException se(errno);
@@ -117,7 +117,7 @@ int Socket::bind(uint16_t port, uint32_t address) {
 	serverAddress.sin_family      = AF_INET;
 	serverAddress.sin_addr.s_addr = htonl(address);
 	serverAddress.sin_port        = htons(port);
-	int rc = ::lwip_bind_r(m_sock, (struct sockaddr*) &serverAddress, sizeof(serverAddress));
+	int rc = ::lwip_bind(m_sock, (struct sockaddr*) &serverAddress, sizeof(serverAddress));
 	if (rc != 0) {
 		ESP_LOGE(LOG_TAG, "<< bind: bind[socket=%d]: %d: %s", m_sock, errno, strerror(errno));
 		return rc;
@@ -144,7 +144,7 @@ int Socket::close() {
 	rc = 0;
 	if (m_sock != -1) {
 		ESP_LOGD(LOG_TAG, "Calling lwip_close on %d", m_sock);
-		rc = ::lwip_close_r(m_sock);
+		rc = ::lwip_close(m_sock);
 		if (rc != 0) {
 			ESP_LOGE(LOG_TAG, "Error with lwip_close: %d", rc);
 		}
@@ -170,7 +170,7 @@ int Socket::connect(struct in_addr address, uint16_t port) {
 	inet_ntop(AF_INET, &address, msg, sizeof(msg));
 	ESP_LOGD(LOG_TAG, "Connecting to %s:[%d]", msg, port);
 	createSocket();
-	int rc = ::lwip_connect_r(m_sock, (struct sockaddr*) &serverAddress, sizeof(struct sockaddr_in));
+	int rc = ::lwip_connect(m_sock, (struct sockaddr*) &serverAddress, sizeof(struct sockaddr_in));
 	if (rc == -1) {
 		ESP_LOGE(LOG_TAG, "connect_cpp: Error: %s", strerror(errno));
 		close();
@@ -268,7 +268,7 @@ int Socket::listen(uint16_t port, bool isDatagram, bool reuseAddress) {
 	// For a datagram socket, we don't execute a listen call.  That is is only for connection oriented
 	// sockets.
 	if (!isDatagram) {
-		rc = ::lwip_listen_r(m_sock, 5);
+		rc = ::lwip_listen(m_sock, 5);
 		if (rc == -1) {
 			ESP_LOGE(LOG_TAG, "<< listen: %s", strerror(errno));
 			return rc;
@@ -356,7 +356,7 @@ size_t Socket::receive(uint8_t* data, size_t length, bool exact) {
 				ESP_LOGD(LOG_TAG, "rc=%d, MBEDTLS_ERR_SSL_WANT_READ=%d", rc, MBEDTLS_ERR_SSL_WANT_READ);
 			} while (rc == MBEDTLS_ERR_SSL_WANT_WRITE || rc == MBEDTLS_ERR_SSL_WANT_READ);
 		} else {
-			rc = ::lwip_recv_r(m_sock, data, length, 0);
+			rc = ::lwip_recv(m_sock, data, length, 0);
 			if (rc == -1) {
 				ESP_LOGE(LOG_TAG, "receive: %s", strerror(errno));
 			}
@@ -374,7 +374,7 @@ size_t Socket::receive(uint8_t* data, size_t length, bool exact) {
 				rc = mbedtls_ssl_read(&m_sslContext, data, amountToRead);
 			} while (rc == MBEDTLS_ERR_SSL_WANT_WRITE || rc == MBEDTLS_ERR_SSL_WANT_READ);
 		} else {
-			rc = ::lwip_recv_r(m_sock, data, amountToRead, 0);
+			rc = ::lwip_recv(m_sock, data, amountToRead, 0);
 		}
 		if (rc == -1) {
 			ESP_LOGE(LOG_TAG, "receive: %s", strerror(errno));
@@ -432,7 +432,7 @@ int Socket::send(const uint8_t* data, size_t length) const {
 				}
 			}
 		} else {
-			rc = ::lwip_send_r(m_sock, data, length, 0);
+			rc = ::lwip_send(m_sock, data, length, 0);
 			if ((rc < 0) && (errno != EAGAIN)) {
 				// no cure for errors other than EAGAIN - log and exit
 				ESP_LOGE(LOG_TAG, "send: socket=%d, %s", m_sock, strerror(errno));

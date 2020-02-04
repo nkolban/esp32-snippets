@@ -6,6 +6,7 @@
  */
 
 #include "GeneralUtils.h"
+#include <esp_log.h>
 #include <esp_system.h>
 #include <string.h>
 #include <stdio.h>
@@ -19,14 +20,7 @@
 #include <esp_heap_caps.h>
 #include <esp_system.h>
 
-#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
-#include "esp32-hal-log.h"
-#define LOG_TAG ""
-#else
-#include "esp_log.h"
 static const char* LOG_TAG = "GeneralUtils";
-#endif
-
 
 static const char kBase64Alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	"abcdefghijklmnopqrstuvwxyz"
@@ -371,7 +365,6 @@ std::vector<std::string> GeneralUtils::split(std::string source, char delimiter)
  */
 const char* GeneralUtils::errorToString(esp_err_t errCode) {
 	switch (errCode) {
-#if CONFIG_LOG_DEFAULT_LEVEL > 4
 		case ESP_OK:
 			return "ESP_OK";
 		case ESP_FAIL:
@@ -438,7 +431,6 @@ const char* GeneralUtils::errorToString(esp_err_t errCode) {
 			return "ESP_ERR_WIFI_TIMEOUT";
 		case ESP_ERR_WIFI_WAKE_FAIL:
 			return "ESP_ERR_WIFI_WAKE_FAIL";
-#endif
 		default:
 			return "Unknown ESP_ERR error";
 		}
@@ -456,7 +448,6 @@ const char* GeneralUtils::wifiErrorToString(uint8_t errCode) {
 	if (errCode == UINT8_MAX) return "Not Connected (default value)";
 
 	switch ((wifi_err_reason_t) errCode) {
-#if CONFIG_LOG_DEFAULT_LEVEL > 4
 		case WIFI_REASON_UNSPECIFIED:
 			return "WIFI_REASON_UNSPECIFIED";
 		case WIFI_REASON_AUTH_EXPIRE:
@@ -513,7 +504,6 @@ const char* GeneralUtils::wifiErrorToString(uint8_t errCode) {
 			return "WIFI_REASON_ASSOC_FAIL";
 		case WIFI_REASON_HANDSHAKE_TIMEOUT:
 			return "WIFI_REASON_HANDSHAKE_TIMEOUT";
-#endif
 		default:
 			return "Unknown ESP_ERR error";
 	}
