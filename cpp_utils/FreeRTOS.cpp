@@ -11,14 +11,10 @@
 #include <sstream>
 #include <iomanip>
 #include "FreeRTOS.h"
+#include <esp_log.h>
 #include "sdkconfig.h"
-#if defined(ARDUINO_ARCH_ESP32) && defined(CONFIG_ARDUHAL_ESP_LOG)
-#include "esp32-hal-log.h"
-#define LOG_TAG ""
-#else
-#include "esp_log.h"
+
 static const char* LOG_TAG = "FreeRTOS";
-#endif
 
 /**
  * Sleep for the specified number of milliseconds.
@@ -67,14 +63,14 @@ uint32_t FreeRTOS::getTimeSinceStart() {
  */
 uint32_t FreeRTOS::Semaphore::wait(std::string owner) {
 	ESP_LOGV(LOG_TAG, ">> wait: Semaphore waiting: %s for %s", toString().c_str(), owner.c_str());
-	
-	m_owner = owner;
 
 	if (m_usePthreads) {
 		pthread_mutex_lock(&m_pthread_mutex);
 	} else {
 		xSemaphoreTake(m_semaphore, portMAX_DELAY);
 	}
+
+	m_owner = owner;
 
 	if (m_usePthreads) {
 		pthread_mutex_unlock(&m_pthread_mutex);
@@ -83,6 +79,7 @@ uint32_t FreeRTOS::Semaphore::wait(std::string owner) {
 	}
 
 	ESP_LOGV(LOG_TAG, "<< wait: Semaphore released: %s", toString().c_str());
+	m_owner = std::string("<N/A>");
 	return m_value;
 } // wait
 
@@ -92,8 +89,7 @@ FreeRTOS::Semaphore::Semaphore(std::string name) {
 	if (m_usePthreads) {
 		pthread_mutex_init(&m_pthread_mutex, nullptr);
 	} else {
-		m_semaphore = xSemaphoreCreateBinary();
-		xSemaphoreGive(m_semaphore);
+		m_semaphore = xSemaphoreCreateMutex();
 	}
 
 	m_name      = name;
@@ -229,7 +225,7 @@ void FreeRTOS::Semaphore::setName(std::string name) {
  * @param [in] length The amount of storage to allocate for the ring buffer.
  * @param [in] type The type of buffer.  One of RINGBUF_TYPE_NOSPLIT, RINGBUF_TYPE_ALLOWSPLIT, RINGBUF_TYPE_BYTEBUF.
  */
-Ringbuffer::Ringbuffer(size_t length, ringbuf_type_t type) {
+Ringbuffer::Ringbuffer(size_t length, RingbufferType_t type) {
 	m_handle = ::xRingbufferCreate(length, type);
 } // Ringbuffer
 

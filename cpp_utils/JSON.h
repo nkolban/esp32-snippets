@@ -7,7 +7,7 @@
 
 #ifndef COMPONENTS_CPP_UTILS_JSON_H_
 #define COMPONENTS_CPP_UTILS_JSON_H_
-#include <cJSON.h>
+#include "../../json/cJSON/cJSON.h"
 #include <string>
 
 // Forward declarations
