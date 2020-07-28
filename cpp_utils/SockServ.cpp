@@ -70,7 +70,7 @@ SockServ::~SockServ() {
 			pSockServ->m_clientSet.insert(tempSock);
 			xQueueSendToBack(pSockServ->m_acceptQueue, &tempSock, portMAX_DELAY);
 			pSockServ->m_clientSemaphore.give();
-		} catch (std::exception e) {
+		} catch (std::exception &e) {
 			ESP_LOGD(LOG_TAG, "acceptTask ending");
 			pSockServ->m_clientSemaphore.give();   // Wake up any waiting clients.
 			FreeRTOS::deleteTask();

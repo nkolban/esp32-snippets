@@ -22,7 +22,8 @@
  * @brief Create an address from the native ESP32 representation.
  * @param [in] address The native representation.
  */
-BLEAddress::BLEAddress(esp_bd_addr_t address) {
+BLEAddress::BLEAddress(esp_bd_addr_t address, esp_ble_wl_addr_type_t type) {
+    m_type = type;
 	memcpy(m_address, address, ESP_BD_ADDR_LEN);
 } // BLEAddress
 
@@ -38,7 +39,8 @@ BLEAddress::BLEAddress(esp_bd_addr_t address) {
  *
  * @param [in] stringAddress The hex representation of the address.
  */
-BLEAddress::BLEAddress(std::string stringAddress) {
+BLEAddress::BLEAddress(std::string stringAddress, esp_ble_wl_addr_type_t type) {
+    m_type = type;
 	if (stringAddress.length() != 17) return;
 
 	int data[6];
@@ -58,7 +60,7 @@ BLEAddress::BLEAddress(std::string stringAddress) {
  * @return True if the addresses are equal.
  */
 bool BLEAddress::equals(BLEAddress otherAddress) {
-	return memcmp(otherAddress.getNative(), m_address, 6) == 0;
+	return memcmp(otherAddress.getNative(), m_address, 6) == 0 && m_type == otherAddress.m_type;
 } // equals
 
 
@@ -92,4 +94,9 @@ std::string BLEAddress::toString() {
 	stream << std::setfill('0') << std::setw(2) << std::hex << (int) ((uint8_t*) (m_address))[5];
 	return stream.str();
 } // toString
+
+esp_ble_wl_addr_type_t BLEAddress::getType() const {
+    return m_type;
+}
+
 #endif
