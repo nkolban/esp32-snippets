@@ -37,6 +37,7 @@ PWM::PWM(int gpioNum, uint32_t frequency, ledc_timer_bit_t dutyResolution, ledc_
 	timer_conf.freq_hz    = frequency;
 	timer_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
 	timer_conf.timer_num  = timer;
+	timer_conf.clk_cfg    = LEDC_AUTO_CLK;
 	ESP_ERROR_CHECK(::ledc_timer_config(&timer_conf));
 
 	ledc_channel_config_t ledc_conf;
@@ -46,6 +47,7 @@ PWM::PWM(int gpioNum, uint32_t frequency, ledc_timer_bit_t dutyResolution, ledc_
 	ledc_conf.intr_type  = LEDC_INTR_DISABLE;
 	ledc_conf.speed_mode = LEDC_HIGH_SPEED_MODE;
 	ledc_conf.timer_sel  = timer;
+	ledc_conf.hpoint     = 0;
 	ESP_ERROR_CHECK(::ledc_channel_config(&ledc_conf));
 
 	this->m_channel        = channel;
